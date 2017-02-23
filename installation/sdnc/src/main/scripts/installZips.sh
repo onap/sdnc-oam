@@ -68,7 +68,7 @@ fi
 
 cwd=$(pwd)
 
-#mavenOpts=${2:-"-s $cwd/../../jenkins-settings.xml"}
+mavenOpts=${2:-"-s ${SETTINGS_FILE} -gs ${GLOBAL_SETTINGS_FILE}"}
 cd /tmp
 
 echo "Installing SDN-C core version ${SDNC_CORE_VERSION}"
