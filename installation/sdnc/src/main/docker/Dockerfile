@@ -15,7 +15,6 @@ COPY idmlight.db.mv.db /opt/opendaylight/current
 # copy openecomp
 COPY opt /opt
 RUN ln -s /opt/openecomp/sdnc /opt/sdnc
-RUN chmod +x /opt/openecomp/sdnc/bin/*
 
 # workaround till we get proxy working
 COPY mysql.tgz /tmp
