@@ -275,11 +275,13 @@ exports.saveUser = function(req,res){
 
 		connection.query(sql, function(err,result){
 			if(err){
+				connection.release();
 				res.render("pages/signup", {result:{code:'error', msg:"Unable to get database connection. " + String(err)},header:process.env.MAIN_MENU});
 				return;
 			}
 			if (result.length == 1 || result.length > 1)
 			{
+				connection.release();
 				res.render("pages/signup", {result:{code:'error', msg:'User Information already exists.'},header:process.env.MAIN_MENU});
 				return;
 			}
