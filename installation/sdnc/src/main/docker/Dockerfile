@@ -1,5 +1,5 @@
 # Base ubuntu with added packages needed for open ecomp
-FROM ecomp/ubuntu-sdnc-image:${project.version}
+FROM openecomp/ubuntu-sdnc-image:${project.version}
 MAINTAINER SDN-C Team (sdnc@lists.openecomp.org)
 ENV JAVA_HOME /usr/lib/jvm/java-7-openjdk-amd64
 ENV ODL_HOME /opt/opendaylight/current
