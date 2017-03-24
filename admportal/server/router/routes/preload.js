@@ -35,9 +35,6 @@ var options = {
         strictSSL: false
 };
 
-// Connection to OpenDaylight
-Odl = require('./Odl');
-
 // multer 1.1
 var unixTime = moment().unix();
 var storage = multer.diskStorage({
@@ -60,7 +57,7 @@ var upload = multer({
 	}
 });
 
-router.post('/uploadVnfCsv', csp.checkAuth, dbRoutes.checkDB, upload.array('filename'), function(req, res)
+router.post('/uploadVnfCsv', csp.checkAuth, upload.array('filename'), function(req, res)
 {
 	console.log('files:'+ JSON.stringify(req.files,null,4));
 
@@ -91,7 +88,7 @@ router.post('/uploadVnfCsv', csp.checkAuth, dbRoutes.checkDB, upload.array('file
 
 });
 
-router.post('/uploadNetworkCsv', csp.checkAuth, dbRoutes.checkDB, upload.array('filename'), function(req, res)
+router.post('/uploadNetworkCsv', csp.checkAuth, upload.array('filename'), function(req, res)
 {
     console.log('files:'+ JSON.stringify(req.files,null,4));
 
