@@ -23,7 +23,7 @@ var options = {
 };
 
 // Connection to OpenDaylight
-Odl = require('./Odl');
+OdlInterface = require('./OdlInterface');
 
 function handleResult(err, response_str, res) {
     if (err) {
@@ -44,7 +44,7 @@ function handleResult(err, response_str, res) {
 // calls restconf to get information
 router.get('/listWklst', csp.checkAuth, function(req, res) {
     options.strictSSL = true;   // used to test SSL certificate
-    Odl.Get('/restconf/config/L3SDN-API:services',options, handleResult,req,res);
+    OdlInterface.Get('/restconf/config/L3SDN-API:services',options, handleResult,req,res);
 });
 
 router.get('/pageWklst', csp.checkAuth, function(req,res) {
@@ -102,7 +102,7 @@ router.post('/update_vr_lan_interface', function(req,res){
 	};
 	var tasks = [];
 	tasks.push(function(callback){
-		Odl.put_vr_lan_interface('/restconf/config/L3SDN-API:services/layer3-service-list/'
+		OdlInterface.put_vr_lan_interface('/restconf/config/L3SDN-API:services/layer3-service-list/'
 			+ svc_instance_id
 			+ '/service-data/vr-lan/', options, callback);
 	});
@@ -136,36 +136,36 @@ router.get('/svc-topology-operation', function(req, res) {
              + '"svc-instance-id":"'+ req.query['svc-instance-id']+ '"' + ','
              + '"svc-aic-site-id":"'+ req.query['svc-aic-site-id']+ '"'
              +' } }';
-    Odl.Post('/restconf/operations/L3SDN-API:svc-topology-operation', options, formData, handleResult, res);
+    OdlInterface.Post('/restconf/operations/L3SDN-API:svc-topology-operation', options, formData, handleResult, res);
 });
 
 // delete request
 router.get('/wklist-delete', function(req, res) {
     //console.dir(req.query);
-    Odl.Delete('/restconf/config/L3SDN-API:l3sdn-api-worklist/requests/'+req.query['request'], options, handleResult, res);
+    OdlInterface.Delete('/restconf/config/L3SDN-API:l3sdn-api-worklist/requests/'+req.query['request'], options, handleResult, res);
 });
 
 // get request
 router.get('/getid',function(req, res) {
     //console.dir(req.query);
-    Odl.GetID('/restconf/config/L3SDN-API:l3sdn-api-worklist/requests/'+req.query['request'], options, res);
+    OdlInterface.GetID('/restconf/config/L3SDN-API:l3sdn-api-worklist/requests/'+req.query['request'], options, res);
 });
 
 router.get('/getvnf', function(req,res) {
     //console.log("/getvnf "+req.query);
-    Odl.GetVNF('/restconf/config/L3SDN-API:l3sdn-api-worklist/requests/'+req.query['request']+'/vnf/',options,req,res);
+    OdlInterface.GetVNF('/restconf/config/L3SDN-API:l3sdn-api-worklist/requests/'+req.query['request']+'/vnf/',options,req,res);
 });
 router.get('/getvrlan', function(req,res) {
 	var vrtasks = [];
 	var reqstr = encodeURIComponent(req.query['request']);
     vrtasks.push(function(callback) {
-		Odl.GetVRlan('/restconf/config/L3SDN-API:services/layer3-service-list/'+reqstr+'/service-data/vr-lan/',options,callback);
+		OdlInterface.GetVRlan('/restconf/config/L3SDN-API:services/layer3-service-list/'+reqstr+'/service-data/vr-lan/',options,callback);
     });
 	async.series(vrtasks, function(err,result){
     	var msgArray = new Array();
         if(err){
             msgArray.push(err);
-			Odl.Get('/restconf/config/L3SDN-API:services',options, handleResult,res);
+			OdlInterface.Get('/restconf/config/L3SDN-API:services',options, handleResult,res);
 			//res.render("pages/err",
                 //{result:{code:'error', msg:"Unable to get vr-lan information: "+ String(err) }});
             return;
@@ -230,7 +230,7 @@ router.get('/getClusterStatus', function(req,res) {
 
 	urlArray.forEach(function(request){
     	urltasks.push(function(callback) {
-        	Odl.GetClusterStatus(request,callback);
+        	OdlInterface.GetClusterStatus(request,callback);
 		});
     });
     async.series(urltasks, function(err,result){

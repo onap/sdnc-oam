@@ -26,11 +26,11 @@ router.use(bodyParser.urlencoded({
 router.get('/listUsers', csp.checkAuth, function(req,res) {
 	dbRoutes.listUsers(req,res, {user:req.session.loggedInAdmin,code:'', msg:''} );
 });
-router.get('/deleteUser', csp.checkAuth, dbRoutes.checkDB, function(req,res) {
+router.get('/deleteUser', csp.checkAuth, function(req,res) {
 	dbRoutes.deleteUser(req,res, {code:'', msg:''} );
 });
 
-//router.get('/activate', csp.checkAuth, dbRoutes.checkDB, function(req,res){
+//router.get('/activate', csp.checkAuth, function(req,res){
 
 	//var _module = req.query.module;
 	//var rpc = req.query.rpc;
@@ -40,7 +40,7 @@ router.get('/deleteUser', csp.checkAuth, dbRoutes.checkDB, function(req,res) {
 	//dbRoutes.activate(req,res,_module,rpc,version,mode);
 //});
 
-//router.get('/deactivate', csp.checkAuth, dbRoutes.checkDB, function(req,res){
+//router.get('/deactivate', csp.checkAuth, function(req,res){
 
 	//var _module = req.query.module;
 	//var rpc = req.query.rpc;
@@ -50,7 +50,7 @@ router.get('/deleteUser', csp.checkAuth, dbRoutes.checkDB, function(req,res) {
 	//dbRoutes.deactivate(req,res,_module,rpc,version,mode);
 //});
 
-//router.get('/deleteDG', csp.checkAuth, dbRoutes.checkDB, function(req,res){
+//router.get('/deleteDG', csp.checkAuth, function(req,res){
 
 	//var _module = req.query.module;
 	//var rpc = req.query.rpc;
@@ -94,14 +94,14 @@ parser.onend = function () {
 
 
 // POST
-router.post('/updateUser', csp.checkAuth, dbRoutes.checkDB, function(req,res,next){
+router.post('/updateUser', csp.checkAuth, function(req,res,next){
 	dbRoutes.updateUser(req,res,{code:'',msg:''});
 });
-router.post('/addUser', csp.checkAuth, dbRoutes.checkDB, function(req,res) {
+router.post('/addUser', csp.checkAuth, function(req,res) {
 	dbRoutes.addUser(req,res, {code:'', msg:''} );
 });
 
-//router.post('/upload', csp.checkAuth, dbRoutes.checkDB, function(req, res, next){
+//router.post('/upload', csp.checkAuth, function(req, res, next){
 
 /*
 logger.debug("upload");

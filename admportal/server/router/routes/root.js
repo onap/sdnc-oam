@@ -5,7 +5,7 @@ var dbRoutes = require('./dbRoutes.js');
 var sla = require('./sla');
 var os = require('os');
 var async = require('async');
-var Odl = require('./Odl');
+var OdlInterface = require('./OdlInterface');
 var properties = require(process.env.SDNC_CONFIG_DIR + '/admportal.json');
 
 
@@ -67,7 +67,7 @@ router.get('/test', function(req,res){
 });
 
 function createFunctionObj( loptions ) {
-	return function(callback) { Odl.Healthcheck(loptions,callback); };
+	return function(callback) { OdlInterface.Healthcheck(loptions,callback); };
 }
 
 router.get('/mytree', function(req,res) {
@@ -76,13 +76,13 @@ router.get('/mytree', function(req,res) {
 router.get('/setuplogin', function(req,res) {
 	res.render('pages/setuplogin');
 });
-router.post('/formSetupLogin', dbRoutes.checkDB, function(req,res) {
+router.post('/formSetupLogin', function(req,res) {
 	dbRoutes.saveSetupLogin(req,res);
 });
-router.post('/formSignUp', dbRoutes.checkDB, function(req,res) {
+router.post('/formSignUp', function(req,res) {
 	dbRoutes.saveUser(req,res);
 });
-router.post('/formlogin', csp.login, dbRoutes.checkDB, function(req,res) {
+router.post('/formlogin', csp.login, function(req,res) {
 });
 router.get('/login', function(req,res) {
 	res.render('pages/login');

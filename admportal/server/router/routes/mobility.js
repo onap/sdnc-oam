@@ -32,7 +32,7 @@ var options = {
 };
 
 // Connection to OpenDaylight
-Odl = require('./Odl');
+OdlInterface = require('./OdlInterface');
 
 // used for file upload button, retain original file name
 //router.use(bodyParser());
@@ -60,23 +60,23 @@ var upload = multer({
 
 
 // GET
-router.get('/getVnfData', csp.checkAuth, dbRoutes.checkDB, function(req,res) {
+router.get('/getVnfData', csp.checkAuth, function(req,res) {
 	dbRoutes.getVnfData(req,res, {code:'', msg:''}, req.session.loggedInAdmin);
 });
-router.get('/getVmNetworks', csp.checkAuth, dbRoutes.checkDB, function(req,res) {
+router.get('/getVmNetworks', csp.checkAuth, function(req,res) {
 	dbRoutes.getVmNetworks(req,res, {code:'', msg:''}, req.session.loggedInAdmin);
 });
-router.get('/getVnfProfile', csp.checkAuth, dbRoutes.checkDB, function(req,res) {
+router.get('/getVnfProfile', csp.checkAuth, function(req,res) {
 	dbRoutes.getVnfProfile(req,res, {code:'', msg:''}, req.session.loggedInAdmin);
 });
-router.get('/getVnfNetworks', csp.checkAuth, dbRoutes.checkDB, function(req,res) {
+router.get('/getVnfNetworks', csp.checkAuth, function(req,res) {
 	dbRoutes.getVnfNetworks(req,res, {code:'', msg:''}, req.session.loggedInAdmin);
 });
-router.get('/getVmProfile', csp.checkAuth, dbRoutes.checkDB, function(req,res) {
+router.get('/getVmProfile', csp.checkAuth, function(req,res) {
 	dbRoutes.getVmProfile(req,res, {code:'', msg:''}, req.session.loggedInAdmin);
 });
 ////////
-router.get('/getVnfNetworkData', csp.checkAuth, dbRoutes.checkDB, function(req,res) {
+router.get('/getVnfNetworkData', csp.checkAuth, function(req,res) {
 	dbRoutes.getVnfNetworkData(req,res, {code:'', msg:''}, req.session.loggedInAdmin);
 });
 
@@ -89,7 +89,7 @@ router.get('/viewVnfNetworkData', csp.checkAuth, function(req,res)
     var tasks = [];
 
     tasks.push(function(callback){
-		Odl.GetPreloadVnfData('/restconf/config/VNF-API:preload-vnfs/vnf-preload-list/'
+		OdlInterface.GetPreloadVnfData('/restconf/config/VNF-API:preload-vnfs/vnf-preload-list/'
             + encodeURIComponent(network_name) + '/' + encodeURIComponent(network_type) + '/', options,res,callback);
 
     });
@@ -119,7 +119,7 @@ router.get('/viewVnfData', csp.checkAuth, function(req,res)
 	var tasks = [];
 
 	tasks.push(function(callback){
-		Odl.GetPreloadVnfData('/restconf/config/VNF-API:preload-vnfs/vnf-preload-list/'
+		OdlInterface.GetPreloadVnfData('/restconf/config/VNF-API:preload-vnfs/vnf-preload-list/'
 			+ encodeURIComponent(vnf_name) + '/' + encodeURIComponent(vnf_type) + '/', options,res,callback);
 
 	});
@@ -140,7 +140,7 @@ router.get('/viewVnfData', csp.checkAuth, function(req,res)
 
 });
 
-router.get('/loadVnfNetworkData', csp.checkAuth, dbRoutes.checkDB, function(req,res)
+router.get('/loadVnfNetworkData', csp.checkAuth, function(req,res)
 {
 
     var privilegeObj = req.session.loggedInAdmin;
@@ -188,7 +188,7 @@ router.get('/loadVnfNetworkData', csp.checkAuth, dbRoutes.checkDB, function(req,
     	// add the two curly braces at the end that we stripped off
     	s_file = s_file.concat('}}');
 
-        Odl.Post('/restconf/operations/VNF-API:preload-network-topology-operation',
+        OdlInterface.Post('/restconf/operations/VNF-API:preload-network-topology-operation',
                     options,s_file,res,callback);
     });
 
@@ -216,7 +216,7 @@ router.get('/loadVnfNetworkData', csp.checkAuth, dbRoutes.checkDB, function(req,
 });
 
 
-router.get('/loadVnfData', csp.checkAuth, dbRoutes.checkDB, function(req,res) 
+router.get('/loadVnfData', csp.checkAuth, function(req,res) 
 {
     var privilegeObj = req.session.loggedInAdmin;
 	var full_path_file_name = process.cwd() + "/uploads/" + req.query.filename
@@ -266,7 +266,7 @@ router.get('/loadVnfData', csp.checkAuth, dbRoutes.checkDB, function(req,res)
 		// add the two curly braces at the end that we stripped off
 		s_file = s_file.concat('}}');
 
-		Odl.Post('/restconf/operations/VNF-API:preload-vnf-topology-operation',
+		OdlInterface.Post('/restconf/operations/VNF-API:preload-vnf-topology-operation',
                     options,s_file,res,callback);
 	});
 
@@ -294,7 +294,7 @@ router.get('/loadVnfData', csp.checkAuth, dbRoutes.checkDB, function(req,res)
 });
 
 
-router.get('/deleteVnfNetworkData', csp.checkAuth, dbRoutes.checkDB, function(req,res) {
+router.get('/deleteVnfNetworkData', csp.checkAuth, function(req,res) {
 
     var privilegeObj = req.session.loggedInAdmin;
     var tasks = [];
@@ -323,7 +323,7 @@ router.get('/deleteVnfNetworkData', csp.checkAuth, dbRoutes.checkDB, function(re
 		inputString = inputString.concat('","svc-action": "delete"}}}');
 	
         tasks.push(function(callback) {
-            Odl.Post('/restconf/operations/VNF-API:preload-network-topology-operation',
+            OdlInterface.Post('/restconf/operations/VNF-API:preload-network-topology-operation',
                     options,inputString,res,callback);
         });
         tasks.push(function(callback) {
@@ -347,7 +347,7 @@ router.get('/deleteVnfNetworkData', csp.checkAuth, dbRoutes.checkDB, function(re
 });
 
 
-router.get('/deleteVnfData', csp.checkAuth, dbRoutes.checkDB, function(req,res) {
+router.get('/deleteVnfData', csp.checkAuth, function(req,res) {
 
     var privilegeObj = req.session.loggedInAdmin;
     var tasks = [];
@@ -388,7 +388,7 @@ router.get('/deleteVnfData', csp.checkAuth, dbRoutes.checkDB, function(req,res) 
 		//inputString = inputString.concat('"svc-action": "delete"}}}');
 		
         tasks.push(function(callback) {
-        	Odl.Post('/restconf/operations/VNF-API:preload-vnf-topology-operation',
+        	OdlInterface.Post('/restconf/operations/VNF-API:preload-vnf-topology-operation',
                     options,inputString,res,callback);
         });
         tasks.push(function(callback) {
@@ -412,7 +412,7 @@ router.get('/deleteVnfData', csp.checkAuth, dbRoutes.checkDB, function(req,res) 
 });
 
 
-router.get('/deleteVmProfile', csp.checkAuth, dbRoutes.checkDB, function(req,res) {
+router.get('/deleteVmProfile', csp.checkAuth, function(req,res) {
 
     var privilegeObj = req.session.loggedInAdmin;
     var tasks = [];
@@ -441,7 +441,7 @@ router.get('/deleteVmProfile', csp.checkAuth, dbRoutes.checkDB, function(req,res
 });
 
 
-router.get('/deleteVnfNetwork', csp.checkAuth, dbRoutes.checkDB, function(req,res) {
+router.get('/deleteVnfNetwork', csp.checkAuth, function(req,res) {
 
     var privilegeObj = req.session.loggedInAdmin;
     var tasks = [];
@@ -469,7 +469,7 @@ router.get('/deleteVnfNetwork', csp.checkAuth, dbRoutes.checkDB, function(req,re
     });
 });
 
-router.get('/deleteVnfProfile', csp.checkAuth, dbRoutes.checkDB, function(req,res) {
+router.get('/deleteVnfProfile', csp.checkAuth, function(req,res) {
 
     var privilegeObj = req.session.loggedInAdmin;
     var tasks = [];
@@ -496,7 +496,7 @@ router.get('/deleteVnfProfile', csp.checkAuth, dbRoutes.checkDB, function(req,re
     });
 });
 
-router.get('/deleteVmNetwork', csp.checkAuth, dbRoutes.checkDB, function(req,res) {
+router.get('/deleteVmNetwork', csp.checkAuth, function(req,res) {
 
     var privilegeObj = req.session.loggedInAdmin;
     var tasks = [];
@@ -527,7 +527,7 @@ router.get('/deleteVmNetwork', csp.checkAuth, dbRoutes.checkDB, function(req,res
 
 
 // POST
-router.post('/addVmProfile', csp.checkAuth, dbRoutes.checkDB, function(req,res){
+router.post('/addVmProfile', csp.checkAuth, function(req,res){
 
     var privilegeObj = req.session.loggedInAdmin;
     var tasks = [];
@@ -568,7 +568,7 @@ router.post('/addVmProfile', csp.checkAuth, dbRoutes.checkDB, function(req,res){
 });
 
 
-router.post('/addVnfNetwork', csp.checkAuth, dbRoutes.checkDB, function(req,res){
+router.post('/addVnfNetwork', csp.checkAuth, function(req,res){
 
     var privilegeObj = req.session.loggedInAdmin;
     var tasks = [];
@@ -595,7 +595,7 @@ router.post('/addVnfNetwork', csp.checkAuth, dbRoutes.checkDB, function(req,res)
     });
 });
 
-router.post('/addVnfProfile', csp.checkAuth, dbRoutes.checkDB, function(req,res){
+router.post('/addVnfProfile', csp.checkAuth, function(req,res){
 
     var privilegeObj = req.session.loggedInAdmin;
     var tasks = [];
@@ -624,7 +624,7 @@ console.log(sql);
     });
 });
 
-router.post('/addVmNetwork', csp.checkAuth, dbRoutes.checkDB, function(req,res){
+router.post('/addVmNetwork', csp.checkAuth, function(req,res){
 
     var privilegeObj = req.session.loggedInAdmin;
     var tasks = [];
@@ -704,7 +704,7 @@ router.post('/addVmNetwork', csp.checkAuth, dbRoutes.checkDB, function(req,res){
 });
 
 // POST
-router.post('/uploadVnfData', csp.checkAuth, dbRoutes.checkDB, upload.single('filename'), function(req, res)
+router.post('/uploadVnfData', csp.checkAuth, upload.single('filename'), function(req, res)
 {
 console.log('filename:'+ JSON.stringify(req.file.originalname));
     var msgArray = new Array();
@@ -776,7 +776,7 @@ console.log('filename:'+ JSON.stringify(req.file.originalname));
 
 } );
 
-router.post('/uploadVnfNetworkData', csp.checkAuth, dbRoutes.checkDB, upload.single('filename'), function(req, res)
+router.post('/uploadVnfNetworkData', csp.checkAuth, upload.single('filename'), function(req, res)
 {
     var msgArray = new Array();
     var privilegeObj = req.session.loggedInAdmin;
@@ -846,7 +846,7 @@ router.post('/uploadVnfNetworkData', csp.checkAuth, dbRoutes.checkDB, upload.sin
 } );
 
 
-router.post('/uploadVmNetworks', csp.checkAuth, dbRoutes.checkDB, upload.single('filename'), function(req, res){
+router.post('/uploadVmNetworks', csp.checkAuth, upload.single('filename'), function(req, res){
 
     var msgArray = new Array();
     var privilegeObj = req.session.loggedInAdmin;
@@ -967,7 +967,7 @@ router.post('/uploadVmNetworks', csp.checkAuth, dbRoutes.checkDB, upload.single(
 
 } );
 
-router.post('/uploadVnfProfile', csp.checkAuth, dbRoutes.checkDB, upload.single('filename'), function(req, res){
+router.post('/uploadVnfProfile', csp.checkAuth, upload.single('filename'), function(req, res){
 
     var msgArray = new Array();
     var privilegeObj = req.session.loggedInAdmin;
@@ -1092,7 +1092,7 @@ console.log('result='+JSON.stringify(result));
 } );
 
 
-router.post('/uploadVnfNetworks', csp.checkAuth, dbRoutes.checkDB, upload.single('filename'), function(req, res){
+router.post('/uploadVnfNetworks', csp.checkAuth, upload.single('filename'), function(req, res){
 
     var msgArray = new Array();
     var privilegeObj = req.session.loggedInAdmin;
@@ -1214,7 +1214,7 @@ router.post('/uploadVnfNetworks', csp.checkAuth, dbRoutes.checkDB, upload.single
     }
 } );
 
-router.post('/uploadVmProfile', csp.checkAuth, dbRoutes.checkDB, upload.single('filename'), function(req, res){
+router.post('/uploadVmProfile', csp.checkAuth, upload.single('filename'), function(req, res){
 
     var msgArray = new Array();
     var privilegeObj = req.session.loggedInAdmin;

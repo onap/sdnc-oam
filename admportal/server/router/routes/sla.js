@@ -57,11 +57,11 @@ router.use(multer({
 
 
 // GET
-router.get('/listSLA', csp.checkAuth, dbRoutes.checkDB, function(req,res) {
+router.get('/listSLA', csp.checkAuth, function(req,res) {
 	dbRoutes.listSLA(req,res,{code:'', msg:''} );
 });
 
-router.get('/activate', csp.checkAuth, dbRoutes.checkDB, function(req,res){
+router.get('/activate', csp.checkAuth, function(req,res){
 
 	var _module = req.query.module;
 	var rpc = req.query.rpc;
@@ -82,7 +82,7 @@ router.get('/activate', csp.checkAuth, dbRoutes.checkDB, function(req,res){
 	});
 });
 
-router.get('/deactivate', csp.checkAuth, dbRoutes.checkDB, function(req,res){
+router.get('/deactivate', csp.checkAuth, function(req,res){
 
 	var _module = req.query.module;
 	var rpc = req.query.rpc;
@@ -102,7 +102,7 @@ router.get('/deactivate', csp.checkAuth, dbRoutes.checkDB, function(req,res){
     });
 });
 
-router.get('/deleteDG', csp.checkAuth, dbRoutes.checkDB, function(req,res){
+router.get('/deleteDG', csp.checkAuth, function(req,res){
 
 	var _module = req.query.module;
 	var rpc = req.query.rpc;
@@ -122,7 +122,7 @@ router.get('/deleteDG', csp.checkAuth, dbRoutes.checkDB, function(req,res){
     });
 });
 
-router.post('/dgUpload', dbRoutes.checkDB, upload.single('filename'), function(req, res, next){
+router.post('/dgUpload', upload.single('filename'), function(req, res, next){
 
     if(req.file.originalname){
         if (req.file.originalname == 0) {
@@ -188,7 +188,7 @@ router.post('/dgUpload', dbRoutes.checkDB, upload.single('filename'), function(r
 
 
 // POST
-router.post('/upload', csp.checkAuth, dbRoutes.checkDB, upload.single('filename'),  function(req, res, next){
+router.post('/upload', csp.checkAuth, upload.single('filename'),  function(req, res, next){
 
 console.log('file:'+ JSON.stringify(req.file));
 
@@ -257,7 +257,7 @@ console.log('file:'+ JSON.stringify(req.file));
 	}
 });
 
-router.get('/printAsXml', csp.checkAuth, dbRoutes.checkDB, function(req,res){
+router.get('/printAsXml', csp.checkAuth, function(req,res){
 
 	try {
 		//dbRoutes.checkSvcLogic(req,res);
@@ -309,7 +309,7 @@ router.get('/printAsXml', csp.checkAuth, dbRoutes.checkDB, function(req,res){
 });
 
 
-router.get('/printAsGv', csp.checkAuth, dbRoutes.checkDB, function(req,res){
+router.get('/printAsGv', csp.checkAuth, function(req,res){
 
 	try {	
 		//dbRoutes.checkSvcLogic(req,res);

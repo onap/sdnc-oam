@@ -1,10 +1,10 @@
-// Odl.js
+// OdlInterface.js
 var https = require('https');
 var http = require('http');
 var properties = require(process.env.SDNC_CONFIG_DIR + '/admportal.json');
 
 
-var Odl = function() {
+var OdlInterface = function() {
     // Call ODL page
     //  get(uri,res)
     //  post(uri,data, res)
@@ -590,5 +590,5 @@ console.log('response_str='+response_str);
     };
 }();
 
-module.exports = Odl;
+module.exports = OdlInterface;
 
