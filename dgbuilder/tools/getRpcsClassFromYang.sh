@@ -3,7 +3,7 @@ toolsDir=$PROJECT_HOME/tools
 if [ "$#" != "2" ]
 then
 	echo "Usage $0 yang_file generated_jar_file"
-	echo "example $0 /home/users/sdnc/src/aic-homing/model/src/main/yang/AicHoming.yang  /home/users/sdnc/src/aic-homing/model/target/aicHoming.model-2.0.0.jar"
+	echo "example $0 /home/users/sdnc/src/sample.yang  /home/users/sdnc/target/sample.model-1.0.0.jar"
 	exit
 fi
 yangFile="$1"

@@ -8,10 +8,9 @@ if [ -z "$PROJECT_HOME" ]
 then
         export PROJECT_HOME=$(pwd)/..
 fi
-export CLASSPATH=$CLASSPATH:.
 if [ -e "$1" ]
 then
-	java FormatXml $1
+	python $PROJECT_HOME/tools/formatXml.py $1
 else
 	echo "File $1 does not exist" 
 fi
