@@ -18,7 +18,7 @@
 	<description>Creates docker container for dgbuilder</description>
 
 	<properties>
-		<image.name>ecomp/dgbuilder-sdnc-image</image.name>
+		<image.name>openecomp/dgbuilder-sdnc-image</image.name>
 	</properties>
 
 
@@ -51,7 +51,7 @@
 				<executions>
 					<execution>
 						<id>generate-images</id>
-						<phase>process-sources</phase>
+						<phase>generate-sources</phase>
 						<goals>
 							<goal>build</goal>
 						</goals>
@@ -98,20 +98,21 @@
 				<groupId>org.codehaus.mojo</groupId>
 				<version>1.5.0</version>
 				<executions>
-					<execution>
-						<id>make-path</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>/bin/mkdir</executable>
-							<arguments>
-								<argument>-p</argument>
-								<argument>${basedir}/target/docker-stage/opt/openecomp/sdnc</argument>
-							</arguments>
-						</configuration>
-					</execution>
+                    			<execution>
+                        			<id>Unzip dgbuilder</id>
+                        			<phase>generate-sources</phase>
+                        			<goals>
+                            				<goal>exec</goal>
+                        			</goals>
+                        			<configuration>
+                            				<executable>/usr/bin/unzip</executable>
+                            				<arguments>
+                                			<argument>-d</argument>
+                                			<argument>${basedir}/target/docker-stage/opt/openecomp/sdnc</argument>
+                                			<argument>../../dgbuilder/target/*.zip</argument>
+                            				</arguments>
+                        			</configuration>
+                    			</execution>
 					<execution>
 						<id>Copy dgbuilder</id>
 						<phase>generate-sources</phase>
@@ -137,7 +138,7 @@
 						<configuration>
 							<executable>/bin/bash</executable>
 							<arguments>
-								<argument>${basedir}/target/docker-stage/opt/openecomp/sdnc/dgbuilder/createReleaseDir</argument>
+								<argument>${basedir}/target/docker-stage/opt/openecomp/sdnc/dgbuilder/createReleaseDir.sh</argument>
 								<argument>1702</argument>
 								<argument>dguser</argument>
 								<argument>change_email_id@dgbuilder.com</argument>
@@ -147,7 +148,7 @@
 
 					<execution>
 						<id>change shell permissions</id>
-						<phase>process-sources</phase>
+                        			<phase>process-sources</phase>
 						<goals>
 							<goal>exec</goal>
 						</goals>
