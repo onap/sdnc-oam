@@ -7,7 +7,7 @@ COPY opt /opt
 WORKDIR /opt/openecomp/sdnc/dgbuilder
 # Set the proxy if needed
 # RUN npm config set proxy http://your.proxy.com:8080
-#RUN npm install
+RUN npm install
 
 #ENTRYPOINT /bin/bash /opt/openecomp/sdnc/dgbuilder/start sdnc1.0
 EXPOSE 3100
