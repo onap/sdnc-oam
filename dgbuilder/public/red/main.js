@@ -392,8 +392,7 @@ var RED = (function() {
                                  .always(function() {
 				});
 	}
-		
-	/*
+	/*	
 	function  listYangFiles(){
 		yangFilesList=[];
 		var divStyle="<style>#list-yang-data-container a { color: #067ab4; font-size: 0.75em;} #list-yang-data-container a:hover { text-decoration: underline; padding: -15px -15px -15px 15px; } .header { height: 40px; border-bottom: 1px solid #EEE; background-color: #ffffff; height: 40px; -webkit-border-top-left-radius: 5px; -webkit-border-top-right-radius: 5px; -moz-border-radius-topleft: 5px; -moz-border-radius-topright: 5px; border-top-left-radius: 5px; border-top-right-radius: 5px; } .footer { height: 40px; background-color: whiteSmoke; border-top: 1px solid #DDD; -webkit-border-bottom-left-radius: 5px; -webkit-border-bottom-right-radius: 5px; -moz-border-radius-bottomleft: 5px; -moz-border-radius-bottomright: 5px; border-bottom-left-radius: 5px; border-bottom-right-radius: 5px; }</style>";
@@ -1547,16 +1546,22 @@ Added this logic because , when the configuration item is choosen in the menu th
             options: [
                 {id:"btn-sidebar",icon:"fa fa-columns",label:"Sidebar   (Ctrl+Space)",toggle:true,onselect:RED.sidebar.toggleSidebar},
                 null,
+                {id:"btn-manage-yang-modules-menu",icon:"fa fa-sign-in",label:"Manage Yang Modules",options:[
+                    {id:"btn-yang-upload",icon:"fa fa-clipboard",label:"Upload Yang File",onselect:RED.view.showYangUploadDialog},
+                    {id:"btn-available-yang-modules",icon:"fa fa-clipboard",label:"Available Yang Modules",onselect:showAvailableYangModules},
+                    {id:"btn-list-yang-files",icon:"fa fa-clipboard",label:"List Yang Files",onselect:listYangFiles},
+                ]},
+                null,
                 {id:"btn-configure-upload",icon:"fa fa-book",label:"Configuration",toggle:false,onselect:updateConfiguration},
                 null,
                 {id:"btn-manage-tabs",icon:"fa fa-info",label:"Manage Tabs",toggle:false,onselect:showSelectedTabs},
                 null,
-                {id:"btn-find-dgnumber",icon:"fa fa-info",label:"Search Text (Ctrl+[)",toggle:false,onselect:RED.view.showSearchTextDialog},
+                {id:"btn-search-text",icon:"fa fa-info",label:"Search Text (Ctrl+[)",toggle:false,onselect:RED.view.showSearchTextDialog},
                 null,
                 {id:"btn-find-dgnumber",icon:"fa fa-info",label:"Find Node (Ctrl+B)",toggle:false,onselect:RED.view.showDgNumberDialog},
                 null,
-                /*{id:"btn-loop-detection",icon:"fa fa-info",label:"Loop Detection",toggle:true,onselect:performLoopDetection},
-               null ,*/
+		{id:"btn-request-input",icon:"fa fa-info",label:"RPC Input (Ctrl+O)",toggle:false,onselect:RED.view.showRequestTemplateDialog},
+                null,
                 {id:"btn-node-status",icon:"fa fa-info",label:"Node Status",toggle:true,onselect:toggleStatus},
                 null,
                 {id:"btn-node-dgnumber",icon:"fa fa-info",label:"Show Node Numbers",toggle:true,onselect:toggleDgNumberDisplay},

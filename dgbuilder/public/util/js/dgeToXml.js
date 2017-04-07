@@ -522,7 +522,7 @@ function customValidation(currNodeSet){
 				}
 
 				//console.log("parentNodeType:" + parentNodeType);
-				if(countChildLogicNodes >1 && parentNodeType != 'block' ){
+				if(countChildLogicNodes >1 && parentNodeType != 'block' && parentNodeType != 'for' ){
 					if(node.dgnumber != undefined &&  node.dgnumber){
 						flowDesignErrors.push("Warning:May need a block Node after Node. <br><span style='color:red'>Node Name:</span>" + node.name + "<br><span style='color:red'>DG Number:</span>" + node.dgnumber[0] );
 					}else{

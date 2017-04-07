@@ -12,12 +12,12 @@ module=$(cat $yangFile|egrep "module .*{"|awk '{print $2}'|sed -e 's/{//g')
 #echo "	\"$module\" : ["
 rpcs=$(grep rpc $yangFile|grep -v leaf|sed -e 's/^\s\+rpc//g'|awk '{print $1}')
 #echo ${rpcs}
-for i in `find ${toolsDir}/yangToolsJars -name "*.jar" -print`
+for i in `find ${PROJECT_HOME}/svclogic/lib -name "*.jar" -print`
 do
 #echo $i
 export CLASSPATH=$CLASSPATH:$i
 done
-export CLASSPATH=$2:$CLASSPATH:.:${toolsDir}/slf4j-api-1.7.2.jar:${toolsDir}/guava-14.0.1.jar:${toolsDir}/printYangToProp.jar
+export CLASSPATH=$CLASSPATH:${toolsDir}/printYangToProp.jar:.
 allProps=""
 for rpc in $rpcs
 do

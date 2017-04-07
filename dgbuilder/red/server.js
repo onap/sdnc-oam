@@ -1084,7 +1084,8 @@ function createServer(_server,_settings) {
 				var matchedArr = fileName.match(/.zip$/);
 				if(matchedArr != null && matchedArr.length >0){
 					console.log("uploaded zip file" + fileName);
-					commandToExec = appDir + "/tools/generate_props_from_yangs_zip.sh " + yangFileFullPath ;
+					//commandToExec = appDir + "/tools/generate_props_from_yangs_zip.sh " + yangFileFullPath ;
+					commandToExec = appDir + "/tools/generate_props_from_yang.sh " + yangFileFullPath ;
 				}else{
 					commandToExec = appDir + "/tools/generate_props_from_yang.sh " + yangFileFullPath ;
 					console.log("uploaded file" + fileName);

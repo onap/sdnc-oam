@@ -1700,7 +1700,7 @@ RED.view = (function() {
 		$(function() {
 			var htmlStr= "<div id='yang-upload-div' style='width:375;height:225'>" +
 			'<form id="uploadForm" name="uploadForm" enctype="multipart/form-data" action="/api/uploadyang" method="post" >' + 
-			"<input id='yang-file-id' name='yangFile' type='file' accept='.yang,.zip'><p style='font-size:0.7em'><i>For Module depending on multiple yang files, zip them and upload the zip file</i</p><br><br><br><br><br><p id='yang-upload-status'></p>" +
+			"<input id='yang-file-id' name='yangFile' type='file' accept='.yang,.zip'><p style='font-size:0.7em'><i>For Module depending on multiple yang files, zip them and upload the zip file. The zip file name should match the exact name of the module with .zip extension</i</p><br><br><br><br><br><p id='yang-upload-status'></p>" +
 			//'<input id="upload-yang-button-id"  style="font-size:1em;font-weight:bold" type="button" value="Upload Yang" name="upload-yang-button">' +
 			"</form></div>";
 
