@@ -19,13 +19,49 @@
 
 	<properties>
 		<image.name>openecomp/ubuntu-sdnc-image</image.name>
+		<sdnc.project.version>${project.version}</sdnc.project.version>
 	</properties>
 
 
 	<build>
 		<plugins>
 
+			<plugin>
+				<groupId>org.codehaus.groovy.maven</groupId>
+				<artifactId>gmaven-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>validate</phase>
+						<goals>
+							<goal>execute</goal>
+						</goals>
+						<configuration>
+							<source>
+								println project.properties['sdnc.project.version'];
+								def versionArray;
+								if ( project.properties['sdnc.project.version'] != null ) {
+								versionArray =
+								project.properties['sdnc.project.version'].split('\\.');
+								}
 
+								if (
+								project.properties['sdnc.project.version'].endsWith("-SNAPSHOT")
+								)
+								{
+								project.properties['project.docker.latesttag.version']=versionArray[0]
+								+ '.' + versionArray[1] + "-SNAPSHOT-latest";
+								} else {
+								project.properties['project.docker.latesttag.version']=versionArray[0]
+								+ '.' + versionArray[1] + "-STAGING-latest";
+								}
+
+								println 'New Tag for docker:' +
+								project.properties['project.docker.latesttag.version'];
+							</source>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>io.fabric8</groupId>
 				<artifactId>docker-maven-plugin</artifactId>
@@ -41,8 +77,9 @@
 								<dockerFileDir>${basedir}/target/docker-stage</dockerFileDir>
 								<dockerFile>${basedir}/target/docker-stage/Dockerfile</dockerFile>
 								<tags>
-								<tag>${project.version}</tag>
-								<tag>latest</tag>
+									<tag>${project.version}</tag>
+									<tag>${project.version}-STAGING-${maven.build.timestamp}</tag>
+									<tag>${project.docker.latesttag.version}</tag>
 								</tags>
 							</build>
 						</image>

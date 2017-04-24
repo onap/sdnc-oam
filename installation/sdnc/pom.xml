@@ -19,6 +19,7 @@
 
 	<properties>
 		<image.name>openecomp/sdnc-image</image.name>
+		<sdnc.project.version>${project.version}</sdnc.project.version>
 		<sdnc.core.version>${project.version}</sdnc.core.version>
 		<sdnc.adaptors.version>${project.version}</sdnc.adaptors.version>
 		<sdnc.northbound.version>${project.version}</sdnc.northbound.version>
@@ -30,6 +31,42 @@
 		<plugins>
 
 
+			<plugin>
+				<groupId>org.codehaus.groovy.maven</groupId>
+				<artifactId>gmaven-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>validate</phase>
+						<goals>
+							<goal>execute</goal>
+						</goals>
+						<configuration>
+							<source>
+								println project.properties['sdnc.project.version'];
+								def versionArray;
+								if ( project.properties['sdnc.project.version'] != null ) {
+								versionArray =
+								project.properties['sdnc.project.version'].split('\\.');
+								}
+
+								if (
+								project.properties['sdnc.project.version'].endsWith("-SNAPSHOT")
+								)
+								{
+								project.properties['project.docker.latesttag.version']=versionArray[0]
+								+ '.' + versionArray[1] + "-SNAPSHOT-latest";
+								} else {
+								project.properties['project.docker.latesttag.version']=versionArray[0]
+								+ '.' + versionArray[1] + "-STAGING-latest";
+								}
+
+								println 'New Tag for docker:' +
+								project.properties['project.docker.latesttag.version'];
+							</source>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>io.fabric8</groupId>
 				<artifactId>docker-maven-plugin</artifactId>
@@ -45,8 +82,8 @@
 								<dockerFileDir>${basedir}/target/docker-stage</dockerFileDir>
 								<dockerFile>${basedir}/target/docker-stage/Dockerfile</dockerFile>
 								<tags>
-									<tag>${project.version}</tag>
-									<tag>latest</tag>
+									<tag>${project.version}-STAGING-${maven.build.timestamp}</tag>
+									<tag>${project.docker.latesttag.version}</tag>
 								</tags>
 							</build>
 						</image>
@@ -68,6 +105,38 @@
 							<goal>build</goal>
 							<goal>push</goal>
 						</goals>
+					</execution>
+				</executions>
+			</plugin>
+
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.0.0</version>
+				<executions>
+					<execution>
+						<id>get-odl-distribution</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>copy</goal>
+						</goals>
+						<configuration>
+							<artifactItems>
+								<artifactItem>
+									<groupId>org.opendaylight.integration</groupId>
+									<artifactId>distribution-karaf</artifactId>
+									<version>0.5.1-Boron-SR1</version>
+									<type>tar.gz</type>
+
+									<overWrite>true</overWrite>
+									<outputDirectory>${basedir}/target/docker-stage</outputDirectory>
+								</artifactItem>
+							</artifactItems>
+							<overWriteReleases>false</overWriteReleases>
+							<overWriteSnapshots>true</overWriteSnapshots>
+							<overWriteIfNewer>true</overWriteIfNewer>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>
@@ -115,6 +184,7 @@
 							</resources>
 						</configuration>
 					</execution>
+
 					<execution>
 						<id>copy-tarballs</id>
 						<goals>
@@ -128,7 +198,6 @@
 									<directory>src/main/resources</directory>
 									<includes>
 										<include>*.tgz</include>
-										<include>*.tar.gz</include>
 										<include>idmlight.db.mv.db</include>
 									</includes>
 									<filtering>false</filtering>
@@ -198,7 +267,7 @@
 			<plugin>
 				<artifactId>exec-maven-plugin</artifactId>
 				<groupId>org.codehaus.mojo</groupId>
-	 		        <version>1.5.0</version>
+				<version>1.5.0</version>
 				<executions>
 
 					<execution>
