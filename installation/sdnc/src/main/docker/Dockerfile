@@ -6,10 +6,13 @@ ENV ODL_HOME /opt/opendaylight/current
 ENV SDNC_CONFIG_DIR /opt/openecomp/sdnc/data/properties
 
 # copy the opendaylight tar and expand
-COPY distribution-karaf-0.5.1-Boron-SR1.tar.gz /tmp
-RUN mkdir /opt/opendaylight /opt/openecomp
-RUN tar zxvf /tmp/distribution-karaf-0.5.1-Boron-SR1.tar.gz --directory /opt/opendaylight
-RUN ln -s /opt/opendaylight/distribution-karaf-0.5.1-Boron-SR1 /opt/opendaylight/current
+COPY distribution-karaf-${sdnc.opendaylight.version}.tar.gz /tmp/
+RUN mkdir /opt/opendaylight \
+&& tar zxvf /tmp/distribution-karaf-${sdnc.opendaylight.version}.tar.gz --directory /opt/opendaylight \
+&& rm -rf /tmp/distribution-karaf-${sdnc.opendaylight.version}.tar.gz \
+&& ln -s /opt/opendaylight/distribution-karaf-${opendaylight_distro} /opt/opendaylight/current \
+&& mkdir /opt/openecomp
+
 COPY idmlight.db.mv.db /opt/opendaylight/current
 
 # copy openecomp
@@ -17,7 +20,6 @@ COPY opt /opt
 RUN ln -s /opt/openecomp/sdnc /opt/sdnc
 
 # workaround till we get proxy working
-COPY mysql.tgz /tmp
-RUN tar zxvf /tmp/mysql.tgz --directory /opt/opendaylight/current/system
+COPY mysql-connector-java-${sdnc.mysql-connector-java.version}.jar /opt/opendaylight/current/system
 # ENTRYPOINT exec /opt/opendaylight/current/bin/karaf
 EXPOSE 8181
