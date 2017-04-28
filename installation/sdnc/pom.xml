@@ -24,8 +24,27 @@
 		<sdnc.adaptors.version>${project.version}</sdnc.adaptors.version>
 		<sdnc.northbound.version>${project.version}</sdnc.northbound.version>
 		<sdnc.plugins.version>${project.version}</sdnc.plugins.version>
+		<sdnc.opendaylight.version>0.5.1-Boron-SR1</sdnc.opendaylight.version>
+		<sdnc.mysql-connector-java.version>5.1.39</sdnc.mysql-connector-java.version>
+		<docker.buildArg.https_proxy>${https_proxy}</docker.buildArg.https_proxy>
 	</properties>
 
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.opendaylight.integration</groupId>
+				<artifactId>distribution-karaf</artifactId>
+				<version>${sdnc.opendaylight.version}</version>
+				<type>tar.gz</type>
+			</dependency>
+			<dependency>
+				<groupId>mysql</groupId>
+				<artifactId>mysql-connector-java</artifactId>
+				<version>${sdnc.mysql-connector-java.version}</version>
+				<type>jar</type>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<plugins>
@@ -62,13 +81,13 @@
 					</execution>
 				</executions>
 			</plugin>
+
 			<plugin>
 				<groupId>io.fabric8</groupId>
 				<artifactId>docker-maven-plugin</artifactId>
 				<version>0.16.5</version>
 				<inherited>false</inherited>
 				<configuration>
-
 					<images>
 						<image>
 							<name>${image.name}</name>
@@ -107,12 +126,43 @@
 
 
 			<plugin>
+			<groupId>org.apache.maven.plugins</groupId>
+			<artifactId>maven-dependency-plugin</artifactId>
+			<version>3.0.0</version>
+			<executions>
+				<execution>
+					<id>get-odl-distribution</id>
+					<phase>validate</phase>
+					<goals>
+						<goal>copy</goal>
+					</goals>
+					<configuration>
+						<artifactItems>
+							<artifactItem>
+								<groupId>org.opendaylight.integration</groupId>
+								<artifactId>distribution-karaf</artifactId>
+								<version>${sdnc.opendaylight.version}</version>
+								<type>tar.gz</type>
+
+								<overWrite>true</overWrite>
+								<outputDirectory>${basedir}/target/docker-stage</outputDirectory>
+							</artifactItem>
+						</artifactItems>
+						<overWriteReleases>false</overWriteReleases>
+						<overWriteSnapshots>true</overWriteSnapshots>
+						<overWriteIfNewer>true</overWriteIfNewer>
+					</configuration>
+				</execution>
+			</executions>
+			</plugin>
+
+			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-dependency-plugin</artifactId>
 				<version>3.0.0</version>
 				<executions>
 					<execution>
-						<id>get-odl-distribution</id>
+						<id>get-mysql-connector-jar</id>
 						<phase>validate</phase>
 						<goals>
 							<goal>copy</goal>
@@ -120,10 +170,10 @@
 						<configuration>
 							<artifactItems>
 								<artifactItem>
-									<groupId>org.opendaylight.integration</groupId>
-									<artifactId>distribution-karaf</artifactId>
-									<version>0.5.1-Boron-SR1</version>
-									<type>tar.gz</type>
+									<groupId>mysql</groupId>
+									<artifactId>mysql-connector-java</artifactId>
+									<version>${sdnc.mysql-connector-java.version}</version>
+									<type>jar</type>
 
 									<overWrite>true</overWrite>
 									<outputDirectory>${basedir}/target/docker-stage</outputDirectory>
@@ -193,7 +243,6 @@
 								<resource>
 									<directory>src/main/resources</directory>
 									<includes>
-										<include>*.tgz</include>
 										<include>idmlight.db.mv.db</include>
 									</includes>
 									<filtering>false</filtering>
