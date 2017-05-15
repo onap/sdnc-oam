@@ -1,12 +1,31 @@
+<!--
+  ============LICENSE_START=======================================================
+  openECOMP : SDN-C
+  ================================================================================
+  Copyright (C) 2017 AT&T Intellectual Property. All rights
+  							reserved.
+  ================================================================================
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+       http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+  ============LICENSE_END=========================================================
+  -->
+
 <service-logic xmlns='http://www.openecomp.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.openecomp.org/sdnc/svclogic ./svclogic.xsd' module='VNF-API' version='${project.version}'><method rpc='vnf-topology-assign' mode='sync'>
 <block atomic="true"><switch test="`$vnf-topology-operation-input.vnf-request-information.vnf-id == $service-data.vnf-id`"><outcome value='true'>
 <return status='failure'>
 	<parameter name='error-code' value='500'/>
-	<parameter name='error-message' value='vnf-id is already present in config-tree'/></return></outcome></switch><get-resource plugin="com.att.sdnctl.sli.aai.AAIService" 
-	resource="vf-module" 
-		key="vf-module.vf-module-id = $vnf-topology-operation-input.vnf-request-information.vnf-id 
-			and generic-vnf.vnf-id = $vnf-topology-operation-input.vnf-request-information.generic-vnf-id" 
-		local-only="false" 
+	<parameter name='error-message' value='vnf-id is already present in config-tree'/></return></outcome></switch><get-resource plugin="com.att.sdnctl.sli.aai.AAIService"
+	resource="vf-module"
+		key="vf-module.vf-module-id = $vnf-topology-operation-input.vnf-request-information.vnf-id
+			and generic-vnf.vnf-id = $vnf-topology-operation-input.vnf-request-information.generic-vnf-id"
+		local-only="false"
 		pfx="tmp.AnAI.vfmodule" ><outcome value='failure'>
 <return status='failure'>
 	<parameter name='error-code' value='500'/>
@@ -15,37 +34,37 @@
 	<parameter name='error-code' value='500'/>
 	<parameter name='error-message' value="`'vf-module not found in AnAI with vf-module-id = ' + $vnf-topology-operation-input.vnf-request-information.vnf-id + ' and generic-vnf-id = ' + $vnf-topology-operation-input.vnf-request-information.generic-vnf-id`"/></return></outcome></get-resource><call module='VNF-API' rpc='vnf-topology-assign-vfmodule' mode='sync' ></call><switch test="`$service-data.vnf-topology-information.vnf-assignments.vnf-networks_length`"><outcome value=''><set>
 <parameter name='service-data.vnf-topology-information.vnf-assignments.vnf-networks_length' value='0' />
-</set></outcome></switch><for index="i" start="0" end="`$service-data.vnf-topology-information.vnf-assignments.vnf-networks_length`"><save plugin="com.att.sdnctl.sli.aai.AAIService" 
-	resource="vf-module:relationship-list" 
-		key="vf-module.vf-module-id = $vnf-topology-operation-input.vnf-request-information.vnf-id 
-			and generic-vnf.vnf-id = $vnf-topology-operation-input.vnf-request-information.generic-vnf-id" 
-	force="true" 
+</set></outcome></switch><for index="i" start="0" end="`$service-data.vnf-topology-information.vnf-assignments.vnf-networks_length`"><save plugin="com.att.sdnctl.sli.aai.AAIService"
+	resource="vf-module:relationship-list"
+		key="vf-module.vf-module-id = $vnf-topology-operation-input.vnf-request-information.vnf-id
+			and generic-vnf.vnf-id = $vnf-topology-operation-input.vnf-request-information.generic-vnf-id"
+	force="true"
 	local-only="false">
 	
 	<parameter name="relationship-list.relationship[0].related-to" value="l3-network" />
 	<parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="l3-network.network-id" />
 	<parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$service-data.vnf-topology-information.vnf-assignments.vnf-networks[$i].network-id`" /><outcome value='failure'>
-<block atomic='true'><delete plugin="com.att.sdnctl.sli.aai.AAIService" 
-	resource="vf-module:relationship-list" 
-	key="vf-module.vf-module-id = $vnf-topology-operation-input.vnf-request-information.vnf-id 
-		AND generic-vnf.vnf-id = $vnf-topology-operation-input.vnf-request-information.generic-vnf-id 
-		AND related-to = l3-network" 
-	force="true" 
+<block atomic='true'><delete plugin="com.att.sdnctl.sli.aai.AAIService"
+	resource="vf-module:relationship-list"
+	key="vf-module.vf-module-id = $vnf-topology-operation-input.vnf-request-information.vnf-id
+		AND generic-vnf.vnf-id = $vnf-topology-operation-input.vnf-request-information.generic-vnf-id
+		AND related-to = l3-network"
+	force="true"
 	local-only="false"></delete><return status='failure'>
 	<parameter name='error-code' value='500'/>
-	<parameter name='error-message' value="`'Encountered error while saving vf-module l3-network relationship in AnAI with network-id = ' + $service-data.vnf-topology-information.vnf-assignments.vnf-networks[$i].network-id`"/></return></block></outcome></save></for><update plugin="com.att.sdnctl.sli.aai.AAIService" 
-	resource="vf-module" 
-		key="vf-module.vf-module-id = $vnf-topology-operation-input.vnf-request-information.vnf-id 
-			and generic-vnf.vnf-id = $vnf-topology-operation-input.vnf-request-information.generic-vnf-id" 
+	<parameter name='error-message' value="`'Encountered error while saving vf-module l3-network relationship in AnAI with network-id = ' + $service-data.vnf-topology-information.vnf-assignments.vnf-networks[$i].network-id`"/></return></block></outcome></save></for><update plugin="com.att.sdnctl.sli.aai.AAIService"
+	resource="vf-module"
+		key="vf-module.vf-module-id = $vnf-topology-operation-input.vnf-request-information.vnf-id
+			and generic-vnf.vnf-id = $vnf-topology-operation-input.vnf-request-information.generic-vnf-id"
 		local-only="false" >
 	<parameter name="orchestration-status" value="pending-create" /><outcome value='failure'>
 <block atomic="true">
-<delete plugin="com.att.sdnctl.sli.aai.AAIService" 
-	resource="vf-module:relationship-list" 
-	key="vf-module.vf-module-id = $vnf-topology-operation-input.vnf-request-information.vnf-id 
-		AND generic-vnf.vnf-id = $vnf-topology-operation-input.vnf-request-information.generic-vnf-id 
-		AND related-to = l3-network" 
-	force="true" 
+<delete plugin="com.att.sdnctl.sli.aai.AAIService"
+	resource="vf-module:relationship-list"
+	key="vf-module.vf-module-id = $vnf-topology-operation-input.vnf-request-information.vnf-id
+		AND generic-vnf.vnf-id = $vnf-topology-operation-input.vnf-request-information.generic-vnf-id
+		AND related-to = l3-network"
+	force="true"
 	local-only="false"></delete><return status='failure'>
 	<parameter name='error-code' value='500'/>
 	<parameter name='error-message' value="Encountered error while updating vf-module orchestration-status in AnAI"/></return></block></outcome></update><set>
