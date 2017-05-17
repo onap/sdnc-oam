@@ -20,6 +20,7 @@ COPY opt /opt
 RUN ln -s /opt/openecomp/sdnc /opt/sdnc
 
 # workaround till we get proxy working
-COPY mysql-connector-java-${sdnc.mysql-connector-java.version}.jar /opt/opendaylight/current/system
+RUN mkdir -p /opt/opendaylight/current/system/mysql/mysql-connector-java/${sdnc.mysql-connector-java.version}
+COPY mysql-connector-java-${sdnc.mysql-connector-java.version}.jar /opt/opendaylight/current/system/mysql/mysql-connector-java/${sdnc.mysql-connector-java.version}
 # ENTRYPOINT exec /opt/opendaylight/current/bin/karaf
 EXPOSE 8181
