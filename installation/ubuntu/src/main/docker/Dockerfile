@@ -16,7 +16,7 @@ RUN apt-get update && apt-get install -y git \
     graphviz \
     openjdk-8-jdk \
     maven \
-    mysql-client 
+    mysql-client \
     nodejs \
     nodejs-legacy \
     npm \
