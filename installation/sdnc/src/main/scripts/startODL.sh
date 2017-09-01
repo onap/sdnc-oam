@@ -10,9 +10,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #      http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -26,11 +26,11 @@
 
 ODL_HOME=${ODL_HOME:-/opt/opendaylight/current}
 ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD:-Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U}
-SDNC_HOME=${SDNC_HOME:-/opt/openecomp/sdnc}
+SDNC_HOME=${SDNC_HOME:-/opt/onap/sdnc}
 SLEEP_TIME=${SLEEP_TIME:-120}
 MYSQL_PASSWD=${MYSQL_PASSWD:-openECOMP1.0}
 
-# 
+#
 # Wait for database
 #
 echo "Waiting for mysql"

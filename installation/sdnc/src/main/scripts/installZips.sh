@@ -10,9 +10,9 @@
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
-# 
+#
 #      http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing, software
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -28,40 +28,20 @@ then
   GLOBAL_SETTINGS_FILE=${GLOBAL_SETTINGS_FILE:-${DEFAULT_MAVEN_SETTINGS}}
 fi
 
-SDNC_HOME=${SDNC_HOME:-/opt/openecomp/sdnc}
+SDNC_HOME=${SDNC_HOME:-/opt/onap/sdnc}
 
 targetDir=${1:-${SDNC_HOME}}
 featureDir=${targetDir}/features
 
-SDNC_CORE_FEATURES=" \
- dblib \
- filters \
- sli \
- sliPluginUtils \
- sliapi"
-
-SDNC_ADAPTORS_FEATURES=" \
-  aai-service \
-  mdsal-resource \
-  resource-assignment \
-  sql-resource"
 
 SDNC_NORTHBOUND_FEATURES=" \
-  asdcApi \
-  dataChange \
   vnfapi \
   vnftools"
 
-SDNC_PLUGINS_FEATURES=" \
-  properties-node \
-  restapi-call-node"
 
 
-SDNC_CORE_VERSION=${SDNC_CORE_VERSION:-0.1.1}
-SDNC_ADAPTORS_VERSION=${SDNC_ADAPTORS_VERSION:-0.1.1}
-SDNC_NORTHBOUND_VERSION=${SDNC_NORTHBOUND_VERSION:-0.1.1}
-SDNC_PLUGINS_VERSION=${SDNC_PLUGINS_VERSION:-0.1.1}
-SDNC_OAM_VERSION=${SDNC_OAM_VERSION:-0.1.1}
+SDNC_NORTHBOUND_VERSION=${SDNC_NORTHBOUND_VERSION:-1.2.0}
+SDNC_OAM_VERSION=${SDNC_OAM_VERSION:-1.2.0}
 
 if [ ! -d ${targetDir} ]
 then
@@ -82,7 +62,7 @@ echo "Installing SDN-C core version ${SDNC_CORE_VERSION}"
 for feature in ${SDNC_CORE_FEATURES}
 do
  rm -f /tmp/${feature}-installer*.zip
-mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.openecomp.sdnc.core:${feature}-installer:${SDNC_CORE_VERSION}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
+ mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.openecomp.sdnc.core:${feature}-installer:${SDNC_CORE_VERSION}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
  unzip -d ${featureDir} /tmp/${feature}-installer*zip
 done
 
@@ -90,7 +70,7 @@ echo "Installing SDN-C adaptors version ${SDNC_ADAPTORS_VERSION}"
 for feature in ${SDNC_ADAPTORS_FEATURES}
 do
  rm -f /tmp/${feature}-installer*.zip
-mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.openecomp.sdnc.adaptors:${feature}-installer:${SDNC_ADAPTORS_VERSION}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
+ mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.openecomp.sdnc.adaptors:${feature}-installer:${SDNC_ADAPTORS_VERSION}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
  unzip -d ${featureDir} /tmp/${feature}-installer*zip
 done
 
@@ -98,7 +78,7 @@ echo "Installing SDN-C northbound version ${SDNC_NORTHBOUND_VERSION}"
 for feature in ${SDNC_NORTHBOUND_FEATURES}
 do
  rm -f /tmp/${feature}-installer*.zip
-mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.openecomp.sdnc.northbound:${feature}-installer:${SDNC_NORTHBOUND_VERSION}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
+ mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.openecomp.sdnc.northbound:${feature}-installer:${SDNC_NORTHBOUND_VERSION}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
  unzip -d ${featureDir} /tmp/${feature}-installer*zip
 done
 
