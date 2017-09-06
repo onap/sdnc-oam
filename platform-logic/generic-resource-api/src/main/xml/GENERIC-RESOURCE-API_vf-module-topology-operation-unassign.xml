@@ -1,0 +1,111 @@
+<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'><method rpc='vf-module-topology-operation-unassign' mode='sync'>
+<block atomic="true"><switch test='`$vf-module-topology-operation-input.request-information.request-action`'>
+<outcome value='DeleteVfModuleInstance'>
+<block>
+</block></outcome><outcome value='Other'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="If svc-action is 'deactivate' then request-action must be 'DeleteVfModuleInstance'" />
+</return></outcome></switch><set>
+<parameter name='vnf-index' value='-1' />
+</set><switch test='`$service-data.vnfs.vnf_length`'>
+<outcome value=''>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="There are no VNFs defined in MD-SAL" />
+</return></outcome><outcome value='Other'>
+<for index='idx' start='0' end='`$service-data.vnfs.vnf_length`' >
+<switch test='`$service-data.vnfs.vnf[$idx].vnf-id == $vf-module-topology-operation-input.vnf-information.vnf-id`'>
+<outcome value='true'>
+<block>
+<set>
+<parameter name='vnf-index' value='`$idx`' />
+</set><break/></block></outcome></switch></for></outcome></switch><switch test='`$vnf-index`'>
+<outcome value='-1'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`'Unable to find VNF ID ' + $vf-module-topology-operation-input.vnf-information.vnf-id + ' in MD-SAL'`" />
+</return></outcome></switch><set>
+<parameter name='vf-module-index' value='-1' />
+</set><switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`'>
+<outcome value=''>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`'There are no VF modules defined in MD-SAL for VNF ' + $vf-module-topology-operation-input.vnf-information.vnf-id`" />
+</return></outcome><outcome value='Other'>
+<for index='idx' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`' >
+<switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$idx].vf-module-id == $vf-module-topology-operation-input.vf-module-information.vf-module-id`'>
+<outcome value='true'>
+<block>
+<set>
+<parameter name='vf-module-index' value='`$idx`' />
+</set><break/></block></outcome></switch></for></outcome></switch><switch test='`$vf-module-index`'>
+<outcome value='-1'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`'Unable to find VF module ID ' + $vf-module-topology-operation-input.vf-module-information.vf-module-id + ' in MD-SAL'`" />
+</return></outcome></switch><switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-level-oper-status.order-status`'>
+<outcome value='Created'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Order status must not be Created" />
+</return></outcome><outcome value='Other'>
+<block atomic="true"></block></outcome></switch><set>
+<parameter name='tmp.status' value="`'PENDING_DELETE_' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-id`" />
+</set><update plugin="org.onap.ccsdk.sli.adaptors.sli.resource.sql.SqlResource" resource="SQL"
+key="UPDATE EIPAM_IP_ASSIGNMENTS set status = $tmp.status WHERE info = $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-id" ><outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error updating EIPAM_IP_ASSIGNMENTS table" />
+</return></outcome></update><!--EIPAM plug-in needs this attribute set with this name--><set>
+<parameter name='service-data.service-information.service-type' value='`$service-data.service-information.subscription-service-type`' />
+</set><execute plugin="com.att.sdnctl.sli.plugin.eipam.EIPAMPlugin" method="unassignIPAddress">
+<parameter name="deleteEIPAM_status" value="`$tmp.status`" />
+<outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error in EIPAM unassign IP address" />
+</return></outcome></execute><for silentFailure='true' index='vm-type-index' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-assignments.vms.vm_length`' >
+<for silentFailure='true' index='vm-index' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-count`' >
+<block atomic="true"><delete plugin='org.onap.ccsdk.sli.adaptors.sli.resource.sql.SqlResource' resource='SQL'
+  key='DELETE from VIPR_CONFIGURATION WHERE vnf_id = $service-data.vnfs.vnf[$vnf-index].vnf-id
+     AND ecomp_service_instance_id = $service-data.service-information.service-instance-id
+     AND vm_name = $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-names.vm-name[$vm-index]' ><outcome value='failure'>
+<record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="GENERIC-RESOURCE-API.vf-module-topology-operation-assign:REQID"/>
+<parameter name="field3" value="`$vf-module-topology-operation-input.sdnc-request-header.svc-request-id`"/>
+<parameter name="field4" value="Failed to insert VIPR_CONFIGURATION record"/>
+</record></outcome></delete></block></for></for><switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`'>
+<outcome value='1'>
+<set>
+	<parameter name="service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules." value=""/>
+
+</set></outcome><outcome value='Other'>
+<block atomic="true"><for index='idx' start='`$vf-module-index + 1`' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`' >
+<set>
+	<parameter name="tmpidx" value="`$idx - 1`"/>
+	<parameter name="service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$tmpidx]." value="$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$idx]." />
+	
+</set></for><!--EIPAM plug-in needs this attribute set with this name--><set>
+<parameter name='lastidx' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length - 1`' />
+</set><set>
+	<parameter name="service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$lastidx]." value=""/>
+</set><set>
+	<parameter name="service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length" value="`$lastidx`"/>
+
+	
+</set></block></outcome></switch><return status='success'>
+<parameter name="ack-final-indicator" value="Y" />
+<parameter name="error-code" value="200" />
+<parameter name="error-message" value="`$error-message`" />
+</return></block></method></service-logic>
