@@ -1,8 +1,8 @@
 #. ./set-https-env.sh
 #cd ../bin
 #cp ../config/config.json.https ../config/config.json
-export PROJECT_HOME=/opt/openecomp/sdnc
-export PROJECT_RUNTIME_BASE=/opt/openecomp/sdnc
+export PROJECT_HOME=/opt/onap/sdnc
+export PROJECT_RUNTIME_BASE=/opt/onap/sdnc
 #export JAVA_HOME=/usr/lib/jvm/java-7-oracle
 export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
 export SSL_ENABLED=false
@@ -19,11 +19,11 @@ export MAIN_MENU
 SSL_ENABLED=`python $PROJECT_HOME/admportal/shell/getAdmPortalProp.py sslEnabled | sed -e 's|['\'']||g'` 
 export SSL_ENABLED
 
-if [ ! -d /opt/openecomp/sdnc/admportal/node_modules ]; then
-	cd /opt/openecomp/sdnc/admportal && npm install
+if [ ! -d /opt/onap/sdnc/admportal/node_modules ]; then
+	cd /opt/onap/sdnc/admportal && npm install
 fi
 
-cd /opt/openecomp/sdnc/admportal
+cd /opt/onap/sdnc/admportal
 node shell/www
 #if [ "true" == "${SSL_ENABLED}" ]; then
 	#pm2 startOrRestart process.https.json
