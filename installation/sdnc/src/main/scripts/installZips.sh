@@ -62,7 +62,7 @@ echo "Installing SDN-C core version ${SDNC_CORE_VERSION}"
 for feature in ${SDNC_CORE_FEATURES}
 do
  rm -f /tmp/${feature}-installer*.zip
- mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.openecomp.sdnc.core:${feature}-installer:${SDNC_CORE_VERSION}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
+mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.onap.sdnc.core:${feature}-installer:${SDNC_CORE_VERSION}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
  unzip -d ${featureDir} /tmp/${feature}-installer*zip
 done
 
@@ -70,7 +70,7 @@ echo "Installing SDN-C adaptors version ${SDNC_ADAPTORS_VERSION}"
 for feature in ${SDNC_ADAPTORS_FEATURES}
 do
  rm -f /tmp/${feature}-installer*.zip
- mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.openecomp.sdnc.adaptors:${feature}-installer:${SDNC_ADAPTORS_VERSION}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
+mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.onap.sdnc.adaptors:${feature}-installer:${SDNC_ADAPTORS_VERSION}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
  unzip -d ${featureDir} /tmp/${feature}-installer*zip
 done
 
@@ -78,7 +78,7 @@ echo "Installing SDN-C northbound version ${SDNC_NORTHBOUND_VERSION}"
 for feature in ${SDNC_NORTHBOUND_FEATURES}
 do
  rm -f /tmp/${feature}-installer*.zip
- mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.openecomp.sdnc.northbound:${feature}-installer:${SDNC_NORTHBOUND_VERSION}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
+mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.onap.sdnc.northbound:${feature}-installer:${SDNC_NORTHBOUND_VERSION}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
  unzip -d ${featureDir} /tmp/${feature}-installer*zip
 done
 
@@ -86,7 +86,7 @@ echo "Installing SDN-C plugins version ${SDNC_PLUGINS_VERSION}"
 for feature in ${SDNC_PLUGINS_FEATURES}
 do
  rm -f /tmp/${feature}-installer*.zip
-mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.openecomp.sdnc.plugins:${feature}-installer:${SDNC_PLUGINS_VERSION}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
+mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.onap.sdnc.plugins:${feature}-installer:${SDNC_PLUGINS_VERSION}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
  unzip -d ${featureDir} /tmp/${feature}-installer*zip
 done
 
@@ -94,7 +94,7 @@ done
 
 echo "Installing platform-logic"
 rm -f /tmp/platform-logic-installer*.zip
-mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.openecomp.sdnc.oam:platform-logic-installer:${SDNC_OAM_VERSION}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
+mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.onap.sdnc.oam:platform-logic-installer:${SDNC_OAM_VERSION}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
 unzip -d ${targetDir} /tmp/platform-logic-installer*.zip
 
 find ${targetDir} -name '*.sh' -exec chmod +x '{}' \;
