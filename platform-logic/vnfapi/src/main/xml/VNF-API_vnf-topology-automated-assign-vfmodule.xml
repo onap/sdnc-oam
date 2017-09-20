@@ -1,4 +1,4 @@
-<service-logic xmlns='http://www.openecomp.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.openecomp.org/sdnc/svclogic ./svclogic.xsd' module='VNF-API' version='${project.version}'><method rpc='vnf-topology-automated-assign-vfmodule' mode='sync'>
+<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='VNF-API' version='${project.version}'><method rpc='vnf-topology-automated-assign-vfmodule' mode='sync'>
 <block atomic="true"><switch test='`$vnf-topology-operation-input.request-information.request-action`'>
 <outcome value='VNFActivateRequest'>
 <block>
@@ -21,7 +21,7 @@
 	<parameter name='ack-final' value='Y'/>
 	<parameter name="error-code" value="404" />
     <parameter name="error-message" value="`'No model found for VF module customization UUID ' + $vnf-topology-operation-input.vnf-request-information.model-customization-uuid`" />
-</return></outcome></get-resource><get-resource plugin="org.openecomp.sdnc.sli.aai.AAIService" 
+</return></outcome></get-resource><get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="cloud-region" 
 		key="cloud-region.cloud-owner = 'att-aic' AND 
 		     cloud-region.cloud-region-id = $vnf-topology-operation-input.vnf-request-information.aic-cloud-region"
@@ -45,7 +45,7 @@
 	<parameter name="service-data." value="vnf-topology-operation-input." /></set><for index='idx' start='0' end='`$aai.cloud-region.relationship-list.relationship_length`' >
 <switch test='`$aai.cloud-region.relationship-list.relationship[$idx].related-to`'>
 <outcome value='complex'>
-<block atomic="true"><execute plugin='org.openecomp.sdnc.sli.SliPluginUtils.SliStringUtils' method='split'>
+<block atomic="true"><execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split'>
    <parameter name='ctx_memory_result_key' value='aai-uid-split' />
    <parameter name='original_string' value='`$aai.cloud-region.relationship-list.relationship[$idx].related-link`' />
    <parameter name='regex' value='/' />
@@ -140,7 +140,7 @@
 </set><set>
 <parameter name='network-index' value='0' />
 </set><for index='network-role-index' start='0' end='`$db.vfc-to-network-role-mapping_length`' >
-<block atomic="true"><get-resource plugin="org.openecomp.sdnc.sli.aai.AAIService" 
+<block atomic="true"><get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="l3-networks" 
 		key="l3-network.network-role = $db.vfc-to-network-role-mapping[$network-role-index].network-role"
         pfx='aai.l3-network' local-only='false'
@@ -339,6 +339,6 @@
 <parameter name="field4" value="Failed to insert VIPR_CONFIGURATION record"/>
 </record></outcome></save></block></for></for><set>
 <parameter name='service-data.vnf-topology-information.' value='tmp.vnf-topology.' />
-</set><execute plugin='org.openecomp.sdnc.sli.SliPluginUtils.SliPluginUtils' method='printContext' >
+</set><execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
 <parameter name='filename' value='/var/tmp/bgb-vnfapi-vfmodule.log' />
 </execute></block></method></service-logic>

@@ -17,10 +17,10 @@
   ============LICENSE_END=========================================================
   -->
 
-<service-logic xmlns="http://www.openecomp.org/sdnc/svclogic"
+<service-logic xmlns="http://www.onap.org/sdnc/svclogic"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.openecomp.org/sdnc/svclogic ./svclogic.xsd" module='VNF-API' version='${project.version}'><method rpc='vnf-instance-topology-assign' mode='sync'>
-<block atomic="true"><get-resource plugin="org.openecomp.sdnc.sli.aai.AAIService"
+    xsi:schemaLocation="http://www.onap.org/sdnc/svclogic ./svclogic.xsd" module='VNF-API' version='${project.version}'><method rpc='vnf-instance-topology-assign' mode='sync'>
+<block atomic="true"><get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
     resource="generic-vnf"
         key="generic-vnf.vnf-id = $vnf-instance-topology-operation-input.vnf-instance-request-information.vnf-instance-id"
     pfx="tmp.AnAI.vnf-instance" ><outcome value='failure'>
@@ -31,23 +31,23 @@
     <parameter name='error-code' value='500'/>
     <parameter name='error-message' value="`'generic-vnf not found in AnAI with vnf-instance-id = ' + $vnf-instance-topology-operation-input.vnf-instance-request-information.vnf-instance-id`"/></return></outcome></get-resource><call module='VNF-API' rpc='vnf-instance-topology-assign-vnf-networks' mode='sync' ></call><switch test="`$vnf-instance-service-data.vnf-instance-topology-information.vnf-assignments.vnf-networks_length`"><outcome value=''><set>
 <parameter name='vnf-instance-service-data.vnf-instance-topology-information.vnf-assignments.vnf-networks_length' value='0' />
-</set></outcome></switch><for index="i" start="0" end="`$vnf-instance-service-data.vnf-instance-topology-information.vnf-assignments.vnf-networks_length`"><save plugin="org.openecomp.sdnc.sli.aai.AAIService"
+</set></outcome></switch><for index="i" start="0" end="`$vnf-instance-service-data.vnf-instance-topology-information.vnf-assignments.vnf-networks_length`"><save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
     resource="generic-vnf:relationship-list"
         key="generic-vnf.vnf-id = $vnf-instance-topology-operation-input.vnf-instance-request-information.vnf-instance-id" >
     <parameter name="relationship-list.relationship[0].related-to" value="l3-network" />
     <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="l3-network.network-id" />
     <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$vnf-instance-service-data.vnf-instance-topology-information.vnf-assignments.vnf-networks[$i].network-id`" /><outcome value='failure'>
-<block atomic='true'><delete plugin="org.openecomp.sdnc.sli.aai.AAIService"
+<block atomic='true'><delete plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
     resource="generic-vnf:relationship-list"
         key="generic-vnf.vnf-id = $vnf-instance-topology-operation-input.vnf-instance-request-information.vnf-instance-id
             AND related-to = l3-network" ></delete><return status='failure'>
     <parameter name='error-code' value='500'/>
-    <parameter name='error-message' value="`'An error occurred while saving generic-vnf l3-network relationship in AnAI with network-id = ' + $vnf-instance.service-data.vnf-instance-topology-information.vnf-assignments.vnf-networks[$i].network-id`"/></return></block></outcome></save></for><update plugin="org.openecomp.sdnc.sli.aai.AAIService"
+    <parameter name='error-message' value="`'An error occurred while saving generic-vnf l3-network relationship in AnAI with network-id = ' + $vnf-instance.service-data.vnf-instance-topology-information.vnf-assignments.vnf-networks[$i].network-id`"/></return></block></outcome></save></for><update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
     resource="generic-vnf"
         key="generic-vnf.vnf-id = $vnf-instance-topology-operation-input.vnf-instance-request-information.vnf-instance-id" >
     <parameter name="orchestration-status" value="pending-create" /><outcome value='failure'>
 <block atomic="true">
-<delete plugin="org.openecomp.sdnc.sli.aai.AAIService"
+<delete plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
     resource="generic-vnf:relationship-list"
         key="generic-vnf.vnf-id = $vnf-instance-topology-operation-input.vnf-instance-request-information.vnf-instance-id
             AND related-to = l3-network" ></delete><return status='failure'>
