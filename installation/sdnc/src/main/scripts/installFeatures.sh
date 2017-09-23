@@ -27,7 +27,7 @@ SDNC_HOME=${SDNC_HOME:-/opt/onap/sdnc}
 SDNC_FEATURE_DIR=${SDNC_FEATURE_DIR:-${SDNC_HOME}/features}
 
 CCSDK_SLI_CORE_FEATURES=" \
- core-utils \
+ slicore-utils \
  dblib \
  filters \
  sli \
