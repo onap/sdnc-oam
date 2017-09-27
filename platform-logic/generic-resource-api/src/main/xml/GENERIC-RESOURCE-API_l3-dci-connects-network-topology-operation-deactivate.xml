@@ -1,0 +1,69 @@
+<service-logic
+        xmlns='http://www.openecomp.org/sdnc/svclogic'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.openecomp.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    <method rpc='network-topology-operation-deactivate' mode='sync'>
+        <block atomic="true">
+            <call module='GENERIC-RESOURCE-API' rpc='validate-network-input-parameters' mode='sync' ></call>
+            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                          resource="l3-dci-connects"
+                          key="l3-dci-connects.id AND depth = '1'"
+                          pfx='tmp.aai.l3-dci-connects' local-only='false' >
+                <outcome value='success'>
+                    <block atomic="true"></block>
+                </outcome>
+                <outcome value='not-found'>
+                    <return status='failure'>
+                        <parameter name='error-code' value='' />
+                        <parameter name='error-message' value='' />
+                    </return>
+                </outcome>
+                <outcome value='Other'>
+                    <return status='failure'>
+                        <parameter name='error-code' value='' />
+                        <parameter name='error-message' value='' />
+                    </return>
+                </outcome>
+            </get-resource>
+            <record plugin="org.openecomp.sdnc.sli.recording.FileRecorder">
+                <parameter name="file" value="/opt/opendaylight/current/data/log/svclogic.log"/>
+                <parameter name="Time" value="__TIMESTAMP__"/>
+                <parameter name="Method" value="network-topology-operation-deactivate"/>
+                <parameter name="SubMethod" value="l3-dci-connects"/>
+                <parameter name="L3DciConnectsId" value="`$l3-dci-connects.id`"/>
+            </record>
+            <set>
+                <parameter name='prop.sdncRestApi.thirdpartySdnc.url' value="`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list[0].esr-system-info.serviceUrl`" />
+                <parameter name='prop.sdncRestApi.templateDir' value='/opt/onap/sdnc/data' />
+                <parameter name='prop.sdncRestApi.thirdpartySdnc.user' value="`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list[0].esr-system-info.user-name`" />
+                <parameter name='prop.sdncRestApi.thirdpartySdnc.password' value="`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list[0].esr-system-info.password`" />
+            </set>
+            <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.l3-dci-connects.id`">
+                <outcome value=''>
+                    <return status='failure'>
+                        <parameter name='error-code' value='' />
+                        <parameter name='error-message' value='' />
+                    </return>
+                </outcome>
+                <outcome value='true'>
+                    <set>
+                        <parameter name='prop.l3-dci-connects.id' value='`$network-topology-operation-input.network-request-input.network-input-parameters.l3-dci-connects.id.value`' />
+                    </set>
+                </outcome>
+            </switch>
+            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                <parameter name="restapiUrl" value="$prop.sdncRestApi.thirdpartySdnc.url + '/v2.0/l3-dci-connects/' + $prop.l3-dci-connects.id"/>
+                <parameter name="restapiUser" value="$prop.sdncRestApi.thirdpartySdnc.user"/>
+                <parameter name="restapiPassword" value="$prop.sdncRestApi.thirdpartySdnc.password"/>
+                <parameter name="format" value="json"/>
+                <parameter name="httpMethod" value="delete"/>
+                <parameter name="responsePrefix" value="restapi-result"/>
+            </execute>
+            <return status='success'>
+            <return status='success'>
+                <parameter name="ack-final-indicator" value="Y" />
+                <parameter name="error-code" value="200" />
+                <parameter name="error-message" value="`$error-message`" />
+            </return>
+        </block>
+    </method>
+</service-logic>
