@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<service-logic xmlns="http://www.openecomp.org/sdnc/svclogic" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openecomp.org/sdnc/svclogic ./svclogic.xsd" module="GENERIC-RESOURCE-API" version="${project.version}">
+    <method rpc="network-topology-operation-activate" mode="sync">
+        <block atomic="true">
+            <call module="GENERIC-RESOURCE-API" rpc="validate-network-input-parameters" mode="sync" />
+            <block atomic="true">
+                <block atomic="true">
+                    <for index="idx" start="0" end="`$network-topology-operation-input.network-request-input.network-input-parameters.param_length`">
+                        <block>
+                            <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'name'`">
+                                <outcome value="true">
+                                    <set>
+                                        <parameter name="prop.dci-connects.name" value="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`" />
+                                    </set>
+                                </outcome>
+                            </switch>
+                            <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site1_id'`">
+                                <outcome value="true">
+                                    <set>
+                                        <parameter name="prop.dci-connects.id" value="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`" />
+                                    </set>
+                                </outcome>
+                            </switch>
+                            <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site1_description'`">
+                                <outcome value="true">
+                                    <set>
+                                        <parameter name="prop.dci-connects.description" value="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`" />
+                                    </set>
+                                </outcome>
+                            </switch>
+                            <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site1_networkName'`">
+                                <outcome value="true" />
+                            </switch>
+                            <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site1_routerId'`">
+                                <outcome value="true">
+                                    <set>
+                                        <parameter name="prop.dci-connects.router_id" value="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`" />
+                                    </set>
+                                </outcome>
+                            </switch>
+                            <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site1_importRT1'`">
+                                <outcome value="true" />
+                            </switch>
+                            <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site1_exportRT1'`">
+                                <outcome value="true" />
+                            </switch>
+                            <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site1_vni'`">
+                                <outcome value="true">
+                                    <set>
+                                        <parameter name="prop.dci-connects.vni" value="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`" />
+                                    </set>
+                                </outcome>
+                            </switch>
+                            <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'tunnelType'`">
+                                <outcome value="true">
+                                    <set>
+                                        <parameter name="prop.dci-connects.tunnelType" value="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`" />
+                                    </set>
+                                </outcome>
+                            </switch>
+                        </block>
+                    </for>
+                    <block atomic="true">
+                        <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="esr-thirdparty-sdnc" key="esr-thirdparty-sdnc.thirdparty-sdnc-id = $prop.dci-connects.id AND         depth = '1'" pfx="tmp.aai.esr-thirdparty-sdnc" local-only="false">
+                            <outcome value="success">
+                                <block atomic="true" />
+                            </outcome>
+                            <outcome value="not-found">
+                                <return status="failure">
+                                    <parameter name="error-code" value="" />
+                                    <parameter name="error-message" value="" />
+                                </return>
+                            </outcome>
+                            <outcome value="Other">
+                                <return status="failure">
+                                    <parameter name="error-code" value="" />
+                                    <parameter name="error-message" value="" />
+                                </return>
+                            </outcome>
+                        </get-resource>
+                        <set>
+                            <parameter name="prop.sdncRestApi.thirdpartySdnc.url" value="`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list[0].esr-system-info.serviceUrl`" />
+                            <parameter name="prop.sdncRestApi.templateDir" value="/opt/onap/sdnc/data" />
+                            <parameter name="prop.sdncRestApi.thirdpartySdnc.user" value="`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list[0].esr-system-info.user-name`" />
+                            <parameter name="prop.sdncRestApi.thirdpartySdnc.password" value="`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list[0].esr-system-info.password`" />
+                        </set>
+                        <switch test="`$prop.dci-connects.tunnelType`">
+                            <outcome value="L3-DCI">
+                                <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
+                                    <parameter name="templateFileName" value="$prop.sdncRestApi.tempDir +'/l3-dci-connects-template.json'" />
+                                    <parameter name="restapiUrl" value="$prop.sdncRestApi.thirdpartySdnc.url +'/v2.0/l3-dci-connects'" />
+                                    <parameter name="restapiUser" value="$prop.sdncRestApi.thirdpartySdnc.user" />
+                                    <parameter name="restapiPassword" value="$prop.sdncRestApi.thirdpartySdnc.password" />
+                                    <parameter name="format" value="json" />
+                                    <parameter name="httpMethod" value="post" />
+                                    <parameter name="responsePrefix" value="restapi-result" />
+                                </execute>
+                            </outcome>
+                            <outcome value="L2-DCI">
+                                <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
+                                    <parameter name="templateFileName" value="$prop.sdncRestApi.tempDir +'/l2-dci-connects-template.json'" />
+                                    <parameter name="restapiUrl" value="$prop.sdncRestApi.thirdpartySdnc.url +'/v2.0/l2-dci-connects'" />
+                                    <parameter name="restapiUser" value="$prop.sdncRestApi.thirdpartySdnc.user" />
+                                    <parameter name="restapiPassword" value="$prop.sdncRestApi.thirdpartySdnc.password" />
+                                    <parameter name="format" value="json" />
+                                    <parameter name="httpMethod" value="post" />
+                                    <parameter name="responsePrefix" value="restapi-result" />
+                                </execute>
+                            </outcome>
+                        </switch>
+                    </block>
+                </block>
+                <block atomic="true">
+                    <for index="idx" start="0" end="`$network-topology-operation-input.network-request-input.network-input-parameters.param_length`">
+                        <block>
+                            <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site2_id'`">
+                                <outcome value="true">
+                                    <set>
+                                        <parameter name="prop.dci-connects.id" value="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`" />
+                                    </set>
+                                </outcome>
+                            </switch>
+                            <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site2_description'`">
+                                <outcome value="true">
+                                    <set>
+                                        <parameter name="prop.dci-connects.description" value="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`" />
+                                    </set>
+                                </outcome>
+                                <outcome value="false">
+                                    <set>
+                                        <parameter name="prop.dci-connects.description" value="" />
+                                    </set>
+                                </outcome>
+                            </switch>
+                            <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site2_networkName'`">
+                                <outcome value="true" />
+                            </switch>
+                            <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site2_routerId'`">
+                                <outcome value="true">
+                                    <set>
+                                        <parameter name="prop.dci-connects.router_id" value="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`" />
+                                    </set>
+                                </outcome>
+                            </switch>
+                            <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site2_importRT1'`">
+                                <outcome value="true" />
+                            </switch>
+                            <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site2_exportRT1'`">
+                                <outcome value="true" />
+                            </switch>
+                            <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site2_vni'`">
+                                <outcome value="true">
+                                    <set>
+                                        <parameter name="prop.dci-connects.vni" value="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`" />
+                                    </set>
+                                </outcome>
+                            </switch>
+                        </block>
+                    </for>
+                    <block atomic="true">
+                        <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="esr-thirdparty-sdnc" key="esr-thirdparty-sdnc.thirdparty-sdnc-id = $prop.dci-connects.id AND         depth = '1'" pfx="tmp.aai.esr-thirdparty-sdnc" local-only="false">
+                            <outcome value="success">
+                                <block atomic="true" />
+                            </outcome>
+                            <outcome value="not-found">
+                                <return status="failure">
+                                    <parameter name="error-code" value="" />
+                                    <parameter name="error-message" value="" />
+                                </return>
+                            </outcome>
+                            <outcome value="Other">
+                                <return status="failure">
+                                    <parameter name="error-code" value="" />
+                                    <parameter name="error-message" value="" />
+                                </return>
+                            </outcome>
+                        </get-resource>
+                        <set>
+                            <parameter name="prop.sdncRestApi.thirdpartySdnc.url" value="`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list[0].esr-system-info.serviceUrl`" />
+                            <parameter name="prop.sdncRestApi.templateDir" value="/opt/onap/sdnc/data" />
+                            <parameter name="prop.sdncRestApi.thirdpartySdnc.user" value="`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list[0].esr-system-info.user-name`" />
+                            <parameter name="prop.sdncRestApi.thirdpartySdnc.password" value="`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list[0].esr-system-info.password`" />
+                        </set>
+                        <switch test="`$prop.dci-connects.tunnelType`">
+                            <outcome value="L3-DCI">
+                                <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
+                                    <parameter name="templateFileName" value="$prop.sdncRestApi.tempDir +'/l3-dci-connects-template.json'" />
+                                    <parameter name="restapiUrl" value="$prop.sdncRestApi.thirdpartySdnc.url +'/v2.0/l3-dci-connects'" />
+                                    <parameter name="restapiUser" value="$prop.sdncRestApi.thirdpartySdnc.user" />
+                                    <parameter name="restapiPassword" value="$prop.sdncRestApi.thirdpartySdnc.password" />
+                                    <parameter name="format" value="json" />
+                                    <parameter name="httpMethod" value="post" />
+                                    <parameter name="responsePrefix" value="restapi-result" />
+                                </execute>
+                            </outcome>
+                            <outcome value="L2-DCI">
+                                <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
+                                    <parameter name="templateFileName" value="$prop.sdncRestApi.tempDir +'/l2-dci-connects-template.json'" />
+                                    <parameter name="restapiUrl" value="$prop.sdncRestApi.thirdpartySdnc.url +'/v2.0/l2-dci-connects'" />
+                                    <parameter name="restapiUser" value="$prop.sdncRestApi.thirdpartySdnc.user" />
+                                    <parameter name="restapiPassword" value="$prop.sdncRestApi.thirdpartySdnc.password" />
+                                    <parameter name="format" value="json" />
+                                    <parameter name="httpMethod" value="post" />
+                                    <parameter name="responsePrefix" value="restapi-result" />
+                                </execute>
+                            </outcome>
+                        </switch>
+                    </block>
+                </block>
+            </block>
+            <return status="success">
+                <parameter name="ack-final-indicator" value="Y" />
+                <parameter name="error-code" value="200" />
+                <parameter name="error-message" value="`$error-message`" />
+            </return>
+        </block>
+    </method>
+</service-logic>
