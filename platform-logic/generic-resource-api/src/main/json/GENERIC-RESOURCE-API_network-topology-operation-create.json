@@ -1,1 +1,1863 @@
-[{"id":"cb36df78.f09e28","type":"dgstart","name":"DGSTART","outputs":1,"x":106.5,"y":39,"z":"d42722f8.3eccb8","wires":[["6b493f20.dd05b8"]]},{"id":"6b493f20.dd05b8","type":"service-logic","name":"GENERIC-RESOURCE-API ${project.version}","module":"GENERIC-RESOURCE-API","version":"${project.version}","comments":"","xml":"<service-logic xmlns='http://www.openecomp.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.openecomp.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>","outputs":1,"x":318.50000381469727,"y":111.0000171661377,"z":"d42722f8.3eccb8","wires":[["d4f64c43.9c54f8"]]},{"id":"d4f64c43.9c54f8","type":"method","name":"method network-topology-operation-create","xml":"<method rpc='network-topology-operation-create' mode='sync'>\n","comments":"","outputs":1,"x":306.5001220703125,"y":199,"z":"d42722f8.3eccb8","wires":[["99d71b60.bc486"]]},{"id":"99d71b60.bc486","type":"block","name":"block : atomic","xml":"<block atomic=\"true\">\n","atomic":"false","comments":"","outputs":1,"x":582.5000305175781,"y":207.00001335144043,"z":"d42722f8.3eccb8","wires":[["5ed245d4.4281d4","e7933c58.1edee","975efc4b.99298","8ceec6eb.76071","31aa6d85.42f682","afab8693.c68c8","2004d097.f3cbc"]]},{"id":"e7933c58.1edee","type":"execute","name":"execute REST NETCONF MOUNT CREATE VPN","xml":"<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n<parameter name=\"templateFileName\" value=\"$prop.sdncRestApi.tempDir +'/l3smvpntemplate.json'\"/>\n<parameter name=\"restapiUrl\" value=\"$prop.sdncRestApi.thirdpartySdnc.url +'/restconf/data/huawei-ac-net-l3vpn-svc:l3vpn-svc-cfg/vpn-services'\"/>\n<parameter name=\"restapiUser\" value=\"$prop.sdncRestApi.thirdpartySdnc.user\"/>\n<parameter name=\"restapiPassword\" value=\"$prop.sdncRestApi.thirdpartySdnc.password\"/>\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"post\"/>\n<parameter name=\"responsePrefix\" value=\"restapi-result\"/>","comments":"","outputs":1,"x":898.5001831054688,"y":552,"z":"d42722f8.3eccb8","wires":[[]]},{"id":"5ed245d4.4281d4","type":"set","name":"set controller data","xml":"<set>\n<parameter name='prop.sdncRestApi.thirdpartySdnc.url' value=\"`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list[0].esr-system-info.serviceUrl`\" />\n<parameter name='prop.sdncRestApi.templateDir' value='/opt/onap/sdnc/data' />\n<parameter name='prop.sdncRestApi.thirdpartySdnc.user' value=\"`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list[0].esr-system-info.user-name`\" />\n<parameter name='prop.sdncRestApi.thirdpartySdnc.password' value=\"`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list[0].esr-system-info.password`\" />\n","comments":"","x":810.5000610351562,"y":279,"z":"d42722f8.3eccb8","wires":[]},{"id":"2004d097.f3cbc","type":"for","name":"for each network-input-parameters","xml":"<for index='idx' start='0' end='`$network-topology-operation-input.network-request-input.network-input-parameters.param_length`' >\n","comments":"","outputs":1,"x":868.1666259765625,"y":375.6666564941406,"z":"d42722f8.3eccb8","wires":[["3cc59ee4.5e9a4a"]]},{"id":"975efc4b.99298","type":"execute","name":"execute REST NETCONF MOUNT CREATE SITE","xml":"<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n<parameter name=\"templateFileName\" value=\"$prop.sdncRestApi.tempDir +'/l3smsitetemplate.json'\"/>\n<parameter name=\"restapiUrl\" value=\"$prop.sdncRestApi.thirdpartySdnc.url +'/restconf/data/huawei-ac-net-l3vpn-svc:l3vpn-svc-cfg/sites'\"/>\n<parameter name=\"restapiUser\" value=\"$prop.sdncRestApi.thirdpartySdnc.user\"/>\n<parameter name=\"restapiPassword\" value=\"$prop.sdncRestApi.thirdpartySdnc.password\"/>\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"post\"/>\n<parameter name=\"responsePrefix\" value=\"restapi-result\"/>","comments":"","outputs":1,"x":902.1668510437012,"y":606.6666851043701,"z":"d42722f8.3eccb8","wires":[[]]},{"id":"afab8693.c68c8","type":"execute","name":"execute vpn-policy-id","xml":"<execute plugin='com.att.sdnctl.sli.SliPluginUtils.SliPluginUtils' method='generateUUID' >\n<parameter name=\"ctx-destination\" value=\"prop.l3vpn.vpn-policy-id\"/>\n","comments":"","outputs":1,"x":834.1666259765625,"y":470.66668701171875,"z":"d42722f8.3eccb8","wires":[["6d3b3d21.9f9b94"]]},{"id":"6d3b3d21.9f9b94","type":"failure","name":"failure","xml":"<outcome value='failure'>\n","comments":"","outputs":1,"x":1053.1666316986084,"y":469.6666669845581,"z":"d42722f8.3eccb8","wires":[["77780ce8.b6a42c"]]},{"id":"77780ce8.b6a42c","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n<parameter name='error-code' value='' />\n<parameter name='error-message' value=\"An error occured while generation vpn policy ID\" />\n","comments":"","x":1238.1666412353516,"y":469.66667079925537,"z":"d42722f8.3eccb8","wires":[]},{"id":"8ceec6eb.76071","type":"call","name":"call GENERIC-RESOURCE-API:validate-network-input-parameters","xml":"<call module='GENERIC-RESOURCE-API' rpc='validate-network-input-parameters' mode='sync' >\n","comments":"","outputs":1,"x":880,"y":76,"z":"d42722f8.3eccb8","wires":[[]]},{"id":"31aa6d85.42f682","type":"get-resource","name":"get-resource esr-thirdparty-sdnc","xml":"<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"esr-thirdparty-sdnc\" \n\t\tkey=\"esr-thirdparty-sdnc.thirdparty-sdnc-id = $tmp.thirdparty-sdnc-id AND \n\t\t     depth = '1'\"\n        pfx='tmp.aai.esr-thirdparty-sdnc' local-only='false' >\n\n","comments":"","outputs":1,"x":850,"y":193,"z":"d42722f8.3eccb8","wires":[["2c613739.98afa8","1da11a52.1c786e","969f047a.9bdca"]]},{"id":"2c613739.98afa8","type":"success","name":"success","xml":"<outcome value='success'>\n","comments":"","outputs":1,"x":1175,"y":124,"z":"d42722f8.3eccb8","wires":[["a9af7dde.3eae3"]]},{"id":"1da11a52.1c786e","type":"not-found","name":"not-found","xml":"<outcome value='not-found'>\n","comments":"","outputs":1,"x":1178.490966796875,"y":171.57403564453125,"z":"d42722f8.3eccb8","wires":[["9fcc2997.c4db48"]]},{"id":"969f047a.9bdca","type":"other","name":"other","xml":"<outcome value='Other'>\n","comments":"","outputs":1,"x":1173.823974609375,"y":212.9073486328125,"z":"d42722f8.3eccb8","wires":[["b55105c.cece0f8"]]},{"id":"9fcc2997.c4db48","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Network model is_bound_to_vpn=true but no vpn_binding is present\" />\n\n","comments":"","x":1355.0623779296875,"y":159.85977172851562,"z":"d42722f8.3eccb8","wires":[]},{"id":"b55105c.cece0f8","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Unexpected error retrieving vpn binding\" />\n\n","comments":"","x":1361.5965309143066,"y":208.34654140472412,"z":"d42722f8.3eccb8","wires":[]},{"id":"a9af7dde.3eae3","type":"block","name":"block : atomic","xml":"<block atomic=\"true\">","atomic":"true","outputs":1,"x":1353.205322265625,"y":116.57403564453125,"z":"d42722f8.3eccb8","wires":[[]]},{"id":"3cc59ee4.5e9a4a","type":"block","name":"block","xml":"<block>\n","atomic":"false","comments":"","outputs":1,"x":1354,"y":340,"z":"d42722f8.3eccb8","wires":[["88aa924c.540ec8","bb5cb51b.59506","2544c74d.97ee18","b7871d3d.25fad8","fe408f02.5f753","a83a85a7.171548","24a49d0f.d882f2","6e6d25b6.396474","631fc211.5012a4","6118a340.6202bc","36b08791.59ad9","34e1c7d4.0648","b6ef6a39.4f99a","57ff81fd.d7eb5","45e9f15b.b00ef","f194b0b0.06c4a","db1b22e2.44ac28","40dbf064.599ad8","f83e78ff.bcb19","953ea88f.9f4a18","1b0d7ad2.7c73cd","503fb0c2.118f08","abda3944.6cc14"]]},{"id":"88aa924c.540ec8","type":"switchNode","name":"switch name","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'name'`\">\n","comments":"","outputs":1,"x":1600,"y":150.00003051757812,"z":"d42722f8.3eccb8","wires":[["f6a31b1b.e5d5"]]},{"id":"bb5cb51b.59506","type":"switchNode","name":"switch service-type","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'service-type'`\">\n","comments":"","outputs":1,"x":1603.9999389648438,"y":211.60000610351562,"z":"d42722f8.3eccb8","wires":[["b138ae61.44dfc"]]},{"id":"f6a31b1b.e5d5","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1787,"y":150.00003051757812,"z":"d42722f8.3eccb8","wires":[["4d5c9007.14735"]]},{"id":"b138ae61.44dfc","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1788.9999389648438,"y":209.60000610351562,"z":"d42722f8.3eccb8","wires":[["6c1d6803.8f8aa8"]]},{"id":"4d5c9007.14735","type":"set","name":"set name","xml":"<set>\n<parameter name='prop.l3vpn.name' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":1955,"y":150.60003662109375,"z":"d42722f8.3eccb8","wires":[]},{"id":"6c1d6803.8f8aa8","type":"set","name":"set service-type","xml":"<set>\n<parameter name='prop.l3vpn.service-type' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":1957.9999389648438,"y":207.60000610351562,"z":"d42722f8.3eccb8","wires":[]},{"id":"2544c74d.97ee18","type":"switchNode","name":"switch topology","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'topology'`\">\n","comments":"","outputs":1,"x":1603,"y":273,"z":"d42722f8.3eccb8","wires":[["67a5441.72b6abc"]]},{"id":"b7871d3d.25fad8","type":"switchNode","name":"switch technology","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'technology'`\">\n","comments":"","outputs":1,"x":1606,"y":326,"z":"d42722f8.3eccb8","wires":[["b0d9aff3.b00fa8"]]},{"id":"fe408f02.5f753","type":"switchNode","name":"switch site1_name","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site1_name'`\">\n","comments":"","outputs":1,"x":1611,"y":388,"z":"d42722f8.3eccb8","wires":[["4d154733.c71d7"]]},{"id":"a83a85a7.171548","type":"switchNode","name":"switch site2_name","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site2_name'`\">\n","comments":"","outputs":1,"x":1606,"y":451,"z":"d42722f8.3eccb8","wires":[["a3d4aaaa.5e75f8"]]},{"id":"24a49d0f.d882f2","type":"switchNode","name":"switch sna1_name","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'sna1_name'`\">\n","comments":"","outputs":1,"x":1611,"y":511,"z":"d42722f8.3eccb8","wires":[["ee77e877.444dc"]]},{"id":"6e6d25b6.396474","type":"switchNode","name":"switch sna2_name","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'sna2_name'`\">\n","comments":"","outputs":1,"x":1606,"y":575,"z":"d42722f8.3eccb8","wires":[["177ebd38.639203"]]},{"id":"631fc211.5012a4","type":"switchNode","name":"switch pe1_id","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'pe1_id'`\">\n","comments":"","outputs":1,"x":1611,"y":637,"z":"d42722f8.3eccb8","wires":[["bc4514aa.bff8b"]]},{"id":"6118a340.6202bc","type":"switchNode","name":"switch pe2_id","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'pe2_id'`\">\n","comments":"","outputs":1,"x":1626,"y":697,"z":"d42722f8.3eccb8","wires":[["1007421c.7d0e8e"]]},{"id":"36b08791.59ad9","type":"switchNode","name":"switch ac1_id","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac1_id'`\">\n","comments":"","outputs":1,"x":1621,"y":769,"z":"d42722f8.3eccb8","wires":[["a19c0d54.dae6"]]},{"id":"34e1c7d4.0648","type":"switchNode","name":"switch ac2_id","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac2_id'`\">\n","comments":"","outputs":1,"x":1620,"y":828,"z":"d42722f8.3eccb8","wires":[["84e52060.75ef7"]]},{"id":"b6ef6a39.4f99a","type":"switchNode","name":"switch ac1_ip","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac1_ip'`\">\n","comments":"","outputs":1,"x":1621,"y":879,"z":"d42722f8.3eccb8","wires":[["2bc62aa7.ef22ee"]]},{"id":"57ff81fd.d7eb5","type":"switchNode","name":"switch ac2_ip","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac2_ip'`\">\n","comments":"","outputs":1,"x":1624,"y":936,"z":"d42722f8.3eccb8","wires":[["99127b02.b296b8"]]},{"id":"45e9f15b.b00ef","type":"switchNode","name":"switch ac1_peer_ip","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac1_peer_ip'`\">\n","comments":"","outputs":1,"x":1630,"y":988,"z":"d42722f8.3eccb8","wires":[["99742acf.29058"]]},{"id":"f194b0b0.06c4a","type":"switchNode","name":"switch ac2_peer_ip","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac2_peer_ip'`\">\n","comments":"","outputs":1,"x":1631,"y":1043,"z":"d42722f8.3eccb8","wires":[["80ed9287.14c0b"]]},{"id":"db1b22e2.44ac28","type":"switchNode","name":"switch ac1_svlan","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac1_svlan'`\">\n","comments":"","outputs":1,"x":1643,"y":1092,"z":"d42722f8.3eccb8","wires":[["7e8264fe.9a4184"]]},{"id":"40dbf064.599ad8","type":"switchNode","name":"switch ac2_svlan","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac2_svlan'`\">\n","comments":"","outputs":1,"x":1636,"y":1143,"z":"d42722f8.3eccb8","wires":[["b90636ea.ed4c38"]]},{"id":"f83e78ff.bcb19","type":"switchNode","name":"switch ac1_protocol","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac1_protocol'`\">\n","comments":"","outputs":1,"x":1629,"y":1201,"z":"d42722f8.3eccb8","wires":[["bacf2339.37a91"]]},{"id":"953ea88f.9f4a18","type":"switchNode","name":"switch ac2_protocol","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac2_protocol'`\">\n","comments":"","outputs":1,"x":1630,"y":1261,"z":"d42722f8.3eccb8","wires":[["97f3e1d.1c8072"]]},{"id":"1b0d7ad2.7c73cd","type":"switchNode","name":"switch ac1_protocol_bgp_as","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac1_protocol_bgp_as'`\">\n","comments":"","outputs":1,"x":1631,"y":1307,"z":"d42722f8.3eccb8","wires":[["e29f2e84.29cc98"]]},{"id":"503fb0c2.118f08","type":"switchNode","name":"switch ac2_protocol_bgp_as","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac2_protocol_bgp_as'`\">\n","comments":"","outputs":1,"x":1637,"y":1358,"z":"d42722f8.3eccb8","wires":[["cba6eaf7.a3e0f"]]},{"id":"abda3944.6cc14","type":"switchNode","name":"switch af_type","xml":"<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'af_type'`\">\n","comments":"","outputs":1,"x":1628,"y":1412,"z":"d42722f8.3eccb8","wires":[["285638b5.acb86"]]},{"id":"67a5441.72b6abc","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1778,"y":269,"z":"d42722f8.3eccb8","wires":[["db3c5d8c.944588"]]},{"id":"b0d9aff3.b00fa8","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1784,"y":322,"z":"d42722f8.3eccb8","wires":[["e1dcf81.cf81f08"]]},{"id":"4d154733.c71d7","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1793,"y":384,"z":"d42722f8.3eccb8","wires":[["88926751.4fb388"]]},{"id":"a3d4aaaa.5e75f8","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1791,"y":447,"z":"d42722f8.3eccb8","wires":[["b6c53efa.cf8ae"]]},{"id":"ee77e877.444dc","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1796,"y":509,"z":"d42722f8.3eccb8","wires":[["d30f9440.cd7a9"]]},{"id":"177ebd38.639203","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1788,"y":567,"z":"d42722f8.3eccb8","wires":[["9cf0b05d.8daa98"]]},{"id":"bc4514aa.bff8b","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1789,"y":630,"z":"d42722f8.3eccb8","wires":[["68b22e8f.d45fc"]]},{"id":"1007421c.7d0e8e","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1788,"y":699,"z":"d42722f8.3eccb8","wires":[["ae6ba13f.09e0d"]]},{"id":"a19c0d54.dae6","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1785,"y":767,"z":"d42722f8.3eccb8","wires":[["8027371b.40f6c8"]]},{"id":"84e52060.75ef7","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1784,"y":831,"z":"d42722f8.3eccb8","wires":[["327b55cc.8c9f6a"]]},{"id":"2bc62aa7.ef22ee","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1781,"y":877,"z":"d42722f8.3eccb8","wires":[["456d6e39.b277b"]]},{"id":"99127b02.b296b8","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1783,"y":934,"z":"d42722f8.3eccb8","wires":[["ba2a56e4.37da1"]]},{"id":"99742acf.29058","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1819,"y":985,"z":"d42722f8.3eccb8","wires":[["8b3ca584.be477"]]},{"id":"80ed9287.14c0b","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1824,"y":1048,"z":"d42722f8.3eccb8","wires":[["5e28eb3d.fcfbfc"]]},{"id":"7e8264fe.9a4184","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1820,"y":1097,"z":"d42722f8.3eccb8","wires":[["9799c154.0a7f08"]]},{"id":"b90636ea.ed4c38","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1804,"y":1146,"z":"d42722f8.3eccb8","wires":[["d9366dce.978858"]]},{"id":"bacf2339.37a91","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1801,"y":1199,"z":"d42722f8.3eccb8","wires":[["d0174fbe.4dfc9"]]},{"id":"97f3e1d.1c8072","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1814,"y":1258,"z":"d42722f8.3eccb8","wires":[["cdf18661.8284a"]]},{"id":"e29f2e84.29cc98","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1839,"y":1304,"z":"d42722f8.3eccb8","wires":[["c85e7fd9.cd69c"]]},{"id":"cba6eaf7.a3e0f","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1846,"y":1354,"z":"d42722f8.3eccb8","wires":[["2c7d8d12.1b8f3a"]]},{"id":"285638b5.acb86","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1814,"y":1413,"z":"d42722f8.3eccb8","wires":[["541bf067.78e77"]]},{"id":"db3c5d8c.944588","type":"set","name":"set topology","xml":"<set>\n<parameter name='prop.l3vpn.topology' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":1973,"y":270,"z":"d42722f8.3eccb8","wires":[]},{"id":"e1dcf81.cf81f08","type":"set","name":"set technology","xml":"<set>\n<parameter name='prop.l3vpn.technology' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":1963,"y":324,"z":"d42722f8.3eccb8","wires":[]},{"id":"88926751.4fb388","type":"set","name":"set site1_name","xml":"<set>\n<parameter name='prop.l3vpn.site1_name' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":1967,"y":381,"z":"d42722f8.3eccb8","wires":[]},{"id":"b6c53efa.cf8ae","type":"set","name":"set site2_name","xml":"<set>\n<parameter name='prop.l3vpn.site2_name' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":1970,"y":440,"z":"d42722f8.3eccb8","wires":[]},{"id":"d30f9440.cd7a9","type":"set","name":"set sna1_name","xml":"<set>\n<parameter name='prop.l3vpn.sna1_name' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":1978,"y":502,"z":"d42722f8.3eccb8","wires":[]},{"id":"9cf0b05d.8daa98","type":"set","name":"set sna2_name","xml":"<set>\n<parameter name='prop.l3vpn.sna2_name' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":1970,"y":562,"z":"d42722f8.3eccb8","wires":[]},{"id":"68b22e8f.d45fc","type":"set","name":"set pe1_id","xml":"<set>\n<parameter name='prop.l3vpn.pe1_id' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":1967,"y":622,"z":"d42722f8.3eccb8","wires":[]},{"id":"ae6ba13f.09e0d","type":"set","name":"set pe2_id","xml":"<set>\n<parameter name='prop.l3vpn.pe2_id' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":1963,"y":693,"z":"d42722f8.3eccb8","wires":[]},{"id":"8027371b.40f6c8","type":"set","name":"set ac1_id","xml":"<set>\n<parameter name='prop.l3vpn.ac1_id' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":1956,"y":759,"z":"d42722f8.3eccb8","wires":[]},{"id":"327b55cc.8c9f6a","type":"set","name":"set ac2_id","xml":"<set>\n<parameter name='prop.l3vpn.ac2_id' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":1959,"y":826,"z":"d42722f8.3eccb8","wires":[]},{"id":"456d6e39.b277b","type":"set","name":"set ac1_ip","xml":"<set>\n<parameter name='prop.l3vpn.ac1_ip' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":1959,"y":880,"z":"d42722f8.3eccb8","wires":[]},{"id":"ba2a56e4.37da1","type":"set","name":"set ac2_ip","xml":"<set>\n<parameter name='prop.l3vpn.ac2_ip' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":1963,"y":934,"z":"d42722f8.3eccb8","wires":[]},{"id":"8b3ca584.be477","type":"set","name":"set ac1_peer_ip","xml":"<set>\n<parameter name='prop.l3vpn.ac1_peer_ip' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":2011,"y":989,"z":"d42722f8.3eccb8","wires":[]},{"id":"5e28eb3d.fcfbfc","type":"set","name":"set ac2_peer_ip","xml":"<set>\n<parameter name='prop.l3vpn.ac2_peer_ip' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":2007,"y":1044,"z":"d42722f8.3eccb8","wires":[]},{"id":"9799c154.0a7f08","type":"set","name":"set ac1_svlan","xml":"<set>\n<parameter name='prop.l3vpn.ac1_svlan' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":2001,"y":1099,"z":"d42722f8.3eccb8","wires":[]},{"id":"d9366dce.978858","type":"set","name":"set ac2_svlan","xml":"<set>\n<parameter name='prop.l3vpn.ac2_svlan' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":1998,"y":1152,"z":"d42722f8.3eccb8","wires":[]},{"id":"d0174fbe.4dfc9","type":"set","name":"set ac1_protocol","xml":"<set>\n<parameter name='prop.l3vpn.ac1_protocol' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":1996,"y":1209,"z":"d42722f8.3eccb8","wires":[]},{"id":"cdf18661.8284a","type":"set","name":"set ac2_protocol","xml":"<set>\n<parameter name='prop.l3vpn.name' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":2005,"y":1261,"z":"d42722f8.3eccb8","wires":[]},{"id":"c85e7fd9.cd69c","type":"set","name":"set ac1_protocol_bgp_as","xml":"<set>\n<parameter name='prop.l3vpn.ac1_protocol_bgp_as' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":2016,"y":1312,"z":"d42722f8.3eccb8","wires":[]},{"id":"2c7d8d12.1b8f3a","type":"set","name":"set ac1_protocol_bgp_as","xml":"<set>\n<parameter name='prop.l3vpn.ac1_protocol_bgp_as' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":2021,"y":1367,"z":"d42722f8.3eccb8","wires":[]},{"id":"541bf067.78e77","type":"set","name":"set af_type","xml":"<set>\n<parameter name='prop.l3vpn.af_type' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n","comments":"","x":2019,"y":1425,"z":"d42722f8.3eccb8","wires":[]}]
+[
+  {
+    "id": "6c6bc16c.ca3e3",
+    "type": "dgstart",
+    "name": "DGSTART",
+    "outputs": 1,
+    "x": 77,
+    "y": 53,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "537702a4.cc8034"
+      ]
+    ]
+  },
+  {
+    "id": "537702a4.cc8034",
+    "type": "service-logic",
+    "name": "GENERIC-RESOURCE-API ${project.version}",
+    "module": "GENERIC-RESOURCE-API",
+    "version": "${project.version}",
+    "comments": "",
+    "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>",
+    "outputs": 1,
+    "x": 289.00000381469727,
+    "y": 125.0000171661377,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "be1e8309.4bc4c8"
+      ]
+    ]
+  },
+  {
+    "id": "be1e8309.4bc4c8",
+    "type": "method",
+    "name": "method network-topology-operation-create",
+    "xml": "<method rpc='network-topology-operation-create' mode='sync'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 277.0001220703125,
+    "y": 213,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "15842b75.da07e5"
+      ]
+    ]
+  },
+  {
+    "id": "15842b75.da07e5",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">\n",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 553.0000305175781,
+    "y": 221.00001335144043,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "35d46a8d.e7edce",
+        "861f67a.7920b18",
+        "38a3e2ad.559ce6",
+        "39c4a2ad.6290be",
+        "56d07259.1d8cbc",
+        "5c9ca6e0.e239a",
+        "e21a9c92.1f2a28",
+        "151a4cba.fa33e3",
+        "be047f99.592428",
+        "1460f5c7.7bf212",
+        "e2d35c41.dd6f5"
+      ]
+    ]
+  },
+  {
+    "id": "d2fcc9e7.aec75",
+    "type": "execute",
+    "name": "execute RestApiCallNode Create IPWAN L3VPN",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n<parameter name=\"templateFileName\" value=\"$prop.sdncRestApi.tempDir +'/l3smvpntemplate.json'\"/>\n<parameter name=\"restapiUrl\" value=\"$prop.sdncRestApi.thirdpartySdnc.url +'/restconf/data/huawei-ac-net-l3vpn-svc:l3vpn-svc-cfg/vpn-services'\"/>\n<parameter name=\"restapiUser\" value=\"$prop.sdncRestApi.thirdpartySdnc.user\"/>\n<parameter name=\"restapiPassword\" value=\"$prop.sdncRestApi.thirdpartySdnc.password\"/>\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"post\"/>\n<parameter name=\"responsePrefix\" value=\"restapi-result\"/>",
+    "comments": "",
+    "outputs": 1,
+    "x": 1149.0001831054688,
+    "y": 737,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "35d46a8d.e7edce",
+    "type": "set",
+    "name": "set controller data",
+    "xml": "<set>\n<parameter name='prop.sdncRestApi.thirdpartySdnc.url' value=\"`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list[0].esr-system-info.serviceUrl`\" />\n<parameter name='prop.sdncRestApi.templateDir' value='/opt/onap/sdnc/data' />\n<parameter name='prop.sdncRestApi.thirdpartySdnc.user' value=\"`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list[0].esr-system-info.user-name`\" />\n<parameter name='prop.sdncRestApi.thirdpartySdnc.password' value=\"`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list[0].esr-system-info.password`\" />\n",
+    "comments": "",
+    "x": 781.0000610351562,
+    "y": 293,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "56d07259.1d8cbc",
+    "type": "for",
+    "name": "for each network-input-parameters",
+    "xml": "<for index='idx' start='0' end='`$network-topology-operation-input.network-request-input.network-input-parameters.param_length`' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 838.6666259765625,
+    "y": 389.6666564941406,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "b2478f4e.7cd8b"
+      ]
+    ]
+  },
+  {
+    "id": "6b6b65e4.027114",
+    "type": "execute",
+    "name": "execute RestApiCallNode Create SPTN L3VPN",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n<parameter name=\"templateFileName\" value=\"$prop.sdncRestApi.tempDir +'/l3smsitetemplate.json'\"/>\n<parameter name=\"restapiUrl\" value=\"$prop.sdncRestApi.thirdpartySdnc.url\"/>\n<parameter name=\"restapiUser\" value=\"$prop.sdncRestApi.thirdpartySdnc.user\"/>\n<parameter name=\"restapiPassword\" value=\"$prop.sdncRestApi.thirdpartySdnc.password\"/>\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"post\"/>\n<parameter name=\"responsePrefix\" value=\"restapi-result\"/>",
+    "comments": "",
+    "outputs": 1,
+    "x": 1120.6668701171875,
+    "y": 939.6666870117188,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "39c4a2ad.6290be",
+    "type": "execute",
+    "name": "execute vpn-policy1-id",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >\n<parameter name=\"ctx-destination\" value=\"prop.l3vpn.vpn-policy1-id\"/>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 798.6666259765625,
+    "y": 446.66668701171875,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "96af0d.cf3c10f"
+      ]
+    ]
+  },
+  {
+    "id": "96af0d.cf3c10f",
+    "type": "failure",
+    "name": "failure",
+    "xml": "<outcome value='failure'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1023.6666259765625,
+    "y": 449.6666564941406,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "7438ecb9.4567f4"
+      ]
+    ]
+  },
+  {
+    "id": "7438ecb9.4567f4",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n<parameter name='error-code' value='' />\n<parameter name='error-message' value=\"An error occured while generation vpn policy ID\" />\n",
+    "comments": "",
+    "x": 1204.6666259765625,
+    "y": 447.6666564941406,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "861f67a.7920b18",
+    "type": "call",
+    "name": "call GENERIC-RESOURCE-API:validate-network-input-parameters",
+    "xml": "<call module='GENERIC-RESOURCE-API' rpc='validate-network-input-parameters' mode='sync' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 850.5,
+    "y": 90,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "38a3e2ad.559ce6",
+    "type": "get-resource",
+    "name": "get-resource esr-thirdparty-sdnc",
+    "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"esr-thirdparty-sdnc\" \n\t\tkey=\"esr-thirdparty-sdnc.thirdparty-sdnc-id = $tmp.thirdparty-sdnc-id AND \n\t\t     depth = '1'\"\n        pfx='tmp.aai.esr-thirdparty-sdnc' local-only='false' >\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 820.5,
+    "y": 207,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "747be621.ebaa68",
+        "e28c7994.72931",
+        "5f530a05.e03c5c"
+      ]
+    ]
+  },
+  {
+    "id": "747be621.ebaa68",
+    "type": "success",
+    "name": "success",
+    "xml": "<outcome value='success'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1145.5,
+    "y": 138,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "270f57b4.7e9228"
+      ]
+    ]
+  },
+  {
+    "id": "e28c7994.72931",
+    "type": "not-found",
+    "name": "not-found",
+    "xml": "<outcome value='not-found'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1148.990966796875,
+    "y": 185.57403564453125,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "b482495d.0483a"
+      ]
+    ]
+  },
+  {
+    "id": "5f530a05.e03c5c",
+    "type": "other",
+    "name": "other",
+    "xml": "<outcome value='Other'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1144.323974609375,
+    "y": 226.9073486328125,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "552e5145.a20188"
+      ]
+    ]
+  },
+  {
+    "id": "b482495d.0483a",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Network model is_bound_to_vpn=true but no vpn_binding is present\" />\n\n",
+    "comments": "",
+    "x": 1325.5623779296875,
+    "y": 173.85977172851562,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "552e5145.a20188",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Unexpected error retrieving vpn binding\" />\n\n",
+    "comments": "",
+    "x": 1332.0965309143066,
+    "y": 222.34654140472412,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "270f57b4.7e9228",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">",
+    "atomic": "true",
+    "outputs": 1,
+    "x": 1323.705322265625,
+    "y": 130.57403564453125,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "b2478f4e.7cd8b",
+    "type": "block",
+    "name": "block",
+    "xml": "<block>\n",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 1237.5,
+    "y": 396,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "92f693f1.fbeac8",
+        "fa654c60.33fc7",
+        "3c75f999.d8df1e",
+        "399d4af.75d7f36",
+        "f1384917.ec5db8",
+        "b487b0d3.26ff08",
+        "507ab3c0.3b67f4",
+        "b36084e3.ed78c",
+        "43267259.9b3cb4",
+        "2536a52a.61b14a",
+        "7ec07647.4a18e8",
+        "cc9729b3.35c9a8",
+        "72f85ed8.f54e68",
+        "b028194c.b3b988",
+        "b0ea6a25.f32ed",
+        "b7bb055e.312e1",
+        "d25d1bce.304f78",
+        "49087f87.ab7e78",
+        "6e2762a6.8272c4",
+        "5f3b0791.9b6e88",
+        "1aacfbe9.a7c6bc",
+        "f2101f18.ae2b68",
+        "ca43c6ae.b67f4",
+        "5a7334fb.eef58c",
+        "bf6d8b73.1d1d2"
+      ]
+    ]
+  },
+  {
+    "id": "92f693f1.fbeac8",
+    "type": "switchNode",
+    "name": "switch name",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'name'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1588.5,
+    "y": 20.000030517578125,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "6d73e8b1.07061"
+      ]
+    ]
+  },
+  {
+    "id": "fa654c60.33fc7",
+    "type": "switchNode",
+    "name": "switch service-type",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'service-type'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1592.4999389648438,
+    "y": 81.60000610351562,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "2301d600.a73462"
+      ]
+    ]
+  },
+  {
+    "id": "6d73e8b1.07061",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1775.5,
+    "y": 20.000030517578125,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "1d383b47.d3c90d"
+      ]
+    ]
+  },
+  {
+    "id": "2301d600.a73462",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1777.4999389648438,
+    "y": 79.60000610351562,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "f95d177d.930be"
+      ]
+    ]
+  },
+  {
+    "id": "1d383b47.d3c90d",
+    "type": "set",
+    "name": "set name",
+    "xml": "<set>\n<parameter name='prop.l3vpn.name' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 1943.5,
+    "y": 20.60003662109375,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "f95d177d.930be",
+    "type": "set",
+    "name": "set service-type",
+    "xml": "<set>\n<parameter name='prop.l3vpn.service-type' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 1946.4999389648438,
+    "y": 77.60000610351562,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "3c75f999.d8df1e",
+    "type": "switchNode",
+    "name": "switch topology",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'topology'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1591.5,
+    "y": 143,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "64ec1f5c.cd7588"
+      ]
+    ]
+  },
+  {
+    "id": "399d4af.75d7f36",
+    "type": "switchNode",
+    "name": "switch technology",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'technology'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1594.5,
+    "y": 196,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "30608684.1fa91a"
+      ]
+    ]
+  },
+  {
+    "id": "f1384917.ec5db8",
+    "type": "switchNode",
+    "name": "switch site1_name",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site1_name'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1599.5,
+    "y": 258,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "7b6affba.2f1ea8"
+      ]
+    ]
+  },
+  {
+    "id": "b487b0d3.26ff08",
+    "type": "switchNode",
+    "name": "switch site2_name",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site2_name'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1594.5,
+    "y": 321,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "e7d8abc.3397ed8"
+      ]
+    ]
+  },
+  {
+    "id": "507ab3c0.3b67f4",
+    "type": "switchNode",
+    "name": "switch sna1_name",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'sna1_name'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1599.5,
+    "y": 381,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "ccbb4e0a.e4624"
+      ]
+    ]
+  },
+  {
+    "id": "b36084e3.ed78c",
+    "type": "switchNode",
+    "name": "switch sna2_name",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'sna2_name'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1594.5,
+    "y": 445,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "5e7b746e.c31ebc"
+      ]
+    ]
+  },
+  {
+    "id": "43267259.9b3cb4",
+    "type": "switchNode",
+    "name": "switch pe1_id",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'pe1_id'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1599.5,
+    "y": 507,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "cd97fc49.ef9428"
+      ]
+    ]
+  },
+  {
+    "id": "2536a52a.61b14a",
+    "type": "switchNode",
+    "name": "switch pe2_id",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'pe2_id'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1614.5,
+    "y": 567,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "b43f1ee2.b85a2"
+      ]
+    ]
+  },
+  {
+    "id": "7ec07647.4a18e8",
+    "type": "switchNode",
+    "name": "switch ac1_id",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac1_id'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1609.5,
+    "y": 639,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "b4d9a4d.005d958"
+      ]
+    ]
+  },
+  {
+    "id": "cc9729b3.35c9a8",
+    "type": "switchNode",
+    "name": "switch ac2_id",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac2_id'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1608.5,
+    "y": 698,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "7dfb851.0b49cfc"
+      ]
+    ]
+  },
+  {
+    "id": "72f85ed8.f54e68",
+    "type": "switchNode",
+    "name": "switch ac1_ip",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac1_ip'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1585.5,
+    "y": 761,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "d713e906.7f455"
+      ]
+    ]
+  },
+  {
+    "id": "b028194c.b3b988",
+    "type": "switchNode",
+    "name": "switch ac2_ip",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac2_ip'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1588.5,
+    "y": 818,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "973837ca.190aa8"
+      ]
+    ]
+  },
+  {
+    "id": "b0ea6a25.f32ed",
+    "type": "switchNode",
+    "name": "switch ac1_peer_ip",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac1_peer_ip'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1594.5,
+    "y": 870,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "6ccb4ca1.2cd06c"
+      ]
+    ]
+  },
+  {
+    "id": "b7bb055e.312e1",
+    "type": "switchNode",
+    "name": "switch ac2_peer_ip",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac2_peer_ip'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1595.5,
+    "y": 925,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "b9aa2fd2.814f48"
+      ]
+    ]
+  },
+  {
+    "id": "d25d1bce.304f78",
+    "type": "switchNode",
+    "name": "switch ac1_svlan",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac1_svlan'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1607.5,
+    "y": 974,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "7df19f10.00d63"
+      ]
+    ]
+  },
+  {
+    "id": "49087f87.ab7e78",
+    "type": "switchNode",
+    "name": "switch ac2_svlan",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac2_svlan'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1600.5,
+    "y": 1025,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "deb16fb4.873d88"
+      ]
+    ]
+  },
+  {
+    "id": "6e2762a6.8272c4",
+    "type": "switchNode",
+    "name": "switch ac1_protocol",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac1_protocol'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1593.5,
+    "y": 1083,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "d9a405e5.0fbd78"
+      ]
+    ]
+  },
+  {
+    "id": "5f3b0791.9b6e88",
+    "type": "switchNode",
+    "name": "switch ac2_protocol",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac2_protocol'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1594.5,
+    "y": 1143,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "f17cdf9a.1f70e"
+      ]
+    ]
+  },
+  {
+    "id": "1aacfbe9.a7c6bc",
+    "type": "switchNode",
+    "name": "switch ac1_protocol_bgp_as",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac1_protocol_bgp_as'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1588.5,
+    "y": 1329,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "3676d16.bff3dae"
+      ]
+    ]
+  },
+  {
+    "id": "f2101f18.ae2b68",
+    "type": "switchNode",
+    "name": "switch ac2_protocol_bgp_as",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac2_protocol_bgp_as'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1594.5,
+    "y": 1380,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "43e3c11a.4b0498"
+      ]
+    ]
+  },
+  {
+    "id": "ca43c6ae.b67f4",
+    "type": "switchNode",
+    "name": "switch af_type",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'af_type'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1561.5,
+    "y": 1471,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "ab13048a.b0a2"
+      ]
+    ]
+  },
+  {
+    "id": "64ec1f5c.cd7588",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1766.5,
+    "y": 139,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "f1c21eed.4c6488"
+      ]
+    ]
+  },
+  {
+    "id": "30608684.1fa91a",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1772.5,
+    "y": 192,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "db52bb2.d3cc7c8"
+      ]
+    ]
+  },
+  {
+    "id": "7b6affba.2f1ea8",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1781.5,
+    "y": 254,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "7c0e170d.30b1d"
+      ]
+    ]
+  },
+  {
+    "id": "e7d8abc.3397ed8",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1779.5,
+    "y": 317,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "947c8730.9c4b48"
+      ]
+    ]
+  },
+  {
+    "id": "ccbb4e0a.e4624",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1784.5,
+    "y": 379,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "a06ad2cd.275448"
+      ]
+    ]
+  },
+  {
+    "id": "5e7b746e.c31ebc",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1776.5,
+    "y": 437,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "b2aa581c.5af32"
+      ]
+    ]
+  },
+  {
+    "id": "cd97fc49.ef9428",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1777.5,
+    "y": 500,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "72cbbe8e.f6925"
+      ]
+    ]
+  },
+  {
+    "id": "b43f1ee2.b85a2",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1776.5,
+    "y": 569,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "d9091182.9c0dc8"
+      ]
+    ]
+  },
+  {
+    "id": "b4d9a4d.005d958",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1773.5,
+    "y": 637,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "ae505877.71061"
+      ]
+    ]
+  },
+  {
+    "id": "7dfb851.0b49cfc",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1772.5,
+    "y": 701,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "2f24e7f6.a11b28"
+      ]
+    ]
+  },
+  {
+    "id": "d713e906.7f455",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1745.5,
+    "y": 759,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "42443b38.340f8c"
+      ]
+    ]
+  },
+  {
+    "id": "973837ca.190aa8",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1747.5,
+    "y": 816,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "e3ce9d5.2cdf36"
+      ]
+    ]
+  },
+  {
+    "id": "6ccb4ca1.2cd06c",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1783.5,
+    "y": 867,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "7054b5f4.206a54"
+      ]
+    ]
+  },
+  {
+    "id": "b9aa2fd2.814f48",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1788.5,
+    "y": 930,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "784b972f.0e3428"
+      ]
+    ]
+  },
+  {
+    "id": "7df19f10.00d63",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1784.5,
+    "y": 979,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "206c366c.675522"
+      ]
+    ]
+  },
+  {
+    "id": "deb16fb4.873d88",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1768.5,
+    "y": 1028,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "10227f41.369851"
+      ]
+    ]
+  },
+  {
+    "id": "d9a405e5.0fbd78",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1765.5,
+    "y": 1081,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "1799ee09.bb8ffa"
+      ]
+    ]
+  },
+  {
+    "id": "f17cdf9a.1f70e",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1778.5,
+    "y": 1140,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "a6d260a1.f58c48"
+      ]
+    ]
+  },
+  {
+    "id": "3676d16.bff3dae",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1796.5,
+    "y": 1326,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "8bd5be57.1da07"
+      ]
+    ]
+  },
+  {
+    "id": "43e3c11a.4b0498",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1803.5,
+    "y": 1376,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "b62f8a75.a94a88"
+      ]
+    ]
+  },
+  {
+    "id": "ab13048a.b0a2",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1765.5,
+    "y": 1480,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "d6461dbb.9360e8"
+      ]
+    ]
+  },
+  {
+    "id": "f1c21eed.4c6488",
+    "type": "set",
+    "name": "set topology",
+    "xml": "<set>\n<parameter name='prop.l3vpn.topology' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 1961.5,
+    "y": 140,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "db52bb2.d3cc7c8",
+    "type": "set",
+    "name": "set technology",
+    "xml": "<set>\n<parameter name='prop.l3vpn.technology' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 1951.5,
+    "y": 194,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "7c0e170d.30b1d",
+    "type": "set",
+    "name": "set site1_name",
+    "xml": "<set>\n<parameter name='prop.l3vpn.site1_name' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 1955.5,
+    "y": 251,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "947c8730.9c4b48",
+    "type": "set",
+    "name": "set site2_name",
+    "xml": "<set>\n<parameter name='prop.l3vpn.site2_name' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 1958.5,
+    "y": 310,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "a06ad2cd.275448",
+    "type": "set",
+    "name": "set sna1_name",
+    "xml": "<set>\n<parameter name='prop.l3vpn.sna1_name' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 1966.5,
+    "y": 372,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "b2aa581c.5af32",
+    "type": "set",
+    "name": "set sna2_name",
+    "xml": "<set>\n<parameter name='prop.l3vpn.sna2_name' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 1958.5,
+    "y": 432,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "72cbbe8e.f6925",
+    "type": "set",
+    "name": "set pe1_id",
+    "xml": "<set>\n<parameter name='prop.l3vpn.pe1_id' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 1955.5,
+    "y": 492,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "d9091182.9c0dc8",
+    "type": "set",
+    "name": "set pe2_id",
+    "xml": "<set>\n<parameter name='prop.l3vpn.pe2_id' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 1951.5,
+    "y": 563,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "ae505877.71061",
+    "type": "set",
+    "name": "set ac1_id",
+    "xml": "<set>\n<parameter name='prop.l3vpn.ac1_id' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 1944.5,
+    "y": 629,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "2f24e7f6.a11b28",
+    "type": "set",
+    "name": "set ac2_id",
+    "xml": "<set>\n<parameter name='prop.l3vpn.ac2_id' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 1947.5,
+    "y": 696,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "42443b38.340f8c",
+    "type": "set",
+    "name": "set ac1_ip",
+    "xml": "<set>\n<parameter name='prop.l3vpn.ac1_ip' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 1923.5,
+    "y": 762,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "e3ce9d5.2cdf36",
+    "type": "set",
+    "name": "set ac2_ip",
+    "xml": "<set>\n<parameter name='prop.l3vpn.ac2_ip' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 1927.5,
+    "y": 816,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "7054b5f4.206a54",
+    "type": "set",
+    "name": "set ac1_peer_ip",
+    "xml": "<set>\n<parameter name='prop.l3vpn.ac1_peer_ip' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 1975.5,
+    "y": 871,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "784b972f.0e3428",
+    "type": "set",
+    "name": "set ac2_peer_ip",
+    "xml": "<set>\n<parameter name='prop.l3vpn.ac2_peer_ip' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 1971.5,
+    "y": 926,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "206c366c.675522",
+    "type": "set",
+    "name": "set ac1_svlan",
+    "xml": "<set>\n<parameter name='prop.l3vpn.ac1_svlan' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 1965.5,
+    "y": 981,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "10227f41.369851",
+    "type": "set",
+    "name": "set ac2_svlan",
+    "xml": "<set>\n<parameter name='prop.l3vpn.ac2_svlan' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 1962.5,
+    "y": 1034,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "1799ee09.bb8ffa",
+    "type": "set",
+    "name": "set ac1_protocol",
+    "xml": "<set>\n<parameter name='prop.l3vpn.ac1_protocol' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 1960.5,
+    "y": 1091,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "a6d260a1.f58c48",
+    "type": "set",
+    "name": "set ac2_protocol",
+    "xml": "<set>\n<parameter name='prop.l3vpn.ac2_protocol' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 1969.5,
+    "y": 1143,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "8bd5be57.1da07",
+    "type": "set",
+    "name": "set ac1_protocol_bgp_as",
+    "xml": "<set>\n<parameter name='prop.l3vpn.ac1_protocol_bgp_as' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n<parameter name='prop.l3vpn.peer1-ip' value='`$prop.l3vpn.ac1_ip`' />\n",
+    "comments": "",
+    "x": 2063.5,
+    "y": 1347,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "b62f8a75.a94a88",
+    "type": "set",
+    "name": "set ac2_protocol_bgp_as",
+    "xml": "<set>\n<parameter name='prop.l3vpn.ac2_protocol_bgp_as' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n<parameter name='prop.l3vpn.peer2-ip' value='`$prop.l3vpn.ac2_ip`' />\n",
+    "comments": "",
+    "x": 2075.5,
+    "y": 1396,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "d6461dbb.9360e8",
+    "type": "set",
+    "name": "set af_type",
+    "xml": "<set>\n<parameter name='prop.l3vpn.af_type' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 1959.5,
+    "y": 1490,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "5c9ca6e0.e239a",
+    "type": "record",
+    "name": "record",
+    "xml": "<record plugin=\"org.onap.ccsdk.sli.core.sli.recording.FileRecorder\">\n<parameter name=\"file\" value=\"/opt/opendaylight/current/data/log/svclogic.log\"/>\n<parameter name=\"Time\" value=\"__TIMESTAMP__\"/>\n<parameter name=\"Method\" value=\"network-topology-operation-create\"/>\n<parameter name=\"SubMethod\" value=\"L3VPN-Config\"/>\n<parameter name=\"l3vpn_name\" value=\"`$prop.l3vpn.name`\"/>\n<parameter name=\"topology\" value=\"`$prop.l3vpn.topology`\"/>\n<parameter name=\"site1_name\" value=\"`$prop.l3vpn.site1_name`\"/>\n<parameter name=\"vpn-policy1-id\" value=\"`$prop.l3vpn.vpn-policy1-id}`\"/>\n<parameter name=\"l3vpn.entry1-id\" value=\"`$prop.l3vpn.entry1-id`\"/>\n<parameter name=\"sna1_name\" value=\"`$prop.l3vpn.sna1_name`\"/>\n<parameter name=\"pe1_id\" value=\"`$prop.l3vpn.pe1_id`\"/>\n<parameter name=\"ac1_id\" value=\"`$prop.l3vpn.ac1_id`\"/>\n<parameter name=\"sna1_svlan\" value=\"`$prop.l3vpn.sna1_svlan`\"/>\n<parameter name=\"ac1-peer-ip\" value=\"`$prop.l3vpn.ac1-peer-ip`\"/>\n<parameter name=\"ac1-ip\" value=\"`$prop.l3vpn.ac1-ip`\"/>\n<parameter name=\"ac1_protocol\" value=\"`$prop.l3vpn.ac1_protocol`\"/>\n<parameter name=\"sna1-route-ip-prefix\" value=\"`$prop.l3vpn.sna1-route-ip-prefix`\"/>\n<parameter name=\"sna1-route-next-hop\" value=\"`$prop.l3vpn.sna1-route-next-hop`\"/>\n<parameter name=\"peer2-ip\" value=\"`$prop.l3vpn.peer2-ip`\"/>\n<parameter name=\"ac2_protocol_bgp_as\" value=\"`$prop.l3vpn.ac2_protocol_bgp_as`\"/>\n<parameter name=\"vrf1-id\" value=\"`$prop.l3vpn.vrf1-id`\"/>\n<parameter name=\"site2_name\" value=\"`$prop.l3vpn.site2_name`\"/>\n<parameter name=\"vpn-policy2-id\" value=\"`$prop.l3vpn.vpn-policy2-id}`\"/>\n<parameter name=\"l3vpn.entry2-id\" value=\"`$prop.l3vpn.entry2-id`\"/>\n<parameter name=\"sna2_name\" value=\"`$prop.l3vpn.sna2_name`\"/>\n<parameter name=\"pe2_id\" value=\"`$prop.l3vpn.pe2_id`\"/>\n<parameter name=\"ac2_id\" value=\"`$prop.l3vpn.ac2_id`\"/>\n<parameter name=\"sna2_svlan\" value=\"`$prop.l3vpn.sna2_svlan`\"/>\n<parameter name=\"ac2-peer-ip\" value=\"`$prop.l3vpn.ac2-peer-ip`\"/>\n<parameter name=\"ac2-ip\" value=\"`$prop.l3vpn.ac2-ip`\"/>\n<parameter name=\"ac2_protocol\" value=\"`$prop.l3vpn.ac2_protocol`\"/>\n<parameter name=\"sna2-route-ip-prefix\" value=\"`$prop.l3vpn.sna2-route-ip-prefix`\"/>\n<parameter name=\"sna2-route-next-hop\" value=\"`$prop.l3vpn.sna2-route-next-hop`\"/>\n<parameter name=\"peer2-ip\" value=\"`$prop.l3vpn.peer2-ip`\"/>\n<parameter name=\"ac2_protocol_bgp_as\" value=\"`$prop.l3vpn.ac2_protocol_bgp_as`\"/>\n<parameter name=\"vrf2-id\" value=\"`$prop.l3vpn.vrf2-id`\"/>\n<parameter name=\"af_type\" value=\"`$prop.l3vpn.af_type`\"/>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 758,
+    "y": 741,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "e21a9c92.1f2a28",
+    "type": "switchNode",
+    "name": "switch service-type",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'service-type'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 683,
+    "y": 881,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "35f4cd65.09f49a",
+        "75d7a8fd.a7b578",
+        "8c0ace1c.3759a8"
+      ]
+    ]
+  },
+  {
+    "id": "35f4cd65.09f49a",
+    "type": "outcomeTrue",
+    "name": "l3vpn-ipwan",
+    "xml": "<outcome value='l3vpn-ipwan'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 669,
+    "y": 806,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "97e69226.8d874"
+      ]
+    ]
+  },
+  {
+    "id": "75d7a8fd.a7b578",
+    "type": "outcomeTrue",
+    "name": "l3vpn-sptn",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 827,
+    "y": 949,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "6b6b65e4.027114"
+      ]
+    ]
+  },
+  {
+    "id": "8c0ace1c.3759a8",
+    "type": "outcomeTrue",
+    "name": "other",
+    "xml": "<outcome value='Other'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 825,
+    "y": 1028,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "942583bd.a55fc8"
+      ]
+    ]
+  },
+  {
+    "id": "942583bd.a55fc8",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Unexpected error retrieving vpn binding\" />\n\n",
+    "comments": "",
+    "x": 1008,
+    "y": 1027,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "151a4cba.fa33e3",
+    "type": "execute",
+    "name": "execute vpn-policy2-id",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >\n<parameter name=\"ctx-destination\" value=\"prop.l3vpn.vpn-policy2-id\"/>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 799,
+    "y": 505,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "e0623ae9.6063c"
+      ]
+    ]
+  },
+  {
+    "id": "e0623ae9.6063c",
+    "type": "failure",
+    "name": "failure",
+    "xml": "<outcome value='failure'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1024,
+    "y": 507.9999694824219,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "25b266b0.918a82"
+      ]
+    ]
+  },
+  {
+    "id": "25b266b0.918a82",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n<parameter name='error-code' value='' />\n<parameter name='error-message' value=\"An error occured while generation vpn policy ID\" />\n",
+    "comments": "",
+    "x": 1205,
+    "y": 505.9999694824219,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "be047f99.592428",
+    "type": "set",
+    "name": "set policy entry",
+    "xml": "<set>\n<parameter name='prop.l3vpn.entry1-id' value='1' />\n<parameter name='prop.l3vpn.entry2-id' value='1' />\n\n",
+    "comments": "",
+    "x": 785,
+    "y": 553,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "98526d9c.6760b",
+    "type": "execute",
+    "name": "execute split ac1-route",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >\n<parameter name=\"original_string\" value='`$prop.l3vpn.ac1-route`'/>\n<parameter name=\"regex\" value=\" ## \"/>\n<parameter name=\"ctx_memory_result_key\" value=\"route1\"/>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2189,
+    "y": 1203,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "b220812e.109778",
+        "351eda30.07db16"
+      ]
+    ]
+  },
+  {
+    "id": "bf6d8b73.1d1d2",
+    "type": "switchNode",
+    "name": "switch ac2_route",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac2_route'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1590,
+    "y": 1251,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "7a9c17fc.2f1e08"
+      ]
+    ]
+  },
+  {
+    "id": "5a7334fb.eef58c",
+    "type": "switchNode",
+    "name": "switch ac1_route",
+    "xml": "<switch test=\"`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'ac1_route'`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1591,
+    "y": 1202,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "56e3cd9c.43986c"
+      ]
+    ]
+  },
+  {
+    "id": "56e3cd9c.43986c",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1763,
+    "y": 1200,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "477adf42.483428"
+      ]
+    ]
+  },
+  {
+    "id": "7a9c17fc.2f1e08",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1776,
+    "y": 1259,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "fc261e72.93fdd8"
+      ]
+    ]
+  },
+  {
+    "id": "54fbb9e9.bfa918",
+    "type": "set",
+    "name": "set ac1_route",
+    "xml": "<set>\n<parameter name='prop.l3vpn.ac1_route' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 2160,
+    "y": 1151,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "d7d47e9f.d291a8",
+    "type": "set",
+    "name": "set ac2_route",
+    "xml": "<set>\n<parameter name='prop.l3vpn.ac2_route' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`' />\n",
+    "comments": "",
+    "x": 2158,
+    "y": 1251,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "8d93fa75.d66f9",
+    "type": "execute",
+    "name": "execute split ac2-route",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >\n<parameter name=\"original_string\" value='`$prop.l3vpn.ac2-route`'/>\n<parameter name=\"regex\" value=\" ## \"/>\n<parameter name=\"ctx_memory_result_key\" value=\"route2\"/>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2182,
+    "y": 1296,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "ff5e6e80.75b3d",
+        "b6c5cd5f.5be15"
+      ]
+    ]
+  },
+  {
+    "id": "477adf42.483428",
+    "type": "block",
+    "name": "block atomic",
+    "xml": "<block atomic=\"true\">\n",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 1914,
+    "y": 1200,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "54fbb9e9.bfa918",
+        "98526d9c.6760b"
+      ]
+    ]
+  },
+  {
+    "id": "fc261e72.93fdd8",
+    "type": "block",
+    "name": "block atomic",
+    "xml": "<block atomic=\"true\">\n",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 1915,
+    "y": 1259,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "d7d47e9f.d291a8",
+        "8d93fa75.d66f9"
+      ]
+    ]
+  },
+  {
+    "id": "1460f5c7.7bf212",
+    "type": "execute",
+    "name": "execute vrf1-id",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >\n<parameter name=\"ctx-destination\" value=\"prop.l3vpn.vrf1-id\"/>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 806,
+    "y": 608,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "d4cb6331.d1fce8"
+      ]
+    ]
+  },
+  {
+    "id": "e2d35c41.dd6f5",
+    "type": "execute",
+    "name": "execute vrf2-id",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >\n<parameter name=\"ctx-destination\" value=\"prop.l3vpn.vrf2-id\"/>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 806.3333740234375,
+    "y": 666.3333129882812,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "aa4153ec.2a7508"
+      ]
+    ]
+  },
+  {
+    "id": "aa4153ec.2a7508",
+    "type": "failure",
+    "name": "failure",
+    "xml": "<outcome value='failure'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1031.3333740234375,
+    "y": 669.3332824707031,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "4a3bd02b.dd7f6"
+      ]
+    ]
+  },
+  {
+    "id": "d4cb6331.d1fce8",
+    "type": "failure",
+    "name": "failure",
+    "xml": "<outcome value='failure'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1031,
+    "y": 610.9999694824219,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "34c6dafd.7466b6"
+      ]
+    ]
+  },
+  {
+    "id": "34c6dafd.7466b6",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n<parameter name='error-code' value='' />\n<parameter name='error-message' value=\"An error occured while generation vpn policy ID\" />\n",
+    "comments": "",
+    "x": 1212,
+    "y": 608.9999694824219,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "4a3bd02b.dd7f6",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n<parameter name='error-code' value='' />\n<parameter name='error-message' value=\"An error occured while generation vpn policy ID\" />\n",
+    "comments": "",
+    "x": 1212.3333740234375,
+    "y": 667.3332824707031,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "97e69226.8d874",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">\n",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 848,
+    "y": 806,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "d2fcc9e7.aec75",
+        "29a0e3d5.f4d32c",
+        "c946ab83.d974f8"
+      ]
+    ]
+  },
+  {
+    "id": "29a0e3d5.f4d32c",
+    "type": "execute",
+    "name": "execute RestApiCallNode IPWAN Site Config",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n<parameter name=\"templateFileName\" value=\"$prop.sdncRestApi.tempDir +'/l3smvpntemplate.json'\"/>\n<parameter name=\"restapiUrl\" value=\"$prop.sdncRestApi.thirdpartySdnc.url +'/restconf/data/huawei-ac-net-l3vpn-svc:l3vpn-svc-cfg/vpn-services'\"/>\n<parameter name=\"restapiUser\" value=\"$prop.sdncRestApi.thirdpartySdnc.user\"/>\n<parameter name=\"restapiPassword\" value=\"$prop.sdncRestApi.thirdpartySdnc.password\"/>\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"post\"/>\n<parameter name=\"responsePrefix\" value=\"restapi-result\"/>",
+    "comments": "",
+    "outputs": 1,
+    "x": 1156,
+    "y": 801,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "c946ab83.d974f8",
+    "type": "execute",
+    "name": "execute RestApiCallNode IPWAN VRF Config",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n<parameter name=\"templateFileName\" value=\"$prop.sdncRestApi.tempDir +'/l3smvpntemplate.json'\"/>\n<parameter name=\"restapiUrl\" value=\"$prop.sdncRestApi.thirdpartySdnc.url +'/restconf/data/huawei-ac-net-l3vpn-svc:l3vpn-svc-cfg/vpn-services'\"/>\n<parameter name=\"restapiUser\" value=\"$prop.sdncRestApi.thirdpartySdnc.user\"/>\n<parameter name=\"restapiPassword\" value=\"$prop.sdncRestApi.thirdpartySdnc.password\"/>\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"post\"/>\n<parameter name=\"responsePrefix\" value=\"restapi-result\"/>",
+    "comments": "",
+    "outputs": 1,
+    "x": 1154,
+    "y": 872,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "b220812e.109778",
+    "type": "failure",
+    "name": "failure",
+    "xml": "<outcome value='failure'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2407,
+    "y": 1195,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "c61ec37b.6cd3b8"
+      ]
+    ]
+  },
+  {
+    "id": "c61ec37b.6cd3b8",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n<parameter name='error-code' value='' />\n<parameter name='error-message' value=\"An error occured while splitting sna1_route\" />\n",
+    "comments": "",
+    "x": 2588,
+    "y": 1193,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "ff5e6e80.75b3d",
+    "type": "failure",
+    "name": "failure",
+    "xml": "<outcome value='failure'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2405,
+    "y": 1297,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "73eb8615.8d24d8"
+      ]
+    ]
+  },
+  {
+    "id": "73eb8615.8d24d8",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n<parameter name='error-code' value='' />\n<parameter name='error-message' value=\"An error occured while splitting sna1_route\" />\n",
+    "comments": "",
+    "x": 2586,
+    "y": 1295,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "351eda30.07db16",
+    "type": "failure",
+    "name": "success",
+    "xml": "<outcome value='success'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2406,
+    "y": 1129,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "581ab8c9.51da4"
+      ]
+    ]
+  },
+  {
+    "id": "b6c5cd5f.5be15",
+    "type": "failure",
+    "name": "success",
+    "xml": "<outcome value='success'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2402,
+    "y": 1249,
+    "z": "f29dedb6.fec708",
+    "wires": [
+      [
+        "f0e238af.ae0bf8"
+      ]
+    ]
+  },
+  {
+    "id": "581ab8c9.51da4",
+    "type": "set",
+    "name": "set route1 ip-prefix next-hop",
+    "xml": "<set>\n<parameter name='prop.l3vpn.sna1-route.ip-prefix' value='`$route1[0]`' />\n<parameter name='prop.l3vpn.sna1-route.next-hop' value='`$route1[1]`' />\n",
+    "comments": "",
+    "x": 2613,
+    "y": 1123,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  },
+  {
+    "id": "f0e238af.ae0bf8",
+    "type": "set",
+    "name": "set route2 ip-prefix next-hop",
+    "xml": "<set>\n<parameter name='prop.l3vpn.sna2-route.ip-prefix' value='`$route2[0]`' />\n<parameter name='prop.l3vpn.sna2-route.next-hop' value='`$route2[1]`' />",
+    "comments": "",
+    "x": 2613,
+    "y": 1242,
+    "z": "f29dedb6.fec708",
+    "wires": []
+  }
+]
