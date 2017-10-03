@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<service-logic xmlns="http://www.openecomp.org/sdnc/svclogic" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openecomp.org/sdnc/svclogic ./svclogic.xsd" module="GENERIC-RESOURCE-API" version="${project.version}">
+<service-logic xmlns="http://www.onap.org/sdnc/svclogic" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.onap.org/sdnc/svclogic ./svclogic.xsd" module="GENERIC-RESOURCE-API" version="${project.version}">
     <method rpc="network-topology-operation-activate" mode="sync">
         <block atomic="true">
             <call module="GENERIC-RESOURCE-API" rpc="validate-network-input-parameters" mode="sync" />
@@ -39,10 +39,58 @@
                                 </outcome>
                             </switch>
                             <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site1_importRT1'`">
-                                <outcome value="true" />
+                                <outcome value="true">
+                                    <block atomic="true">
+                                        <set>
+                                            <parameter name="tmp.dci-connects.evpn_irts.original" value="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`" />
+                                        </set>
+                                        <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils" method="split">
+                                            <parameter name="original_string" value="`$tmp.dci-connects.evpn_irts.original`" />
+                                            <parameter name="regex" value="," />
+                                            <parameter name="ctx_memory_result_key" value="tmp.dci-connects.evpn_irts" />
+                                            <outcome value="success">
+                                                <for index="idx" start="0" end="`$tmp.dci-connects.evpn_irts_length`">
+                                                    <set>
+                                                        <parameter name="prop.dci-connects.evpn_irts[$idx]" value="`$tmp.dci-connects.evpn_irts[$idx]`" />
+                                                    </set>
+                                                </for>
+                                            </outcome>
+                                            <outcome value="failure">
+                                                <return status="failure">
+                                                    <parameter name="error-code" value="" />
+                                                    <parameter name="error-message" value="An error occured while splitting sna1_route" />
+                                                </return>
+                                            </outcome>
+                                        </execute>
+                                    </block>
+                                </outcome>
                             </switch>
                             <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site1_exportRT1'`">
-                                <outcome value="true" />
+                                <outcome value="true">
+                                    <block atomic="true">
+                                        <set>
+                                            <parameter name="tmp.dci-connects.evpn_erts.original" value="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`" />
+                                        </set>
+                                        <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils" method="split">
+                                            <parameter name="original_string" value="`$tmp.dci-connects.evpn_erts.original`" />
+                                            <parameter name="regex" value="," />
+                                            <parameter name="ctx_memory_result_key" value="tmp.dci-connects.evpn_erts" />
+                                            <outcome value="success">
+                                                <for index="idx" start="0" end="`$tmp.dci-connects.evpn_erts_length`">
+                                                    <set>
+                                                        <parameter name="prop.dci-connects.evpn_erts[$idx]" value="`$tmp.dci-connects.evpn_erts[$idx]`" />
+                                                    </set>
+                                                </for>
+                                            </outcome>
+                                            <outcome value="failure">
+                                                <return status="failure">
+                                                    <parameter name="error-code" value="" />
+                                                    <parameter name="error-message" value="An error occured while splitting sna1_route" />
+                                                </return>
+                                            </outcome>
+                                        </execute>
+                                    </block>
+                                </outcome>
                             </switch>
                             <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site1_vni'`">
                                 <outcome value="true">
@@ -143,10 +191,58 @@
                                 </outcome>
                             </switch>
                             <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site2_importRT1'`">
-                                <outcome value="true" />
+                                <outcome value="true">
+                                    <block atomic="true">
+                                        <set>
+                                            <parameter name="tmp.dci-connects.evpn_irts.original" value="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`" />
+                                        </set>
+                                        <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils" method="split">
+                                            <parameter name="original_string" value="`$tmp.dci-connects.evpn_irts.original`" />
+                                            <parameter name="regex" value="," />
+                                            <parameter name="ctx_memory_result_key" value="tmp.dci-connects.evpn_irts" />
+                                            <outcome value="success">
+                                                <for index="idx" start="0" end="`$tmp.dci-connects.evpn_irts_length`">
+                                                    <set>
+                                                        <parameter name="prop.dci-connects.evpn_irts[$idx]" value="`$tmp.dci-connects.evpn_irts[$idx]`" />
+                                                    </set>
+                                                </for>
+                                            </outcome>
+                                            <outcome value="failure">
+                                                <return status="failure">
+                                                    <parameter name="error-code" value="" />
+                                                    <parameter name="error-message" value="An error occured while splitting sna1_route" />
+                                                </return>
+                                            </outcome>
+                                        </execute>
+                                    </block>
+                                </outcome>
                             </switch>
                             <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site2_exportRT1'`">
-                                <outcome value="true" />
+                                <outcome value="true">
+                                    <block atomic="true">
+                                        <set>
+                                            <parameter name="tmp.dci-connects.evpn_erts.original" value="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`" />
+                                        </set>
+                                        <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils" method="split">
+                                            <parameter name="original_string" value="`$tmp.dci-connects.evpn_erts.original`" />
+                                            <parameter name="regex" value="," />
+                                            <parameter name="ctx_memory_result_key" value="tmp.dci-connects.evpn_erts" />
+                                            <outcome value="success">
+                                                <for index="idx" start="0" end="`$tmp.dci-connects.evpn_erts_length`">
+                                                    <set>
+                                                        <parameter name="prop.dci-connects.evpn_erts[$idx]" value="`$tmp.dci-connects.evpn_erts[$idx]`" />
+                                                    </set>
+                                                </for>
+                                            </outcome>
+                                            <outcome value="failure">
+                                                <return status="failure">
+                                                    <parameter name="error-code" value="" />
+                                                    <parameter name="error-message" value="An error occured while splitting sna1_route" />
+                                                </return>
+                                            </outcome>
+                                        </execute>
+                                    </block>
+                                </outcome>
                             </switch>
                             <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site2_vni'`">
                                 <outcome value="true">
