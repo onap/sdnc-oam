@@ -35,6 +35,7 @@ featureDir=${targetDir}/features
 
 
 SDNC_NORTHBOUND_FEATURES=" \
+  generic-resource-api \
   vnfapi \
   vnftools"
 

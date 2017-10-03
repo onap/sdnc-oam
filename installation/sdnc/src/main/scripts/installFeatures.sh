@@ -45,6 +45,7 @@ CCSDK_SLI_NORTHBOUND_FEATURES=" \
  dataChange"
 
 SDNC_NORTHBOUND_FEATURES=" \
+  generic-resource-api \
   vnfapi \
   vnftools"
 
