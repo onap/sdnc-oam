@@ -950,11 +950,11 @@ function createServer(_server,_settings) {
 				//console.log("settingsStr:" + settingsStr);
            			fs.writeFileSync(settingsFile,settingsStr);
 				var svcLogicPropStr = "" ;
-					svcLogicPropStr += "org.openecomp.sdnc.sli.dbtype=jdbc" + "\n";
-					svcLogicPropStr += "org.openecomp.sdnc.sli.jdbc.url=jdbc:mysql://" + dbHost + ":" + dbPort + "/" + dbName + "\n";
-					svcLogicPropStr += "org.openecomp.sdnc.sli.jdbc.database=" + dbName + "\n";
-					svcLogicPropStr += "org.openecomp.sdnc.sli.jdbc.user=" + dbUser  + "\n";
-					svcLogicPropStr += "org.openecomp.sdnc.sli.jdbc.password=" + dbPassword;
+					svcLogicPropStr += "org.onap.ccsdk.sli.dbtype=jdbc" + "\n";
+					svcLogicPropStr += "org.onap.ccsdk.sli.jdbc.url=jdbc:mysql://" + dbHost + ":" + dbPort + "/" + dbName + "\n";
+					svcLogicPropStr += "org.onap.ccsdk.sli.jdbc.database=" + dbName + "\n";
+					svcLogicPropStr += "org.onap.ccsdk.sli.jdbc.user=" + dbUser  + "\n";
+					svcLogicPropStr += "org.onap.ccsdk.sli.jdbc.password=" + dbPassword;
 				
 				//create svclogic.properties file in the conf dir
 				var svcPropFile = userDir + "/conf/svclogic.properties";

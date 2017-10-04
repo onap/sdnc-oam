@@ -95,11 +95,11 @@ fi
 
 if [ ! -e "./$svclogicPropFile" ]
 then
-	echo "org.openecomp.sdnc.sli.dbtype=jdbc" >$svclogicPropFile
-	echo "org.openecomp.sdnc.sli.jdbc.url=jdbc:mysql://dbhost:3306/sdnctl" >>$svclogicPropFile
-	echo "org.openecomp.sdnc.sli.jdbc.database=sdnctl" >>$svclogicPropFile
-	echo "org.openecomp.sdnc.sli.jdbc.user=sdnctl" >>$svclogicPropFile
-	echo "org.openecomp.sdnc.sli.jdbc.password=gamma" >>$svclogicPropFile
+	echo "org.onap.ccsdk.sli.core.sli.dbtype=jdbc" >$svclogicPropFile
+	echo "org.onap.ccsdk.sli.core.sli.jdbc.url=jdbc:mysql://dbhost:3306/sdnctl" >>$svclogicPropFile
+	echo "org.onap.ccsdk.sli.core.sli.jdbc.database=sdnctl" >>$svclogicPropFile
+	echo "org.onap.ccsdk.sli.core.sli.jdbc.user=sdnctl" >>$svclogicPropFile
+	echo "org.onap.ccsdk.sli.core.sli.jdbc.password=gamma" >>$svclogicPropFile
 fi
 if [ ! -e "${appDir}/flowShareUsers.js" ]
 then
