@@ -228,7 +228,7 @@
                 </outcome>
                 <outcome value="activate">
                     <switch test="`$network-topology-operation-input.request-information.request-action`">
-                        <outcome value="ActivateNetworkInstance">
+                        <outcome value="ActivateDCINetworkInstance">
                             <block atomic="true">
                                 <call module="GENERIC-RESOURCE-API" rpc="validate-overlay-network-input-parameters" mode="sync" />
                             </block>
@@ -243,28 +243,8 @@
                     </switch>
                 </outcome>
                 <outcome value="deactivate">
-                    <block atomic="true">
-                        <outcome value="DeactivateNetworkInstance">
-                            <block atomic="true">
-                                <for index="idx" start="0" end="`$network-topology-operation-input.network-request-input.network-input-parameters.param_length`">
-                                    <block>
-                                        <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].id == 'id'`">
-                                            <outcome value="true">
-                                                <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`">
-                                                    <outcome value="">
-                                                        <return status="failure">
-                                                            <parameter name="ack-final" value="Y" />
-                                                            <parameter name="error-code" value="500" />
-                                                            <parameter name="error-message" value="network-request-input.network-input-parameters.name is a required input" />
-                                                        </return>
-                                                    </outcome>
-                                                </switch>
-                                            </outcome>
-                                        </switch>
-                                    </block>
-                                </for>
-                            </block>
-                        </outcome>
+                    <switch test="`$network-topology-operation-input.request-information.request-action`">
+                        <outcome value="DeActivateDCINetworkInstance" />
                         <outcome value="Other">
                             <return status="failure">
                                 <parameter name="ack-final" value="Y" />
@@ -272,7 +252,7 @@
                                 <parameter name="error-message" value="request-information.request-action is required to be DeactivateNetworkInstance for svc-action=deactivate" />
                             </return>
                         </outcome>
-                    </block>
+                    </switch>
                 </outcome>
                 <outcome value="Other">
                     <return status="failure">

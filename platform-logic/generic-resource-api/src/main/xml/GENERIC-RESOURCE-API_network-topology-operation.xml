@@ -65,59 +65,59 @@
                     </switch>
                 </outcome>
                 <outcome value="deactivate">
-                    <switch test="`$network-topology-operation-input.request-information.request-action`">
-                        <outcome value="DeActivateDCINetworkInstance">
-                            <call module="GENERIC-RESOURCE-API" rpc="dci-connects-network-topology-operation-deactivate" mode="sync" />
-                        </outcome>
-                        <outcome value="other">
-                            <block atomic="true">
-                                <switch test="`$service-data.networks.network_length`">
-                                    <outcome value="">
-                                        <return status="failure">
-                                            <parameter name="ack-final" value="Y" />
-                                            <parameter name="error-code" value="500" />
-                                            <parameter name="error-message" value="network-topology-operation-input.network-request-input.network-id not found in service-data" />
-                                        </return>
+                    <block atomic="true">
+                        <switch test="`$service-data.networks.network_length`">
+                            <outcome value="">
+                                <return status="failure">
+                                    <parameter name="ack-final" value="Y" />
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="network-topology-operation-input.network-request-input.network-id not found in service-data" />
+                                </return>
+                            </outcome>
+                            <outcome value="Other">
+                                <block atomic="true">
+                                    <for index="nidx" start="0" end="`$service-data.networks.network_length`">
+                                        <switch test="`$service-data.networks.network[$nidx].network-id == $network-topology-operation-input.network-information.network-id`">
+                                            <outcome value="true">
+                                                <set>
+                                                    <parameter name="tmp.nidx" value="`$nidx`" />
+                                                    <parameter name="ctx.network-data." value="`$service-data.networks.network[$nidx].`" />
+                                                </set>
+                                            </outcome>
+                                        </switch>
+                                    </for>
+                                    <switch test="`$tmp.nidx`">
+                                        <outcome value="">
+                                            <return status="failure">
+                                                <parameter name="ack-final" value="Y" />
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="network-topology-operation-input.network-request-input.network-id not found in service-data" />
+                                            </return>
+                                        </outcome>
+                                    </switch>
+                                </block>
+                            </outcome>
+                        </switch>
+                        <switch test="`$service-data.networks.network[$tmp.nidx].network-data.network-level-oper-status.order-status`">
+                            <outcome value="Created">
+                                <switch test="`$network-topology-operation-input.request-information.request-action`">
+                                    <outcome value="DeActivateDCINetworkInstance">
+                                        <call module="GENERIC-RESOURCE-API" rpc="dci-connects-network-topology-operation-deactivate" mode="sync" />
                                     </outcome>
                                     <outcome value="Other">
-                                        <block atomic="true">
-                                            <for index="nidx" start="0" end="`$service-data.networks.network_length`">
-                                                <switch test="`$service-data.networks.network[$nidx].network-id == $network-topology-operation-input.network-information.network-id`">
-                                                    <outcome value="true">
-                                                        <set>
-                                                            <parameter name="tmp.nidx" value="`$nidx`" />
-                                                            <parameter name="ctx.network-data." value="`$service-data.networks.network[$nidx].`" />
-                                                        </set>
-                                                    </outcome>
-                                                </switch>
-                                            </for>
-                                            <switch test="`$tmp.nidx`">
-                                                <outcome value="">
-                                                    <return status="failure">
-                                                        <parameter name="ack-final" value="Y" />
-                                                        <parameter name="error-code" value="500" />
-                                                        <parameter name="error-message" value="network-topology-operation-input.network-request-input.network-id not found in service-data" />
-                                                    </return>
-                                                </outcome>
-                                            </switch>
-                                        </block>
-                                    </outcome>
-                                </switch>
-                                <switch test="`$service-data.networks.network[$tmp.nidx].network-data.network-level-oper-status.order-status`">
-                                    <outcome value="Created">
                                         <call module="GENERIC-RESOURCE-API" rpc="network-topology-operation-deactivate" mode="sync" />
                                     </outcome>
-                                    <outcome value="Other">
-                                        <return status="failure">
-                                            <parameter name="ack-final" value="Y" />
-                                            <parameter name="error-code" value="500" />
-                                            <parameter name="error-message" value="`'Network is not in appropriate state for deactivate. Current state is ' + $service-data.networks.network[$tmp.nidx].network-data.network-level-oper-status.order-status`" />
-                                        </return>
-                                    </outcome>
                                 </switch>
-                            </block>
-                        </outcome>
-                    </switch>
+                            </outcome>
+                            <outcome value="Other">
+                                <return status="failure">
+                                    <parameter name="ack-final" value="Y" />
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="`'Network is not in appropriate state for deactivate. Current state is ' + $service-data.networks.network[$tmp.nidx].network-data.network-level-oper-status.order-status`" />
+                                </return>
+                            </outcome>
+                        </switch>
+                    </block>
                 </outcome>
                 <outcome value="unassign">
                     <block atomic="true">
