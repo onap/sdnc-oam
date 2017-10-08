@@ -3,19 +3,51 @@
     <method rpc="network-topology-operation-delete" mode="sync">
         <block atomic="true">
             <call module="GENERIC-RESOURCE-API" rpc="validate-network-input-parameters" mode="sync" />
-            <for index="idx" start="0" end="`$network-topology-operation-input.network-request-input.network-input-parameters.param_length`">
+            <switch test="`$service-data.networks.network_length`">
+                <outcome value="">
+                    <return status="failure">
+                        <parameter name="ack-final" value="Y" />
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="network-topology-operation-input.network-request-input.network-id not found in service-data" />
+                    </return>
+                </outcome>
+                <outcome value="Other">
+                    <block atomic="true">
+                        <for index="nidx" start="0" end="`$service-data.networks.network_length`">
+                            <switch test="`$service-data.networks.network[$nidx].network-id == $network-topology-operation-input.network-information.network-id`">
+                                <outcome value="true">
+                                    <set>
+                                        <parameter name="tmp.nidx" value="`$nidx`" />
+                                        <parameter name="ctx.network-data." value="`$service-data.networks.network[$nidx].`" />
+                                    </set>
+                                </outcome>
+                            </switch>
+                        </for>
+                        <switch test="`$tmp.nidx`">
+                            <outcome value="">
+                                <return status="failure">
+                                    <parameter name="ack-final" value="Y" />
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="network-topology-operation-input.network-request-input.network-id not found in service-data" />
+                                </return>
+                            </outcome>
+                        </switch>
+                    </block>
+                </outcome>
+            </switch>
+            <for index="idx" start="0" end="`$service-data.networks.network[$tmp.nidx].network-data.network-request-input.network-input-parameters.param_length`">
                 <block>
-                    <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'name'`">
+                    <switch test="`$service-data.networks.network[$tmp.nidx].network-data.network-request-input.network-input-parameters.param[$idx].name == 'name'`">
                         <outcome value="true">
                             <set>
-                                <parameter name="prop.l3vpn.name" value="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`" />
+                                <parameter name="prop.l3vpn.name" value="`$service-data.networks.network[$tmp.nidx].network-data.network-request-input.network-input-parameters.param[$idx].value`" />
                             </set>
                         </outcome>
                     </switch>
-                    <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'service-type'`">
+                    <switch test="`$service-data.networks.network[$tmp.nidx].network-data.network-request-input.network-input-parameters.param[$idx].name == 'service-type'`">
                         <outcome value="true">
                             <set>
-                                <parameter name="prop.l3vpn.service-type" value="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`" />
+                                <parameter name="prop.l3vpn.service-type" value="`$service-data.networks.network[$tmp.nidx].network-data.network-request-input.network-input-parameters.param[$idx].value`" />
                             </set>
                         </outcome>
                     </switch>
@@ -59,6 +91,28 @@
                     </execute>
                 </outcome>
             </switch>
+            <block atomic="true">
+                <set>
+                    <parameter name="service-data.networks.network[$tmp.nidx].network-data.sdnc-request-header." value="`$network-topology-operation-input.sdnc-request-header.`" />
+                    <parameter name="service-data.networks.network[$tmp.nidx].network-data.request-information." value="`$network-topology-operation-input.request-information.`" />
+                </set>
+                <set>
+                    <parameter name="networkId" value="`$network-topology-operation-input.network-information.network-id`" />
+                </set>
+                <set>
+                    <parameter name="network-object-path" value="`'restconf/config/GENERIC-RESOURCE-API:services/service/'  + $network-topology-operation-input.service-information.service-instance-id  + '/service-data/networks/network/'  + $networkId  + '/network-data/'` " />
+                </set>
+                <set>
+                    <parameter name="service-data.networks.network[$tmp.nidx].network-data.network-level-oper-status.order-status" value="Deleted" />
+                    <parameter name="service-data.networks.network[$tmp.nidx].network-data.network-level-oper-status.last-rpc-action" value="`$network-topology-operation-input.sdnc-request-header.svc-action`" />
+                    <parameter name="service-data.networks.network[$tmp.nidx].network-data.network-level-oper-status.last-action" value="`$network-topology-operation-input.request-information.request-action`" />
+                </set>
+            </block>
+            <return status="success">
+                <parameter name="ack-final-indicator" value="Y" />
+                <parameter name="error-code" value="200" />
+                <parameter name="error-message" value="`$error-message`" />
+            </return>
         </block>
     </method>
 </service-logic>

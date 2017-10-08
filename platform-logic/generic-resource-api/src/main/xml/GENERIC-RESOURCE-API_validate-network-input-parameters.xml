@@ -263,34 +263,31 @@
                 </outcome>
                 <outcome value="delete">
                     <block atomic="true">
-                        <outcome value="DeleteNetworkInstance">
-                            <block atomic="true">
-                                <for index="idx" start="0" end="`$network-topology-operation-input.network-request-input.network-input-parameters.param_length`">
-                                    <block>
-                                        <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'name'`">
-                                            <outcome value="true">
-                                                <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`">
-                                                    <outcome value="">
-                                                        <return status="failure">
-                                                            <parameter name="ack-final" value="Y" />
-                                                            <parameter name="error-code" value="500" />
-                                                            <parameter name="error-message" value="network-request-input.network-input-parameters.name is a required input" />
-                                                        </return>
-                                                    </outcome>
-                                                </switch>
-                                            </outcome>
-                                        </switch>
-                                    </block>
-                                </for>
-                            </block>
-                        </outcome>
-                        <outcome value="Other">
-                            <return status="failure">
-                                <parameter name="ack-final" value="Y" />
-                                <parameter name="error-code" value="500" />
-                                <parameter name="error-message" value="request-information.request-action is required to be DeleteNetworkInstance for svc-action=delete" />
-                            </return>
-                        </outcome>
+                        <switch test="`$network-topology-operation-input.request-information.request-action`">
+                            <outcome value="DeleteNetworkInstance">
+                                <block atomic="true">
+                                    <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils" method="requiredParameters">
+                                        <parameter name="$network-topology-operation-input.network-information.network-id" value="" />
+                                    </execute>
+                                    <switch test="`$network-topology-operation-input.network-information.network-id`">
+                                        <outcome value="">
+                                            <return status="failure">
+                                                <parameter name="ack-final" value="Y" />
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="network-request-input.network-input-parameters.name is a required input" />
+                                            </return>
+                                        </outcome>
+                                    </switch>
+                                </block>
+                            </outcome>
+                            <outcome value="Other">
+                                <return status="failure">
+                                    <parameter name="ack-final" value="Y" />
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="request-information.request-action is required to be DeleteNetworkInstance for svc-action=delete" />
+                                </return>
+                            </outcome>
+                        </switch>
                     </block>
                 </outcome>
             </switch>
