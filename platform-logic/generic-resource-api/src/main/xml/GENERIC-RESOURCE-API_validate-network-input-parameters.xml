@@ -244,7 +244,22 @@
                 </outcome>
                 <outcome value="deactivate">
                     <switch test="`$network-topology-operation-input.request-information.request-action`">
-                        <outcome value="DeActivateDCINetworkInstance" />
+                        <outcome value="DeActivateDCINetworkInstance">
+                            <block atomic="true">
+                                <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils" method="requiredParameters">
+                                    <parameter name="$network-topology-operation-input.network-information.network-id" value="" />
+                                </execute>
+                                <switch test="`$network-topology-operation-input.network-information.network-id`">
+                                    <outcome value="">
+                                        <return status="failure">
+                                            <parameter name="ack-final" value="Y" />
+                                            <parameter name="error-code" value="500" />
+                                            <parameter name="error-message" value="network-request-input.network-input-parameters.name is a required input" />
+                                        </return>
+                                    </outcome>
+                                </switch>
+                            </block>
+                        </outcome>
                         <outcome value="Other">
                             <return status="failure">
                                 <parameter name="ack-final" value="Y" />
