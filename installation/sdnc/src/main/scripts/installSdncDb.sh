@@ -39,7 +39,13 @@ GRANT ALL PRIVILEGES ON ${SDNC_DB_DATABASE}.* TO '${SDNC_DB_USER}'@'%' WITH GRAN
 commit;
 END
 
+# load schema
 if [ -f ${SDNC_HOME}/data/sdnctl.dump ]
 then
   mysql -h dbhost -u root -p${MYSQL_PASSWD} sdnctl < ${SDNC_HOME}/data/sdnctl.dump
 fi
+
+for datafile in ${SDNC_HOME}/data/*.data.dump
+do
+  mysql -h dbhost -u root -p${MYSQL_PASSWD} sdnctl < $datafile
+done
