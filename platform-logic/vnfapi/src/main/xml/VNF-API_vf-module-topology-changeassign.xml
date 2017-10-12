@@ -17,12 +17,12 @@
   ============LICENSE_END=========================================================
   -->
 
-<service-logic xmlns="http://www.onap.org/sdnc/svclogic"
+<service-logic xmlns="http://www.openecomp.org/sdnc/svclogic"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.onap.org/sdnc/svclogic ./svclogic.xsd" module='VNF-API' version='${project.version}'><method rpc='vf-module-topology-changeassign' mode='sync'>
+    xsi:schemaLocation="http://www.openecomp.org/sdnc/svclogic ./svclogic.xsd" module='VNF-API' version='${project.version}'><method rpc='vf-module-topology-changeassign' mode='sync'>
 <block atomic="true"><switch test="`$vf-module-service-data.oper-status.order-status == Active`"><outcome value='false'><return status='failure'>
     <parameter name='error-code' value='400'/>
-    <parameter name='error-message' value='Invalid service-data order status'/></return></outcome></switch><call module='VNF-API' rpc='vf-module-topology-assign-vnf-networks' mode='sync' ></call><get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+    <parameter name='error-message' value='Invalid service-data order status'/></return></outcome></switch><call module='VNF-API' rpc='vf-module-topology-assign-vnf-networks' mode='sync' ></call><get-resource plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="vf-module"
         key="vf-module.vf-module-id = $vf-module-topology-operation-input.vf-module-request-information.vf-module-id
             and generic-vnf.vnf-id = $vf-module-topology-operation-input.vf-module-request-information.vnf-instance-id"
@@ -32,7 +32,7 @@
     <parameter name='error-message' value="`'An error occurred while querying vf-module from AnAI with vf-module-id = ' + $vf-module-topology-operation-input.vf-module-request-information.vf-module-id + ' and vnf-instance-id = ' + $vf-module-topology-operation-input.vf-module-request-information.vnf-instance-id`"/></return></outcome><outcome value='not-found'>
 <return status='failure'>
     <parameter name='error-code' value='500'/>
-    <parameter name='error-message' value="`'An error occurred while querying vf-module from AnAI with vf-module-id = ' + $vf-module-topology-operation-input.vf-module-request-information.vf-module-id + ' and vnf-instance-id = ' + $vf-module-topology-operation-input.vf-module-request-information.vnf-instance-id`"/></return></outcome></get-resource><delete plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+    <parameter name='error-message' value="`'An error occurred while querying vf-module from AnAI with vf-module-id = ' + $vf-module-topology-operation-input.vf-module-request-information.vf-module-id + ' and vnf-instance-id = ' + $vf-module-topology-operation-input.vf-module-request-information.vnf-instance-id`"/></return></outcome></get-resource><delete plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="vf-module:relationship-list"
         key="vf-module.vf-module-id = $vf-module-topology-operation-input.vf-module-request-information.vf-module-id
             AND generic-vnf.vnf-id = $vf-module-topology-operation-input.vf-module-request-information.vnf-instance-id
@@ -41,7 +41,7 @@
     <parameter name='error-code' value='500'/>
     <parameter name='error-message' value="`'An error occurred while deleting existing vf-module l3-network relationship in AnAI with with vf-module-id = ' + $vf-module-topology-operation-input.vf-module-request-information.vf-module-id + ' and vnf-instance-id = ' + $vf-module-topology-operation-input.vf-module-request-information.vnf-instance-id + ' vf-module update FAILED.'`"/></return></outcome></delete><switch test="`$vf-module-service-data.vf-module-topology-information.vnf-assignments.vnf-networks_length`"><outcome value=''>
 <set>
-    <parameter name="vf-module-service-data.vf-module-topology-information.vnf-assignments.vnf-networks_length" value = "0" /></set></outcome></switch><for index="i" start="0" end="`$vf-module-service-data.vf-module-topology-information.vnf-assignments.vnf-networks_length`"><save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+    <parameter name="vf-module-service-data.vf-module-topology-information.vnf-assignments.vnf-networks_length" value = "0" /></set></outcome></switch><for index="i" start="0" end="`$vf-module-service-data.vf-module-topology-information.vnf-assignments.vnf-networks_length`"><save plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="vf-module:relationship-list"
         key="vf-module.vf-module-id = $vf-module-topology-operation-input.vf-module-request-information.vf-module-id
             AND generic-vnf.vnf-id = $vf-module-topology-operation-input.vf-module-request-information.vnf-instance-id" >
@@ -52,7 +52,7 @@
 <block atomic='true'><set>
     <parameter name="error-code" value="500" />
     <parameter name="error-message" value="`' | An error occurred while saving l3-network relationship with network-id = ' + $vf-module-service-data.vf-module-topology-information.vnf-assignments.vnf-networks[$i].network-id + ' for vf-module with vf-module-id = ' + $vf-module-topology-operation-input.vf-module-request-information.vf-module-id + ' and generic-vnf-id = ' + $vf-module-topology-operation-input.vf-module-request-information.vnf-instance-id`" />
-</set><delete plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+</set><delete plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="vf-module:relationship-list"
         key="vf-module.vf-module-id = $vf-module-topology-operation-input.vf-module-request-information.vf-module-id
             AND generic-vnf.vnf-id = $vf-module-topology-operation-input.vf-module-request-information.vnf-instance-id
@@ -60,7 +60,7 @@
 <set>
     <parameter name="tmp.AnAI.vfmodule.relationship-list.relationship_length" value = "0" /></set></outcome></switch><for index="i" start="0" end="`$tmp.AnAI.vfmodule.relationship-list.relationship_length`"><switch test="`$tmp.AnAI.vfmodule.relationship-list.relationship[$i].related-to`"><outcome value='l3-network'><block atomic='true'><switch test="`$tmp.AnAI.vfmodule.relationship-list.relationship[$i].relationship-data_length`"><outcome value=''>
 <set>
-    <parameter name="tmp.AnAI.vfmodule.relationship-list.relationship[$i].relationship-data_length" value = "0" /></set></outcome></switch><for index="j" start="0" end="`$tmp.AnAI.vfmodule.relationship-list.relationship[$i].relationship-data_length`"><save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+    <parameter name="tmp.AnAI.vfmodule.relationship-list.relationship[$i].relationship-data_length" value = "0" /></set></outcome></switch><for index="j" start="0" end="`$tmp.AnAI.vfmodule.relationship-list.relationship[$i].relationship-data_length`"><save plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="vf-module:relationship-list"
         key="vf-module.vf-module-id = vf-module-topology-operation-input.vf-module-request-information.vf-module-id
             AND generic-vnf.vnf-id = $vf-module-topology-operation-input.vf-module-request-information.vnf-instance-id" >

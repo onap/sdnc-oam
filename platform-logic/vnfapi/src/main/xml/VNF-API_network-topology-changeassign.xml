@@ -17,9 +17,9 @@
   ============LICENSE_END=========================================================
   -->
 
-<service-logic xmlns="http://www.onap.org/sdnc/svclogic"
+<service-logic xmlns="http://www.openecomp.org/sdnc/svclogic"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.onap.org/sdnc/svclogic ./svclogic.xsd" module='VNF-API' version='${project.version}'><method rpc="network-topology-changeassign" mode="sync"><block atomic="true"><get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+    xsi:schemaLocation="http://www.openecomp.org/sdnc/svclogic ./svclogic.xsd" module='VNF-API' version='${project.version}'><method rpc="network-topology-changeassign" mode="sync"><block atomic="true"><get-resource plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="l3-network"
         key="l3-network.network-id = $network-topology-operation-input.network-request-information.network-id"
         local-only="false"
@@ -102,7 +102,7 @@
 <set>
 <parameter name="tmp.subnetUpdate" value="1" />
 </set></block></outcome></switch><switch test="`$tmp.subnetUpdate == 1`"><outcome value='true'>
-<update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+<update plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="subnet"
         key="l3-network.network-id = $tmp.AnAI.l3network.network-id
             AND subnet.subnet-id = $tmp.AnAI.l3network.subnets.subnet[$k].subnet-id" >
@@ -145,7 +145,7 @@
 <parameter name="tmp.l3networkUpdate" value="1" />
 </set></block></outcome></update></outcome></switch></block></outcome></switch></for><switch test="`$execute_failure`"><outcome value='false'>
 <switch test="`$tmp.start-address-match == 0`"><outcome value='true'>
-<update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+<update plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="subnet"
         key="l3-network.network-id = $tmp.AnAI.l3network.network-id
             AND subnet.subnet-id = $tmp.AnAI.l3network.subnets.subnet[$k].subnet-id" >
@@ -213,7 +213,7 @@
     <parameter name="error-code" value="500"/>
     <parameter name="tmp.error-message" value="`'An error occurred while saving new subnet in AnAI with subnet-id = ' + $tmp.return.generate-subnets-subnet-id.uuid`"/></set><return status='success'>
     <parameter name='execute_failure' value='true' />
-</return></block></outcome></call><save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+</return></block></outcome></call><save plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="subnet"
         key="l3-network.network-id = $tmp.AnAI.l3network.network-id
             AND subnet.subnet-id = $tmp.return.generate-subnets-subnet-id.uuid" >
@@ -254,7 +254,7 @@
 </set><set>
 <parameter name='tmp.l3networkUpdate' value='1' />
 </set></block></outcome></save></block></outcome></switch></block></block></for></outcome></switch><switch test="`$execute_failure`"><outcome value='false'>
-<block atomic='true'><delete plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+<block atomic='true'><delete plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="l3-network:relationship-list"
     key="l3-network.network-id = $tmp.AnAI.l3network.network-id
         AND related-to = vpn-binding" ><outcome value='failure'>
@@ -273,7 +273,7 @@
 <set>
 <parameter name="tmp.vpn-binding-id" value="`$preload-data.network-topology-information.vpn-bindings[$i].vpn-binding-id`" />
 </set></outcome></switch><switch test="`$preload-data.network-topology-information.vpn-bindings[$i].global-route-target != ''`" ><outcome value='true'>
-<get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+<get-resource plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="vpn-binding"
         key="vpn-binding.global-route-target = $preload-data.network-topology-information.vpn-bindings[$i].global-route-target"
         pfx="tmp.AnAI.vpn-binding"><outcome value='not-found'>
@@ -291,7 +291,7 @@
 <parameter name="tmp.vpn-binding-id" value="`$tmp.AnAI.vpn-binding.vpn-id`" />
 </set></outcome></get-resource></outcome></switch><switch test="`$execute_failure`"><outcome value='false'>
 <switch test="`$tmp.vpn-binding-id != ''`"><outcome value='true'>
-<save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+<save plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="l3-network:relationship-list"
     key="l3-network.network-id = $tmp.AnAI.l3network.network-id" >
 <parameter name="relationship-list.relationship[0].related-to" value="vpn-binding" />
@@ -316,7 +316,7 @@
 <set>
 <parameter name='tmp.vpn-binding.updated' value='1' />
 </set></outcome></save></outcome></switch></outcome></switch></block></for></block></outcome></switch></block></outcome></switch><switch test="`$execute_failure`"><outcome value='false'>
-<block atomic='true'><delete plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+<block atomic='true'><delete plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="l3-network:relationship-list"
     key="l3-network.network-id = $tmp.AnAI.l3network.network-id
          AND related-to = network-policy" ><outcome value='failure'>
@@ -330,7 +330,7 @@
 <parameter name='preload-data.network-topology-information.network-policy_length' value='0' />
 </set></outcome></switch><for index="i" start="0" end="`$preload-data.network-topology-information.network-policy_length`">
 <switch test="`$preload-data.network-topology-information.network-policy[$i].network-policy-fqdn != NULL`"><outcome value='true'>
-<get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+<get-resource plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="network-policy"
         key="network-policy.network-policy-fqdn = $preload-data.network-topology-information.network-policy[$i].network-policy-fqdn"
         pfx="tmp.AnAI.network-policy" ><outcome value='not-found'>
@@ -344,7 +344,7 @@
     <parameter name="tmp.error-message" value="`'Failed to query network-policy n AnAI where network-policy-fqdn = ' + $preload-data.network-topology-information.network-policy[$i].network-policy-fqdn`"/></set><return status='success'>
     <parameter name='execute_failure' value='true' />
 </return></block></outcome><outcome value='success'>
-<save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+<save plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="l3-network:relationship-list"
     key="l3-network.network-id = $tmp.AnAI.l3network.network-id" >
 <parameter name="relationship-list.relationship[0].related-to" value="network-policy" />
@@ -359,7 +359,7 @@
 <set>
 <parameter name='tmp.network-policy.updated' value='1' />
 </set></outcome></save></outcome></get-resource></outcome></switch></for></block></outcome></switch></block></outcome></switch><switch test="`$execute_failure`"><outcome value='false'>
-<block atomic='true'><delete plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+<block atomic='true'><delete plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="l3-network:relationship-list"
     key="l3-network.network-id = $tmp.AnAI.l3network.network-id
          AND related-to = route-table-reference" ><outcome value='failure'>
@@ -373,7 +373,7 @@
 <parameter name='preload-data.network-topology-information.route-table-reference_length' value='0' />
 </set></outcome></switch><for index="i" start="0" end="`$preload-data.network-topology-information.route-table-reference_length`">
 <switch test="`$preload-data.network-topology-information.route-table-reference[$i].route-table-reference-fqdn != NULL`"><outcome value='true'>
-<get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+<get-resource plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="route-table-reference"
         key="route-table-reference.route-table-reference-fqdn = $preload-data.network-topology-information.route-table-reference[$i].route-table-reference-fqdn"
         pfx="tmp.AnAI.route-table-reference"><outcome value='not-found'>
@@ -387,7 +387,7 @@
     <parameter name="tmp.error-message" value="`'Failed to query network-policy n AnAI where network-policy-fqdn = ' + $preload-data.network-topology-information.network-policy[$i].network-policy-fqdn`"/></set><return status='success'>
     <parameter name='execute_failure' value='true' />
 </return></block></outcome><outcome value='success'>
-<save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+<save plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="l3-network:relationship-list"
     key="l3-network.network-id = $tmp.AnAI.l3network.network-id" >
 <parameter name="relationship-list.relationship[0].related-to" value="route-table-reference" />
@@ -404,7 +404,7 @@
 </set></outcome></save></outcome></get-resource></outcome></switch></for></block></outcome></switch></block></outcome></switch><switch test="`$execute_failure`"><outcome value='false'>
 <switch test="`$tmp.l3networkUpdate == 1`">
 <outcome value='true'>
-<update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+<update plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="l3-network"
         key="l3-network.network-id = $tmp.AnAI.l3network.network-id" >
 <parameter name="orchestration-status" value="pending-update" /><outcome value='failure'>
@@ -423,7 +423,7 @@
 </set></outcome></update></outcome></switch></outcome></switch><switch test="`$execute_failure`"><outcome value="true"><block atomic='true'><for index="z" start="0" end="`$tmp.AnAI.l3network.relationship-list.relationship_length`">
 <switch test="`$tmp.AnAI.l3network.relationship-list.relationship[$z].related-to`"><outcome value='vpn-binding'>
 <switch test="`$tmp.vpn-binding.updated == 1`"><outcome value='true'>
-<save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+<save plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="l3-network:relationship-list"
     key="l3-network.network-id = $tmp.AnAI.l3network.network-id" >
 <parameter name="relationship-list.relationship[0].related-to" value="vpn-binding" />
@@ -436,7 +436,7 @@
     <parameter name="error-code" value="500"/>
     <parameter name="tmp.rollback.error-message" value="`'An error occurred during rollback of l3-newtork vpn-binding relationship in AnAI where vpn-id = ' + $tmp.AnAI.l3network.relationship-list.relationship[$z].relationship-data[0].relationship-value + ' MANUAL ROLLBACK IS REQUIRED.'`"/></set></outcome></save></outcome></switch></outcome><outcome value='network-policy'>
 <switch test="`$tmp.network-policy.updated == 1`"><outcome value='true'>
-<save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+<save plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="l3-network:relationship-list"
     key="l3-network.network-id = $tmp.AnAI.l3network.network-id" >
 <parameter name="relationship-list.relationship[0].related-to" value="network-policy" />
@@ -449,7 +449,7 @@
     <parameter name="error-code" value="500"/>
     <parameter name="tmp.rollback.error-message" value="`'An error occurred during rollback of l3-newtork network-policy relationship in AnAI where network-policy-id = ' + $tmp.AnAI.l3network.relationship-list.relationship[$z].relationship-data[0].relationship-value + ' MANUAL ROLLBACK IS REQUIRED.'`"/></set></outcome></save></outcome></switch></outcome><outcome value='route-table-reference'>
 <switch test="`$tmp.route-table-reference.updated == 1`"><outcome value='true'>
-<save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+<save plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="l3-network:relationship-list"
     key="l3-network.network-id = $tmp.AnAI.l3network.network-id" >
 <parameter name="relationship-list.relationship[0].related-to" value="route-table-reference" />
@@ -465,7 +465,7 @@
     <parameter name="tmp.rollback.match" value="0"/></set><for index="i" start="0" end="`$tmp.AnAI.l3network.subnets.subnet_length`">
 <switch test="`$tmp.AnAI.l3network.subnets.subnet[$i].subnet-id == $tmp.subnetRollback[$j].subnet-id`"><outcome value='true'>
 <block atomic='true'><switch test="`$tmp.subnetRollback[$j].type`"><outcome value='delete'>
-<update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+<update plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="subnet"
         key="l3-network.network-id = $tmp.AnAI.l3network.network-id
             AND subnet.subnet-id = $tmp.subnetRollback[$j].subnet-id" >
@@ -477,7 +477,7 @@
 <set>
     <parameter name="error-code" value="500"/>
     <parameter name="tmp.rollback.error-message" value="`'failed to rollback the subnet.orchestration-status in AnAI where subnet-id = ' + $tmp.AnAI.l3network.subnets.subnet[$i].subnet-id + ' MANUAL ROLLBACK IS REQUIRED.'`"/></set></outcome></update></outcome><outcome value='update'>
-<update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+<update plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="subnet"
         key="l3-network.network-id = $tmp.AnAI.l3network.network-id
             AND subnet.subnet-id = $tmp.AnAI.l3network.subnets.subnet[$j].subnet-id" >
@@ -497,7 +497,7 @@
     <parameter name="tmp.rollback.error-message" value="`'failed to rollback the subnet attributes update in AnAI where subnet-id = ' + $tmp.AnAI.l3network.subnets.subnet[$i].subnet-id + ' MANUAL ROLLBACK IS REQUIRED.'`"/></set></outcome></update></outcome></switch><set>
     <parameter name="tmp.rollback.match" value="1"/></set></block></outcome></switch></for><switch test="`$tmp.rollback.match == 0`"><outcome value='true'>
 <switch test="`$tmp.subnetRollback[$j].type`"><outcome value='create'>
-<delete plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+<delete plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="subnet"
         key="l3-network.network-id = $tmp.AnAI.l3network.network-id
             AND subnet.subnet-id = $tmp.subnetRollback[$j].subnet-id" ><outcome value='failure'>
@@ -508,7 +508,7 @@
     <parameter name="error-code" value="500"/>
     <parameter name="tmp.rollback.error-message" value="`'failed to rollback to delete subnet from AnAI where subnet-id = ' + $tmp.subnetRollback[$j].subnet-id + ' MANUAL ROLLBACK IS REQUIRED.'`"/></set></outcome></delete></outcome></switch></outcome></switch></block></for><switch test="`$tmp.l3network.status.updated == 1`">
 <outcome value='true'>
-<update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+<update plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="l3-network"
         key="l3-network.network-id = $tmp.AnAI.l3network.network-id" >
 <parameter name="orchestration-status" value="`$tmp.AnAI.l3network.orchestration-status`" /><outcome value='failure'>

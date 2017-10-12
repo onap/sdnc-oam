@@ -17,9 +17,9 @@
   ============LICENSE_END=========================================================
   -->
 
-<service-logic xmlns="http://www.onap.org/sdnc/svclogic"
+<service-logic xmlns="http://www.openecomp.org/sdnc/svclogic"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.onap.org/sdnc/svclogic ./svclogic.xsd" module='VNF-API' version='${project.version}'><method rpc='vf-module-topology-assign-vnf-networks' mode='sync'><block atomic="true"><switch test="`$vf-module-preload-data.oper-status.order-status == PendingAssignment`"><outcome value='false'><return status='failure'>
+    xsi:schemaLocation="http://www.openecomp.org/sdnc/svclogic ./svclogic.xsd" module='VNF-API' version='${project.version}'><method rpc='vf-module-topology-assign-vnf-networks' mode='sync'><block atomic="true"><switch test="`$vf-module-preload-data.oper-status.order-status == PendingAssignment`"><outcome value='false'><return status='failure'>
     <parameter name='error-code' value='400'/>
     <parameter name='error-message' value='Invalid preload-data order status'/></return></outcome></switch><set>
     <parameter name="vf-module-service-data." value="vf-module-preload-data." /></set><set>
@@ -37,7 +37,7 @@
 <block atomic="true">
 <set>
 <parameter name='tmp.usePreload' value='0' />
-</set><switch test="`$vf-module-topology-operation-input.vf-module-request-information.vnf-networks[$i].network-id == '' or $vf-module-topology-operation-input.vf-module-request-information.vnf-networks[$i].network-id == '0'`"><outcome value='false'><get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+</set><switch test="`$vf-module-topology-operation-input.vf-module-request-information.vnf-networks[$i].network-id == '' or $vf-module-topology-operation-input.vf-module-request-information.vnf-networks[$i].network-id == '0'`"><outcome value='false'><get-resource plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="l3-network"
         key="l3-network.network-id = $vf-module-topology-operation-input.vf-module-request-information.vnf-networks[$i].network-id"
     pfx="tmp.AnAI.l3network">
@@ -52,7 +52,7 @@
 <switch test="`$vf-module-topology-operation-input.vf-module-request-information.vnf-networks[$i].network-name == '' or $vf-module-topology-operation-input.vf-module-request-information.vnf-networks[$i].network-name == '0'`"><outcome value='true'>
 <set>
 <parameter name='tmp.usePreload' value='1' />
-</set></outcome><outcome value='false'><get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+</set></outcome><outcome value='false'><get-resource plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="l3-network"
         key="l3-network.network-name = $vf-module-topology-operation-input.vf-module-request-information.vnf-networks[$i].network-name"
     pfx="tmp.AnAI.l3network">
@@ -90,7 +90,7 @@
 <for index="i" start="0" end="`$tmp.AnAI.l3network.subnets.subnet_length`"><switch test="`$tmp.AnAI.l3network.subnets.subnet[$i].subnet-name == $vf-module-topology-operation-input.vf-module-request-information.vnf-networks[$i].ipv6-subnet-name`"><outcome value='true'>
 <set>
 <parameter name="vf-module-service-data.vf-module-topology-information.vnf-assignments.vnf-networks[$k].ipv6-subnet-id" value="`$tmp.AnAI.l3network.subnets.subnet[$i].neutron-subnet-id`" /></set></outcome></switch></for></outcome></switch></outcome></switch></outcome></switch></block></outcome></switch></for></block></outcome></switch></block></outcome></switch></for><switch test="`$tmp.usePreload == 1`"><outcome value='true'><block atomic="true">
-<get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+<get-resource plugin="org.openecomp.sdnc.sli.aai.AAIService"
     resource="l3-network"
         key="l3-network.network-name = $vf-module-preload-data.vf-module-topology-information.vnf-assignments.vnf-networks[$j].network-name"
     pfx="tmp.AnAI.l3network">

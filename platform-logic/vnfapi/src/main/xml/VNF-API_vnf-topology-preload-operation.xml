@@ -1,4 +1,4 @@
-<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='VNF-API' version='${project.version}'><method rpc='vnf-topology-preload-operation' mode='sync'>
+<service-logic xmlns='http://www.openecomp.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.openecomp.org/sdnc/svclogic ./svclogic.xsd' module='VNF-API' version='${project.version}'><method rpc='vnf-topology-preload-operation' mode='sync'>
 <block atomic="true"><switch test="`$vnf-topology-operation-input.vnf-request-information.vnf-name`"><outcome value='Other'><switch test="`$preload-data.vnf-topology-information.vnf-topology-identifier.vnf-name`"><outcome value='Other'><switch test="`$vnf-topology-operation-input.vnf-request-information.vnf-name == $preload-data.vnf-topology-information.vnf-topology-identifier.vnf-name`"><outcome value='false'>
 <return status='failure'>
 	<parameter name='error-code' value='400'/>
@@ -13,11 +13,24 @@
 	<parameter name='error-code' value='400'/>
 	<parameter name='error-message' value='No preload data found to match vnf-type'/></return></outcome></switch></outcome><outcome value=''><return status='failure'>
 	<parameter name='error-code' value='400'/>
-	<parameter name='error-message' value='vnf-type is required'/></return></outcome></switch><switch test="`$vnf-topology-operation-input.vnf-request-information.vnf-id`"><outcome value='0'><return status='failure'>
-	<parameter name='error-code' value='400'/>
-	<parameter name='error-message' value='vf-modules vnf-id cannot be NULL or 0'/></return></outcome><outcome value=''><return status='failure'>
-	<parameter name='error-code' value='400'/>
-	<parameter name='error-message' value='vf-modules vnf-id cannot be NULL or 0'/></return></outcome></switch><switch test="`$vnf-topology-operation-input.sdnc-request-header.svc-action`">
+	<parameter name='error-message' value='vnf-type is required'/></return></outcome></switch><switch test="`$vnf-topology-operation-input.request-information.request-action`">
+<!--
+leaf request-action {
+	type enumeration {
+		enum "PreloadNetworkRequest";
+		enum "DeletePreloadNetworkRequest";
+		enum "NetworkActivateRequest";
+	    enum "DisconnectNetworkRequest"
+	    enum "PreloadVNFRequest";
+        enum "DeletePreloadVNFRequest"
+        enum "VNFActivateRequest";
+        enum "ChangeVNFActivateRequest";
+        enum "DisconnectVNFRequest";
+	}
+}
+-->
+
+<outcome value='VNFActivateRequest'><switch test="`$vnf-topology-operation-input.sdnc-request-header.svc-action`">
 <!--
 leaf svc-action { 
 	type enumeration { 
@@ -44,7 +57,7 @@ leaf svc-action {
 	<parameter name='error-code' value='400'/>
 	<parameter name='error-message' value='generic-vnf-type cannot be NULL'/></return></outcome></switch><switch test="`$vnf-topology-operation-input.vnf-request-information.aic-cloud-region`"><outcome value=''><return status='failure'>
 	<parameter name='error-code' value='400'/>
-	<parameter name='error-message' value='aic-cloud-region cannot be NULL'/></return></outcome></switch></block><call module='VNF-API' rpc='vnf-topology-assign' mode='sync' ></call></block></outcome><outcome value='changeassign'><block>
+	<parameter name='error-message' value='aic-cloud-region cannot be NULL'/></return></outcome></switch></block><call module='VNF-API' rpc='vnf-topology-assign' mode='sync' ></call></block></outcome><outcome value='rollback'><block>
 <block atomic="true">
 <switch test="`$vnf-topology-operation-input.vnf-request-information.generic-vnf-id`"><outcome value='0'><return status='failure'>
 	<parameter name='error-code' value='400'/>
@@ -56,7 +69,7 @@ leaf svc-action {
 	<parameter name='error-code' value='400'/>
 	<parameter name='error-message' value='generic-vnf-type cannot be NULL'/></return></outcome></switch><switch test="`$vnf-topology-operation-input.vnf-request-information.aic-cloud-region`"><outcome value=''><return status='failure'>
 	<parameter name='error-code' value='400'/>
-	<parameter name='error-message' value='aic-cloud-region cannot be NULL'/></return></outcome></switch></block><call module='VNF-API' rpc='vnf-topology-changeassign' mode='sync' ></call></block></outcome><outcome value='activate'><block>
+	<parameter name='error-message' value='aic-cloud-region cannot be NULL'/></return></outcome></switch></block><call module='VNF-API' rpc='vnf-topology-rollback' mode='sync' ></call></block></outcome><outcome value='activate'><block>
 <block atomic="true">
 <switch test="`$vnf-topology-operation-input.vnf-request-information.generic-vnf-id`"><outcome value='0'><return status='failure'>
 	<parameter name='error-code' value='400'/>
@@ -68,7 +81,22 @@ leaf svc-action {
 	<parameter name='error-code' value='400'/>
 	<parameter name='error-message' value='generic-vnf-type cannot be NULL'/></return></outcome></switch><switch test="`$vnf-topology-operation-input.vnf-request-information.aic-cloud-region`"><outcome value=''><return status='failure'>
 	<parameter name='error-code' value='400'/>
-	<parameter name='error-message' value='aic-cloud-region cannot be NULL'/></return></outcome></switch></block><call module='VNF-API' rpc='vnf-topology-activate' mode='sync' ></call></block></outcome><outcome value='rollback'><block>
+	<parameter name='error-message' value='aic-cloud-region cannot be NULL'/></return></outcome></switch></block><call module='VNF-API' rpc='vnf-topology-activate' mode='sync' ></call></block></outcome></switch></outcome><outcome value='ChangeVNFActivateRequest'><switch test="`$vnf-topology-operation-input.sdnc-request-header.svc-action`">
+<!--
+leaf svc-action { 
+	type enumeration { 
+		enum "reserve";
+		enum "assign";
+		enum "activate";  // equal to commit
+		enum "delete";	  // equal to commit
+		enum "changeassign";
+		enum "changedelete";
+		enum "rollback";
+	}
+}
+-->
+
+<outcome value='activate'><block>
 <block atomic="true">
 <switch test="`$vnf-topology-operation-input.vnf-request-information.generic-vnf-id`"><outcome value='0'><return status='failure'>
 	<parameter name='error-code' value='400'/>
@@ -80,7 +108,37 @@ leaf svc-action {
 	<parameter name='error-code' value='400'/>
 	<parameter name='error-message' value='generic-vnf-type cannot be NULL'/></return></outcome></switch><switch test="`$vnf-topology-operation-input.vnf-request-information.aic-cloud-region`"><outcome value=''><return status='failure'>
 	<parameter name='error-code' value='400'/>
-	<parameter name='error-message' value='aic-cloud-region cannot be NULL'/></return></outcome></switch></block><call module='VNF-API' rpc='vnf-topology-rollback' mode='sync' ></call></block></outcome><outcome value='delete'><call module='VNF-API' rpc='vnf-topology-delete' mode='sync' ></call></outcome><outcome value='Other'><return status='failure'>
+	<parameter name='error-message' value='aic-cloud-region cannot be NULL'/></return></outcome></switch></block><call module='VNF-API' rpc='vnf-topology-activate' mode='sync' ></call></block></outcome><outcome value='changeassign'><block>
+<block atomic="true">
+<switch test="`$vnf-topology-operation-input.vnf-request-information.generic-vnf-id`"><outcome value='0'><return status='failure'>
+	<parameter name='error-code' value='400'/>
+	<parameter name='error-message' value='generic-vnf-id cannot be NULL or 0'/></return></outcome><outcome value=''><return status='failure'>
+	<parameter name='error-code' value='400'/>
+	<parameter name='error-message' value='generic-vnf-id cannot be NULL or 0'/></return></outcome></switch><switch test="`$vnf-topology-operation-input.vnf-request-information.generic-vnf-name`"><outcome value=''><return status='failure'>
+	<parameter name='error-code' value='400'/>
+	<parameter name='error-message' value='generic-vnf-name cannot be NULL'/></return></outcome></switch><switch test="`$vnf-topology-operation-input.vnf-request-information.generic-vnf-type`"><outcome value=''><return status='failure'>
+	<parameter name='error-code' value='400'/>
+	<parameter name='error-message' value='generic-vnf-type cannot be NULL'/></return></outcome></switch><switch test="`$vnf-topology-operation-input.vnf-request-information.aic-cloud-region`"><outcome value=''><return status='failure'>
+	<parameter name='error-code' value='400'/>
+	<parameter name='error-message' value='aic-cloud-region cannot be NULL'/></return></outcome></switch></block><call module='VNF-API' rpc='vnf-topology-changeassign' mode='sync' ></call></block></outcome></switch></outcome><outcome value='DisconnectVNFRequest'><switch test="`$vnf-topology-operation-input.sdnc-request-header.svc-action`">
+<!--
+leaf svc-action { 
+	type enumeration { 
+		enum "reserve";
+		enum "assign";
+		enum "activate";  // equal to commit
+		enum "delete";	  // equal to commit
+		enum "changeassign";
+		enum "changedelete";
+		enum "rollback";
+	}
+}
+-->
+
+<outcome value='delete'><call module='VNF-API' rpc='vnf-topology-delete' mode='sync' ></call></outcome><outcome value='Other'><return status='failure'>
 	<parameter name='error-code' value='400'/>
 	<parameter name='error-message' value='svc-action not recognized'/>
+</return></outcome></switch></outcome><outcome value='other'><return status='failure'>
+	<parameter name='error-code' value='400'/>
+	<parameter name='error-message' value="`'svc-action,' + $vnf-topology-operation-input.request-information.request-action + ', not supported in automated flow'`"/>
 </return></outcome></switch></block></method></service-logic>

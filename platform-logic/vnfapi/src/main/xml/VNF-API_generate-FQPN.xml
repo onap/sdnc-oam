@@ -1,0 +1,204 @@
+<service-logic xmlns='http://www.openecomp.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.openecomp.org/sdnc/svclogic ./svclogic.xsd' module='VNF-API' version='${project.version}'><method rpc='generate-FQPN' mode='sync'>
+<block atomic="true"><switch test='`$generate-FQPN-input.vf-module-name`'>
+<outcome value=''><return status="failure">
+	<parameter name="ack-final" value="Y" />
+	<parameter name="error-code" value="500"/>
+	<parameter name="error-message" value="generate-FQPN-input.vf-module-name is null" />
+</return></outcome></switch><switch test='`$generate-FQPN-input.vf-module-id`'>
+<outcome value=''><return status="failure">
+	<parameter name="ack-final" value="Y" />
+	<parameter name="error-code" value="500"/>
+	<parameter name="error-message" value="generate-FQPN-input.vf-module-id is null" />
+</return></outcome></switch><switch test='`$generate-FQPN-input.aic-cloud-region`'>
+<outcome value=''><return status="failure">
+	<parameter name="ack-final" value="Y" />
+	<parameter name="error-code" value="500"/>
+	<parameter name="error-message" value="generate-FQPN-input.aic-cloud-region is null" />
+</return></outcome></switch><switch test='`$eipam-ip-block.plans_length`'>
+<outcome value=''><set>
+<parameter name='eipam-ip-block.plans_length' value='0' /></set></outcome><outcome value='0'>
+<block>
+</block></outcome><outcome value='Other'>
+<block atomic='true'><get-resource plugin="org.openecomp.sdnc.sli.aai.AAIService" 
+	resource="cloud-region" 
+		key="cloud-region.cloud-owner = 'att-aic' AND 
+		     cloud-region.cloud-region-id = $generate-FQPN-input.aic-cloud-region 
+		     AND depth = '0'"
+        pfx='aai.cloud-region' >
+
+<outcome value='not-found'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="404" />
+    <parameter name="error-message" value="`'aic-cloud-region, '+ $generate-fqpn-input.aic-cloud-region + ' not found in AAI'`" />
+</return></outcome><outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error retrieving cloud region from AAI" />
+</return></outcome></get-resource><switch test='`$aai.cloud-region.relationship-list.relationship_length`'>
+<outcome value='0'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="cloud-region missing relationships in AAI" />
+</return></outcome><outcome value=''>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="cloud-region missing relationships in AAI" />
+</return></outcome></switch><for index='ridx' start='0' end='`$aai.cloud-region.relationship-list.relationship_length`' >
+<for silentFailure='false' index='rdidx' start='0' end="`$aai.cloud-region.relationship-list.relationship[$ridx].relationship-data_length`" >
+<switch test='`$aai.cloud-region.relationship-list.relationship[$ridx].relationship-data[$rdidx].relationship-key`'>
+<outcome value='complex.physical-location-id'>
+<block atomic="true"><set>
+<parameter name='tmp.aic-clli' value='`$aai.cloud-region.relationship-list.relationship[$ridx].relationship-data[$rdidx].relationship-value`' />
+
+</set><get-resource plugin="org.openecomp.sdnc.sli.aai.AAIService" 
+	resource="complex" 
+		key="complex.physical-location-id = $aai.cloud-region.relationship-list.relationship[$ridx].relationship-data[$rdidx].relationship-value"
+    pfx='aai.complex' >
+        
+
+
+<outcome value='not-found'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Complex not found in AAI" />
+</return></outcome><outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error retrieving complex from AAI" />
+</return></outcome></get-resource></block></outcome></switch></for></for></block></outcome></switch><for index='plan-index' start='0' end='`$eipam-ip-block.plans_length`' >
+<block atomic='true'><set>
+<parameter name='eipam-ip-block.plan-name' value='`$eipam-ip-block.plans[$plan-index].plan-name`' />
+</set><execute plugin="com.att.sdnctl.sli.plugin.eipam.EIPAMPlugin" method="getPlanTopology"><outcome value='failure'><return status="failure">
+	<parameter name="ack-final" value="Y" />
+	<parameter name="error-code" value="500"/>
+	<parameter name="error-message" value="`'An error occured while getting Keyname and Keyvalue for address plan, '+ $eipam-ip-block.planName + ', from EIPAM'`" />
+</return></outcome></execute><switch test='`$eipam-ip-block.getPlanTopologyResponse.TopologyDetails_length`'>
+<outcome value=''><return status="failure">
+	<parameter name="ack-final" value="Y" />
+	<parameter name="error-code" value="500"/>
+	<parameter name="error-message" value="eipam-ip-block.getPlanTopologyResponse.TopologyDetails is null" />
+</return></outcome></switch><for index='request-index' start='0' end='`$eipam-ip-block.plans[$plan-index].requests_length`' >
+<block atomic='true'><for index="resp-index" start="0" end="`$eipam-ip-block.getPlanTopologyResponse.TopologyDetails_length`"><block atomic='true'><switch test='`$eipam-ip-block.plan-name == $eipam-ip-block.getPlanTopologyResponse.PlanName`'>
+<outcome value='false'>
+<return status="failure">
+	<parameter name="ack-final" value="Y" />
+	<parameter name="error-code" value="500"/>
+	<parameter name="error-message" value="`'eipam response plan-name ['+ $eipam-ip-block.getPlanTopologyResponse.PlanName + ' is not the same as input '+$eipam-ip-block.planName`" />
+</return></outcome></switch><set>
+<parameter name='pool-index'
+   value='`$eipam-ip-block.getPlanTopologyResponse.TopologyDetails[$resp-index].Level - 1`' />
+</set><get-resource plugin='org.openecomp.sdnc.sli.resource.sql.SqlResource' resource='SQL'
+  key='SELECT key_value_source from ADDRESS_PLAN_POLICIES WHERE key_name = $eipam-ip-block.getPlanTopologyResponse.TopologyDetails[$resp-index].KeyName '
+  pfx='db.address-plan-policies'>
+
+<outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error reading ADDRESS_PLAN_POLICIES table" />
+</return></outcome><outcome value='not-found'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`'No ADDRESS_PLAN_POLICIES entry found for key_name = ' + $eipam-ip-block.getPlanTopologyResponse.TopologyDetails[$key-index].KeyName`" />
+</return></outcome></get-resource><switch test='`$db.address-plan-policies.key-value-source`'>
+<outcome value='AddressPlanPolicyDG-Routing_Characteristic'>
+<block atomic="true"><set>
+<parameter name='tmp.key-value' value='-1' />
+</set><get-resource plugin='org.openecomp.sdnc.sli.resource.sql.SqlResource' resource='SQL'
+  key='SELECT * from ROUTING_CHARACTERISTIC_MAPPING WHERE network_role = $eipam-ip-block.plans[$plan-index].network-role '
+  pfx='db.routing-characteristic_mapping[]'>
+
+<outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error reading ROUTING_CHARACTERISTIC_MAPPING table" />
+</return></outcome><outcome value='not-found'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`'No ROUTING_CHARACTERISTIC_MAPPING entry found for network_role = ' + $generate-fqpn-input.network-role`" />
+</return></outcome></get-resource><switch test='`$db.routing-characteristic_mapping_length &gt; 1`'>
+<outcome value='true'>
+<block>
+<for index="routing-index" start="0" end="`$db.routing-characteristic_mapping_length`"><switch test='`$db.routing-characteristic_mapping[$routing-index].vrf-name == $eipam-ip-block.plans[$plan-index].vrf-name`'>
+<outcome value='true'>
+<block atomic='true'><set>
+<parameter name='tmp.key-value' value='`$db.routing-characteristic_mapping[$routing-index].routing-characteristic`' />
+</set><return status='failure'>
+</return></block></outcome></switch></for><return status='success'></return></block></outcome><outcome value='false'>
+<set>
+<parameter name='tmp.key-value' value='`$db.routing-characteristic_mapping[0].routing-characteristic`' />
+</set></outcome></switch><switch test='`$tmp.key-value`'>
+<outcome value='-1'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="No matching ROUTING_CHARACTERISTIC_MAPPING.vrf-name found" />
+</return></outcome></switch></block></outcome><outcome value='AddressPlanPolicyDG-Location_Clli8'>
+<block>
+<execute plugin='org.openecomp.sdnc.sli.SliPluginUtils.SliStringUtils' method='substring'>
+   <parameter name='result' value='tmp.truncated.clli8' />
+   <parameter name='string' value='`$tmp.aic-clli`' />
+   <parameter name='begin-index' value='0' />
+   <parameter name='end-index' value='8' />
+</execute><set>
+<parameter name='tmp.key-value' value='`$tmp.truncated.clli8`' />
+</set></block></outcome><outcome value='AddressPlanPolicyDG-Vrf_Name'>
+<set>
+<parameter name='tmp.key-value' value='`$eipam-ip-block.plans[$plan-index].vrf-name`' />
+</set></outcome><outcome value='vnf-topology-operation-input.vnf-request-information.aic-cloud-region'>
+<set>
+<parameter name='tmp.key-value' value='`$generate-FQPN-input.aic-cloud-region`' />
+</set></outcome><outcome value='AddressPlanPolicyDG-Complex_region'>
+<set>
+<parameter name='tmp.key-value' value='`$aai.complex.region`' />
+</set></outcome><outcome value='AddressPlanPolicyDG-Network_Name'>
+<set>
+<parameter name='tmp.key-value' 
+	value='`$eipam-ip-block.plans[$plan-index].l3-network.network-name`' />
+</set></outcome><outcome value='STATIC'>
+<set>
+<parameter name='tmp.key-value' value='STATIC' />
+</set></outcome><outcome value='Other'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`'Unknown ADDRESS_PLAN_POLICIES: ' + $db.address-plan-policies.key-value-source`" />
+</return></outcome></switch><set>
+<parameter name='eipam-ip-block.plans[$plan-index].requests[$request-index].pools[$pool-index].key-name'
+   value='`$eipam-ip-block.getPlanTopologyResponse.TopologyDetails[$resp-index].KeyName`' />
+<parameter name='eipam-ip-block.plans[$plan-index].requests[$request-index].pools[$pool-index].key-value'
+      value='`$tmp.key-value`' />
+</set></block></for><block atomic='true'><set>
+<parameter name='generate-unique-name-input.index-table-name' value='EIPAM_CLIENT_KEY_INDEX' />
+<parameter name='generate-unique-name-input.index-table-prefix-column' value='vnf_name_prefix' />
+<parameter name='generate-unique-name-input.name-table-type' value='VNFAPI_CLIENT_KEY' />
+<parameter name='generate-unique-name-input.prefix'
+	value="`$generate-FQPN-input.vf-module-name + ':' +
+		$eipam-ip-block.plans[$plan-index].vm-type + ':' +
+		$eipam-ip-block.plans[$plan-index].network-role + ':'`" />
+<parameter name='generate-unique-name-input.index-length' value='2' />
+
+<!-- zrdm3mmex57_vlc:vlc:sctp_a:01 --></set><call module='GENERIC-RESOURCE-API' rpc='generate-unique-name' mode='sync' >
+<outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`$generate-unique-name-output.error-message`" />
+</return></outcome></call><set>
+<parameter name='eipam-ip-block.plans[$plan-index].requests[$request-index].client-key'
+   value='`$generate-unique-name-output.generated-name`' />
+<parameter name='eipam-ip-block.plans[$plan-index].requests[$request-index].info'
+   value='`$generate-FQPN-input.vf-module-id`' />
+</set><set>
+<parameter name='eipam-ip-block.plans[$plan-index].requests[$request-index].pools_length'
+   value='`$pool-index + 1`' />
+</set></block></block></for></block></for></block></method></service-logic>
