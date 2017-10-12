@@ -1,4 +1,9 @@
-<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='VNF-API' version='${project.version}'><method rpc='rollback-eipam-ip-assignment' mode='sync'>
+<service-logic xmlns='http://www.openecomp.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.openecomp.org/sdnc/svclogic ./svclogic.xsd' module='VNF-API' version='${project.version}'><method rpc='rollback-eipam-ip-assignment' mode='sync'>
+<block atomic="true"><get-resource plugin='org.openecomp.sdnc.sli.resource.sql.SqlResource' resource='SQL'
+  key='SELECT * from EIPAM_IP_ASSIGNMENTS 
+  WHERE info = $vnf-topology-operation-input.vnf-request-information.vnf-id'><outcome value='not-found'>
+<block>
+</block></outcome><outcome value='success'>
 <block atomic="true"><set>
 <parameter name='tmp.status' 
 	value="`'PENDING_DELETE_' + $vnf-topology-operation-input.vnf-request-information.vnf-id`" />
@@ -19,4 +24,4 @@
 	<parameter name='ack-final' value='Y'/>
 	<parameter name="error-code" value="500" />
     <parameter name="error-message" value="Error in EIPAM unassign IP address on rollback." />
-</return></outcome></execute></block></method></service-logic>
+</return></outcome></execute></block></outcome></get-resource></block></method></service-logic>

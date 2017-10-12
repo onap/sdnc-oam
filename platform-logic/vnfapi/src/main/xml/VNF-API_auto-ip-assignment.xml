@@ -1,0 +1,214 @@
+<service-logic xmlns='http://www.openecomp.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.openecomp.org/sdnc/svclogic ./svclogic.xsd' module='VNF-API' version='${project.version}'><method rpc='auto-ip-assignment' mode='sync'>
+<block atomic="true"><switch test='`$auto-ip-assignment-input.aic-cloud-region`'>
+<outcome value=''><return status="failure">
+	<parameter name="ack-final" value="Y" />
+	<parameter name="error-code" value="500"/>
+	<parameter name="error-message" value="auto-ip-assignment-input.aic-cloud-region is null" />
+</return></outcome></switch><switch test='`$auto-ip-assignment-input.vf-module.model-customization-uuid`'>
+<outcome value=''><return status="failure">
+	<parameter name="ack-final" value="Y" />
+	<parameter name="error-code" value="500"/>
+	<parameter name="error-message" value="auto-ip-assignment-input.vf-module.model-customization-uuid is null" />
+</return></outcome></switch><switch test='`$auto-ip-assignment-input.vf-module-id`'>
+<outcome value=''><return status="failure">
+	<parameter name="ack-final" value="Y" />
+	<parameter name="error-code" value="500"/>
+	<parameter name="error-message" value="auto-ip-assignment-input.vf-module-id is null" />
+</return></outcome></switch><switch test='`$auto-ip-assignment-input.vf-module-name`'>
+<outcome value=''><return status="failure">
+	<parameter name="ack-final" value="Y" />
+	<parameter name="error-code" value="500"/>
+	<parameter name="error-message" value="auto-ip-assignment-input.vf-module-name is null" />
+</return></outcome></switch><get-resource plugin='org.openecomp.sdnc.sli.resource.sql.SqlResource' resource='SQL'
+  key='SELECT * from VF_MODULE_MODEL WHERE customization_uuid = $auto-ip-assignment-input.vf-module.model-customization-uuid'
+  pfx='db.vf-module-model'>
+
+<outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error reading VF_MODULE_MODEL table" />
+</return></outcome><outcome value='not-found'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="404" />
+    <parameter name="error-message" value="`'No model found for VF module customization UUID ' + $vnf-topology-operation-input.vnf-request-information.model-customization-uuid`" />
+</return></outcome></get-resource><get-resource plugin='org.openecomp.sdnc.sli.resource.sql.SqlResource' resource='SQL'
+  key='SELECT * from VF_MODULE_TO_VFC_MAPPING WHERE vf_module_customization_uuid = $auto-ip-assignment-input.vf-module.model-customization-uuid'
+  pfx='db.vf-module-to-vfc-mapping[]'>
+
+<outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error reading VF_MODULE_TO_VFC_MAPPING table" />
+</return></outcome><outcome value='not-found'>
+<set>
+<parameter name='db.vf-module-to-vfc-mapping_length' value='0' />
+</set></outcome></get-resource><for index='vm-type-index' start='0' end='`$db.vf-module-to-vfc-mapping_length`' >
+<switch test='`$db.vf-module-to-vfc-mapping[$vm-type-index].vm-count`'>
+<outcome value='0'>
+<block>
+</block></outcome><outcome value=''><block>
+</block></outcome><outcome value='Other'>
+<block atomic="true"><set>
+	<parameter name='tmp.fixed-ipv4-count' value = '0' />
+	<parameter name='tmp.fixed-ipv6count' value = '0' />
+	<parameter name='tmp.floating-ipv4-count' value = '0' />
+	<parameter name='tmp.floating-ipv6count' value = '0' />
+	<parameter name='total.fixed-ipv4-count' value = '0' />
+	<parameter name='total.fixed-ipv6-count' value = '0' />
+	<parameter name='total.floating-ipv4-count' value = '0' />
+	<parameter name='total.floating-ipv6-count' value = '0' /></set><get-resource plugin='org.openecomp.sdnc.sli.resource.sql.SqlResource' resource='SQL'
+  key='SELECT * from VFC_TO_NETWORK_ROLE_MAPPING WHERE vfc_customization_uuid = $db.vf-module-to-vfc-mapping[$vm-type-index].vfc-customization-uuid'
+  pfx='db.vfc-to-network-role-mapping[]'>
+
+<outcome value='not-found'>
+<set>
+<parameter name='db.vfc-to-network-role-mapping_length' value='0' />
+</set></outcome><outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error reading VFC_TO_NETWORK_ROLE_MAPPING table" />
+</return></outcome></get-resource><set>
+	<parameter name='pidx' value = '0' /></set><for index='network-role-index' start='0' end='`$db.vfc-to-network-role-mapping_length`' >
+<block atomic="true"><switch test='`$db.vfc-to-network-role-mapping[$network-role-index].ipv4-ip-version`'>
+<outcome value='4'>
+<block>
+<switch test='`$db.vfc-to-network-role-mapping[$network-role-index].ipv4-use-dhcp`'>
+<outcome value='N'>
+<block>
+<set>
+<parameter name='tmp.fixed-ipv4-count'
+	value='`$db.vfc-to-network-role-mapping[$network-role-index].ipv4-count * $db.vf-module-to-vfc-mapping[$vm-type-index].vm-count`' /></set><switch test='`$db.vfc-to-network-role-mapping[$network-role-index].floating_ipv4_count`'>
+<outcome value='0'>
+<block>
+</block></outcome><outcome value=''><block>
+</block></outcome><outcome value='Other'>
+<set>
+	<parameter name='tmp.floating-ipv4-count' value = '1' />
+
+<!--
+   value='`$db.vfc-to-network-role-mapping[$network-role-index].floating-ipv4-count`' />
+--></set></outcome></switch><set>
+	<parameter name='total.fixed-ipv4-count' value = '`$tmp.fixed-ipv4-count + $tmp.floating-ipv4-count`' />
+
+<!--
+   value='`$db.vfc-to-network-role-mapping[$network-role-index].floating-ipv4-count`' />
+--></set><switch test='`$total.fixed-ipv4-count`'>
+<outcome value=''><block>
+</block></outcome><outcome value='0'>
+<block>
+</block></outcome><outcome value='Other'>
+<block>
+<set>
+<parameter name='eipam-ip-block.plans[$pidx].plan-name' 
+	value='`$db.vfc-to-network-role-mapping[$network-role-index].ipv4-address-plan-name`' />
+<parameter name='eipam-ip-block.plans[$pidx].address-family' 
+	value='ipv4' />
+<parameter name='eipam-ip-block.plans[$pidx].requests_length' 
+	value='`$total.fixed-ipv4-count`' />
+<parameter name="eipam-ip-block.plans_length" 
+	value="`$pidx + 1`"/>
+<parameter name='eipam-ip-block.plans[$pidx].vm-type' 
+	value='`$db.vf-module-to-vfc-mapping[$vm-type-index].vm-type`' />
+<parameter name='eipam-ip-block.plans[$pidx].network-role' 
+	value='`$db.vfc-to-network-role-mapping[$network-role-index].network-role`' />
+<parameter name='eipam-ip-block.plans[$pidx].vrf-name' 
+	value='`$db.vfc-to-network-role-mapping[$network-role-index].ipv4-vrf-name`' />
+</set></block></outcome></switch></block></outcome></switch></block></outcome></switch><switch test='`$db.vfc-to-network-role-mapping[$network-role-index].ipv6-ip-version`'>
+<outcome value='6'>
+<block>
+<switch test='`$db.vfc-to-network-role-mapping[$network-role-index].ipv6-use-dhcp`'>
+<outcome value='N'>
+<block>
+<set>
+<parameter name='tmp.fixed-ipv6-count'
+	value='`$db.vfc-to-network-role-mapping[$network-role-index].ipv6-count * $db.vf-module-to-vfc-mapping[$vm-type-index].vm-count`' />
+</set><switch test='`$db.vfc-to-network-role-mapping[$network-role-index].floating_ipv6_count`'>
+<outcome value='0'>
+<block>
+</block></outcome><outcome value=''><block>
+</block></outcome><outcome value='Other'>
+<set>
+	<parameter name='tmp.floating-ipv6-count' value = '1' />
+
+<!--
+   value='`$db.vfc-to-network-role-mapping[$network-role-index].floating-ipv6-count`'
+--></set></outcome></switch><set>
+	<parameter name='total.fixed-ipv6-count' value = '`$tmp.fixed-ipv6-count + $tmp.floating-ipv6-count`' />
+
+<!--
+   value='`$db.vfc-to-network-role-mapping[$network-role-index].floating-ipv6-count`' />
+--></set><switch test='`$total.fixed-ipv6-count`'>
+<outcome value=''><block>
+</block></outcome><outcome value='0'>
+<block>
+</block></outcome><outcome value='Other'>
+<block>
+<set>
+<parameter name='eipam-ip-block.plans[$pidx].plan-name' 
+	value='`$db.vfc-to-network-role-mapping[$network-role-index].ipv6-address-plan-name`' />
+<parameter name='eipam-ip-block.plans[$pidx].address-family' 
+	value='ipv6' />
+<parameter name='eipam-ip-block.plans[$pidx].requests_length' 
+	value='`$total.fixed-ipv6-count`' />
+<parameter name="eipam-ip-block.plans_length" 
+	value="`$pidx + 1`"/>
+<parameter name='eipam-ip-block.plans[$pidx].vm-type' 
+	value='`$db.vf-module-to-vfc-mapping[$vm-type-index].vm-type`' />
+<parameter name='eipam-ip-block.plans[$pidx].network-role' 
+	value='`$db.vfc-to-network-role-mapping[$network-role-index].network-role`' />
+<parameter name='eipam-ip-block.plans[$pidx].vrf-name' 
+	value='`$db.vfc-to-network-role-mapping[$network-role-index].ipv6-vrf-name`' />
+</set></block></outcome></switch></block></outcome></switch></block></outcome></switch><switch test='`$eipam-ip-block.plans[$pidx].requests_length`'>
+<outcome value='0'>
+<block>
+</block></outcome><outcome value=''><block>
+</block></outcome><outcome value='Other'>
+<block atomic='true'><set>
+<parameter name='query-aai-l3-network-by-network-role-input.aic-cloud-region' 
+	value='`$auto-ip-assignment-input.aic-cloud-region`' />
+<parameter name='query-aai-l3-network-by-network-role-input.service-instance-id' 
+	value='`$auto-ip-assignment-input.service-instance-id`' />
+<parameter name='query-aai-l3-network-by-network-role-input.network-role' 
+	value='`$db.vfc-to-network-role-mapping[$network-role-index].network-role`' />
+	
+<!--
+filter options: service-instance-id, aic-cloud-region
+    - null or Other will filter by aic-cloud-region first, then service-instance-id
+<parameter name='query-aai-l3-network-by-network-role-input.filter' 
+	value='service-instance-id' />
+--></set><call module='VNF-API' rpc='query-aai-l3-network-by-network-role' mode='sync' ><outcome value='failure'><return status="failure">
+	<parameter name="ack-final" value="Y" />
+	<parameter name="error-code" value="500"/>
+	<parameter name="error-message" value="`'An error occured while querying AAI to retrieve l3-network by network-role: ' + $error-message`" />
+</return></outcome></call><set>
+<parameter name='eipam-ip-block.plans[$pidx].l3-network.' 
+	value='`$query-aai-l3-network-by-network-role-output.l3-network.`' /></set><set>
+	<parameter name='pidx' value = '`$pidx + 1`' /></set></block></outcome></switch></block></for></block></outcome></switch></for><block atomic='true'><set>
+<parameter name='generate-FQPN-input.aic-cloud-region' 
+	value='`$auto-ip-assignment-input.aic-cloud-region`' />
+<parameter name='generate-FQPN-input.vf-module-id' 
+	value='`$auto-ip-assignment-input.vf-module-id`' />
+<parameter name='generate-FQPN-input.vf-module-name' 
+	value='`$auto-ip-assignment-input.vf-module-name`' />
+
+<!--
+<parameter name='generate-FQPN-input.service-instance-id' 
+	value='`$auto-ip-assignment-input.service-instance-id`' />
+--></set><call module='VNF-API' rpc='generate-FQPN' mode='sync' ><outcome value='failure'><return status="failure">
+	<parameter name="ack-final" value="Y" />
+	<parameter name="error-code" value="500"/>
+	<parameter name="error-message" value="`'An error occured while generating FQPN: '+ $error-message`" />
+</return></outcome></call></block><block atomic='true'><switch test='`$eipam-ip-block.plans_length`'>
+<outcome value=''><set>
+<parameter name='eipam-ip-block.plans_length' value='0' /></set></outcome><outcome value='0'>
+<block>
+</block></outcome><outcome value='Other'>
+<execute plugin="com.att.sdnctl.sli.plugin.eipam.EIPAMPlugin" method="assignIPAddress"><outcome value='failure'><return status="failure">
+	<parameter name="ack-final" value="Y" />
+	<parameter name="error-code" value="500"/>
+	<parameter name="error-message" value="`'An error occured while obtaining ip addresses from EIPAM: ' + $error-message`" />
+</return></outcome></execute></outcome></switch></block></block></method></service-logic>

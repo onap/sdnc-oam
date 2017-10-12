@@ -1,0 +1,335 @@
+<service-logic xmlns='http://www.openecomp.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.openecomp.org/sdnc/svclogic ./svclogic.xsd' module='VNF-API' version='${project.version}'><method rpc='naming-policy-generate-name' mode='sync'>
+<block atomic='true'><block atomic='true'><execute plugin='org.openecomp.sdnc.prop.PropertiesNode' method='readProperties' >
+    <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />
+    <parameter name='contextPrefix' value='prop' />
+<outcome value='success'>
+<block atomic='true'><record  plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: read properties file."/></record></block></outcome><outcome value='failure'>
+<block>
+<record  plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: Could not read properties file."/>
+<parameter name="field3" value='`$prop.restapi.pm.getpolicy.templatefile`'/></record><return status='failure'>
+<parameter name='error-code' value='501' />
+<parameter name='error-message' value='naming-policy-generate-name: could not read generic-resource-api properties' />
+</return></block></outcome></execute><switch test='`$naming-policy-generate-name-input.naming-type`'>
+<outcome value='VM'>
+<set>
+<parameter name='table-name' value="NAMING_POLICY_VM_NAME_INDEX" />
+<parameter name='table-type' value="VNFAPI_VM_INSTANCE" />
+<parameter name='table-prefix-column' value="vm_name_prefix" /></set></outcome><outcome value='VNFC'>
+<switch test='`$naming-policy-generate-name-input.vm-name`'>
+<outcome value=''>
+<block>
+<record  plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: input.naming-type is VNFC but input.vm-name is not set"/></record><return status='failure'>
+<parameter name='error-code' value='505' />
+<parameter name='error-message' value='naming-policy-generate-name: input.naming-type is VNFC but input.vm-name is not set' />
+</return></block></outcome><outcome value='Other'>
+<set>
+<parameter name='table-name' value="NAMING_POLICY_VNFC_NAME_INDEX" />
+<parameter name='table-type' value="VNFAPI_VNFC_INSTANCE" />
+<parameter name='table-prefix-column' value="vnfc_name_prefix" />
+<parameter name='seq-length' value="0" /></set></outcome></switch></outcome><outcome value='Other'>
+<block>
+<record  plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: invalid input.naming-type."/>
+<parameter name="field3" value='`$naming-policy-generate-name-input.naming-type`'/></record><return status='failure'>
+<parameter name='error-code' value='503' />
+<parameter name='error-message' value='naming-policy-generate-name: Invalid input.naming-type' />
+</return></block></outcome></switch><switch test='`$naming-policy-generate-name-input.vfc-customization-uuid`'>
+<outcome value=''>
+<block>
+<record  plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: input.vfc-customization-uuid is not set"/></record><return status='failure'>
+<parameter name='error-code' value='506' />
+<parameter name='error-message' value='naming-policy-generate-name: input.vfc-customization-uuid is not set' />
+</return></block></outcome></switch><switch test='`$naming-policy-generate-name-input.policy-instance-name`'>
+<outcome value=''>
+<block>
+<record  plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: input.policy-instance-name is not set"/></record><return status='failure'>
+<parameter name='error-code' value='507' />
+<parameter name='error-message' value='naming-policy-generate-name: input.policy-instance-name is not set' />
+</return></block></outcome></switch></block><block atomic='true'><set>
+<parameter name='tmp.policy-name' value="`$naming-policy-generate-name-input.policy-instance-name`" />
+</set><record plugin="com.att.sdnctl.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: restapi-call-node Call Policy Manager getPolicy"/></record><execute plugin='org.openecomp.sdnc.restapicall.RestapiCallNode' method='sendRequest' >
+    <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/' + $prop.restapi.pm.getpolicy.templatefile`" />
+    <parameter name='restapiUrl' value="`$prop.policy-manager.url + '/pdp/api/getConfig'`" />
+    <parameter name='format' value='json' />
+    <parameter name='httpMethod' value='POST' />  
+    <parameter name='customHttpHeaders'
+      value="`'Authorization=Basic ' + $prop.policy-manager.authorization + ',ClientAuth=Basic ' + $prop.policy-manager.clientauth + ',Environment=' + $prop.policy-manager.environment `" />
+	<parameter name="responsePrefix" value="tmp.pm-response" /><outcome value='failure'>
+<block>
+<record plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: Error calling Policy Manager getPolicy"/>
+</record><return status='failure'>
+<parameter name='error-code' value='502' />
+<parameter name='error-message' value='naming-policy-generate-name: getPolicy call to Policy Manger failed' />
+</return></block></outcome><outcome value='success'>
+<block>
+<record plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: getPolicy SUCCESS"/>
+<parameter name='field3' value='`$tmp.pm-response.type`' />
+<parameter name='field4' value='`$tmp.pm-response.matchingConditions`' />
+<parameter name='field5' value='`$tmp.pm-response.config`' />
+<parameter name='field6' value='`$tmp.pm-response.response-code`' />
+<parameter name='field7' value='`$tmp.pm-response.response-message`' /></record><set>
+<parameter name='naming-policy-config' value="`$tmp.pm-response.config`" />
+</set><switch test='`$tmp.pm-response.response-code`'>
+<outcome value='500'>
+<block>
+<record plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: Error calling Policy Manager getPolicy"/>
+</record><return status='failure'>
+<parameter name='error-code' value='502' />
+<parameter name='error-message' value='naming-policy-generate-name: getPolicy call to Policy Manger failed' />
+</return></block></outcome></switch></block></outcome></execute><set>
+<parameter name='vnf-name' value="`$naming-policy-generate-name-input.generic-vnf-name`" />
+<parameter name='constant-tag' value="`$naming-policy-generate-name-input.constant-tag`" />
+<parameter name='sequence' value="`$naming-policy-generate-name-input.sequence`" />
+</set><record plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: call jsonStringToCtx"/>
+<parameter name='field3' value='`$naming-policy-config`' /></record><execute plugin="org.openecomp.sdnc.sli.SliPluginUtils.SliPluginUtils" method="jsonStringToCtx">
+	<parameter name="source" value="naming-policy-config" />
+	<parameter name="outputPath" value="jsonContextPrefix" />
+	<parameter name="isEscaped" value="true" />
+
+<outcome value='failure'>
+<block>
+<record plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: Error calling jsonStringToCtx"/>
+</record><return status='failure'>
+<parameter name='error-code' value='504' />
+<parameter name='error-message' value='naming-policy-generate-name: failed to parse Policy Manger getPolicy response' />
+</return></block></outcome><outcome value='success'>
+<block atomic='true'><record plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: jsonStringToCtx SUCCESS: policy-instance-name|naming-models_length|constructed-name:"/>
+<parameter name='field3' value='`$jsonContextPrefix.content.police-instance-name`' />
+<parameter name='field4' value='`$jsonContextPrefix.content.naming-models_length`' />
+<parameter name='field5' value='`$constructed-name`' /></record><for index='modelsIndex' start='0' end='`$jsonContextPrefix.content.naming-models_length`' >
+<block atomic='true'><record plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: modelsIndex|naming-type|naming-recipe:"/>
+<parameter name='field3' value='`$modelsIndex`' />
+<parameter name='field4' value='`$jsonContextPrefix.content.naming-models[$modelsIndex].naming-type`' />
+<parameter name='field5' value='`$jsonContextPrefix.content.naming-models[$modelsIndex].naming-recipe`' /></record><set>
+<parameter name='naming-recipe' value='`$jsonContextPrefix.content.naming-models[$modelsIndex].naming-recipe`'  />
+<parameter name='naming-type' value='`$jsonContextPrefix.content.naming-models[$modelsIndex].naming-type`'  />
+</set><switch test='`$naming-type == $naming-policy-generate-name-input.naming-type`'>
+<outcome value='true'>
+<block atomic='true'><set>
+<parameter name='original-name' value='`$naming-recipe`' />
+</set><execute plugin='org.openecomp.sdnc.sli.SliPluginUtils.SliStringUtils' method='split' >
+    <parameter name="original_string" value="`$original-name`" />
+    <parameter name="regex" value="\|"/>
+    <parameter name="limit" value="4" />
+    <parameter name="ctx_memory_result_key" value="splits" />
+  
+</execute><for index='sectionIndex' start='0' end='`$splits_length`' >
+<block>
+<set>
+<parameter name='section-value' value="`$splits[$sectionIndex]`"  />
+</set><for index='propertiesIndex' start='0' end='`$jsonContextPrefix.content.naming-models[$modelsIndex].naming-properties_length`' >
+<block>
+<execute plugin='org.openecomp.sdnc.sli.SliPluginUtils.SliStringUtils' method='trim' >
+    <parameter name="source" value="`$jsonContextPrefix.content.naming-models[$modelsIndex].naming-properties[$propertiesIndex].property-name`" />
+    <parameter name="outputPath" value="property-name-trimmed" />
+  
+</execute><set>
+<!--<parameter name='property-name' value="`$jsonContextPrefix.content.naming-models[$modelsIndex].naming-properties[$propertiesIndex].property-name`"  />-->
+<parameter name='property-name' value="`$property-name-trimmed`"  />
+</set><switch test='`$property-name == $section-value`'>
+<outcome value='true'>
+<block>
+<record plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: section match: section-value|property-name:"/>
+<parameter name="field3" value="`$section-value`" />
+<parameter name="field4" value="`$property-name`" /></record><block>
+<record plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: propertiesIndex|source-endpoint|source-system|property-name:"/>
+<parameter name='field3' value='`$propertiesIndex`' />
+<parameter name='field4' value='`$jsonContextPrefix.content.naming-models[$modelsIndex].naming-properties[$propertiesIndex].source-endpoint`' />
+<parameter name='field5' value='`$jsonContextPrefix.content.naming-models[$modelsIndex].naming-properties[$propertiesIndex].source-system`' />
+<parameter name='field6' value='`$jsonContextPrefix.content.naming-models[$modelsIndex].naming-properties[$propertiesIndex].property-name`' /></record><set>
+<parameter name='source-system' value='`$jsonContextPrefix.content.naming-models[$modelsIndex].naming-properties[$propertiesIndex].source-system`'  />
+<parameter name='source-endpoint' value='`$jsonContextPrefix.content.naming-models[$modelsIndex].naming-properties[$propertiesIndex].source-endpoint`'  />
+<parameter name='property-name' value='`$jsonContextPrefix.content.naming-models[$modelsIndex].naming-properties[$propertiesIndex].property-name`'  />
+<parameter name='property-value' value='`$jsonContextPrefix.content.naming-models[$modelsIndex].naming-properties[$propertiesIndex].property-value`'  />
+</set><switch test='`$property-value`'>
+<outcome value=''>
+<block>
+<switch test='`$source-system`'>
+<outcome value="MD-SAL"><block>
+<switch test='`$property-name`'>
+<outcome value="VMNAME"><set>
+<parameter name="resolved-source-endpoint" value="`$naming-policy-generate-name-input.vm-name`" /></set></outcome><outcome value='Other'>
+<execute plugin='org.openecomp.sdnc.sli.SliPluginUtils.SliPluginUtils' method='getAttributeValue' >
+	<parameter name="source" value="`$source-endpoint`" />
+	<!--<parameter name="source" value="`$naming-policy-generate-name-input.test-source-endpoint-path`" />-->
+	<parameter name="outputPath" value="resolved-source-endpoint" />
+	</execute></outcome></switch><set>
+<parameter name="name-var" value="`$propertiesIndex + '-naming-property-value'`" />
+<parameter name="value-var" value="`$property-name + '-' + $naming-policy-generate-name-input.test-source-endpoint-resolved-value` " />
+<parameter name="new-part" value="`$resolved-source-endpoint` " />
+<!--<parameter name="new-part" value="`$naming-policy-generate-name-input.test-source-endpoint-resolved-value` " />--></set><set>
+<parameter name="constructed-name" value="`$constructed-name + $new-part` "  /></set><record plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: source-system MD-SAL name-value pair|new-part|constructed-name:"/>
+<parameter name="field3" value="`$name-var`" />
+<parameter name="field4" value="`$value-var`" />
+<parameter name="field5" value="`$new-part`" />
+<parameter name="field6" value="`$constructed-name`" /></record></block></outcome><outcome value="TOSCA">
+<execute plugin='org.openecomp.sdnc.sli.resource.sql.SqlResource' method='parameterizedQuery' emitsOutcome='true' >
+<parameter name='query' value='select nfc_naming_code from VFC_MODEL where customization_uuid = ?' />
+<parameter name='prefix' value='queryPfx' />
+<parameter name='param1' value="`$naming-policy-generate-name-input.vfc-customization-uuid`" /><outcome value='not-found'>
+<return status='failure'>
+<parameter name='error-code' value='514' />
+<parameter name='error-message' value='naming-policy-generate-name customiation_uuid not found in VFC_MODEL table'/>
+</return></outcome><outcome value='failure'>
+<return status='failure'>
+<parameter name='error-code' value='515' />
+<parameter name='error-message' value='naming-policy-generate-name database access failure'/>
+</return></outcome><outcome value='success'>
+<block>
+<set>
+<parameter name="name-var" value="`$propertiesIndex + '-naming-property-value'`" />
+<parameter name="value-var" value="`$property-name + '-' + $queryPfx.nfc-naming-code`" />
+<parameter name="new-part" value="`$queryPfx.nfc-naming-code` " /></set><set>
+<parameter name="constructed-name" value="`$constructed-name + $new-part` "  />
+</set><record plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: source-system TOSCA name-value pair|new-part|constructed-name:"/>
+<parameter name="field3" value="`$name-var`" />
+<parameter name="field4" value="`$value-var`" />
+<parameter name="field5" value="`$new-part`" />
+<parameter name="field6" value="`$constructed-name`" /></record></block></outcome></execute></outcome><outcome value=''>
+<block>
+<set>
+<!-- until PM is passing the correct source-endpoint for memory value, 
+     use one passed via executeDG test
+
+<parameter name="`$propertiesIndex` + '-naming-property-value'" value="` $property-name + '-' + $source-endpoint `"  />
+-->
+<parameter name="seq-scope" value="`$jsonContextPrefix.content.naming-models[$modelsIndex].naming-properties[$propertiesIndex].increment-sequence.scope`" />
+<parameter name="seq-start-value" value="`$jsonContextPrefix.content.naming-models[$modelsIndex].naming-properties[$propertiesIndex].increment-sequence.start-value` " />
+<parameter name="seq-length" value="`$jsonContextPrefix.content.naming-models[$modelsIndex].naming-properties[$propertiesIndex].increment-sequence.length` " />
+<parameter name="seq-increment" value="`$jsonContextPrefix.content.naming-models[$modelsIndex].naming-properties[$propertiesIndex].increment-sequence.increment` " />
+</set><record plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: SDN-GC SEQUENCE info: scope|start-value|length|increment|constructed-name:"/>
+<parameter name="field3" value="`$seq-scope`" />
+<parameter name="field4" value="`$seq-start-value`" />
+<parameter name="field5" value="`$seq-length`" />
+<parameter name="field6" value="`$seq-increment`" />
+<parameter name="field7" value="`$constructed-name`" /></record></block></outcome></switch></block></outcome><outcome value='Other'>
+<block>
+<set>
+<!-- until PM is passing the correct source-endpoint for memory value, 
+     use one passed via executeDG test
+
+<parameter name="`$propertiesIndex` + '-naming-property-value'" value="` $property-name + '-' + $source-endpoint `"  />
+-->
+<parameter name="name-var" value="`$propertiesIndex + '-naming-property-value'`" />
+<parameter name="value-var" value="`$property-name + '-' + $property-value` " />
+<parameter name="new-part" value="`$property-value` " /></set><set>
+<parameter name="constructed-name" value="`$constructed-name + $new-part` "  /></set><record plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: property-value name-value pair|new-part|constructed-name:"/>
+<parameter name="field3" value="`$name-var`" />
+<parameter name="field4" value="`$value-var`" />
+<parameter name="field5" value="`$new-part`" />
+<parameter name="field6" value="`$constructed-name`" /></record></block></outcome></switch></block></block></outcome></switch></block></for></block></for><block atomic='true'><record plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: call generate-unique-name: constructed-name"/>
+<parameter name="field6" value="`$constructed-name`" /></record><set>
+<!--<parameter name='generate-unique-name-input.index-table-name' value='VM_NAME_INDEX' />-->
+<parameter name='generate-unique-name-input.index-table-name' value="`$table-name`" />
+<parameter name='generate-unique-name-input.index-table-prefix-column' value="`$table-prefix-column`" />
+<!--<parameter name='generate-unique-name-input.name-table-type' value='VNFAPI_VM_INSTANCE' />-->
+<parameter name='generate-unique-name-input.name-table-type' value="`$table-type`" />
+<!--<parameter name='generate-unique-name-input.prefix' value="`$naming-policy-generate-name-input.nfc-naming-code`" />
+<parameter name='generate-unique-name-input.index-length' value='003' />-->
+<parameter name='generate-unique-name-input.prefix' value="`$constructed-name`" />
+<parameter name='generate-unique-name-input.index-length' value="`$seq-length`" /></set><call module='VNF-API' rpc='naming-policy-generate-unique-name' mode='sync' >
+<outcome value='failure'>
+<block>
+<record plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: Error calling generate-unique-name"/>
+</record><return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`$generate-unique-name-output.error-message`" />
+</return></block></outcome><outcome value='success'>
+<switch test='`$naming-type`'>
+<outcome value="VM">
+<!-- <outcome value="MD-SAL"> -->
+<block>
+<set>
+<parameter name='naming-policy-generate-name-output.vm-name' value='`$generate-unique-name-output.generated-name`' />
+<parameter name='constructed-name' value='' />
+<parameter name='seq-length' value='' /></set><record plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: generated vm-name|generate-unique-name-output.generated-name:"/>
+<parameter name="field5" value="`$naming-policy-generate-name-output.vm-name`" />
+<parameter name="field6" value="`$generate-unique-name-output.generated-name`" /></record></block></outcome><outcome value="VNFC">
+<!-- <outcome value="MD-SAL"> -->
+<block>
+<set>
+<parameter name='naming-policy-generate-name-output.vnfc-name' value='`$generate-unique-name-output.generated-name`' />
+<parameter name='constructed-name' value='' />
+<parameter name='seq-length' value='' /></set><record plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: generated vnfc-name|generate-unique-name-output.generated-name:"/>
+<parameter name="field5" value="`$naming-policy-generate-name-output.vnfc-name`" />
+<parameter name="field6" value="`$generate-unique-name-output.generated-name`" /></record></block></outcome></switch></outcome></call></block></block></outcome><outcome value='Other'>
+<record plugin="org.openecomp.sdnc.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="LAINA: naming-policy-generate-name: naming-type from returned policy does not match input.naming-type.  Do not construct name for: "/>
+<parameter name="field3" value="`$naming-type`" /></record></outcome></switch></block></for><return status='success'>
+<parameter name='naming-policy-generate-name-output.vm-name' value="`$naming-policy-generate-name-output.vm-name`" />
+<parameter name='naming-policy-generate-name-output.vnfc-name' value="`$naming-policy-generate-name-output.vnfc-name`" />
+</return></block></outcome></execute></block></block></method></service-logic>
