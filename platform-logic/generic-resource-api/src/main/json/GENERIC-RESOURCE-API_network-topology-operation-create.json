@@ -76,7 +76,9 @@
         "fd85e187.c7dde",
         "4308a2c5.6e7bac",
         "8381990.da591e8",
-        "ced212e0.c44f6"
+        "ced212e0.c44f6",
+        "3039bc18.0720bc",
+        "eb064901.8cfbf"
       ]
     ]
   },
@@ -1943,8 +1945,8 @@
     "name": "set network in service-data",
     "xml": "<set>\n<parameter name=\"service-data.networks.network[$nidx].network-id\" value='`$prop.l3vpn.network-id`' />\n<parameter name='service-data.networks.network[$nidx].network-data.sdnc-request-header.' value='`$network-topology-operation-input.sdnc-request-header.`' />\n<parameter name='service-data.networks.network[$nidx].network-data.request-information.' value='`$network-topology-operation-input.request-information.`' />\n<parameter name='service-data.networks.network[$nidx].network-data.service-information.' value='`$network-topology-operation-input.service-information.`' />\n<parameter name='service-data.networks.network[$nidx].network-data.network-information.' value='`$network-topology-operation-input.network-information.`' />\n<parameter name='service-data.networks.network[$nidx].network-data.network-request-input.' value='`$network-topology-operation-input.network-request-input.`' />\n<parameter name=\"service-data.networks.network_length\" value='`$nidx+1`' />\n\n",
     "comments": "",
-    "x": 792,
-    "y": 915,
+    "x": 724,
+    "y": 1340,
     "z": "afcbb687.85236",
     "wires": []
   },
@@ -1954,8 +1956,8 @@
     "name": "set networkId and network-object-path",
     "xml": "<set>\n<parameter name='networkId' value='`$prop.l3vpn.network-id`' />\n<parameter name=\"network-object-path\" value=\"`'restconf/config/GENERIC-RESOURCE-API:services/service/'  + $network-topology-operation-input.service-information.service-instance-id  + '/service-data/networks/network/'  + $prop.l3vpn.network-id  + '/network-data/'` \" />",
     "comments": "",
-    "x": 776,
-    "y": 1345,
+    "x": 753,
+    "y": 1385,
     "z": "afcbb687.85236",
     "wires": []
   },
@@ -1965,8 +1967,8 @@
     "name": "return success",
     "xml": "<return status='success'>\n<parameter name=\"ack-final-indicator\" value=\"Y\" />\n<parameter name=\"error-code\" value=\"200\" />\n<parameter name=\"error-message\" value=\"`$error-message`\" />\n",
     "comments": "",
-    "x": 691,
-    "y": 1470,
+    "x": 700,
+    "y": 1574,
     "z": "afcbb687.85236",
     "wires": []
   },
@@ -1976,8 +1978,8 @@
     "name": "set network-level-oper-status",
     "xml": "<set>\n<parameter name='service-data.networks.network[$nidx].network-data.network-level-oper-status.order-status' value='Created' />\n<parameter name='service-data.networks.network[$nidx].network-data.network-level-oper-status.last-rpc-action' value='`$network-topology-operation-input.sdnc-request-header.svc-action`' />\n<parameter name='service-data.networks.network[$nidx].network-data.network-level-oper-status.last-action' value='`$network-topology-operation-input.request-information.request-action`' />",
     "comments": "",
-    "x": 748,
-    "y": 1404,
+    "x": 726,
+    "y": 1432,
     "z": "afcbb687.85236",
     "wires": []
   },
@@ -2079,5 +2081,33 @@
     "y": 135,
     "z": "afcbb687.85236",
     "wires": []
+  },
+  {
+    "id": "3039bc18.0720bc",
+    "type": "save",
+    "name": "save underlay configuration in AAI",
+    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='configuration' \n      key='configuration.configuration-id = $prop.l3vpn.network-id' >\n<parameter name='configuration-id' value='`$prop.l3vpn.network-id`' />\n<parameter name='configuration-type' value='underlay' />\n<parameter name='orchestration-status' value='Created' />\n<parameter name='configuration-selflink' value=\"`'restconf/config/GENERIC-RESOURCE-API:services/service/'  + $network-topology-operation-input.service-information.service-instance-id  + '/service-data/networks/network/'  + $prop.l3vpn.network-id  + '/network-data/'` \" />\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 745,
+    "y": 1482,
+    "z": "afcbb687.85236",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "eb064901.8cfbf",
+    "type": "save",
+    "name": "save service relationship in AAI",
+    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list' \n      key='service-instance.service-instance-id = $service-data.service-information.service-id' >\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"configuration\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"/network/configurations/configuration\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"configuration.configuration-id\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$prop.l3vpn.network-id`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[1].relationship-key\" value=\"configuration.configuration-type\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[1].relationship-value\" value=\"underlay\" />",
+    "comments": "",
+    "outputs": 1,
+    "x": 737,
+    "y": 1528,
+    "z": "afcbb687.85236",
+    "wires": [
+      []
+    ]
   }
 ]
