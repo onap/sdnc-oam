@@ -32,21 +32,20 @@ JAVA_OPTS=${JAVA_OPTS:--Dhttps.protocols=TLSv1.1,TLSv1.2}
 JAVA=${JAVA:-${JAVA_HOME}/bin/java}
 
 # Redirect output from script to $LISTENER.out
-exec >> ${UEBLISTENERROOT}/logs/$LISTENER.out
-exec 2>&1
-
-
 if [ ! -d ${UEBLISTENERROOT}/logs ]
 then
   mkdir ${UEBLISTENERROOT}/logs
 fi
+exec >> ${UEBLISTENERROOT}/logs/$LISTENER.out
+exec 2>&1
 
 for file in ${UEBLISTENERROOT}/lib/*.jar
 do
   LISTENERCLASSPATH=$LISTENERCLASSPATH:$file
 done
 
-exec ${JAVA} ${JAVA_OPTS} -jar ${UEBLISTENERROOT}/lib/ueb-listener*.jar -Dlog4j.configuration=file:${UEBLISTENERROOT}/lib/log4j.properties -cp ${LISTENERCLASSPATH} &
+echo "Starting ueb-listener"
+exec ${JAVA} ${JAVA_OPTS} -jar ${UEBLISTENERROOT}/lib/ueb-listener*.jar -Dlog4j.configuration=file:${UEBLISTENERROOT}/lib/log4j.properties -cp ${LISTENERCLASSPATH}
 
 
 
