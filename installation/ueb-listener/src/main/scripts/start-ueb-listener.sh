@@ -45,7 +45,7 @@ do
 done
 
 echo "Starting ueb-listener"
-exec ${JAVA} ${JAVA_OPTS} -jar ${UEBLISTENERROOT}/lib/ueb-listener*.jar -Dlog4j.configuration=file:${UEBLISTENERROOT}/lib/log4j.properties -cp ${LISTENERCLASSPATH}
+exec ${JAVA} ${JAVA_OPTS} -jar ${UEBLISTENERROOT}/lib/ueb-listener*.jar -Dlog4j.configuration=file:${PROPERTY_DIR}/log4j.properties -cp ${LISTENERCLASSPATH}
 
 
 
