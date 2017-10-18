@@ -29,7 +29,47 @@
                                 </outcome>
                             </switch>
                             <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site1_networkName'`">
-                                <outcome value="true" />
+                                <outcome value="true">
+                                    <block atomic="true">
+                                        <set>
+                                            <parameter name="tmp.dci-connects.local_networks.original" value="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].value`" />
+                                        </set>
+                                        <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils" method="split">
+                                            <parameter name="original_string" value="`$tmp.dci-connects.local_networks.original`" />
+                                            <parameter name="regex" value="," />
+                                            <parameter name="ctx_memory_result_key" value="tmp.dci-connects.local_networks" />
+                                            <outcome value="success">
+                                                <for index="idx" start="0" end="`$tmp.dci-connects.local_networks_length`">
+                                                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="l3-network" key="esr-thirdparty-sdnc.thirdparty-sdnc-id = $tmp.dci-connects.local_networks[$idx] AND         depth = '0'" pfx="tmp.aai.l3-network" local-only="false">
+                                                        <outcome value="success">
+                                                            <set>
+                                                                <parameter name="prop.dci-connects.local_networks[$idx]" value="`$tmp.aai.l3-network.network-id`" />
+                                                            </set>
+                                                        </outcome>
+                                                        <outcome value="not-found">
+                                                            <return status="failure">
+                                                                <parameter name="error-code" value="" />
+                                                                <parameter name="error-message" value="" />
+                                                            </return>
+                                                        </outcome>
+                                                        <outcome value="Other">
+                                                            <return status="failure">
+                                                                <parameter name="error-code" value="" />
+                                                                <parameter name="error-message" value="" />
+                                                            </return>
+                                                        </outcome>
+                                                    </get-resource>
+                                                </for>
+                                            </outcome>
+                                            <outcome value="failure">
+                                                <return status="failure">
+                                                    <parameter name="error-code" value="" />
+                                                    <parameter name="error-message" value="An error occured while splitting sna1_route" />
+                                                </return>
+                                            </outcome>
+                                        </execute>
+                                    </block>
+                                </outcome>
                             </switch>
                             <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$idx].name == 'site1_routerId'`">
                                 <outcome value="true">
@@ -147,7 +187,7 @@
                         <switch test="`$prop.dci-connects.tunnelType`">
                             <outcome value="L3-DCI">
                                 <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
-                                    <parameter name="templateFileName" value="`$prop.sdncRestApi.tempDir +'/l3-dci-connects-template.json'`" />
+                                    <parameter name="templateFileName" value="`$prop.sdncRestApi.templateDir +'/l3-dci-connects-template.json'`" />
                                     <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url +'/v2.0/l3-dci-connects'`" />
                                     <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
                                     <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
@@ -158,7 +198,7 @@
                             </outcome>
                             <outcome value="L2-DCI">
                                 <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
-                                    <parameter name="templateFileName" value="`$prop.sdncRestApi.tempDir +'/l2-dci-connects-template.json'`" />
+                                    <parameter name="templateFileName" value="`$prop.sdncRestApi.templateDir +'/l2-dci-connects-template.json'`" />
                                     <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url +'/v2.0/l2-dci-connects'`" />
                                     <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
                                     <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
@@ -344,7 +384,7 @@
                         <switch test="`$prop.dci-connects.tunnelType`">
                             <outcome value="L3-DCI">
                                 <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
-                                    <parameter name="templateFileName" value="`$prop.sdncRestApi.tempDir +'/l3-dci-connects-template.json'`" />
+                                    <parameter name="templateFileName" value="`$prop.sdncRestApi.templateDir +'/l3-dci-connects-template.json'`" />
                                     <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url +'/v2.0/l3-dci-connects'`" />
                                     <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
                                     <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
@@ -355,7 +395,7 @@
                             </outcome>
                             <outcome value="L2-DCI">
                                 <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
-                                    <parameter name="templateFileName" value="`$prop.sdncRestApi.tempDir +'/l2-dci-connects-template.json'`" />
+                                    <parameter name="templateFileName" value="`$prop.sdncRestApi.templateDir +'/l2-dci-connects-template.json'`" />
                                     <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url +'/v2.0/l2-dci-connects'`" />
                                     <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
                                     <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
