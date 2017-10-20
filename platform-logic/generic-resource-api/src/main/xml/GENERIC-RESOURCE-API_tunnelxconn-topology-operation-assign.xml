@@ -2,7 +2,6 @@
 <block atomic="true"><set>
 <parameter name='tmp.ar.allotted-resource-id' value='`$tunnelxconn-topology-operation-input.allotted-resource-information.allotted-resource-id`' />
 <parameter name='tmp.ar.parent-service-instance-id' value='`$tunnelxconn-topology-operation-input.allotted-resource-information.parent-service-instance-id`' />
-<parameter name='tmp.ar.sz-vnf-id' value='`$tunnelxconn-topology-operation-input.allotted-resource-data.tunnelxconn-topology.tunnelxconn-assignments.tunnelxconn-vnf-id`' />
 
 
 </set><set>
@@ -14,95 +13,64 @@
     <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />
     <parameter name='contextPrefix' value='prop' />
 </execute><execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
-    <parameter name="source" value="`$prop.restapi.sz-allottedresource`"/>
+    <parameter name="source" value="`$prop.restapi.tx-allottedresource`"/>
     <parameter name="outputPath" value="tmp.ar-url"/>
     <parameter name="target" value="{allotted-resource-id}"/>
     <parameter name="replacement" value="`$tmp.ar.allotted-resource-id`"/>
-</execute><execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
-    <parameter name="source" value="`$prop.restapi.vnf-provided-allottedresource`" />
-    <parameter name="outputPath" value="tmp.vnf-p-ar-url" />
-    <parameter name="target" value="{service-instance-id}" />
-    <parameter name="replacement" value="`$tmp.ar.parent-service-instance-id`" />
-</execute><execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
-    <parameter name="source" value="`$tmp.vnf-p-ar-url`" />
-    <parameter name="outputPath" value="tmp.vnf-p-ar-url" />
-    <parameter name="target" value="{vnf-id}"/>
-    <parameter name="replacement" value="`$tmp.ar.sz-vnf-id`"/>
-</execute><execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-    <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.ar-url`' />
-    <parameter name='restapiUser' value='`$prop.controller.user`' />
-    <parameter name='restapiPassword' value='`$prop.controller.pwd`' />
-    <parameter name='format' value='json' />
-    <parameter name='httpMethod' value='GET' />
-    <parameter name="responsePrefix" value="mdsal-ar" />
-
+</execute><get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.mdsal.ConfigResource' resource='GENERIC-RESOURCE-API' key='tunnelxconn-allotted-resources/tunnelxconn-allotted-resource/$tunnelxconn-topology-operation-input.alloted-resource-information.allotted-resource-id' pfx='mdsal-ar' >
+<outcome value='success'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" 
+    value="`'Existing tunnelxconn-allotted-resource with order status of ' + $mdsal-ar.allotted-resource-data.allotted-resource-oper-status.order-status + '.'`" />
+</return></outcome><outcome value='Other'>
+<get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.mdsal.ConfigResource' resource='GENERIC-RESOURCE-API' key='services/service/$tmp.ar.parent-service-instance-id' pfx='mdsal-parent-service-instance' >
 <outcome value='success'>
 <block atomic="true">
 <set>
-<parameter name='bk-sz-ar' value='$mdsal-ar.' />
-</set><switch test='`$mdsal-ar.tunnelxconn-allotted-resource_length`'>
-<outcome value='1'>
-<block atomic='true'>
-<set>
-<parameter name='sz-ar.' value='$mdsal-ar.tunnelxconn-allotted-resource[0].' />
-</set><switch test='`$sz-ar.allotted-resource-data.allotted-resource-oper-status.order-status`'>
-<outcome value='Created'>
-<return status='failure'>
-	<parameter name='ack-final' value='Y'/>
-	<parameter name="error-code" value="500" />
-    <parameter name="error-message" 
-    value="`'Existing tunnelxconn-allotted-resource with order status of ' + $sz-ar.allotted-resource-data.allotted-resource-oper-status.order-status + '.'`" />
-</return></outcome><outcome value='PendingDelete'>
-<return status='failure'>
-	<parameter name='ack-final' value='Y'/>
-	<parameter name="error-code" value="500" />
-    <parameter name="error-message" 
-    value="`'Existing tunnelxconn-allotted-resource with order status of ' + $sz-ar.allotted-resource-data.allotted-resource-oper-status.order-status + '.'`" />
-</return></outcome></switch><set>
-<parameter name='sz-ar.allotted-resource-data.allotted-resource-oper-status.last-action' value='`$sz-ar.allotted-resource-data.allotted-resource-operation-information.request-information.request-action`' />
-<parameter name='sz-ar.allotted-resource-data.allotted-resource-oper-status.last-rpc-action' value='`$sz-ar.allotted-resource-status.rpc-action`' />
-<parameter name='sz-ar.allotted-resource-data.allotted-resource-oper-status.last-svc-request-id' value='`$sz-ar.allotted-resource-data.allotted-resource-operation-information.sdnc-request-header.svc-request-id`' />
-
-</set></block></outcome></switch></block></outcome><outcome value='Other'>
-<block atomic="true">
-</block></outcome></execute><set>
-<parameter name='sz-ar.allotted-resource-id' value="`$tmp.ar.allotted-resource-id` " />
-<parameter name='sz-ar.allotted-resource-status.action' value="`$tunnelxconn-topology-operation-input.request-information.request-action` " />
-<parameter name='sz-ar.allotted-resource-status.rpc-name' value="tunnelxconn-topology-operation" />
-<parameter name='sz-ar.allotted-resource-status.rpc-action' value="`$tunnelxconn-topology-operation-input.sdnc-request-header.svc-action` " />
-<parameter name='sz-ar.allotted-resource-data.allotted-resource-operation-information.request-information.' value="`$tunnelxconn-topology-operation-input.request-information.` " />
-<parameter name='sz-ar.allotted-resource-data.allotted-resource-operation-information.sdnc-request-header.' value="`$tunnelxconn-topology-operation-input.sdnc-request-header.` " />
-<parameter name='sz-ar.allotted-resource-data.allotted-resource-operation-information.service-information.' value="`$tunnelxconn-topology-operation-input.service-information.` " />
-<parameter name='sz-ar.allotted-resource-data.allotted-resource-operation-information.allotted-resource-information.' value="`$tunnelxconn-topology-operation-input.allotted-resource-information.` " />
-<parameter name='sz-ar.allotted-resource-data.allotted-resource-operation-information.tunnelxconn-request-input.' value="`$tunnelxconn-topology-operation-input.tunnelxconn-request-input.` " /></set><set>
-<parameter name='sz-ar-identifiers.consuming-service-instance-id' value="`$tunnelxconn-topology-operation-input.service-information.service-instance-id` " />
-<parameter name='sz-ar-identifiers.parent-service-instance-id' value="`$tunnelxconn-topology-operation-input.allotted-resource-information.parent-service-instance-id` " />
-<parameter name='sz-ar-identifiers.allotted-resource-type' value="`$tunnelxconn-topology-operation-input.allotted-resource-information.allotted-resource-type` " />
-<parameter name='sz-ar-identifiers.allotted-resource-id' value="`$tmp.ar.allotted-resource-id` " />
+<parameter name='tx-ar.allotted-resource-id' value="`$tmp.ar.allotted-resource-id` " />
+<parameter name='tx-ar.allotted-resource-status.action' value="`$tunnelxconn-topology-operation-input.request-information.request-action` " />
+<parameter name='tx-ar.allotted-resource-status.rpc-name' value="tunnelxconn-topology-operation" />
+<parameter name='tx-ar.allotted-resource-status.rpc-action' value="`$tunnelxconn-topology-operation-input.sdnc-request-header.svc-action` " />
+<parameter name='tx-ar.allotted-resource-data.allotted-resource-operation-information.request-information.' value="`$tunnelxconn-topology-operation-input.request-information.` " />
+<parameter name='tx-ar.allotted-resource-data.allotted-resource-operation-information.sdnc-request-header.' value="`$tunnelxconn-topology-operation-input.sdnc-request-header.` " />
+<parameter name='tx-ar.allotted-resource-data.allotted-resource-operation-information.service-information.' value="`$tunnelxconn-topology-operation-input.service-information.` " />
+<parameter name='tx-ar.allotted-resource-data.allotted-resource-operation-information.allotted-resource-information.' value="`$tunnelxconn-topology-operation-input.allotted-resource-information.` " />
+<parameter name='tx-ar.allotted-resource-data.allotted-resource-operation-information.tunnelxconn-request-input.' value="`$tunnelxconn-topology-operation-input.tunnelxconn-request-input.` " /></set><set>
+<parameter name='tx-ar.allotted-resource-data.allotted-resource-oper-status.last-action' value='`$sz-ar.allotted-resource-data.allotted-resource-operation-information.request-information.request-action`' />
+<parameter name='tx-ar.allotted-resource-data.allotted-resource-oper-status.last-rpc-action' value='`$sz-ar.allotted-resource-status.rpc-action`' />
+<parameter name='tx-ar.allotted-resource-data.allotted-resource-oper-status.last-svc-request-id' value='`$sz-ar.allotted-resource-data.allotted-resource-operation-information.sdnc-request-header.svc-request-id`' />
 
 </set><set>
-<parameter name='sz-ar.allotted-resource-data.tunnelxconn-topology.onap-model-information.' 
+<parameter name='tx-ar-identifiers.consuming-service-instance-id' value="`$tunnelxconn-topology-operation-input.service-information.service-instance-id` " />
+<parameter name='tx-ar-identifiers.parent-service-instance-id' value="`$tunnelxconn-topology-operation-input.allotted-resource-information.parent-service-instance-id` " />
+<parameter name='tx-ar-identifiers.allotted-resource-type' value="`$tunnelxconn-topology-operation-input.allotted-resource-information.allotted-resource-type` " />
+<parameter name='tx-ar-identifiers.allotted-resource-id' value="`$tmp.ar.allotted-resource-id` " />
+
+</set><set>
+<parameter name='tx-ar.allotted-resource-data.tunnelxconn-topology.onap-model-information.' 
 value="`$tunnelxconn-topology-operation-input.allotted-resource-information.onap-model-information.`" />
 
 
 </set><switch test='$tunnelxconn-topology-operation-input.allotted-resource-information.onap-model-information.model-invariant-uuid'>
 <outcome value=''>
 <set>
-<parameter name='sz-ar.allotted-resource-data.tunnelxconn-topology.onap-model-information.model-invariant-uuid' 
+<parameter name='tx-ar.allotted-resource-data.tunnelxconn-topology.onap-model-information.model-invariant-uuid' 
 value="`$ar-model.invariant-uuid`" />
 
 
 </set></outcome></switch><switch test='$tunnelxconn-topology-operation-input.allotted-resource-information.onap-model-information.model-uuid'>
 <outcome value=''>
 <set>
-<parameter name='sz-ar.allotted-resource-data.tunnelxconn-topology.onap-model-information.model-uuid' 
+<parameter name='tx-ar.allotted-resource-data.tunnelxconn-topology.onap-model-information.model-uuid' 
 value="`$ar-model.uuid`" />
 
 
 </set></outcome></switch><switch test='$tunnelxconn-topology-operation-input.allotted-resource-information.onap-model-information.model-version'>
 <outcome value=''>
 <set>
-<parameter name='sz-ar.allotted-resource-data.tunnelxconn-topology.onap-model-information.model-version' 
+<parameter name='tx-ar.allotted-resource-data.tunnelxconn-topology.onap-model-information.model-version' 
 value="`$ar-model.version`" />
 
 
@@ -110,7 +78,7 @@ value="`$ar-model.version`" />
 <outcome value='Y'>
 <block atomic="true">
 <switch test='`$ar-model.naming-policy`'>
-<outcome value='oam_security_zone_name'>
+<outcome value='oam_network_policy'>
 <block atomic='true'>
 <set>
 <parameter name='tmp.ar-name' value='$TenantOAMNetworkRole_$LandingNetworkRole_SZ' />
@@ -127,7 +95,7 @@ value="`$ar-model.version`" />
     <parameter name="replacement" value="`$tunnelxconn-topology-operation-input.tunnelxconn-request-input.trusted-network-role`"/>
 
 </execute><set>
-<parameter name='sz-ar-identifiers.allotted-resource-name' value='`$tmp.ar-name`' />
+<parameter name='tx-ar-identifiers.allotted-resource-name' value='`$tmp.ar-name`' />
 </set></block></outcome><outcome value='Other'>
 <block atomic='true'>
 <set>
@@ -145,7 +113,7 @@ value="`$ar-model.version`" />
     <parameter name="replacement" value="`$tunnelxconn-topology-operation-input.tunnelxconn-request-input.trusted-network-role`"/>
 
 </execute><set>
-<parameter name='sz-ar-identifiers.allotted-resource-name' value='`$tmp.ar-name`' />
+<parameter name='tx-ar-identifiers.allotted-resource-name' value='`$tmp.ar-name`' />
 </set></block></outcome></switch></block></outcome><outcome value='Other'>
 <return status='failure'>
 	<parameter name='ack-final' value='Y'/>
@@ -153,25 +121,31 @@ value="`$ar-model.version`" />
     <parameter name="error-message" value="Error in allotted-resource-model data.  Ecomp-generated-naming should be true" />
 
 </return></outcome></switch><set>
-<parameter name='sz-ar.allotted-resource-data.tunnelxconn-topology.allotted-resource-identifiers.' 
-value="`$sz-ar-identifiers.`" />
+<parameter name='tx-ar.allotted-resource-data.tunnelxconn-topology.allotted-resource-identifiers.' 
+value="`$tx-ar-identifiers.`" />
 
 
 </set><set>
-<parameter name='sz-ar-assignments.vlan-tag' value="`$tunnelxconn-topology-operation-input.tunnelxconn-request-input.vlan-tag` " />
-<parameter name='sz-ar-assignments.trusted-network-role' value="`$tunnelxconn-topology-operation-input.tunnelxconn-request-input.trusted-network-role` " />
-<parameter name='sz-ar-assignments.untrusted-network-role' value="`$tunnelxconn-topology-operation-input.tunnelxconn-request-input.untrusted-network-role` " />
-<parameter name='sz-ar-assignments.tunnelxconn-service-instance-id' value="`$tmp.ar.parent-service-instance-id` " />
-
-</set><call module='GENERIC-RESOURCE-API' rpc='generate-panorama-name' mode='sync' >
-</call><set>
-<parameter name='sz-ar-assignments.tunnelxconn-name-untrusted' value="`$tmp.untrust-sz` " />
-<parameter name='sz-ar-assignments.tunnelxconn-name-trusted' value="`$tmp.trust-sz` " />
-
+<parameter name='tmp.vni' value='123' />
+<parameter name='tmp.vgmux-bearer-ip' value='127.0.0.1' />
+<parameter name='tmp.vgmux-lan-ip' value='127.0.0.1' /></set><for index='curparm' start='0' end='`$parent-service-instance.service-data.vnfs.vnf[0].vnf-data.vf-modules.vf-module[0].vf-module-data.vf-module-topology.vf-module-parameter.param_length`' >
+<switch test='$parent-service-instance.service-data.vnfs.vnf[0].vnf-data.vf-modules.vf-module[0].vf-module-data.vf-module-topology.vf-module-parameter.param[$curparm].name'>
+<outcome value='vGMUX_Bearer_IP'>
+<set>
+<parameter name='tmp.vgmux-bearer-ip' value='`$parent-service-instance.service-data.vnfs.vnf[0].vnf-data.vf-modules.vf-module[0].vf-module-data.vf-module-topology.vf-module-parameter.param[$curparm].value`'>
+`' />
+</set></outcome><outcome value='vGMUX_LAN_IP'>
+<set>
+<parameter name='tmp.vgmux-lan-ip' value='`$parent-service-instance.service-data.vnfs.vnf[0].vnf-data.vf-modules.vf-module[0].vf-module-data.vf-module-topology.vf-module-parameter.param[$curparm].value`'>
+`' />
+</set></outcome></switch></for><set>
+<parameter name='tx-ar-assignments.vni' value='`$tmp.vni`'/>
+<parameter name='tx-ar-assignments.vgmux-bearer-ip' value='`$tmp.vgmux-bearer-ip'/>
+<parameter name='tx-ar-assignments.vgmux-lan-ip' value='`$tmp.vgmux-lan-ip`'/>
 
 </set><set>
-<parameter name='sz-ar.allotted-resource-data.tunnelxconn-topology.tunnelxconn-assignments.' 
-value="`$sz-ar-assignments.`" />
+<parameter name='tx-ar.allotted-resource-data.tunnelxconn-topology.tunnelxconn-assignments.' 
+value="`$tx-ar-assignments.`" />
 
 
 </set><switch test='`$service-data.consumed-allotted-resources.consumed-allotted-resource_length`'>
@@ -278,4 +252,10 @@ value="`$sz-ar-assignments.`" />
 <parameter name="ack-final-indicator" value="Y" />
 <parameter name="error-code" value="200" />
 <parameter name="error-message" value="`$error-message`" />
-</return></block></method></service-logic>
+</return></block></outcome><outcome value='Other'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" 
+    value="`'No entry found for parent service instance id ' + $tmp.ar.parent-service-instance-id + '.'`" />
+</return></outcome></get-resource></outcome></get-resource></block></method></service-logic>
