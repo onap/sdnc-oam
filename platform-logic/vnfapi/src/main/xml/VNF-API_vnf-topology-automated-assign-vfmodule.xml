@@ -7,7 +7,7 @@
 	<parameter name='ack-final' value='Y'/>
 	<parameter name="error-code" value="500" />
     <parameter name="error-message" value="If svc-action is 'assign' then request-action must be 'VNFActivateRequest'" />
-</return></outcome></switch><get-resource plugin='org.onap.ccsdk.sli.adaptors.sli.resource.sql.SqlResource' resource='SQL'
+</return></outcome></switch><get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
   key='SELECT * from VF_MODULE_MODEL WHERE customization_uuid = $vnf-topology-operation-input.vnf-request-information.model-customization-uuid'
   pfx='db.vf-module-model'>
 
@@ -59,7 +59,7 @@
 <block atomic="true"><set>
 <parameter name='tmp.vnf-topology.vnf-assignments.availability-zones[$az-index].availability-zone'
   value='`$aai.cloud-region.availability-zones.availability-zone[$az-index].availability-zone-name`' />
-</set></block></for></block><get-resource plugin='org.onap.ccsdk.sli.adaptors.sli.resource.sql.SqlResource' resource='SQL'
+</set></block></for></block><get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
   key='SELECT * from VF_MODULE_TO_VFC_MAPPING WHERE vf_module_customization_uuid = $vnf-topology-operation-input.vnf-request-information.model-customization-uuid'
   pfx='db.vf-module-to-vfc-mapping[]'>
 
@@ -75,7 +75,7 @@
 <parameter name='tmp.vnf-topology.vnf-assignments.vnf-vms_length'
   value='`$db.vf-module-to-vfc-mapping_length`' />
 </set><for index='vm-type-index' start='0' end='`$db.vf-module-to-vfc-mapping_length`' >
-<block atomic="true"><get-resource plugin='org.onap.ccsdk.sli.adaptors.sli.resource.sql.SqlResource' resource='SQL'
+<block atomic="true"><get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
   key='SELECT * from VFC_MODEL WHERE customization_uuid = $db.vf-module-to-vfc-mapping[$vm-type-index].vfc-customization-uuid'
   pfx='db.vfc-model'>
 
@@ -122,7 +122,7 @@
 </set></outcome></call></block></for><set>
 <parameter name='tmp.vnf-topology.vnf-assignments.vnf-vms[$vm-type-index].vm-names_length'
   value='`$db.vf-module-to-vfc-mapping[$vm-type-index].vm-count`' />
-</set><get-resource plugin='org.onap.ccsdk.sli.adaptors.sli.resource.sql.SqlResource' resource='SQL'
+</set><get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
   key='SELECT * from VFC_TO_NETWORK_ROLE_MAPPING WHERE vfc_customization_uuid = $db.vf-module-to-vfc-mapping[$vm-type-index].vfc-customization-uuid'
   pfx='db.vfc-to-network-role-mapping[]'>
 
@@ -308,7 +308,7 @@
 <parameter name='tmp.vnf-topology.vnf-assignments.vnf-vms[$vm-type-index].vm-networks[$network-role-index].network-ips-v6[$ip-count-index].ip-address-ipv6'
    value='`$eipam-ip-block.plans[$plans-index].requests[$rqst-index].ip-prefix`' /></set></outcome></switch></for></block></for></block></for></outcome></switch></for></for><for index='vm-type-index' start='0' end='`$tmp.vnf-topology.vnf-assignments.vnf-vms_length`' >
 <for index='vm-index' start='0' end='`$tmp.vnf-topology.vnf-assignments.vnf-vms[$vm-type-index].vm-count`' >
-<block atomic="true"><delete plugin='org.onap.ccsdk.sli.adaptors.sli.resource.sql.SqlResource' resource='SQL'
+<block atomic="true"><delete plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
   key='DELETE from VIPR_CONFIGURATION WHERE vnf_id = $service-data.vnf-id
      AND ecomp_service_instance_id = $vnf-topology-operation-input.service-information.service-instance-id
      AND vm_name = $tmp.vnf-topology.vnf-assignments.vnf-vms[$vm-type-index].vm-names[$vm-index].vm-name' ><outcome value='failure'>
@@ -318,7 +318,7 @@
 <parameter name="field2" value="VNF-API.vnf-topology-automated-assign-vfmodule:REQID"/>
 <parameter name="field3" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`"/>
 <parameter name="field4" value="Failed to insert VIPR_CONFIGURATION record"/>
-</record></outcome></delete><save plugin="org.onap.ccsdk.sli.adaptors.sli.resource.sql.SqlResource" resource="SQL"
+</record></outcome></delete><save plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL"
 	key="INSERT INTO VIPR_CONFIGURATION (vnf_id, 
 		vnf_name, 
 		ecomp_service_instance_id, 
