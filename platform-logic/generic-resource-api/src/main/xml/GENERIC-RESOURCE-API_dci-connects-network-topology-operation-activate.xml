@@ -153,7 +153,6 @@
                             <outcome value="success">
                                 <set>
                                     <parameter name="prop.sdncRestApi.thirdpartySdnc.url" value="`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].service-url`" />
-                                    <parameter name="prop.sdncRestApi.templateDir" value="/opt/onap/sdnc/data" />
                                     <parameter name="prop.sdncRestApi.thirdpartySdnc.user" value="`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].user-name`" />
                                     <parameter name="prop.sdncRestApi.thirdpartySdnc.password" value="`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].password`" />
                                 </set>
@@ -171,6 +170,10 @@
                                 </return>
                             </outcome>
                         </get-resource>
+                        <execute plugin="org.onap.ccsdk.sli.plugins.prop.PropertiesNode" method="readProperties">
+                            <parameter name="fileName" value="%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties" />
+                            <parameter name="contextPrefix" value="prop" />
+                        </execute>
                         <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
                             <parameter name="logger" value="message-log" />
                             <parameter name="field1" value="__TIMESTAMP__" />
@@ -184,27 +187,48 @@
                             <parameter name="field9" value="sdncRestApi.thirdpartySdnc.url" />
                             <parameter name="field10" value="`$prop.sdncRestApi.thirdpartySdnc.url`" />
                         </record>
+                        <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
+                            <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/actokentemplate.json'`" />
+                            <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/v2/tokens'`" />
+                            <parameter name="format" value="json" />
+                            <parameter name="httpMethod" value="post" />
+                            <parameter name="responsePrefix" value="token-result" />
+                            <outcome value="success">
+                                <set>
+                                    <parameter name="prop.sdncRestApi.token_id" value="$token-result.token_id" />
+                                </set>
+                            </outcome>
+                            <outcome value="failure">
+                                <return status="failure">
+                                    <parameter name="ack-final" value="Y" />
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="Error executing get token rest api" />
+                                </return>
+                            </outcome>
+                        </execute>
                         <switch test="`$prop.dci-connects.tunnelType`">
                             <outcome value="L3-DCI">
                                 <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
-                                    <parameter name="templateFileName" value="`$prop.sdncRestApi.templateDir +'/l3-dci-connects-template.json'`" />
+                                    <parameter name="templateFileName" value="`$prop.restapi.templateDir +'/l3-dci-connects-template.json'`" />
                                     <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url +'/v2.0/l3-dci-connects'`" />
                                     <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
                                     <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
                                     <parameter name="format" value="json" />
                                     <parameter name="httpMethod" value="post" />
                                     <parameter name="responsePrefix" value="restapi-result" />
+                                    <parameter name="customHttpHeaders" value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
                                 </execute>
                             </outcome>
                             <outcome value="L2-DCI">
                                 <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
-                                    <parameter name="templateFileName" value="`$prop.sdncRestApi.templateDir +'/l2-dci-connects-template.json'`" />
+                                    <parameter name="templateFileName" value="`$prop.restapi.templateDir +'/l2-dci-connects-template.json'`" />
                                     <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url +'/v2.0/l2-dci-connects'`" />
                                     <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
                                     <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
                                     <parameter name="format" value="json" />
                                     <parameter name="httpMethod" value="post" />
                                     <parameter name="responsePrefix" value="restapi-result" />
+                                    <parameter name="customHttpHeaders" value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
                                 </execute>
                             </outcome>
                         </switch>
@@ -350,7 +374,6 @@
                             <outcome value="success">
                                 <set>
                                     <parameter name="prop.sdncRestApi.thirdpartySdnc.url" value="`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].service-url`" />
-                                    <parameter name="prop.sdncRestApi.templateDir" value="/opt/onap/sdnc/data" />
                                     <parameter name="prop.sdncRestApi.thirdpartySdnc.user" value="`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].user-name`" />
                                     <parameter name="prop.sdncRestApi.thirdpartySdnc.password" value="`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].password`" />
                                 </set>
@@ -368,6 +391,10 @@
                                 </return>
                             </outcome>
                         </get-resource>
+                        <execute plugin="org.onap.ccsdk.sli.plugins.prop.PropertiesNode" method="readProperties">
+                            <parameter name="fileName" value="%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties" />
+                            <parameter name="contextPrefix" value="prop" />
+                        </execute>
                         <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
                             <parameter name="logger" value="message-log" />
                             <parameter name="field1" value="__TIMESTAMP__" />
@@ -381,27 +408,48 @@
                             <parameter name="field9" value="sdncRestApi.thirdpartySdnc.url" />
                             <parameter name="field10" value="`$prop.sdncRestApi.thirdpartySdnc.url`" />
                         </record>
+                        <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
+                            <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/actokentemplate.json'`" />
+                            <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/v2/tokens'`" />
+                            <parameter name="format" value="json" />
+                            <parameter name="httpMethod" value="post" />
+                            <parameter name="responsePrefix" value="token-result" />
+                            <outcome value="success">
+                                <set>
+                                    <parameter name="prop.sdncRestApi.token_id" value="$token-result.token_id" />
+                                </set>
+                            </outcome>
+                            <outcome value="failure">
+                                <return status="failure">
+                                    <parameter name="ack-final" value="Y" />
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="Error executing get token rest api" />
+                                </return>
+                            </outcome>
+                        </execute>
                         <switch test="`$prop.dci-connects.tunnelType`">
                             <outcome value="L3-DCI">
                                 <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
-                                    <parameter name="templateFileName" value="`$prop.sdncRestApi.templateDir +'/l3-dci-connects-template.json'`" />
+                                    <parameter name="templateFileName" value="`$prop.restapi.templateDir +'/l3-dci-connects-template.json'`" />
                                     <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url +'/v2.0/l3-dci-connects'`" />
                                     <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
                                     <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
                                     <parameter name="format" value="json" />
                                     <parameter name="httpMethod" value="post" />
                                     <parameter name="responsePrefix" value="restapi-result" />
+                                    <parameter name="customHttpHeaders" value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
                                 </execute>
                             </outcome>
                             <outcome value="L2-DCI">
                                 <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
-                                    <parameter name="templateFileName" value="`$prop.sdncRestApi.templateDir +'/l2-dci-connects-template.json'`" />
+                                    <parameter name="templateFileName" value="`$prop.restapi.templateDir +'/l2-dci-connects-template.json'`" />
                                     <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url +'/v2.0/l2-dci-connects'`" />
                                     <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
                                     <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
                                     <parameter name="format" value="json" />
                                     <parameter name="httpMethod" value="post" />
                                     <parameter name="responsePrefix" value="restapi-result" />
+                                    <parameter name="customHttpHeaders" value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
                                 </execute>
                             </outcome>
                         </switch>
