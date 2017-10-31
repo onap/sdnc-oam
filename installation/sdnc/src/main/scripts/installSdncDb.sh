@@ -49,3 +49,6 @@ for datafile in ${SDNC_HOME}/data/*.data.dump
 do
   mysql -h dbhost -u root -p${MYSQL_PASSWD} sdnctl < $datafile
 done
+
+# Create VNIs 100-199
+${SDNC_HOME}/bin/addVnis.sh 100 199
