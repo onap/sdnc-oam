@@ -85,7 +85,6 @@
                 <outcome value="success">
                     <set>
                         <parameter name="prop.sdncRestApi.thirdpartySdnc.url" value="`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].serviceUrl`" />
-                        <parameter name="prop.sdncRestApi.templateDir" value="/opt/onap/sdnc/data" />
                         <parameter name="prop.sdncRestApi.thirdpartySdnc.user" value="`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].user-name`" />
                         <parameter name="prop.sdncRestApi.thirdpartySdnc.password" value="`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].password`" />
                     </set>
@@ -105,11 +104,15 @@
                     </return>
                 </outcome>
             </get-resource>
+            <execute plugin="org.onap.ccsdk.sli.plugins.prop.PropertiesNode" method="readProperties">
+                <parameter name="fileName" value="%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties" />
+                <parameter name="contextPrefix" value="prop" />
+            </execute>
             <switch test="`$prop.l3vpn.service-type`">
                 <outcome value="l3vpn-ipwan">
                     <block atomic="true">
                         <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
-                            <parameter name="templateFileName" value="`$prop.sdncRestApi.templateDir + '/actokentemplate.json'`" />
+                            <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/actokentemplate.json'`" />
                             <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/v2/tokens'`" />
                             <parameter name="format" value="json" />
                             <parameter name="httpMethod" value="post" />
@@ -128,7 +131,7 @@
                             </outcome>
                         </execute>
                         <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
-                            <parameter name="templateFileName" value="`$prop.sdncRestApi.tempDir +'/l3smvpntemplate.json'`" />
+                            <parameter name="templateFileName" value="`$prop.restapi.templateDir +'/l3smvpntemplate.json'`" />
                             <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/huawei-ac-net-l3vpn-svc:l3vpn-svc-cfg/vpn-services/vpnservice=' + $prop.l3vpn.name`" />
                             <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
                             <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
