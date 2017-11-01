@@ -1,16 +1,13 @@
 <!--Reserve/release VNI--><service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'><method rpc='manage-ipaddr-assignment' mode='sync'>
 <block atomic='true'><set>
 <parameter name='tmp.sql.plugin' value='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' />
-</set><switch test='$tmp.manage-vni.action'>
+</set><switch test='`$tmp.manageIpaddr.action`'>
 <outcome value='reserve'>
-<block atomic='true'><get-resource plugin='`$tmp.sql.plugin`' resource='VNI' key="SELECT min(ipv4_addr) from IPV4_ADDRESS_POOL where universe='VGW' and status='AVAILABLE'" pfx="tmp.manage-ipaddr.results" >
+<block atomic='true'><get-resource plugin='`$tmp.sql.plugin`' resource='VNI' key="SELECT min(ipv4_addr) ip from IPV4_ADDRESS_POOL where universe = $tmp.manageIpaddr.pool and status='AVAILABLE'" pfx="tmp.manageIpaddr" >
 <outcome value='success'>
-<block>
-<set>
-<parameter name='tmp.manage-ipaddr.ip' value='`$tmp.manage-ipaddr.results.ipv4_addr`' />
-</set><save plugin='`$tmp.sql.plugin`' resource='IPADDR' key="UPDATE IPV4_ADDRESS_POOL set status='RESERVED' where universe='VGW' and ipv4_addr=$tmp.manage-ipaddr.ip" force='false'>
+<save plugin='`$tmp.sql.plugin`' resource='IPADDR' key="UPDATE IPV4_ADDRESS_POOL set status='RESERVED' where universe='VGW' and ipv4_addr = $tmp.manageIpaddr.ip" force='false'>
 
-</save></block></outcome></get-resource></block></outcome><outcome value='release'>
-<save plugin='`$tmp.sql.plugin`' resource='IPADDR' key="UPDATE IPV4_ADDRESS_POOL set status='AVAILABLE' where universe='VGW' and ipv4_addr=$tmp.manage-ipaddr.ip" force='false'>
+</save></outcome></get-resource></block></outcome><outcome value='release'>
+<save plugin='`$tmp.sql.plugin`' resource='IPADDR' key="UPDATE IPV4_ADDRESS_POOL set status='AVAILABLE' where universe='VGW' and ipv4_addr = $tmp.manageIpaddr.ip" force='false'>
 
 </save></outcome></switch></block></method></service-logic>
