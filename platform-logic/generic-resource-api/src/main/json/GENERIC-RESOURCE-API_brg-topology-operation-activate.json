@@ -1,1 +1,910 @@
-[{"id":"f4d06dda.30316","type":"dgstart","name":"DGSTART","outputs":1,"x":167.14285278320312,"y":61.42856979370117,"z":"d029d2a.974963","wires":[["7f7c6af3.215f74"]]},{"id":"7f7c6af3.215f74","type":"service-logic","name":"GENERIC-RESOURCE-API ${project.version}","module":"GENERIC-RESOURCE-API","version":"${project.version}","comments":"","xml":"<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>","outputs":1,"x":263.38093185424805,"y":122.38096046447754,"z":"d029d2a.974963","wires":[["5a1c2468.67872c"]]},{"id":"5a1c2468.67872c","type":"method","name":"brg-topology-operation-activate","xml":"<method rpc='brg-topology-operation-activate' mode='sync'>\n","comments":"","outputs":1,"x":309.2977104187012,"y":157.61901569366455,"z":"d029d2a.974963","wires":[["dfe1dc14.5964"]]},{"id":"dfe1dc14.5964","type":"block","name":"block : atomic","xml":"<block atomic=\"true\">","atomic":"true","comments":"","outputs":1,"x":217.61904525756836,"y":300.95235776901245,"z":"d029d2a.974963","wires":[["3dde4199.1c9e2e","d411dae1.fde8d8","30cc1a1b.8e88e6","6861327d.73bc7c","add0f6b0.d7fa28","b3f7a9f5.747648","5c57b0ca.b25a6","b6f5439f.b0624","fc0c4385.ee3a5","66ef7002.abb7e","56345297.bc34dc","62744ec2.dbf8"]]},{"id":"d411dae1.fde8d8","type":"returnSuccess","name":"return success","xml":"<return status='success'>\n<parameter name=\"ack-final-indicator\" value=\"Y\" />\n<parameter name=\"error-code\" value=\"200\" />\n<parameter name=\"error-message\" value=\"`$error-message`\" />\n","comments":"","x":484.1429634094238,"y":970.6430778503418,"z":"d029d2a.974963","wires":[]},{"id":"3dde4199.1c9e2e","type":"set","name":"set output to api handler","xml":"<set>\n<parameter name='allotted-resource-id' value='`$tmp.ar.allotted-resource-id`' />\n<parameter name='brg-object-path' value=\"`$tmp.ar.self-link`\"/>\n<parameter name='service-object-path' value=\"`'restconf/config/GENERIC-RESOURCE-API:services/service/'\n + $brg-topology-operation-input.service-information.service-instance-id\n + '/service-data/service-topology/'`\"/>\n \n","comments":"","x":512.8968772888184,"y":934.7656240463257,"z":"d029d2a.974963","wires":[]},{"id":"66ef7002.abb7e","type":"set","name":"set allotted-resource-oper-status","xml":"<set>\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-oper-status.order-status' value='Active' />\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-oper-status.last-action' value='`$brg-topology-operation-input.request-information.request-action`' />\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-oper-status.last-rpc-action' value='`$brg-topology-operation-input.sdnc-request-header.svc-action`' />\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-oper-status.last-svc-request-id' value='`$brg-topology-operation-input.sdnc-request-header.svc-request-id`' />\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-oper-status.create-timestamp' value='`$tmp.current-time`' />\n","comments":"","x":523.8970718383789,"y":681.4799699783325,"z":"d029d2a.974963","wires":[]},{"id":"6861327d.73bc7c","type":"set","name":"set tmp.ar.self-link","xml":"<set>\n<parameter name='tmp.ar.self-link' value=\"`'restconf/config/GENERIC-RESOURCE-API:brg-allotted-resources/brg-allotted-resource/'\n + $tmp.ar.allotted-resource-id\n + '/allotted-resource-data/brg-topology/'` \" />\n\n","comments":"","x":479.880916595459,"y":274.76189517974854,"z":"d029d2a.974963","wires":[]},{"id":"30cc1a1b.8e88e6","type":"set","name":"set tmp.ar.allotted-resource-id,etc","xml":"<set>\n<parameter name='tmp.ar.allotted-resource-id' value='`$brg-topology-operation-input.allotted-resource-information.allotted-resource-id`' />\n<parameter name='tmp.ar.parent-service-instance-id' value='`$brg-topology-operation-input.allotted-resource-information.parent-service-instance-id`' />\n<parameter name='tmp.ar.brg-vnf-id' value='`$brg-topology-operation-input.allotted-resource-data.brg-topology.brg-assignments.brg-vnf-id`' />\n\n\n","comments":"","x":527.1401786804199,"y":241.02116107940674,"z":"d029d2a.974963","wires":[]},{"id":"add0f6b0.d7fa28","type":"execute","name":"execute Properties","xml":"<execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >\n    <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />\n    <parameter name='contextPrefix' value='prop' />\n","comments":"","outputs":1,"x":486.1362724304199,"y":310.66009426116943,"z":"d029d2a.974963","wires":[[]]},{"id":"5c57b0ca.b25a6","type":"execute","name":"execute RestApiCallNode - Get AR by id","xml":"<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n    <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.ar-url`' />\n    <parameter name='restapiUser' value='`$prop.controller.user`' />\n    <parameter name='restapiPassword' value='`$prop.controller.pwd`' />\n    <parameter name='format' value='json' />\n    <parameter name='httpMethod' value='GET' />\n    <parameter name=\"responsePrefix\" value=\"mdsal-ar\" />\n\n","comments":"","outputs":1,"x":548.6616058349609,"y":471.8880615234375,"z":"d029d2a.974963","wires":[["bcc2124f.d53a2","f31fdf96.9d6cc"]]},{"id":"b3f7a9f5.747648","type":"execute","name":"generate allotted-resource url","xml":"<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >\n    <parameter name=\"source\" value=\"`$prop.restapi.brg-allottedresource`\"/>\n    <parameter name=\"outputPath\" value=\"tmp.ar-url\"/>\n    <parameter name=\"target\" value=\"{allotted-resource-id}\"/>\n    <parameter name=\"replacement\" value=\"`$tmp.ar.allotted-resource-id`\"/>\n","comments":"","outputs":1,"x":514.207706451416,"y":370.44579887390137,"z":"d029d2a.974963","wires":[[]]},{"id":"bcc2124f.d53a2","type":"success","name":"success","xml":"<outcome value='success'>\n","comments":"","outputs":1,"x":805.9577445983887,"y":470.69582200050354,"z":"d029d2a.974963","wires":[["f78da3bd.a0afd"]]},{"id":"b6f5439f.b0624","type":"execute","name":"execute RestApiCallNode - PUT AR by id","xml":"<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n    <parameter name='templateFileName' value=\"`$prop.restapi.templateDir + '/' + $prop.restapi.brg.templatefile`\" />\n    <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.ar-url`' />\n    <parameter name='restapiUser' value='`$prop.controller.user`' />\n    <parameter name='restapiPassword' value='`$prop.controller.pwd`' />\n    <parameter name='format' value='json' />\n    <parameter name='httpMethod' value='PUT' />\n    <parameter name=\"responsePrefix\" value=\"mdsal-ar\" />\n\n","comments":"","outputs":1,"x":556.6721649169922,"y":824.8627014160156,"z":"d029d2a.974963","wires":[["f821a3fb.c285e","f757d471.7dc7d8","49853f9a.93d68"]]},{"id":"f821a3fb.c285e","type":"not-found","name":"not-found","xml":"<outcome value='not-found'>\n","comments":"","outputs":1,"x":826.9801826477051,"y":877.8609022125602,"z":"d029d2a.974963","wires":[["630debdb.168f04"]]},{"id":"f757d471.7dc7d8","type":"failure","name":"failure","xml":"<outcome value='failure'>\n","comments":"","outputs":1,"x":817.9802322387695,"y":846.3609279617667,"z":"d029d2a.974963","wires":[["630debdb.168f04"]]},{"id":"49853f9a.93d68","type":"success","name":"success","xml":"<outcome value='success'>\n","comments":"","outputs":1,"x":821.7302703857422,"y":816.7180328369141,"z":"d029d2a.974963","wires":[["fb95f526.14ff08"]]},{"id":"630debdb.168f04","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error updating md-sal for brg-allotted-resource\" />\n","comments":"","x":987.7302703857422,"y":847.1109518036246,"z":"d029d2a.974963","wires":[]},{"id":"f78da3bd.a0afd","type":"block","name":"block: atomic","xml":"<block atomic=\"true\">\n","atomic":"false","comments":"","outputs":1,"x":986.9576988220215,"y":471.19577145576477,"z":"d029d2a.974963","wires":[["a88d57e7.ea7b68","874276d9.71a568"]]},{"id":"a88d57e7.ea7b68","type":"switchNode","name":"switch brg length","xml":"<switch test='`$mdsal-ar.brg-allotted-resource_length`'>\n","comments":"","outputs":1,"x":1232.8149452209473,"y":505.48153471946716,"z":"d029d2a.974963","wires":[["b5653c05.23ac6"]]},{"id":"b5653c05.23ac6","type":"other","name":"outcome 1","xml":"<outcome value='1'>\n","comments":"","outputs":1,"x":1423.8149490356445,"y":505.4815323352814,"z":"d029d2a.974963","wires":[["750425c0.df6c0c"]]},{"id":"803be05.23d262","type":"set","name":"set brg-ar from get","xml":"<set>\n<parameter name='brg-ar.' value='$mdsal-ar.brg-allotted-resource[0].' />\n","comments":"","x":1823.6720848083496,"y":506.0529565811157,"z":"d029d2a.974963","wires":[]},{"id":"750425c0.df6c0c","type":"block","name":"block: atomic","xml":"<block atomic='true'>\n","atomic":"false","comments":"","outputs":1,"x":1594.671932220459,"y":506.0530014038086,"z":"d029d2a.974963","wires":[["803be05.23d262","86d2d032.ec9c7","1fd599c8.bea286"]]},{"id":"86d2d032.ec9c7","type":"set","name":"set oper-status","xml":"<set>\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-oper-status.last-action' value='`$brg-ar.allotted-resource-data.allotted-resource-operation-information.request-information.request-action`' />\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-oper-status.last-rpc-action' value='`$brg-ar.allotted-resource-status.rpc-action`' />\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-oper-status.last-svc-request-id' value='`$brg-ar.allotted-resource-data.allotted-resource-operation-information.sdnc-request-header.svc-request-id`' />\n\n","comments":"","x":1821.6723289489746,"y":573.481520652771,"z":"d029d2a.974963","wires":[]},{"id":"ae3be0c3.a3ad4","type":"comment","name":"GET brg-allotted-resource from mdsal","info":"","comments":"","x":573.9576683044434,"y":435.19576239585876,"z":"d029d2a.974963","wires":[]},{"id":"1fd599c8.bea286","type":"switchNode","name":"switch order-status","xml":"<switch test='`$brg-ar.allotted-resource-data.allotted-resource-oper-status.order-status`'>\n","comments":"","outputs":1,"x":1831.6721076965332,"y":539.0529546737671,"z":"d029d2a.974963","wires":[["ea7abf8a.d6c0e","88378d84.e1337"]]},{"id":"ea7abf8a.d6c0e","type":"outcome","name":"outcome Created","xml":"<outcome value='Created'>\n","comments":"","outputs":1,"x":2043.2720642089844,"y":500.0529546737671,"z":"d029d2a.974963","wires":[["c95729c.38426d8"]]},{"id":"88378d84.e1337","type":"outcome","name":"outcome Other","xml":"<outcome value='Other'>\n","comments":"","outputs":1,"x":2068.9864387512207,"y":535.4815454483032,"z":"d029d2a.974963","wires":[["c95729c.38426d8"]]},{"id":"81dbbc42.6cf3b","type":"comment","name":"Set allotted-resource-identifiers","info":"","comments":"","x":529.4814910888672,"y":525.7672157287598,"z":"d029d2a.974963","wires":[]},{"id":"874276d9.71a568","type":"set","name":"save backup copy of mdsal-ar for rollback","xml":"<set>\n<parameter name='bk-brg-ar' value='$mdsal-ar.' />\n","comments":"","x":1312.5292778015137,"y":471.1958634853363,"z":"d029d2a.974963","wires":[]},{"id":"ef3a6e4c.51d76","type":"comment","name":"Create urls for restapi","info":"","comments":"","x":485.10051345825195,"y":340.0529260635376,"z":"d029d2a.974963","wires":[]},{"id":"fb95f526.14ff08","type":"block","name":"block","xml":"<block>\n","atomic":"false","comments":"","outputs":1,"x":963.3862380981445,"y":812.9102020263672,"z":"d029d2a.974963","wires":[[]]},{"id":"369a0f6a.c9ad8","type":"comment","name":"TO DO: vnf/put parent","info":"","comments":"","x":487.38623046875,"y":713.5767650604248,"z":"d029d2a.974963","wires":[]},{"id":"fc0c4385.ee3a5","type":"execute","name":"execute getTime","xml":"<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='setTime' >\n    <parameter name=\"outputPath\" value=\"tmp.current-time\" />\n\n","comments":"","outputs":1,"x":471.38623428344727,"y":642.9101247787476,"z":"d029d2a.974963","wires":[[]]},{"id":"f31fdf96.9d6cc","type":"other","name":"other","xml":"<outcome value='Other'>\n","comments":"","outputs":1,"x":805.719539642334,"y":506.90999484062195,"z":"d029d2a.974963","wires":[["19da75c4.bf509a"]]},{"id":"19da75c4.bf509a","type":"block","name":"block: atomic","xml":"<block atomic=\"true\">\n","atomic":"false","comments":"","outputs":1,"x":985.7194900512695,"y":507.57654547691345,"z":"d029d2a.974963","wires":[[]]},{"id":"56345297.bc34dc","type":"set","name":"set id","xml":"<set>\n<parameter name='brg-ar.allotted-resource-id' value=\"`$tmp.ar.allotted-resource-id` \" />\n<parameter name='brg-ar.allotted-resource-status.action' value=\"`$brg-topology-operation-input.request-information.request-action` \" />\n<parameter name='brg-ar.allotted-resource-status.rpc-name' value=\"brg-topology-operation\" />\n<parameter name='brg-ar.allotted-resource-status.rpc-action' value=\"`$brg-topology-operation-input.sdnc-request-header.svc-action` \" />\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-operation-information.request-information.' value=\"`$brg-topology-operation-input.request-information.` \" />\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-operation-information.sdnc-request-header.' value=\"`$brg-topology-operation-input.sdnc-request-header.` \" />\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-operation-information.service-information.' value=\"`$brg-topology-operation-input.service-information.` \" />\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-operation-information.allotted-resource-information.' value=\"`$brg-topology-operation-input.allotted-resource-information.` \" />\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-operation-information.brg-request-input.' value=\"`$brg-topology-operation-input.brg-request-input.` \" />","comments":"","x":454.3862762451172,"y":562.5767364501953,"z":"d029d2a.974963","wires":[]},{"id":"c95729c.38426d8","type":"block","name":"block","xml":"<block>\n","atomic":"false","comments":"","outputs":1,"x":2257.7425804138184,"y":501.4285888671875,"z":"d029d2a.974963","wires":[[]]},{"id":"62744ec2.dbf8","type":"update","name":"update AAI allotted-resource","xml":"<update plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"allotted-resource\" \n\t\tkey=\"customer.global-customer-id = $service-data.service-information.global-customer-id AND\n\t\t\tservice-subscription.service-type = $service-data.service-information.subscription-service-type AND\n\t\t\tservice-instance.service-instance-id = $service-data.service-information.service-instance-id AND\n\t\t\tallotted-resource.id = $tmp.ar.allotted-resource-id\"\n        pfx='pfx' local-only='false' force='false'>\n\t<parameter name=\"operational-status\" value=\"in-service-path\" />\n","comments":"","outputs":1,"x":515.0000152587891,"y":746.6666326522827,"z":"d029d2a.974963","wires":[["5211695c.bb63d8","6077137b.90cddc"]]},{"id":"5211695c.bb63d8","type":"failure","name":"failure","xml":"<outcome value='failure'>\n","comments":"","outputs":1,"x":770.7619094848633,"y":729.6191296577454,"z":"d029d2a.974963","wires":[["fa37c9f8.eb9288"]]},{"id":"fa37c9f8.eb9288","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"AAI failed\" />\n","comments":"","x":937.2857894897461,"y":741.2382006645203,"z":"d029d2a.974963","wires":[]},{"id":"6077137b.90cddc","type":"failure","name":"not-found","xml":"<outcome value='not-found'>\n","comments":"","outputs":1,"x":777.8571968078613,"y":762.381097316742,"z":"d029d2a.974963","wires":[["fa37c9f8.eb9288"]]}]
+[
+  {
+    "id":"d67dc318.ce892",
+    "type":"dgstart",
+    "name":"DGSTART",
+    "outputs":1,
+    "x":140,
+    "y":115,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "539ddd05.d9acd4"
+      ]
+    ]
+  },
+  {
+    "id":"539ddd05.d9acd4",
+    "type":"service-logic",
+    "name":"GENERIC-RESOURCE-API ${project.version}",
+    "module":"GENERIC-RESOURCE-API",
+    "version":"${project.version}",
+    "comments":"",
+    "xml":"<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>",
+    "outputs":1,
+    "x":236.23807907104492,
+    "y":175.95239067077637,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "d3e85090.c0279"
+      ]
+    ]
+  },
+  {
+    "id":"d3e85090.c0279",
+    "type":"method",
+    "name":"brg-topology-operation-activate",
+    "xml":"<method rpc='brg-topology-operation-activate' mode='sync'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":282.15485763549805,
+    "y":211.19044589996338,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "a3b5f23e.0b3f1"
+      ]
+    ]
+  },
+  {
+    "id":"a3b5f23e.0b3f1",
+    "type":"block",
+    "name":"block : atomic",
+    "xml":"<block atomic=\"true\">",
+    "atomic":"true",
+    "comments":"",
+    "outputs":1,
+    "x":190.47619247436523,
+    "y":354.5237879753113,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "611e8741.074898",
+        "61b73363.ffb3cc",
+        "a6766796.306768",
+        "5de77c32.eecb94",
+        "3a0be6a.ca51a1a",
+        "a9547492.9c6f28",
+        "e64c58e2.5bad38",
+        "f373e2ec.09689",
+        "eaaae4f9.51d728",
+        "abb42d37.333e9",
+        "b2c6bab8.1fd358",
+        "718e3f93.cd459",
+        "f965b29a.1efa5",
+        "16a55bb0.8c20f4",
+        "aa97b18b.1226d",
+        "ca99974a.a9c178",
+        "d3a78d9e.83f7f",
+        "cdf3b3de.27f5e"
+      ]
+    ]
+  },
+  {
+    "id":"61b73363.ffb3cc",
+    "type":"returnSuccess",
+    "name":"return success",
+    "xml":"<return status='success'>\n<parameter name=\"ack-final-indicator\" value=\"Y\" />\n<parameter name=\"error-code\" value=\"200\" />\n<parameter name=\"error-message\" value=\"`$error-message`\" />\n",
+    "comments":"",
+    "x":450.33348846435547,
+    "y":1410.8813753128052,
+    "z":"87a856d9.9ec508",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"611e8741.074898",
+    "type":"set",
+    "name":"set output to api handler",
+    "xml":"<set>\n<parameter name='allotted-resource-id' value='`$tmp.ar.allotted-resource-id`' />\n<parameter name='brg-object-path' value=\"`$tmp.ar.self-link`\"/>\n<parameter name='service-object-path' value=\"`'restconf/config/GENERIC-RESOURCE-API:services/service/'\n + $brg-topology-operation-input.service-information.service-instance-id\n + '/service-data/service-topology/'`\"/>\n \n",
+    "comments":"",
+    "x":479.08740234375,
+    "y":1375.003921508789,
+    "z":"87a856d9.9ec508",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"abb42d37.333e9",
+    "type":"set",
+    "name":"set allotted-resource-oper-status",
+    "xml":"<set>\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-oper-status.order-status' value='Active' />\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-oper-status.last-action' value='`$brg-topology-operation-input.request-information.request-action`' />\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-oper-status.last-rpc-action' value='`$brg-topology-operation-input.sdnc-request-header.svc-action`' />\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-oper-status.last-svc-request-id' value='`$brg-topology-operation-input.sdnc-request-header.svc-request-id`' />\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-oper-status.create-timestamp' value='`$tmp.current-time`' />\n",
+    "comments":"",
+    "x":496.7542190551758,
+    "y":735.0514001846313,
+    "z":"87a856d9.9ec508",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"5de77c32.eecb94",
+    "type":"set",
+    "name":"set tmp.ar.self-link",
+    "xml":"<set>\n<parameter name='tmp.ar.self-link' value=\"`'restconf/config/GENERIC-RESOURCE-API:brg-allotted-resources/brg-allotted-resource/'\n + $tmp.ar.allotted-resource-id\n + '/allotted-resource-data/brg-topology/'` \" />\n\n",
+    "comments":"",
+    "x":452.73806381225586,
+    "y":328.33332538604736,
+    "z":"87a856d9.9ec508",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"a6766796.306768",
+    "type":"set",
+    "name":"set tmp.ar.allotted-resource-id,etc",
+    "xml":"<set>\n<parameter name='tmp.ar.allotted-resource-id' value='`$brg-topology-operation-input.allotted-resource-information.allotted-resource-id`' />\n<parameter name='tmp.ar.parent-service-instance-id' value='`$brg-topology-operation-input.allotted-resource-information.parent-service-instance-id`' />\n<parameter name='tmp.ar.brg-vnf-id' value='`$brg-topology-operation-input.allotted-resource-data.brg-topology.brg-assignments.brg-vnf-id`' />\n\n\n",
+    "comments":"",
+    "x":499.9973258972168,
+    "y":294.59259128570557,
+    "z":"87a856d9.9ec508",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"3a0be6a.ca51a1a",
+    "type":"execute",
+    "name":"execute Properties",
+    "xml":"<execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >\n    <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />\n    <parameter name='contextPrefix' value='prop' />\n",
+    "comments":"",
+    "outputs":1,
+    "x":458.9934196472168,
+    "y":364.23152446746826,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+
+      ]
+    ]
+  },
+  {
+    "id":"e64c58e2.5bad38",
+    "type":"execute",
+    "name":"execute RestApiCallNode - Get AR by id",
+    "xml":"<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n    <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.ar-url`' />\n    <parameter name='restapiUser' value='`$prop.controller.user`' />\n    <parameter name='restapiPassword' value='`$prop.controller.pwd`' />\n    <parameter name='format' value='json' />\n    <parameter name='httpMethod' value='GET' />\n    <parameter name=\"responsePrefix\" value=\"mdsal-ar\" />\n\n",
+    "comments":"",
+    "outputs":1,
+    "x":521.5187530517578,
+    "y":525.4594917297363,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "2fee3ef4.4e3752",
+        "82115602.4aadf8"
+      ]
+    ]
+  },
+  {
+    "id":"a9547492.9c6f28",
+    "type":"execute",
+    "name":"generate allotted-resource url",
+    "xml":"<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >\n    <parameter name=\"source\" value=\"`$prop.restapi.brg-allottedresource`\"/>\n    <parameter name=\"outputPath\" value=\"tmp.ar-url\"/>\n    <parameter name=\"target\" value=\"{allotted-resource-id}\"/>\n    <parameter name=\"replacement\" value=\"`$tmp.ar.allotted-resource-id`\"/>\n",
+    "comments":"",
+    "outputs":1,
+    "x":487.0648536682129,
+    "y":424.0172290802002,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+
+      ]
+    ]
+  },
+  {
+    "id":"2fee3ef4.4e3752",
+    "type":"success",
+    "name":"success",
+    "xml":"<outcome value='success'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":778.8148918151855,
+    "y":524.2672522068024,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "55b821dc.c9096"
+      ]
+    ]
+  },
+  {
+    "id":"f373e2ec.09689",
+    "type":"execute",
+    "name":"execute RestApiCallNode - PUT AR by id",
+    "xml":"<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n    <parameter name='templateFileName' value=\"`$prop.restapi.templateDir + '/' + $prop.restapi.brg.templatefile`\" />\n    <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.ar-url`' />\n    <parameter name='restapiUser' value='`$prop.controller.user`' />\n    <parameter name='restapiPassword' value='`$prop.controller.pwd`' />\n    <parameter name='format' value='json' />\n    <parameter name='httpMethod' value='PUT' />\n    <parameter name=\"responsePrefix\" value=\"mdsal-ar\" />\n\n",
+    "comments":"",
+    "outputs":1,
+    "x":529.5293121337891,
+    "y":878.4341316223145,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "ed22c964.b49a28",
+        "76a7310d.9d0cc",
+        "503c908d.2e343"
+      ]
+    ]
+  },
+  {
+    "id":"ed22c964.b49a28",
+    "type":"not-found",
+    "name":"not-found",
+    "xml":"<outcome value='not-found'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":799.837329864502,
+    "y":931.432332418859,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "b1122f4f.ea076"
+      ]
+    ]
+  },
+  {
+    "id":"76a7310d.9d0cc",
+    "type":"failure",
+    "name":"failure",
+    "xml":"<outcome value='failure'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":790.8373794555664,
+    "y":899.9323581680655,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "b1122f4f.ea076"
+      ]
+    ]
+  },
+  {
+    "id":"503c908d.2e343",
+    "type":"success",
+    "name":"success",
+    "xml":"<outcome value='success'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":794.5874176025391,
+    "y":870.2894630432129,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "fd568606.5069e8"
+      ]
+    ]
+  },
+  {
+    "id":"b1122f4f.ea076",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error updating md-sal for brg-allotted-resource\" />\n",
+    "comments":"",
+    "x":960.5874176025391,
+    "y":900.6823820099235,
+    "z":"87a856d9.9ec508",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"55b821dc.c9096",
+    "type":"block",
+    "name":"block: atomic",
+    "xml":"<block atomic=\"true\">\n",
+    "atomic":"false",
+    "comments":"",
+    "outputs":1,
+    "x":959.8148460388184,
+    "y":524.7672016620636,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "2d8e02e3.cf0fae",
+        "c6e86370.775dc"
+      ]
+    ]
+  },
+  {
+    "id":"2d8e02e3.cf0fae",
+    "type":"switchNode",
+    "name":"switch brg length",
+    "xml":"<switch test='`$mdsal-ar.brg-allotted-resource_length`'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1205.6720924377441,
+    "y":559.052964925766,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "fd01ce34.5cc7e"
+      ]
+    ]
+  },
+  {
+    "id":"fd01ce34.5cc7e",
+    "type":"other",
+    "name":"outcome 1",
+    "xml":"<outcome value='1'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1396.6720962524414,
+    "y":559.0529625415802,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "cd19d423.804d98"
+      ]
+    ]
+  },
+  {
+    "id":"cdc77865.0b0c78",
+    "type":"set",
+    "name":"set brg-ar from get",
+    "xml":"<set>\n<parameter name='brg-ar.' value='$mdsal-ar.brg-allotted-resource[0].' />\n",
+    "comments":"",
+    "x":1796.5292320251465,
+    "y":559.6243867874146,
+    "z":"87a856d9.9ec508",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"cd19d423.804d98",
+    "type":"block",
+    "name":"block: atomic",
+    "xml":"<block atomic='true'>\n",
+    "atomic":"false",
+    "comments":"",
+    "outputs":1,
+    "x":1567.5290794372559,
+    "y":559.6244316101074,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "cdc77865.0b0c78",
+        "a7b33ed0.43bdb",
+        "67f4311d.5bfe6"
+      ]
+    ]
+  },
+  {
+    "id":"a7b33ed0.43bdb",
+    "type":"set",
+    "name":"set oper-status",
+    "xml":"<set>\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-oper-status.last-action' value='`$brg-ar.allotted-resource-data.allotted-resource-operation-information.request-information.request-action`' />\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-oper-status.last-rpc-action' value='`$brg-ar.allotted-resource-status.rpc-action`' />\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-oper-status.last-svc-request-id' value='`$brg-ar.allotted-resource-data.allotted-resource-operation-information.sdnc-request-header.svc-request-id`' />\n\n",
+    "comments":"",
+    "x":1794.5294761657715,
+    "y":627.0529508590698,
+    "z":"87a856d9.9ec508",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"3e38b8c9.4b9918",
+    "type":"comment",
+    "name":"GET brg-allotted-resource from mdsal",
+    "info":"",
+    "comments":"",
+    "x":546.8148155212402,
+    "y":488.7671926021576,
+    "z":"87a856d9.9ec508",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"67f4311d.5bfe6",
+    "type":"switchNode",
+    "name":"switch order-status",
+    "xml":"<switch test='`$brg-ar.allotted-resource-data.allotted-resource-oper-status.order-status`'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1804.52925491333,
+    "y":592.6243848800659,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "95019c7b.0ff8c",
+        "35eeaddc.1e3b72"
+      ]
+    ]
+  },
+  {
+    "id":"95019c7b.0ff8c",
+    "type":"outcome",
+    "name":"outcome Created",
+    "xml":"<outcome value='Created'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":2016.1292114257812,
+    "y":553.6243848800659,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "d7fd4783.cc90d8"
+      ]
+    ]
+  },
+  {
+    "id":"35eeaddc.1e3b72",
+    "type":"outcome",
+    "name":"outcome Other",
+    "xml":"<outcome value='Other'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":2041.8435859680176,
+    "y":589.052975654602,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "d7fd4783.cc90d8"
+      ]
+    ]
+  },
+  {
+    "id":"44d6b29d.d0815c",
+    "type":"comment",
+    "name":"Set allotted-resource-identifiers",
+    "info":"",
+    "comments":"",
+    "x":502.33863830566406,
+    "y":579.3386459350586,
+    "z":"87a856d9.9ec508",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"c6e86370.775dc",
+    "type":"set",
+    "name":"save backup copy of mdsal-ar for rollback",
+    "xml":"<set>\n<parameter name='bk-brg-ar' value='$mdsal-ar.' />\n",
+    "comments":"",
+    "x":1285.3864250183105,
+    "y":524.7672936916351,
+    "z":"87a856d9.9ec508",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"d0fcda95.b5ded8",
+    "type":"comment",
+    "name":"Create urls for restapi",
+    "info":"",
+    "comments":"",
+    "x":457.9576606750488,
+    "y":393.6243562698364,
+    "z":"87a856d9.9ec508",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"fd568606.5069e8",
+    "type":"block",
+    "name":"block",
+    "xml":"<block>\n",
+    "atomic":"false",
+    "comments":"",
+    "outputs":1,
+    "x":936.2433853149414,
+    "y":866.481632232666,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+
+      ]
+    ]
+  },
+  {
+    "id":"65762b87.da2b54",
+    "type":"comment",
+    "name":"TO DO: vnf/put parent",
+    "info":"",
+    "comments":"",
+    "x":460.2433776855469,
+    "y":767.1481952667236,
+    "z":"87a856d9.9ec508",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"eaaae4f9.51d728",
+    "type":"execute",
+    "name":"execute getTime",
+    "xml":"<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='setTime' >\n    <parameter name=\"outputPath\" value=\"tmp.current-time\" />\n\n",
+    "comments":"",
+    "outputs":1,
+    "x":444.24338150024414,
+    "y":696.4815549850464,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+
+      ]
+    ]
+  },
+  {
+    "id":"82115602.4aadf8",
+    "type":"other",
+    "name":"other",
+    "xml":"<outcome value='Other'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":778.5766868591309,
+    "y":560.4814250469208,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "9a00f006.cbb78"
+      ]
+    ]
+  },
+  {
+    "id":"9a00f006.cbb78",
+    "type":"block",
+    "name":"block: atomic",
+    "xml":"<block atomic=\"true\">\n",
+    "atomic":"false",
+    "comments":"",
+    "outputs":1,
+    "x":958.5766372680664,
+    "y":561.1479756832123,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+
+      ]
+    ]
+  },
+  {
+    "id":"b2c6bab8.1fd358",
+    "type":"set",
+    "name":"set id",
+    "xml":"<set>\n<parameter name='brg-ar.allotted-resource-id' value=\"`$tmp.ar.allotted-resource-id` \" />\n<parameter name='brg-ar.allotted-resource-status.action' value=\"`$brg-topology-operation-input.request-information.request-action` \" />\n<parameter name='brg-ar.allotted-resource-status.rpc-name' value=\"brg-topology-operation\" />\n<parameter name='brg-ar.allotted-resource-status.rpc-action' value=\"`$brg-topology-operation-input.sdnc-request-header.svc-action` \" />\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-operation-information.request-information.' value=\"`$brg-topology-operation-input.request-information.` \" />\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-operation-information.sdnc-request-header.' value=\"`$brg-topology-operation-input.sdnc-request-header.` \" />\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-operation-information.service-information.' value=\"`$brg-topology-operation-input.service-information.` \" />\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-operation-information.allotted-resource-information.' value=\"`$brg-topology-operation-input.allotted-resource-information.` \" />\n<parameter name='brg-ar.allotted-resource-data.allotted-resource-operation-information.brg-request-input.' value=\"`$brg-topology-operation-input.brg-request-input.` \" />",
+    "comments":"",
+    "x":427.24342346191406,
+    "y":616.1481666564941,
+    "z":"87a856d9.9ec508",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"d7fd4783.cc90d8",
+    "type":"block",
+    "name":"block",
+    "xml":"<block>\n",
+    "atomic":"false",
+    "comments":"",
+    "outputs":1,
+    "x":2230.5997276306152,
+    "y":555.0000190734863,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+
+      ]
+    ]
+  },
+  {
+    "id":"718e3f93.cd459",
+    "type":"update",
+    "name":"update AAI allotted-resource",
+    "xml":"<update plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"allotted-resource\" \n\t\tkey=\"customer.global-customer-id = $service-data.service-information.global-customer-id AND\n\t\t\tservice-subscription.service-type = $service-data.service-information.subscription-service-type AND\n\t\t\tservice-instance.service-instance-id = $service-data.service-information.service-instance-id AND\n\t\t\tallotted-resource.id = $tmp.ar.allotted-resource-id\"\n        pfx='pfx' local-only='false' force='false'>\n\t<parameter name=\"operational-status\" value=\"in-service-path\" />\n",
+    "comments":"",
+    "outputs":1,
+    "x":487.85716247558594,
+    "y":800.2380628585815,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "6bf804a4.c0a48c",
+        "138a867a.df171a"
+      ]
+    ]
+  },
+  {
+    "id":"6bf804a4.c0a48c",
+    "type":"failure",
+    "name":"failure",
+    "xml":"<outcome value='failure'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":743.6190567016602,
+    "y":783.1905598640442,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "418532c6.6b556c"
+      ]
+    ]
+  },
+  {
+    "id":"418532c6.6b556c",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"AAI failed\" />\n",
+    "comments":"",
+    "x":910.142936706543,
+    "y":794.8096308708191,
+    "z":"87a856d9.9ec508",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"138a867a.df171a",
+    "type":"failure",
+    "name":"not-found",
+    "xml":"<outcome value='not-found'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":750.7143440246582,
+    "y":815.9525275230408,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "418532c6.6b556c"
+      ]
+    ]
+  },
+  {
+    "id":"f965b29a.1efa5",
+    "type":"execute",
+    "name":"execute RestApiCallNode - setup BRG vxlan tunnel port",
+    "xml":"<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n    <parameter name='templateFileName' value=\"`$prop.restapi.templateDir + '/' + $prop.restapi.brg.vxlan-tunnel.templatefile`\" />\n    <parameter name='restapiUrl' value='`$tmp.honeycomb.url + $tmp.vpp-honeycomb-url`' />\n    <parameter name='restapiUser' value='`$prop.honeycomb.user`' />\n    <parameter name='restapiPassword' value='`$prop.honeycomb.pwd`' />\n    <parameter name='format' value='json' />\n    <parameter name='httpMethod' value='PUT' />\n    <parameter name=\"responsePrefix\" value=\"honeycomb-vnf\" />\n\n",
+    "comments":"",
+    "outputs":1,
+    "x":578.3332977294922,
+    "y":1116.6665744781494,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "df90cb56.a03868",
+        "7baef153.70ea4",
+        "5f9ed08a.45811"
+      ]
+    ]
+  },
+  {
+    "id":"df90cb56.a03868",
+    "type":"not-found",
+    "name":"not-found",
+    "xml":"<outcome value='not-found'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":908.64137840271,
+    "y":1212.9981907829642,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "4be7e5a3.743f0c"
+      ]
+    ]
+  },
+  {
+    "id":"7baef153.70ea4",
+    "type":"failure",
+    "name":"failure",
+    "xml":"<outcome value='failure'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":899.6414279937744,
+    "y":1181.4982165321708,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "4be7e5a3.743f0c"
+      ]
+    ]
+  },
+  {
+    "id":"5f9ed08a.45811",
+    "type":"success",
+    "name":"success",
+    "xml":"<outcome value='success'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":903.3914661407471,
+    "y":1151.8553214073181,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "be0bec1a.41ef9"
+      ]
+    ]
+  },
+  {
+    "id":"4be7e5a3.743f0c",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error updating md-sal for brg-allotted-resource\" />\n",
+    "comments":"",
+    "x":1069.391466140747,
+    "y":1182.2482403740287,
+    "z":"87a856d9.9ec508",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"be0bec1a.41ef9",
+    "type":"block",
+    "name":"block",
+    "xml":"<block>\n",
+    "atomic":"false",
+    "comments":"",
+    "outputs":1,
+    "x":1045.0474338531494,
+    "y":1148.0474905967712,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+
+      ]
+    ]
+  },
+  {
+    "id":"16a55bb0.8c20f4",
+    "type":"execute",
+    "name":"execute RestApiCallNode - setup BRG vxlan bridge domain",
+    "xml":"<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n    <parameter name='templateFileName' value=\"`$prop.restapi.templateDir + '/' + $prop.restapi.brg.vpp-bridge-domain.templatefile`\" />\n    <parameter name='restapiUrl' value=\"`$tmp.honeycomb.url + $tmp.vpp-honeycomb-url + '/v3po:l2' `\" />\n    <parameter name='restapiUser' value='`$prop.honeycomb.user`' />\n    <parameter name='restapiPassword' value='`$prop.honeycomb.pwd`' />\n    <parameter name='format' value='json' />\n    <parameter name='httpMethod' value='PUT' />\n    <parameter name=\"responsePrefix\" value=\"honeycomb-vnf\" />\n\n",
+    "comments":"",
+    "outputs":1,
+    "x":598.3334350585938,
+    "y":1276.6667137145996,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "4f278bf0.7edd54",
+        "6114a132.9f3ff",
+        "14cdadf1.ca4582"
+      ]
+    ]
+  },
+  {
+    "id":"4f278bf0.7edd54",
+    "type":"not-found",
+    "name":"not-found",
+    "xml":"<outcome value='not-found'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":898.6414394378662,
+    "y":1412.9982127174735,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "a55fd1dd.4e4de"
+      ]
+    ]
+  },
+  {
+    "id":"6114a132.9f3ff",
+    "type":"failure",
+    "name":"failure",
+    "xml":"<outcome value='failure'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":889.6414890289307,
+    "y":1381.49823846668,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "a55fd1dd.4e4de"
+      ]
+    ]
+  },
+  {
+    "id":"14cdadf1.ca4582",
+    "type":"success",
+    "name":"success",
+    "xml":"<outcome value='success'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":893.3915271759033,
+    "y":1351.8553433418274,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+        "ad02893c.a5fb98"
+      ]
+    ]
+  },
+  {
+    "id":"a55fd1dd.4e4de",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error updating md-sal for brg-allotted-resource\" />\n",
+    "comments":"",
+    "x":1059.3915271759033,
+    "y":1382.248262308538,
+    "z":"87a856d9.9ec508",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"ad02893c.a5fb98",
+    "type":"block",
+    "name":"block",
+    "xml":"<block>\n",
+    "atomic":"false",
+    "comments":"",
+    "outputs":1,
+    "x":1035.0474948883057,
+    "y":1348.0475125312805,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+
+      ]
+    ]
+  },
+  {
+    "id":"d3a78d9e.83f7f",
+    "type":"set",
+    "name":"set BRG VXLAN Tunnel Port Props",
+    "xml":"<set>\n<parameter name='tmp.tunnel-name' value=\"`'vxlanTun' + $brg-ar.allotted-resource-id` \" />\n<parameter name='tmp.tunnel-dest-ip' value=\"`$brg-ar.allotted-resource-data.allotted-resource-operation-information.brg-request-input.vgmux-bearer-ip` \" />\n<parameter name='tmp.tunnel-src-ip' value=\"`$brg-ar.allotted-resource-data.allotted-resource-operation-information.brg-request-input.brg-wan-ip-address` \" />\n<parameter name='tmp.tunnel-vni' value=\"`$brg-ar.allotted-resource-data.allotted-resource-operation-information.brg-request-input.vni` \" />",
+    "comments":"",
+    "x":509.44446563720703,
+    "y":986.6668643951416,
+    "z":"87a856d9.9ec508",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"ca99974a.a9c178",
+    "type":"execute",
+    "name":"generate brg-vpp-honeycomb url",
+    "xml":"<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >\n    <parameter name=\"source\" value=\"`$prop.restapi.brg-vpp-honeycomb`\"/>\n    <parameter name=\"outputPath\" value=\"tmp.vpp-honeycomb-url\"/>\n    <parameter name=\"target\" value=\"{tunnel-name}\"/>\n    <parameter name=\"replacement\" value=\"`$tmp.tunnel-name`\"/>\n",
+    "comments":"",
+    "outputs":1,
+    "x":502.77777099609375,
+    "y":1043.3333501815796,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+
+      ]
+    ]
+  },
+  {
+    "id":"aa97b18b.1226d",
+    "type":"execute",
+    "name":"generate honeycomb-url",
+    "xml":"<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >\n    <parameter name=\"source\" value=\"`$prop.honeycomb.url`\"/>\n    <parameter name=\"outputPath\" value=\"tmp.honeycomb.url\"/>\n    <parameter name=\"target\" value=\"{honeycomb-instance-ip}\"/>\n    <parameter name=\"replacement\" value=\"`$brg-ar.allotted-resource-data.brg-topology.brg-assignments.vbrg-wan-ip`\"/>\n",
+    "comments":"",
+    "outputs":1,
+    "x":476.11109924316406,
+    "y":933.3332643508911,
+    "z":"87a856d9.9ec508",
+    "wires":[
+      [
+
+      ]
+    ]
+  },
+  {
+    "id":"cdf3b3de.27f5e",
+    "type":"set",
+    "name":"set BRG Bridge Domain Props",
+    "xml":"<set>\n<parameter name='tmp.bridge-domain' value=\"bridge-domain-10\" />\n<parameter name='tmp.split-horizon-group' value=\"2\" />",
+    "comments":"",
+    "x":502.7777557373047,
+    "y":1196.666582584381,
+    "z":"87a856d9.9ec508",
+    "wires":[
+
+    ]
+  }
+]
