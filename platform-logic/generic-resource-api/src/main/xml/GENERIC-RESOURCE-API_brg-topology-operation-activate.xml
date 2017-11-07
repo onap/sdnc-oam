@@ -203,6 +203,79 @@
                     </return>
                 </outcome>
             </execute>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                <parameter name="source" value="`$prop.restapi.vnf-api.service-information`"/>
+                <parameter name="outputPath" value="tmp.vnf-api-url"/>
+                <parameter name="target" value="{vnf-id}"/>
+                <parameter name="replacement" value="`$tmp.ar.brg-vnf-id`"/>
+            </execute>
+            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.vnf-api-url`' />
+                <parameter name='restapiUser' value='`$prop.controller.user`' />
+                <parameter name='restapiPassword' value='`$prop.controller.pwd`' />
+                <parameter name='format' value='json' />
+                <parameter name='httpMethod' value='GET' />
+                <parameter name="responsePrefix" value="service-data" />
+                <outcome value='success'>
+                    <block atomic="true">
+                        <set>
+                            <parameter name='bk-service-data' value='$service-data.' />
+                        </set>
+                        <switch test='`$service-data.service-data_length`'>
+                            <outcome value='1'>
+                                <block atomic='true'>
+                                    <set>
+                                        <parameter name='tmp.service-data.' value='$service-data.service-data[0].' />
+                                    </set>
+                                    <switch test='`$tmp.service-data.order-status`'>
+                                        <outcome value='Created'>
+                                            <block></block>
+                                        </outcome>
+                                        <outcome value='Other'>
+                                            <block></block>
+                                        </outcome>
+                                    </switch>
+                                </block>
+                            </outcome>
+                        </switch>
+                    </block>
+                </outcome>
+                <outcome value='Other'>
+                    <block atomic="true"></block>
+                </outcome>
+            </execute>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                <parameter name="source" value="`$prop.restapi.services`"/>
+                <parameter name="outputPath" value="tmp.services-url"/>
+                <parameter name="target" value="{service-instance-id}"/>
+                <parameter name="replacement" value="`$tmp.service-data.service-information.service-instance-id`"/>
+            </execute>
+            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/' + $prop.restapi.services.templatefile`" />
+                <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.services-url`' />
+                <parameter name='restapiUser' value='`$prop.controller.user`' />
+                <parameter name='restapiPassword' value='`$prop.controller.pwd`' />
+                <parameter name='format' value='json' />
+                <parameter name='httpMethod' value='PUT' />
+                <parameter name="responsePrefix" value="mdsal-ar" />
+                <outcome value='success'>
+                    <block></block>
+                </outcome>
+                <outcome value='failure'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="Error updating md-sal for brg-allotted-resource" />
+                    </return>
+                </outcome>
+                <outcome value='not-found'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="Error updating md-sal for brg-allotted-resource" />
+                    </return>
+                </outcome>
+            </execute>
             <set>
                 <parameter name='allotted-resource-id' value='`$tmp.ar.allotted-resource-id`' />
                 <parameter name='brg-object-path' value="`$tmp.ar.self-link`"/>
