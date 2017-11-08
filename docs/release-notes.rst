@@ -43,4 +43,3 @@ One or two sentences explaining the purpose of this Release.
 
 **Other**
 
-===========
