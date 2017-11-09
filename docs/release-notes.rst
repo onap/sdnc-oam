@@ -3,35 +3,31 @@
 Release Notes
 =============
 
-.. note::
-   * This Release Notes must be updated each time the team decides to Release new artifacts.
-   * The scope of this Release Notes is for this particular component. In other words, each ONAP component has its Release Notes.
-   * This Release Notes is cumulative, the most recently Released artifact is made visible in the top of this Release Notes.
-   * Except the date and the version number, all the other sections are optional but there must be at least one section describing the purpose of this new release.
-   * This note must be removed after content has been added.
-
-
-Version: x.y.z
+Version: 1.2.0
 --------------
 
 
-:Release Date: yyyy-mm-dd
+:Release Date: 2018-11-16
 
 
 
 **New Features**
 
-One or two sentences explaining the purpose of this Release.
+The ONAP Amsterdam release introduces the following changes to SDNC from
+the original openECOMP seed code:
+   - Refactored / moved common platform code to new CCSDK project
+   - Refactored code to rename openecomp to onap
+   - Introduced new GENERIC-RESOURCE-API api, used by vCPE and VoLTE use cases
+   - Introduced new docker containers for SDC and DMAAP interfaces
 
 **Bug Fixes**
-   - `CIMAN-65 <https://jira.onap.org/browse/CIMAN-65>`_ and a sentence explaining what this defect is addressing.
 **Known Issues**
-   - `CIMAN-65 <https://jira.onap.org/browse/CIMAN-65>`_ and two, three sentences.
-     One sentences explaining what is the issue.
+The following known high priority issues are being worked and are expected to be delivered
+in release 1.2.1:
+   - `SDNC-179 <https://jira.onap.org/browse/SDNC-179>`_ Failed to make HTTPS connection in restapicall node
+   - `SDNC-181 <https://jira.onap.org/browse/SDNC-181>`_ Change call to brg-wan-ip-address vbrg-wan-ip brg topo activate DG
+   - `SDNC-182 <https://jira.onap.org/browse/SDNC-182>`_ Fix VNI Consistency: Add vG vxlan tunnel setup and bridge domain setup to brg-topo-activate DG
 
-     Another sentence explaining the impact of the issue.
-
-     And an optional sentence providing a workaround.
 
 **Security Issues**
    You may want to include a reference to CVE (Common Vulnerabilities and Exposures) `CVE <https://cve.mitre.org>`_
