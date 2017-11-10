@@ -129,6 +129,17 @@
                     </return>
                 </outcome>
             </execute>
+            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='IPADDR' key="SELECT min(ip_addr) ip from DHCP_MAP where mac_addr = $brg-ar.allotted-resource-data.allotted-resource-operation-information.brg-request-input.brg-wan-mac-address" pfx="tmp.brg-wan-ip" ></get-resource>
+            <set>
+                <parameter name='brg-ar.allotted-resource-data.brg-topology.brg-assignments.vbrg-wan-ip' value='`$tmp.brg-wan-ip.ip`' />
+            </set>
+            <set>
+                <parameter name='tmp.ar.consuming-service-instance-id' value='`$allotted-resource-data.brg-topology.allotted-resource-identifiers.consuming-service-instance-id`' />
+            </set>
+            <call module='GENERIC-RESOURCE-API' rpc='get-vgmux-lan-ip' mode='sync' ></call>
+            <set>
+                <parameter name='brg-ar.allotted-resource-data.brg-topology.brg-assignments.vgmux-lan-ip' value='`$tmp.vgmux-lan-ip`' />
+            </set>
             <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
                 <parameter name="source" value="`$prop.honeycomb.url`"/>
                 <parameter name="outputPath" value="tmp.honeycomb.url"/>
@@ -137,8 +148,8 @@
             </execute>
             <set>
                 <parameter name='tmp.tunnel-name' value="`'vxlanTun' + $brg-ar.allotted-resource-data.brg-topology.brg-assignments.vbrg-wan-ip` " />
-                <parameter name='tmp.tunnel-dest-ip' value="`$brg-ar.allotted-resource-data.allotted-resource-operation-information.brg-request-input.vgmux-lan-ip` " />
-                <parameter name='tmp.tunnel-src-ip' value="`$brg-ar.allotted-resource-data.allotted-resource-operation-information.brg-request-input.brg-wan-ip-address` " />
+                <parameter name='tmp.tunnel-dest-ip' value="`$brg-ar.allotted-resource-data.brg-topology.brg-assignments.vgmux-lan-ip` " />
+                <parameter name='tmp.tunnel-src-ip' value="`$brg-ar.allotted-resource-data.brg-topology.brg-assignments.vbrg-wan-ip` " />
                 <parameter name='tmp.tunnel-vni' value="`$brg-ar.allotted-resource-data.allotted-resource-operation-information.brg-request-input.vni` " />
             </set>
             <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
