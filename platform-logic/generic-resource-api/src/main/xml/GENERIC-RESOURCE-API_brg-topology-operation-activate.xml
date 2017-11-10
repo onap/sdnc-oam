@@ -138,7 +138,7 @@
             </set>
             <call module='GENERIC-RESOURCE-API' rpc='get-vgmux-lan-ip' mode='sync' ></call>
             <set>
-                <parameter name='brg-ar.allotted-resource-data.brg-topology.brg-assignments.vgmux-lan-ip' value='`$tmp.vgmux-lan-ip`' />
+                <parameter name='brg-ar.allotted-resource-data.brg-topology.brg-assignments.vgmux-lan-ip' value='`$tmp.tunnelxconn-ar.allotted-resource-data.tunnelxconn-topology.tunnelxconn-assignments.vgmux-lan-ip`' />
             </set>
             <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
                 <parameter name="source" value="`$prop.honeycomb.url`"/>
@@ -188,6 +188,82 @@
                 <parameter name='tmp.bridge-domain' value="bridge-domain-10" />
                 <parameter name='tmp.split-horizon-group' value="2" />
             </set>
+            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/' + $prop.restapi.vpp.bridge-domain.templatefile`" />
+                <parameter name='restapiUrl' value="`$tmp.honeycomb.url + $tmp.vpp-honeycomb-url + '/v3po:l2' `" />
+                <parameter name='restapiUser' value='`$prop.honeycomb.user`' />
+                <parameter name='restapiPassword' value='`$prop.honeycomb.pwd`' />
+                <parameter name='format' value='json' />
+                <parameter name='httpMethod' value='PUT' />
+                <parameter name="responsePrefix" value="honeycomb-vnf" />
+                <outcome value='success'>
+                    <block></block>
+                </outcome>
+                <outcome value='failure'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="Error updating md-sal for brg-allotted-resource" />
+                    </return>
+                </outcome>
+                <outcome value='not-found'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="Error updating md-sal for brg-allotted-resource" />
+                    </return>
+                </outcome>
+            </execute>
+            <set>
+                <parameter name='brg-ar.allotted-resource-data.brg-topology.brg-assignments.vg-ip' value='`$tmp.tunnelxconn-ar.allotted-resource-data.tunnelxconn-topology.tunnelxconn-assignments.vg-ip`' />
+            </set>
+            <set>
+                <parameter name='brg-ar.allotted-resource-data.brg-topology.brg-assignments.vgmux-bearer-ip' value='`$tmp.tunnelxconn-ar.allotted-resource-data.tunnelxconn-topology.tunnelxconn-assignments.vgmux-bearer-ip`' />
+            </set>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                <parameter name="source" value="`$prop.honeycomb.url`"/>
+                <parameter name="outputPath" value="tmp.honeycomb.url"/>
+                <parameter name="target" value="{honeycomb-instance-ip}"/>
+                <parameter name="replacement" value="`$brg-ar.allotted-resource-data.brg-topology.brg-assignments.vg-ip`"/>
+            </execute>
+            <set>
+                <parameter name='tmp.tunnel-name' value="`'vxlanTun' + $brg-ar.allotted-resource-data.brg-topology.brg-assignments.vg-ip` " />
+                <parameter name='tmp.tunnel-dest-ip' value="`$brg-ar.allotted-resource-data.brg-topology.brg-assignments.vgmux-bearer-ip` " />
+                <parameter name='tmp.tunnel-src-ip' value="`$brg-ar.allotted-resource-data.brg-topology.brg-assignments.vg-ip` " />
+                <parameter name='tmp.tunnel-vni' value="`$brg-ar.allotted-resource-data.allotted-resource-operation-information.brg-request-input.vni` " />
+            </set>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                <parameter name="source" value="`$prop.restapi.vpp-honeycomb`"/>
+                <parameter name="outputPath" value="tmp.vpp-honeycomb-url"/>
+                <parameter name="target" value="{tunnel-name}"/>
+                <parameter name="replacement" value="`$tmp.tunnel-name`"/>
+            </execute>
+            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/' + $prop.restapi.vpp.vxlan-tunnel.templatefile`" />
+                <parameter name='restapiUrl' value='`$tmp.honeycomb.url + $tmp.vpp-honeycomb-url`' />
+                <parameter name='restapiUser' value='`$prop.honeycomb.user`' />
+                <parameter name='restapiPassword' value='`$prop.honeycomb.pwd`' />
+                <parameter name='format' value='json' />
+                <parameter name='httpMethod' value='PUT' />
+                <parameter name="responsePrefix" value="honeycomb-vnf" />
+                <outcome value='success'>
+                    <block></block>
+                </outcome>
+                <outcome value='failure'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="Error updating md-sal for brg-allotted-resource" />
+                    </return>
+                </outcome>
+                <outcome value='not-found'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="Error updating md-sal for brg-allotted-resource" />
+                    </return>
+                </outcome>
+            </execute>
             <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                 <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/' + $prop.restapi.vpp.bridge-domain.templatefile`" />
                 <parameter name='restapiUrl' value="`$tmp.honeycomb.url + $tmp.vpp-honeycomb-url + '/v3po:l2' `" />
