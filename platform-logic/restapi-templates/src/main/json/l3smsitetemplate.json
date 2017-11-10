@@ -23,18 +23,24 @@
   "site":[
   {
   "site-id": ${prop.l3vpn.site1_name},
+  "site-name":"Site-forhuawei1",
+  "vrf-control-option": {
+    "custom-vrf": "true",
+    "vrf-definition-policy": "site-and-vpn-policy"
+  },
   "vpn-policies": {
     "vpn-policy": [
       {
         "vpn-policy-id": ${prop.l3vpn.vpn-policy1-id},
+        "vpn-policy-name": "policy-forhuawei1",
         "entries": [
-          {
-            "id": ${prop.l3vpn.entry1-id},
-            "vpn": {
-              "vpn-id": ${prop.l3vpn.name},
-              "site-role": "huawei-ac-net-l3vpn-svc:any-to-any-role"
-            }
+        {
+          "id": ${prop.l3vpn.entry1-id},
+          "vpn": {
+          "vpn-id": ${prop.l3vpn.name},
+          "site-role": "huawei-ac-net-l3vpn-svc:any-to-any-role"
           }
+        }
         ]
       }
     ]
@@ -47,136 +53,93 @@
           "appointed-access": {
             "ne-id": ${prop.l3vpn.pe1_id},
             "ltp-id": ${prop.l3vpn.ac1_id},
+            "admin-status":"admin-up",
             "vlan": {
-              "type": "huawei-ac-net-l3vpn-svc:vlan-dot1q",
-              "vlan-id": ${prop.l3vpn.sna1_svlan}
+              "huawei-ac-net-l3vpn-svc:type": "vlan-dot1q",
+              "vlan-id": ${prop.l3vpn.ac1_svlan},
+              "sub-if-number":"dyn-allocate"
             }
           }
         },
         "ip-connection": {
           "ipv4": {
-            "address-allocation-type": "huawei-ac-net-l3vpn-svc:static-address",
             "addresses": {
-              "provider-address": ${prop.l3vpn.ac1-peer-ip},
-              "customer-address": ${prop.l3vpn.ac1-ip},
-              "mask": "24"
+              "provider-address": ${prop.l3vpn.ac1_ip},
+              "customer-address": ${prop.l3vpn.ac1_peer_ip},
+              "mask": "30"
             }
           }
-        },
-        "service": {
-          "mtu": "1500"
         },
         "routing-protocols": {
           "routing-protocol": [
             {
               "type": ${prop.l3vpn.ac1_protocol},
               "static": {
-                "cascaded-lan-prefixes": [
+                "cascaded-lan-prefixes": 
                   {
                     "ipv4-lan-prefixes": [
                       {
                         "ip-prefix": ${prop.l3vpn.sna1-route.ip-prefix},
-                        "next-hop": ${prop.l3vpn.sna1-route.next-hop}
+                        "next-hop": ${prop.l3vpn.sna1-route.next-hop},
+                        "preference":"100"
                       }
                     ]
                   }
-                ]
               }
-              "bgp": {
-                "peers": [
-                  {
-                    "peer-ip": ${prop.l3vpn.peer1-ip},
-                    "remote-as": ${prop.l3vpn.ac1_protocol_bgp_as}
-                  }
-                ]
-              }
-            }
             }
           ]
         },
         "vpn-attachment": {
-          "vpn-policy-id": ${prop.l3vpn.name}
+          "vpn-policy-id": ${prop.l3vpn.vpn-policy1-id}
+        }
+      },
+      {
+  "site-network-access-id": ${prop.l3vpn.sna2_name},
+  "bearer": {
+    "appointed-access": {
+      "ne-id": ${prop.l3vpn.pe2_id},
+      "ltp-id": ${prop.l3vpn.ac2_id},
+      "admin-status": "admin-up",
+      "vlan": {
+        "huawei-ac-net-l3vpn-svc:type": "vlan-dot1q",
+        "vlan-id": ${prop.l3vpn.ac2_svlan},
+        "sub-if-number": "dyn-allocate"
+      }
+    }
+  },
+  "ip-connection": {
+    "ipv4": {
+      "addresses": {
+        "provider-address": ${prop.l3vpn.ac2_ip},
+        "customer-address": ${prop.l3vpn.ac2_peer_ip},
+        "mask": "30"
+      }
+    }
+  },
+  "routing-protocols": {
+    "routing-protocol": [
+      {
+        "huawei-ac-net-l3vpn-svc:type": ${prop.l3vpn.ac2_protocol},
+        "static": {
+          "cascaded-lan-prefixes": {
+            "ipv4-lan-prefixes": [
+              {
+                "ip-prefix": ${prop.l3vpn.sna2-route.ip-prefix},
+                "next-hop": ${prop.l3vpn.sna2-route.next-hop},
+                "preference": "100"
+              }
+            ]
+          }
         }
       }
     ]
   },
-  {
-    "site-id": ${prop.l3vpn.site2_name},
-    "vpn-policies": {
-    "vpn-policy": [
-      {
-        "vpn-policy-id": ${prop.l3vpn.vpn-policy2-id},
-        "entries": [
-        {
-          "id": ${prop.l3vpn.entry2-id},
-          "vpn": {
-          "vpn-id": ${prop.l3vpn.name},
-          "site-role": "huawei-ac-net-l3vpn-svc:any-to-any-role"
-          }
-        }
-        ]
-      }
-      ]
-    },
-    "site-network-accesses": {
-    "site-network-access": [
-      {
-        "site-network-access-id": ${prop.l3vpn.sna2_name},
-      "bearer": {
-        "appointed-access": {
-          "ne-id": ${prop.l3vpn.pe2_id},
-      "ltp-id": ${prop.l3vpn.ac2_id},
-      "vlan": {
-        "type": "huawei-ac-net-l3vpn-svc:vlan-dot1q",
-        "vlan-id": ${prop.l3vpn.sna2_svlan}
-    }
-    }
-    },
-      "ip-connection": {
-        "ipv4": {
-          "address-allocation-type": "huawei-ac-net-l3vpn-svc:static-address",
-          "addresses": {
-            "provider-address": ${prop.l3vpn.ac2-peer-ip},
-      "customer-address": ${prop.l3vpn.ac2-ip},
-      "mask": "24"
-      }
-    }
-    },
-      "service": {
-        "mtu": "1500"
-      },
-      "routing-protocols": {
-        "routing-protocol": [
-          {
-            "type": ${prop.l3vpn.ac2_protocol},
-            "static": {
-              "cascaded-lan-prefixes": [
-                {
-                  "ipv4-lan-prefixes": [
-                    {
-                      "ip-prefix": ${prop.l3vpn.sna2-route.ip-prefix},
-                      "next-hop": ${prop.l3vpn.sna2-route.next-hop}
-                  }
-                  ]
-                }
-              ]
-            }
-            "bgp": {
-              "peers": [
-                {
-                  "peer-ip": ${prop.l3vpn.peer2-ip},
-                  "remote-as": ${prop.l3vpn.ac2_protocol_bgp_as}
-                }
-              ]
-            }
-          }
-        ]
-      },
-      "vpn-attachment": {
-        "vpn-policy-id": ${prop.l3vpn.name}
-    }
-    }
-    ]
+  "vpn-attachment": {
+    "vpn-policy-id": ${prop.l3vpn.vpn-policy1-id}
+  }
+}
+]
+}
   }
  ]
 }
