@@ -45,7 +45,7 @@ do
 done
 
 echo "Starting dmaap-listener"
-exec ${JAVA} ${JAVA_OPTS} -jar ${DMAAPLISTENERROOT}/lib/dmaap-listener*.jar -Dlog4j.configuration=file:${PROPERTY_DIR}/log4j.properties -cp ${LISTENERCLASSPATH}
+exec ${JAVA} ${JAVA_OPTS} -Dlog4j.configuration=file:${PROPERTY_DIR}/log4j.properties -jar ${DMAAPLISTENERROOT}/lib/dmaap-listener*.jar dmaap-listener.properties -cp ${LISTENERCLASSPATH}
 
 
 
