@@ -82,10 +82,7 @@
             </set>
             <update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
                     resource="allotted-resource"
-                    key="customer.global-customer-id = $service-data.service-information.global-customer-id AND
-			service-subscription.service-type = $service-data.service-information.subscription-service-type AND
-			service-instance.service-instance-id = $service-data.service-information.service-instance-id AND
-			allotted-resource.id = $tmp.ar.allotted-resource-id"
+                    key="customer.global-customer-id = $brg-topology-operation-input.service-information.global-customer-id AND service-subscription.service-type = $brg-topology-operation-input.service-information.subscription-service-type AND service-instance.service-instance-id = $brg-topology-operation-input.service-information.service-instance-id AND allotted-resource.id = $tmp.ar.allotted-resource-id"
                     pfx='pfx' local-only='false' force='false'>
                 <parameter name="operational-status" value="in-service-path" />
                 <outcome value='failure'>
@@ -136,7 +133,7 @@
             <set>
                 <parameter name='tmp.ar.consuming-service-instance-id' value='`$allotted-resource-data.brg-topology.allotted-resource-identifiers.consuming-service-instance-id`' />
             </set>
-            <call module='GENERIC-RESOURCE-API' rpc='get-vgmux-lan-ip' mode='sync' ></call>
+            <call module='GENERIC-RESOURCE-API' rpc='get-tunnelxconn-ar' mode='sync' ></call>
             <set>
                 <parameter name='brg-ar.allotted-resource-data.brg-topology.brg-assignments.vgmux-lan-ip' value='`$tmp.tunnelxconn-ar.allotted-resource-data.tunnelxconn-topology.tunnelxconn-assignments.vgmux-lan-ip`' />
             </set>
@@ -147,7 +144,7 @@
                 <parameter name="replacement" value="`$brg-ar.allotted-resource-data.brg-topology.brg-assignments.vbrg-wan-ip`"/>
             </execute>
             <set>
-                <parameter name='tmp.tunnel-name' value="`'vxlanTun' + $brg-ar.allotted-resource-data.brg-topology.brg-assignments.vbrg-wan-ip` " />
+                <parameter name='tmp.tunnel-name' value="`'vxlanTun' + $brg-ar.allotted-resource-data.brg-topology.brg-assignments.vgmux-lan-ip` " />
                 <parameter name='tmp.tunnel-dest-ip' value="`$brg-ar.allotted-resource-data.brg-topology.brg-assignments.vgmux-lan-ip` " />
                 <parameter name='tmp.tunnel-src-ip' value="`$brg-ar.allotted-resource-data.brg-topology.brg-assignments.vbrg-wan-ip` " />
                 <parameter name='tmp.tunnel-vni' value="`$brg-ar.allotted-resource-data.allotted-resource-operation-information.brg-request-input.vni` " />
@@ -173,14 +170,14 @@
                     <return status='failure'>
                         <parameter name='ack-final' value='Y'/>
                         <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="Error updating md-sal for brg-allotted-resource" />
+                        <parameter name="error-message" value="Error setting up vxlan tunnel" />
                     </return>
                 </outcome>
                 <outcome value='not-found'>
                     <return status='failure'>
                         <parameter name='ack-final' value='Y'/>
                         <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="Error updating md-sal for brg-allotted-resource" />
+                        <parameter name="error-message" value="Error setting up vxlan tunnel" />
                     </return>
                 </outcome>
             </execute>
@@ -203,14 +200,14 @@
                     <return status='failure'>
                         <parameter name='ack-final' value='Y'/>
                         <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="Error updating md-sal for brg-allotted-resource" />
+                        <parameter name="error-message" value="Error setting up bridge domain" />
                     </return>
                 </outcome>
                 <outcome value='not-found'>
                     <return status='failure'>
                         <parameter name='ack-final' value='Y'/>
                         <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="Error updating md-sal for brg-allotted-resource" />
+                        <parameter name="error-message" value="Error setting up bridge domain" />
                     </return>
                 </outcome>
             </execute>
@@ -220,14 +217,54 @@
             <set>
                 <parameter name='brg-ar.allotted-resource-data.brg-topology.brg-assignments.vgmux-bearer-ip' value='`$tmp.tunnelxconn-ar.allotted-resource-data.tunnelxconn-topology.tunnelxconn-assignments.vgmux-bearer-ip`' />
             </set>
+            <set>
+                <parameter name='tmp.search.consuming-service-instance-id' value='`$brg-topology-operation-input.allotted-resource-data.brg-topology.allotted-resource-identifiers.consuming-service-instance-id`' />
+            </set>
+            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.mdsal.ConfigResource' resource='GENERIC-RESOURCE-API' key='services' pfx='tmp.servicedata' >
+                <outcome value='success'>
+                    <for index='serviceidx' start='0' end='`$tmp.servicedata.services.service_length`' >
+                        <switch test='`$tmp.servicedata.services.service[$serviceidx].service-instance-id == $tmp.search.consuming-service-instance-id`'>
+                            <outcome value='true'>
+                                <for index='vnfidx' start='0' end='`$tmp.servicedata.services.service[$serviceidx].service-data.vnfs.vnf_length`' >
+                                    <for index='vfmoduleidx' start='0' end='`$tmp.servicedata.services.service[$serviceidx].service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module_length`' >
+                                        <for index='paramidx' start='0' end='`$tmp.servicedata.services.service[$serviceidx].service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfmoduleidx].vf-module-data.vf-module-topology.vf-module-parameters.param_length`' >
+                                            <switch test='`$tmp.servicedata.services.service[$serviceidx].service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfmoduleidx].vf-module-data.vf-module-topology.vf-module-parameters.param[$paramidx].name == vgw_private_ip_1`'>
+                                                <outcome value='true'>
+                                                    <set>
+                                                        <parameter name='brg-ar.allotted-resource-data.brg-topology.brg-assignments.vg-mgmt-ip' value='`$tmp.servicedata.services.service[$serviceidx].service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfmoduleidx].vf-module-data.vf-module-topology.vf-module-parameters.param[$paramidx].value`' />
+                                                    </set>
+                                                </outcome>
+                                            </switch>
+                                        </for>
+                                    </for>
+                                </for>
+                            </outcome>
+                        </switch>
+                    </for>
+                </outcome>
+                <outcome value='failure'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="Error getting GENERIC-RESOURCE-API:services" />
+                    </return>
+                </outcome>
+                <outcome value='not-found'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="Error getting GENERIC-RESOURCE-API:services" />
+                    </return>
+                </outcome>
+            </get-resource>
             <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
                 <parameter name="source" value="`$prop.honeycomb.url`"/>
                 <parameter name="outputPath" value="tmp.honeycomb.url"/>
                 <parameter name="target" value="{honeycomb-instance-ip}"/>
-                <parameter name="replacement" value="`$brg-ar.allotted-resource-data.brg-topology.brg-assignments.vg-ip`"/>
+                <parameter name="replacement" value="`$brg-ar.allotted-resource-data.brg-topology.brg-assignments.vg-mgmt-ip`"/>
             </execute>
             <set>
-                <parameter name='tmp.tunnel-name' value="`'vxlanTun' + $brg-ar.allotted-resource-data.brg-topology.brg-assignments.vg-ip` " />
+                <parameter name='tmp.tunnel-name' value="`'vxlanTun' + $brg-ar.allotted-resource-data.brg-topology.brg-assignments.vgmux-bearer-ip` " />
                 <parameter name='tmp.tunnel-dest-ip' value="`$brg-ar.allotted-resource-data.brg-topology.brg-assignments.vgmux-bearer-ip` " />
                 <parameter name='tmp.tunnel-src-ip' value="`$brg-ar.allotted-resource-data.brg-topology.brg-assignments.vg-ip` " />
                 <parameter name='tmp.tunnel-vni' value="`$brg-ar.allotted-resource-data.allotted-resource-operation-information.brg-request-input.vni` " />
@@ -253,14 +290,14 @@
                     <return status='failure'>
                         <parameter name='ack-final' value='Y'/>
                         <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="Error updating md-sal for brg-allotted-resource" />
+                        <parameter name="error-message" value="Error setting up vxlan tunnel" />
                     </return>
                 </outcome>
                 <outcome value='not-found'>
                     <return status='failure'>
                         <parameter name='ack-final' value='Y'/>
                         <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="Error updating md-sal for brg-allotted-resource" />
+                        <parameter name="error-message" value="Error setting up vxlan tunnel" />
                     </return>
                 </outcome>
             </execute>
@@ -279,14 +316,14 @@
                     <return status='failure'>
                         <parameter name='ack-final' value='Y'/>
                         <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="Error updating md-sal for brg-allotted-resource" />
+                        <parameter name="error-message" value="Error setting up bridge domain" />
                     </return>
                 </outcome>
                 <outcome value='not-found'>
                     <return status='failure'>
                         <parameter name='ack-final' value='Y'/>
                         <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="Error updating md-sal for brg-allotted-resource" />
+                        <parameter name="error-message" value="Error setting up bridge domain" />
                     </return>
                 </outcome>
             </execute>
