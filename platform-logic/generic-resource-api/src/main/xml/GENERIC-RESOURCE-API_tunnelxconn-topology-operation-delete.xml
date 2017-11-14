@@ -108,15 +108,32 @@
                     </return>
                 </outcome>
             </execute>
+            <set>
+                <parameter name='tmp.search.parent-service-instance-id' value='`$tmp.ar.parent-service-instance-id`' />
+            </set>
+            <call module='GENERIC-RESOURCE-API' rpc='get-vnf-api-parent-instance' mode='sync' ></call>
+            <for index='paramidx' start='0' end='`$parent-service-instance.vnf-topology-information.vnf-parameters_length`' >
+                <switch test='`$parent-service-instance.vnf-topology-information.vnf-parameters[$paramidx].vnf-parameter-name == vgmux_private_ip_1`'>
+                    <outcome value='true'>
+                        <set>
+                            <parameter name='tx-ar.allotted-resource-data.tunnelxconn-topology.tunnelxconn-assignments.vgmux-mgmt-ip' value='`$parent-service-instance.vnf-topology-information.vnf-parameters[$paramidx].vnf-parameter-value`' />
+                        </set>
+                    </outcome>
+                </switch>
+            </for>
             <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
                 <parameter name="source" value="`$prop.honeycomb.url`"/>
                 <parameter name="outputPath" value="tmp.honeycomb.url"/>
                 <parameter name="target" value="{honeycomb-instance-ip}"/>
-                <parameter name="replacement" value="`$tx-ar.allotted-resource-data.tunnelxconn-topology.tunnelxconn-assignments.vgmux-bearer-ip`"/>
+                <parameter name="replacement" value="`$tx-ar.allotted-resource-data.tunnelxconn-topology.tunnelxconn-assignments.vgmux-mgmt-ip`"/>
             </execute>
+            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='IPADDR' key="SELECT min(ip_addr) ip from DHCP_MAP where mac_addr = $tx-ar.allotted-resource-data.allotted-resource-operation-information.tunnelxconn-request-input.brg-wan-mac-address" pfx="tmp.brg-wan-ip" ></get-resource>
+            <set>
+                <parameter name='tunnelxconn-ar.allotted-resource-data.tunnelxconn-topology.tunnelxconn-assignments.vbrg-wan-ip' value='`$tmp.brg-wan-ip.ip`' />
+            </set>
             <set>
                 <parameter name='tmp.tunnel-vgMUX-vG-name' value="`'vxlanTun' + $tx-ar.allotted-resource-data.tunnelxconn-topology.tunnelxconn-assignments.vg-ip` " />
-                <parameter name='tmp.tunnel-vgMUX-vBRG-name' value="`'vxlanTun' + $tx-ar.allotted-resource-data.tunnelxconn-topology.tunnelxconn-assignments.brg-wan-ip-address` " />
+                <parameter name='tmp.tunnel-vgMUX-vBRG-name' value="`'vxlanTun' + $tx-ar.allotted-resource-data.tunnelxconn-topology.tunnelxconn-assignments.vbrg-wan-ip` " />
             </set>
             <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
                 <parameter name="source" value="`$prop.restapi.vpp-honeycomb`"/>
