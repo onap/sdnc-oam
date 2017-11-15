@@ -258,34 +258,34 @@
                 </outcome>
             </switch>
             <delete plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="configuration" key="configuration.configuration-id = $network-topology-operation-input.network-information.network-id" />
-            <set>
-                <parameter name="tmp.nw-url" value="`'/restconf/config/GENERIC-RESOURCE-API:services/service/'  + $network-topology-operation-input.service-information.service-instance-id  + '/service-data/networks/network/'   + $network-topology-operation-input.network-information.network-id` " />
-            </set>
-            <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
-                <parameter name="restapiUrl" value="`$prop.controller.url + $tmp.nw-url`" />
-                <parameter name="restapiUser" value="`$prop.controller.user`" />
-                <parameter name="restapiPassword" value="`$prop.controller.pwd`" />
-                <parameter name="format" value="json" />
-                <parameter name="httpMethod" value="DELETE" />
-                <parameter name="responsePrefix" value="mdsal-nw" />
-                <outcome value="success">
-                    <block />
+            <switch test="`$service-data.networks.network_length`">
+                <outcome value="1">
+                    <block atomic="true">
+                        <set>
+                            <parameter name="service-data.networks." value="" />
+                        </set>
+                        <set>
+                            <parameter name="service-data.networks.network_length" value="0" />
+                        </set>
+                    </block>
                 </outcome>
-                <outcome value="failure">
-                    <return status="failure">
-                        <parameter name="ack-final" value="Y" />
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="Error updating md-sal for network-data" />
-                    </return>
+                <outcome value="Other">
+                    <block atomic="true">
+                        <set>
+                            <parameter name="tmp.new_length" value="`$service-data.networks.network_length - 1`" />
+                        </set>
+                        <for silentFailure="true" index="snidx" start="`$tmp.nidx + 1`" end="`$service-data.networks.network_length`">
+                            <block atomic="true" />
+                        </for>
+                        <set>
+                            <parameter name="service-data.networks.network_length" value="`$service-data.networks.network_length - 1`" />
+                        </set>
+                        <set>
+                            <parameter name="service-data.networks.network[$tmp.new_length]." value="" />
+                        </set>
+                    </block>
                 </outcome>
-                <outcome value="not-found">
-                    <return status="failure">
-                        <parameter name="ack-final" value="Y" />
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="Error updating md-sal for network-data" />
-                    </return>
-                </outcome>
-            </execute>
+            </switch>
             <set>
                 <parameter name="networkId" value="`$network-topology-operation-input.network-information.network-id`" />
                 <parameter name="service-object-path" value="`'restconf/config/GENERIC-RESOURCE-API:services/service/'  + $network-topology-operation-input.service-information.service-instance-id  + '/service-data/service-topology/'` " />

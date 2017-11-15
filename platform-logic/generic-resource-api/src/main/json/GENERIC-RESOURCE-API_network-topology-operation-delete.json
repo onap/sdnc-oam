@@ -68,9 +68,8 @@
         "3287501.60ecab",
         "19bbbbde.0c4ee4",
         "99fa60a9.97d56",
-        "a9f02234.2759e8",
-        "d94a9bb9.76a0c8",
         "c820d47.424eda8",
+        "68e3068e.972fd8",
         "6c64d01.a0fff3"
       ]
     ]
@@ -547,8 +546,8 @@
     "name": "return success",
     "xml": "<return status='success'>\n<parameter name=\"ack-final-indicator\" value=\"Y\" />\n<parameter name=\"error-code\" value=\"200\" />\n<parameter name=\"error-message\" value=\"`$error-message`\" />\n",
     "comments": "",
-    "x": 806.6978149414062,
-    "y": 941.364501953125,
+    "x": 789.6978149414062,
+    "y": 1201.364501953125,
     "z": "b1a89180.b5141",
     "wires": []
   },
@@ -701,8 +700,8 @@
     "xml": "<delete plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" resource='configuration' \n        key='configuration.configuration-id = $network-topology-operation-input.network-information.network-id'>\n",
     "comments": "",
     "outputs": 1,
-    "x": 858.03125,
-    "y": 687.9202880859375,
+    "x": 872.03125,
+    "y": 686.9202880859375,
     "z": "b1a89180.b5141",
     "wires": [
       []
@@ -1155,112 +1154,202 @@
     "name": "set output to api handler",
     "xml": "<set>\n<parameter name='networkId' value='`$network-topology-operation-input.network-information.network-id`' />\n<parameter name='service-object-path' value=\"`'restconf/config/GENERIC-RESOURCE-API:services/service/'\n + $network-topology-operation-input.service-information.service-instance-id\n + '/service-data/service-topology/'` \" />\n \n",
     "comments": "",
-    "x": 832,
-    "y": 875,
+    "x": 831,
+    "y": 1126,
     "z": "b1a89180.b5141",
     "wires": []
   },
   {
-    "id": "d94a9bb9.76a0c8",
-    "type": "execute",
-    "name": "execute RestApiCallNode - DELETE network-data",
-    "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n    <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.nw-url`' />\n    <parameter name='restapiUser' value='`$prop.controller.user`' />\n    <parameter name='restapiPassword' value='`$prop.controller.pwd`' />\n    <parameter name='format' value='json' />\n    <parameter name='httpMethod' value='DELETE' />\n    <parameter name=\"responsePrefix\" value=\"mdsal-nw\" />",
+    "id": "68e3068e.972fd8",
+    "type": "switchNode",
+    "name": "switch $service-data.networks.network_length",
+    "xml": "<switch test='`$service-data.networks.network_length`'>\n",
     "comments": "",
     "outputs": 1,
-    "x": 908,
-    "y": 802,
+    "x": 895,
+    "y": 980,
     "z": "b1a89180.b5141",
     "wires": [
       [
-        "e93feae8.46a908",
-        "e4b9f022.5b775",
-        "6dfa3475.c889ec"
+        "cabb40c6.f63f28",
+        "d81def66.527288"
       ]
     ]
   },
   {
-    "id": "e93feae8.46a908",
-    "type": "success",
-    "name": "success",
-    "xml": "<outcome value='success'>\n",
+    "id": "bb92afab.51f5a",
+    "type": "comment",
+    "name": "Remove network from service data",
+    "info": "",
+    "comments": "",
+    "x": 879.2342529296875,
+    "y": 936.991943359375,
+    "z": "b1a89180.b5141",
+    "wires": []
+  },
+  {
+    "id": "9977e826.19c58",
+    "type": "comment",
+    "name": "If only one remove all networks",
+    "info": "",
+    "comments": "",
+    "x": 1269.4179611206055,
+    "y": 941.2592601776123,
+    "z": "b1a89180.b5141",
+    "wires": []
+  },
+  {
+    "id": "cabb40c6.f63f28",
+    "type": "outcome",
+    "name": "1",
+    "xml": "<outcome value='1'>\n",
     "comments": "",
     "outputs": 1,
-    "x": 1179.5873565673828,
-    "y": 789.289436340332,
+    "x": 1198.0475997924805,
+    "y": 976.6664867401123,
     "z": "b1a89180.b5141",
     "wires": [
       [
-        "98b108c8.15ac98"
+        "fbcf7a1e.85d56"
       ]
     ]
   },
   {
-    "id": "e4b9f022.5b775",
-    "type": "failure",
-    "name": "failure",
-    "xml": "<outcome value='failure'>\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1175.8373184204102,
-    "y": 818.9323314651847,
-    "z": "b1a89180.b5141",
-    "wires": [
-      [
-        "de27e6ee.26b61"
-      ]
-    ]
-  },
-  {
-    "id": "6dfa3475.c889ec",
-    "type": "not-found",
-    "name": "not-found",
-    "xml": "<outcome value='not-found'>\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1184.8372688293457,
-    "y": 850.4323057159781,
-    "z": "b1a89180.b5141",
-    "wires": [
-      [
-        "de27e6ee.26b61"
-      ]
-    ]
-  },
-  {
-    "id": "98b108c8.15ac98",
+    "id": "fbcf7a1e.85d56",
     "type": "block",
-    "name": "block",
-    "xml": "<block>\n",
-    "atomic": "false",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">",
+    "atomic": "true",
+    "outputs": 1,
+    "x": 1377.3809127807617,
+    "y": 977.370283126831,
+    "z": "b1a89180.b5141",
+    "wires": [
+      [
+        "2a5e806c.406808",
+        "4e176ca1.1f7854"
+      ]
+    ]
+  },
+  {
+    "id": "d81def66.527288",
+    "type": "other",
+    "name": "other",
+    "xml": "<outcome value='Other'>\n",
     "comments": "",
     "outputs": 1,
-    "x": 1321.2433242797852,
-    "y": 785.4816055297852,
+    "x": 1164.4285507202148,
+    "y": 1128.9998044967651,
+    "z": "b1a89180.b5141",
+    "wires": [
+      [
+        "eec0d25e.96de08"
+      ]
+    ]
+  },
+  {
+    "id": "eec0d25e.96de08",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">",
+    "atomic": "true",
+    "outputs": 1,
+    "x": 1386.4284286499023,
+    "y": 1128.9998044967651,
+    "z": "b1a89180.b5141",
+    "wires": [
+      [
+        "30d886fb.de580a",
+        "4f8e70aa.dbe688",
+        "1413b75.f99b949",
+        "ec576987.8b044"
+      ]
+    ]
+  },
+  {
+    "id": "2a5e806c.406808",
+    "type": "set",
+    "name": "Remove networks",
+    "xml": "<set>\n\t<parameter name=\"service-data.networks.\" value=\"\"/>\n\n",
+    "comments": "",
+    "x": 1630.66650390625,
+    "y": 980.3333129882812,
+    "z": "b1a89180.b5141",
+    "wires": []
+  },
+  {
+    "id": "4e176ca1.1f7854",
+    "type": "set",
+    "name": "set new network length",
+    "xml": "<set>\n\t<parameter name=\"service-data.networks.network_length\" value=\"0\"/>\n\n\t\n",
+    "comments": "",
+    "x": 1646.9998779296875,
+    "y": 1015.0369710922241,
+    "z": "b1a89180.b5141",
+    "wires": []
+  },
+  {
+    "id": "ec576987.8b044",
+    "type": "set",
+    "name": "Set new network length",
+    "xml": "<set>\n\t<parameter name=\"tmp.new_length\" value=\"`$service-data.networks.network_length - 1`\"/>\n\t\n\t\n",
+    "comments": "",
+    "x": 1653.1322021484375,
+    "y": 1066.2591552734375,
+    "z": "b1a89180.b5141",
+    "wires": []
+  },
+  {
+    "id": "30d886fb.de580a",
+    "type": "for",
+    "name": "for snidx..service-data.networks.network[]",
+    "xml": "<for silentFailure='true' index='snidx' start='`$tmp.nidx + 1`' end='`$service-data.networks.network_length`' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1701.83740234375,
+    "y": 1118.5631103515625,
+    "z": "b1a89180.b5141",
+    "wires": [
+      [
+        "161f519b.8ac7e6"
+      ]
+    ]
+  },
+  {
+    "id": "1413b75.f99b949",
+    "type": "set",
+    "name": "set new network length",
+    "xml": "<set>\n\t<parameter name=\"service-data.networks.network_length\" value=\"`$service-data.networks.network_length - 1`\"/>\n\n\t\n",
+    "comments": "",
+    "x": 1660.296272277832,
+    "y": 1162.333369255066,
+    "z": "b1a89180.b5141",
+    "wires": []
+  },
+  {
+    "id": "4f8e70aa.dbe688",
+    "type": "set",
+    "name": "Remove networks",
+    "xml": "<set>\n\t<parameter name=\"service-data.networks.network[$tmp.new_length].\" value=\"\"/>\n\n",
+    "comments": "",
+    "x": 1640.1427383422852,
+    "y": 1200.3013143539429,
+    "z": "b1a89180.b5141",
+    "wires": []
+  },
+  {
+    "id": "161f519b.8ac7e6",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">",
+    "atomic": "true",
+    "comments": "",
+    "outputs": 1,
+    "x": 1990.4284133911133,
+    "y": 1127.999789237976,
     "z": "b1a89180.b5141",
     "wires": [
       []
     ]
-  },
-  {
-    "id": "de27e6ee.26b61",
-    "type": "returnFailure",
-    "name": "return failure",
-    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error updating md-sal for network-data\" />",
-    "comments": "",
-    "x": 1345.5873565673828,
-    "y": 819.6823553070426,
-    "z": "b1a89180.b5141",
-    "wires": []
-  },
-  {
-    "id": "a9f02234.2759e8",
-    "type": "set",
-    "name": "set tmp.nw-url",
-    "xml": "<set>\n<parameter name='tmp.nw-url' value=\"`'/restconf/config/GENERIC-RESOURCE-API:services/service/'\n + $network-topology-operation-input.service-information.service-instance-id\n + '/service-data/networks/network/' \n + $network-topology-operation-input.network-information.network-id` \" />",
-    "comments": "",
-    "x": 809,
-    "y": 748,
-    "z": "b1a89180.b5141",
-    "wires": []
   }
 ]
