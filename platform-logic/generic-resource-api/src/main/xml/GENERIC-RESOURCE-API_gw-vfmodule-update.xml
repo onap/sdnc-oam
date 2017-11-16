@@ -1,6 +1,16 @@
 <service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'><method rpc='gw-vfmodule-update' mode='sync'>
 <block>
 <set>
+<!--
+<parameter name='tmp.brg-macaddress' value='fa:16:3e:8f:ea:68' />
+<parameter name='tmp.brg-mac-address-match' value="`'VGW2BRG-' + $tmp.brg-macaddress`"/>
+
+<parameter name='tmp.consuming-service-instance-id' value='b3cb7040-f7a5-4beb-ad2f-2a893b7d374b' />
+service-data.service-topology.service-topology-identifier.service-instance-id
+
+-->
+<parameter name='tmp.consuming-service-instance-id' value='`$service-data.service-topology.service-topology-identifier.service-instance-id`' />
+</set><set>
 <parameter name='tmp.thisIsVGW' value='false' />
 </set><get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.mdsal.ConfigResource' resource='GENERIC-RESOURCE-API'    
          key='tunnelxconn-allotted-resources/' pfx='tmp.txconns' >
@@ -102,4 +112,11 @@ service-data.service-topology.service-topology-identifier.service-instance-id
 <parameter name='service-data.vnfs.vnf[0].vnf-data.vf-modules.vf-module[0].vf-module-data.vf-module-topology.vf-module-parameters.'
    value='$tmp.vfmodule.' /></set><execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
 <parameter name='filename' value='/var/tmp/bdf-gw-vfmodule.log' />
-</execute></block></outcome></switch></block></for></block></outcome></switch></block></method></service-logic>
+</execute></block></outcome></switch></block></for></block></outcome><outcome value='Other'>
+<block>
+<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
+<parameter name='filename' value='/var/tmp/bdf-gw-vfmodule.failure.log' />
+</execute><return status='failure'>
+<parameter name='error-code' value='500' />
+<parameter name='error-message' value='Did not find vGW Preload' />
+</return></block></outcome></switch></block></method></service-logic>
