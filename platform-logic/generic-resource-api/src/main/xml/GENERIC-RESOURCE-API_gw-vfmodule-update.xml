@@ -1,15 +1,6 @@
 <service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'><method rpc='gw-vfmodule-update' mode='sync'>
 <block>
 <set>
-<parameter name='tmp.brg-macaddress' value='fa:16:3e:8f:ea:68' />
-<parameter name='tmp.brg-mac-address-match' value='VGW2BRG-fa:16:3e:8f:ea:68'/>
-<!--
-<parameter name='tmp.consuming-service-instance-id' value='b3cb7040-f7a5-4beb-ad2f-2a893b7d374b' />
-service-data.service-topology.service-topology-identifier.service-instance-id
-
--->
-<parameter name='tmp.consuming-service-instance-id' value='`$service-data.service-topology.service-topology-identifier.service-instance-id`' />
-</set><set>
 <parameter name='tmp.thisIsVGW' value='false' />
 </set><get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.mdsal.ConfigResource' resource='GENERIC-RESOURCE-API'    
          key='tunnelxconn-allotted-resources/' pfx='tmp.txconns' >
@@ -20,9 +11,23 @@ service-data.service-topology.service-topology-identifier.service-instance-id
 <block atomic='true'><set>
 <parameter name='tmp.test1' value='`$tmp.txconns.tunnelxconn-allotted-resources.tunnelxconn-allotted-resource[$txidx].allotted-resource-data.tunnelxconn-topology.allotted-resource-identifiers.consuming-service-instance-id`' />
 <parameter name='tmp.test2' value='`$tmp.txconns.tunnelxconn-allotted-resources.tunnelxconn-allotted-resource-data[$txidx].tunnelxconn-topology[0].allotted-resource-identifiers[0].consuming-service-instance-id`' /></set><switch test='`$tmp.test1 == $tmp.consuming-service-instance-id`'><outcome value='true'>
+<block>
 <set>
+<parameter name='tmp.brg-macaddress' 
+      value='`$tmp.txconns.tunnelxconn-allotted-resources.tunnelxconn-allotted-resource.allotted-resource-data.allotted-resource-operation-information.tunnelxconn-request-input.brg-wan-mac-address`' />
+
+</set><set>
+<parameter name='tmp.brg-macaddress' value='fa:16:3e:8f:ea:68' />
+<parameter name='tmp.brg-mac-address-match' value="`'VGW2BRG-' + $tmp.brg-macaddress`"/>
+<!--
+<parameter name='tmp.consuming-service-instance-id' value='b3cb7040-f7a5-4beb-ad2f-2a893b7d374b' />
+service-data.service-topology.service-topology-identifier.service-instance-id
+
+-->
+<parameter name='tmp.consuming-service-instance-id' value='`$service-data.service-topology.service-topology-identifier.service-instance-id`' />
+</set><set>
 <parameter name='tmp.thisIsVGW' value='true' />
-</set></outcome></switch></block></for></outcome></get-resource><switch test='`$tmp.thisIsVGW`'>
+</set></block></outcome></switch></block></for></outcome></get-resource><switch test='`$tmp.thisIsVGW`'>
 <outcome value='true'>
 <block>
 <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.mdsal.ConfigResource' resource='VNF-API' key='preload-vnfs' pfx='tmp.preloadvnfdata' >
