@@ -86,6 +86,7 @@ service-data.service-topology.service-topology-identifier.service-instance-id
 <parameter name='tmp.service.vnf.vf-module.vg-mux-tunnel-vni' value='`$input.vni`' />
 -->
 <parameter name='tmp.service.vnf.vf-module.vg-mux-tunnel-vni' value='`$tmp.txconns.tunnelxconn-allotted-resources.tunnelxconn-allotted-resource[0].allotted-resource-data[0].tunnelxconn-topology[0].tunnelxconn-assignments[0].vni`' />
+<parameter name='tmp.service.vnf.vf-module.vg-lan-ip' value='`$tmp.txconns.tunnelxconn-allotted-resources.tunnelxconn-allotted-resource[0].allotted-resource-data[0].tunnelxconn-topology[0].tunnelxconn-assignments[0].vg-ip`' />
 
 
 
@@ -94,6 +95,8 @@ service-data.service-topology.service-topology-identifier.service-instance-id
 <parameter name='tmp.service.vnf.vf-module.vg-mux-tunnel-vni' value='`$input.vni`' />
 -->
 <parameter name='tmp.vg-mux-tunnel-vni-match' value='vg_vgmux_tunnel_vni' />
+<parameter name='tmp.vg-lan-ip-match' value='vgw_private_ip_0' />
+
 
 
 
@@ -102,6 +105,9 @@ service-data.service-topology.service-topology-identifier.service-instance-id
 <switch test='`$tmp.vfmodule.param[$paramIdx].name == $tmp.vg-mux-tunnel-vni-match`'><outcome value='true'>
 <set>
 <parameter name='$tmp.vfmodule.param[$paramIdx].value' value='`$tmp.txconns.tunnelxconn-allotted-resources.tunnelxconn-allotted-resource.allotted-resource-data.tunnelxconn-topology.tunnelxconn-assignments.vni`' />
+</set></outcome></switch><switch test='`$tmp.vfmodule.param[$paramIdx].name == $tmp.vg-lan-ip-match`'><outcome value='true'>
+<set>
+<parameter name='$tmp.vfmodule.param[$paramIdx].value' value='`$tmp.txconns.tunnelxconn-allotted-resources.tunnelxconn-allotted-resource.allotted-resource-data.tunnelxconn-topology.tunnelxconn-assignments.vg-ip`' />
 </set></outcome></switch></block></for><set>
 <!--
 <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param.'
@@ -110,13 +116,9 @@ service-data.service-topology.service-topology-identifier.service-instance-id
    value='$tmp.vfmodule.' />
 -->
 <parameter name='service-data.vnfs.vnf[0].vnf-data.vf-modules.vf-module[0].vf-module-data.vf-module-topology.vf-module-parameters.'
-   value='$tmp.vfmodule.' /></set><execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
-<parameter name='filename' value='/var/tmp/bdf-gw-vfmodule.log' />
-</execute></block></outcome></switch></block></for></block></outcome><outcome value='Other'>
+   value='$tmp.vfmodule.' /></set></block></outcome></switch></block></for></block></outcome><outcome value='Other'>
 <block>
-<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
-<parameter name='filename' value='/var/tmp/bdf-gw-vfmodule.failure.log' />
-</execute><return status='failure'>
+<return status='failure'>
 <parameter name='error-code' value='500' />
 <parameter name='error-message' value='Did not find vGW Preload' />
 </return></block></outcome></switch></block></method></service-logic>
