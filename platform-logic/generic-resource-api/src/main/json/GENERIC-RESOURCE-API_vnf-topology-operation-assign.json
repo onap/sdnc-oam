@@ -1,1 +1,2668 @@
-[{"id":"8241aacb.08cdd8","type":"dgstart","name":"DGSTART","outputs":1,"x":115,"y":90,"z":"5083bb91.cbb384","wires":[["6555006a.2f30f"]]},{"id":"6555006a.2f30f","type":"service-logic","name":"GENERIC-RESOURCE-API ${project.version}","module":"GENERIC-RESOURCE-API","version":"${project.version}","comments":"","xml":"<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>","outputs":1,"x":228.61902618408203,"y":130.2381134033203,"z":"5083bb91.cbb384","wires":[["eeb39a2.ad04a68"]]},{"id":"eeb39a2.ad04a68","type":"method","name":"method vnf-topology-operation-assign","xml":"<method rpc='vnf-topology-operation-assign' mode='sync'>\n","comments":"","outputs":1,"x":206.42862701416016,"y":170,"z":"5083bb91.cbb384","wires":[["6a42140c.de8f7c"]]},{"id":"34ceabd.5e7b554","type":"comment","name":"vnf-topology-operation-assign","info":"","comments":"","x":509.34485626220703,"y":37.58634376525879,"z":"5083bb91.cbb384","wires":[]},{"id":"77d708f5.8001e8","type":"switchNode","name":"switch request-action","xml":"<switch test='`$vnf-topology-operation-input.request-information.request-action`'>\n","comments":"","outputs":1,"x":516.8571395874023,"y":367.19043922424316,"z":"5083bb91.cbb384","wires":[["b5d89b76.8690d8","3602a403.88e53c"]]},{"id":"b5d89b76.8690d8","type":"outcome","name":"CreateVnfInstance","xml":"<outcome value='CreateVnfInstance'>\n","comments":"","outputs":1,"x":770.5714340209961,"y":344.3333206176758,"z":"5083bb91.cbb384","wires":[["2f2a6b54.bc4ad4"]]},{"id":"3602a403.88e53c","type":"other","name":"other","xml":"<outcome value='Other'>\n","comments":"","outputs":1,"x":732.5713996887207,"y":390.0476484298706,"z":"5083bb91.cbb384","wires":[["9d45573f.a70cf8"]]},{"id":"2f2a6b54.bc4ad4","type":"block","name":"block","xml":"<block>\n","atomic":"false","comments":"","outputs":1,"x":955.4285621643066,"y":344.3333501815796,"z":"5083bb91.cbb384","wires":[[]]},{"id":"9d45573f.a70cf8","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"If svc-action is 'assign' then request-action must be 'CreateVnfInstance'\" />\n","comments":"","x":972.5714073181152,"y":390.0476064682007,"z":"5083bb91.cbb384","wires":[]},{"id":"6a42140c.de8f7c","type":"block","name":"block : atomic","xml":"<block atomic=\"true\">","atomic":"true","outputs":1,"x":145.11905670166016,"y":1701.7857055664062,"z":"5083bb91.cbb384","wires":[["77d708f5.8001e8","aa948e3b.dc6f4","70905004.44daf","db6678a0.606738","a8c695f6.0babf8","b4d76448.66e818","d6dc9daa.dab27","d09af1c.f6ecc1","59e68b20.a9f1d4","ee6fbe81.c9b8d","e15d873e.f3a578","859c6fc2.42cc1","161882c2.0524bd","e0aec656.73c228","fb26450c.7d69d8","8fe9a7cd.91ae28","92cd0a7d.aee888","b405840f.b908e8","555188e7.5bae08","c7f99789.bdf418","ed2bee8b.f19af","10b2b5e7.5b556a","b6894e3b.427f7","7eb11b41.3e53d4","76228b8.6690274","bf0a4f73.3427c","780bff7b.fe23","b4297c00.0fc6b8","74cb887a.748ed8","83344e86.aa812","a6739756.d975f8","b3f8a06f.e304d"]]},{"id":"aa948e3b.dc6f4","type":"get-resource","name":"get-resource VF_MODEL","xml":"<get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'\n  key='SELECT * from VF_MODEL WHERE customization_uuid = $vnf-topology-operation-input.vnf-information.onap-model-information.model-customization-uuid'\n  pfx='db.vf-model'>\n\n","comments":"","outputs":1,"x":529.1904449462891,"y":458.333309173584,"z":"5083bb91.cbb384","wires":[["fd105869.f2cd08","af0a7eb5.ee8e2"]]},{"id":"ec0cf350.8477c","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'No model found for VNF customization UUID ' + $vnf-topology-operation-input.vnf-information.onap-model-information.model-customization-uuid`\" />\n","comments":"","x":970.6189231872559,"y":481.7617950439453,"z":"5083bb91.cbb384","wires":[]},{"id":"fd105869.f2cd08","type":"failure","name":"failure","xml":"<outcome value='failure'>\n","comments":"","outputs":1,"x":729.9761428833008,"y":438.7141466140747,"z":"5083bb91.cbb384","wires":[["12a688b3.3440a7"]]},{"id":"af0a7eb5.ee8e2","type":"not-found","name":"not-found","xml":"<outcome value='not-found'>\n","comments":"","outputs":1,"x":738.5475730895996,"y":482.9998598098755,"z":"5083bb91.cbb384","wires":[["ec0cf350.8477c"]]},{"id":"12a688b3.3440a7","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error reading VF_MODEL table\" />\n","comments":"","x":969.9761238098145,"y":436.85705375671387,"z":"5083bb91.cbb384","wires":[]},{"id":"70905004.44daf","type":"switchNode","name":"switch service-data.vnfs.vnf_length","xml":"<switch test='`$service-data.vnfs.vnf_length`'>\n","comments":"","outputs":1,"x":559.2857131958008,"y":648.5714282989502,"z":"5083bb91.cbb384","wires":[["84321624.bc90b8","e6e198eb.7d5308"]]},{"id":"84321624.bc90b8","type":"other","name":"NULL","xml":"<outcome value=''>\n","comments":"","outputs":1,"x":785.0000419616699,"y":615.7142162322998,"z":"5083bb91.cbb384","wires":[["df34205c.2330c"]]},{"id":"df34205c.2330c","type":"set","name":"set vnf-index=0","xml":"<set>\n<parameter name='vnf-index' value='0' />\n","comments":"","x":949.2857627868652,"y":614.7142944335938,"z":"5083bb91.cbb384","wires":[]},{"id":"e6e198eb.7d5308","type":"other","name":"other","xml":"<outcome value='Other'>\n","comments":"","outputs":1,"x":786.4286041259766,"y":680.0000343322754,"z":"5083bb91.cbb384","wires":[["910f819c.16efe"]]},{"id":"e34a45aa.608f38","type":"set","name":"set vnf-index = vnf_length","xml":"<set>\n<parameter name='vnf-index' value='`$service-data.vnfs.vnf_length`' />\n","comments":"","x":1125.285758972168,"y":658.285722732544,"z":"5083bb91.cbb384","wires":[]},{"id":"4446fa6b.76c4b4","type":"for","name":"for each existing VNF","xml":"<for index='idx' start='0' end='`$service-data.vnfs.vnf_length`' >\n","comments":"","outputs":1,"x":1110.7142715454102,"y":704.2856616973877,"z":"5083bb91.cbb384","wires":[["9e71792a.51a8b8"]]},{"id":"910f819c.16efe","type":"block","name":"block","xml":"<block>\n","atomic":"false","comments":"","outputs":1,"x":922.1428642272949,"y":680,"z":"5083bb91.cbb384","wires":[["e34a45aa.608f38","4446fa6b.76c4b4"]]},{"id":"9e71792a.51a8b8","type":"switchNode","name":"switch vnf-information.vnf-id == service-data.vnfs.vnf[].vnf-id","xml":"<switch test='`$vnf-topology-operation-input.vnf-information.vnf-id == $service-data.vnfs.vnf[$idx].vnf-id`'>\n","comments":"","outputs":1,"x":1465.0000381469727,"y":703.857141494751,"z":"5083bb91.cbb384","wires":[["ca44cc94.301af"]]},{"id":"ca44cc94.301af","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1759.2857475280762,"y":703.4286136627197,"z":"5083bb91.cbb384","wires":[["e7127b80.39ffd8"]]},{"id":"e7127b80.39ffd8","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'VNF id ' + $service-data.vnfs.vnf[$idx].vnf-id\n      + ' already exists, and has order status ' + $service-data.vnfs.vnf[$idx].vnf-data.vnf-level-oper-status.order-status`\" />\n","comments":"","x":1907.8571548461914,"y":703.4285736083984,"z":"5083bb91.cbb384","wires":[]},{"id":"2ca7efa9.3b66e","type":"comment","name":"make sure this VNF doesn't exist already","info":"","comments":"","x":1452.1427688598633,"y":661.4285717010498,"z":"5083bb91.cbb384","wires":[]},{"id":"db6678a0.606738","type":"set","name":"set vnf-topology data","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.vnf-id'\n value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.vnf-type'\n value='`$vnf-topology-operation-input.vnf-information.vnf-type`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.nf-type'\n value='`$db.vf-model.nf-type`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.nf-role'\n value='`$db.vf-model.nf-role`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.nf-function'\n value='`$db.vf-model.nf-function`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.nf-code'\n value='`$db.vf-model.nf-code`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.tenant'\n value='`$vnf-topology-operation-input.vnf-request-input.tenant`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.aic-cloud-region'\n value='`$vnf-topology-operation-input.vnf-request-input.aic-cloud-region`' />\n \n","comments":"","x":514.9999694824219,"y":810.238115310669,"z":"5083bb91.cbb384","wires":[]},{"id":"a8c695f6.0babf8","type":"switchNode","name":"switch input vnf-name","xml":"<switch test='`$vnf-topology-operation-input.vnf-request-input.vnf-name`'>\n","comments":"","outputs":1,"x":521.4285507202148,"y":1052.8571615219116,"z":"5083bb91.cbb384","wires":[["487e7f2b.8ad47","68310aa2.d2de84"]]},{"id":"487e7f2b.8ad47","type":"outcome","name":"NULL","xml":"<outcome value=''>","comments":"","outputs":1,"x":789.6427726745605,"y":975.8333864212036,"z":"5083bb91.cbb384","wires":[["c340356a.783268"]]},{"id":"429caac2.6d56a4","type":"switchNode","name":"switch ecomp-generated-naming","xml":"<switch test='`$db.vf-model.ecomp-generated-naming`'>\n","comments":"","outputs":1,"x":1206.071662902832,"y":882.5002059936523,"z":"5083bb91.cbb384","wires":[["2e7aef6.82a371","9b8210cc.7778e","8ab384c2.20be78"]]},{"id":"c340356a.783268","type":"block","name":"block : atomic","xml":"<block atomic=\"true\">","atomic":"true","outputs":1,"x":935.3572692871094,"y":975.833498954773,"z":"5083bb91.cbb384","wires":[["9fd7e5b5.625518","ed228289.17a95","429caac2.6d56a4"]]},{"id":"9b8210cc.7778e","type":"outcome","name":"N","xml":"<outcome value='N'>","comments":"","outputs":1,"x":1455.357322692871,"y":884.404914855957,"z":"5083bb91.cbb384","wires":[["1d994a90.016b85"]]},{"id":"1d994a90.016b85","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"No vnf-name was received but ecomp-generated-naming is not Y\" />\n","comments":"","x":1609.64310836792,"y":902.9763593673706,"z":"5083bb91.cbb384","wires":[]},{"id":"2e7aef6.82a371","type":"outcome","name":"Y","xml":"<outcome value='Y'>","comments":"","outputs":1,"x":1455.3572883605957,"y":840.1192359924316,"z":"5083bb91.cbb384","wires":[["45a6a073.f42c1"]]},{"id":"8ab384c2.20be78","type":"other","name":"other","xml":"<outcome value='Other'>\n","comments":"","outputs":1,"x":1455.357250213623,"y":930.119234085083,"z":"5083bb91.cbb384","wires":[["1d994a90.016b85"]]},{"id":"45a6a073.f42c1","type":"block","name":"block","xml":"<block>\n","atomic":"false","comments":"","outputs":1,"x":1592.5002326965332,"y":840.1192359924316,"z":"5083bb91.cbb384","wires":[[]]},{"id":"68310aa2.d2de84","type":"other","name":"other","xml":"<outcome value='Other'>\n","comments":"","outputs":1,"x":792.2144546508789,"y":1122.119125366211,"z":"5083bb91.cbb384","wires":[["e79898f0.209a58"]]},{"id":"9ffe9f0c.29d4f","type":"set","name":"set tmp.vnf-name","xml":"<set>\n<parameter name='tmp.vnf-name' value=\"`$vnf-topology-operation-input.vnf-request-input.vnf-name`\" />\n","comments":"","x":1751.0715306599936,"y":1189.5476417541504,"z":"5083bb91.cbb384","wires":[]},{"id":"9fd7e5b5.625518","type":"call","name":"call GENERIC-RESOURCE-API:generate-unique-name","xml":"<call module='GENERIC-RESOURCE-API' rpc='generate-unique-name' mode='sync' >\n","comments":"","outputs":1,"x":1274.4763259887695,"y":1048.8333959579468,"z":"5083bb91.cbb384","wires":[["d8e6a254.be4f7","6860527.6c3eeac"]]},{"id":"d8e6a254.be4f7","type":"failure","name":"failure","xml":"<outcome value='failure'>\n","comments":"","outputs":1,"x":1570.1906140645347,"y":1021.6906585693359,"z":"5083bb91.cbb384","wires":[["6bce88ea.dd4c08"]]},{"id":"6860527.6c3eeac","type":"success","name":"success","xml":"<outcome value='success'>\n","comments":"","outputs":1,"x":1573.5239639282227,"y":1073.3573017120361,"z":"5083bb91.cbb384","wires":[["ec3565fb.6ebb98"]]},{"id":"ed228289.17a95","type":"set","name":"set variables for generating unique name","xml":"<set>\n<parameter name='generate-unique-name-input.index-table-name' value='VNF_NAME_INDEX' />\n<parameter name='generate-unique-name-input.index-table-prefix-column' value='vnf_name_prefix' />\n<parameter name='generate-unique-name-input.name-table-type' value='VNF_INSTANCE' />\n<parameter name='generate-unique-name-input.prefix' value=\"`'z' + $vnf-topology-operation-input.vnf-request-input.aic-cloud-region + $db.vf-model.nf-code`\" />\n<parameter name='generate-unique-name-input.index-length' value='2' />\n","comments":"","x":1231.1430130004883,"y":997.1668043136597,"z":"5083bb91.cbb384","wires":[]},{"id":"ec3565fb.6ebb98","type":"set","name":"set tmp.vnf-name to generated name","xml":"<set>\n<parameter name='tmp.vnf-name' value='`$generate-unique-name-output.generated-name`' />\n","comments":"","x":1814.7143491109214,"y":1073.8333930969238,"z":"5083bb91.cbb384","wires":[]},{"id":"6bce88ea.dd4c08","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`$generate-unique-name-output.error-message`\" />\n","comments":"","x":1738.0477269490561,"y":1021.1191701889038,"z":"5083bb91.cbb384","wires":[]},{"id":"e79898f0.209a58","type":"block","name":"block : atomic","xml":"<block atomic=\"true\">","atomic":"true","outputs":1,"x":940.1429824829102,"y":1120.7858123779297,"z":"5083bb91.cbb384","wires":[["1af0159f.6f1e5a","5ec1ca2.9ad0934"]]},{"id":"5ec1ca2.9ad0934","type":"call","name":"call GENERIC-RESOURCE-API:generate-unique-name","xml":"<call module='GENERIC-RESOURCE-API' rpc='generate-unique-name' mode='sync' >\n","comments":"","outputs":1,"x":1270.1429824829102,"y":1168.7858123779297,"z":"5083bb91.cbb384","wires":[["2aa25520.67d72a","37668d9a.952f52"]]},{"id":"2aa25520.67d72a","type":"failure","name":"failure","xml":"<outcome value='failure'>\n","comments":"","outputs":1,"x":1568.7143987019858,"y":1138.785837173462,"z":"5083bb91.cbb384","wires":[["ab10d68f.515008"]]},{"id":"37668d9a.952f52","type":"success","name":"success","xml":"<outcome value='success'>\n","comments":"","outputs":1,"x":1572.0477485656738,"y":1190.452480316162,"z":"5083bb91.cbb384","wires":[["9ffe9f0c.29d4f"]]},{"id":"1af0159f.6f1e5a","type":"set","name":"set variables for generating unique name","xml":"<set>\n<parameter name='generate-unique-name-input.name-table-type' value='VNF_INSTANCE' />\n<parameter name='generate-unique-name-input.supplied-name' value='`$vnf-topology-operation-input.vnf-request-input.vnf-name`' />\n","comments":"","x":1226.8096542358398,"y":1117.1191844940186,"z":"5083bb91.cbb384","wires":[]},{"id":"ab10d68f.515008","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`$generate-unique-name-output.error-message`\" />\n","comments":"","x":1736.5715115865073,"y":1138.2143487930298,"z":"5083bb91.cbb384","wires":[]},{"id":"b4d76448.66e818","type":"get-resource","name":"get-resource cloud region","xml":"<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"cloud-region\" \n\t\tkey=\"cloud-region.cloud-owner = 'CloudOwner' AND \n\t\t     cloud-region.cloud-region-id = $vnf-topology-operation-input.vnf-request-input.aic-cloud-region AND\n\t\t     depth='0'\"\n        pfx='aai.cloud-region' local-only='false' >\n\n","comments":"","outputs":1,"x":543.5714492797852,"y":1730.8569984436035,"z":"5083bb91.cbb384","wires":[["63136ca0.2aa6a4","38b39166.261e2e"]]},{"id":"38b39166.261e2e","type":"failure","name":"failure","xml":"<outcome value='failure'>\n","comments":"","outputs":1,"x":768.8176422119141,"y":1749.00785446167,"z":"5083bb91.cbb384","wires":[["c8785277.db74c"]]},{"id":"c8785277.db74c","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error retrieving cloud region from AAI\" />\n","comments":"","x":943.8176155090332,"y":1749.007890701294,"z":"5083bb91.cbb384","wires":[]},{"id":"63136ca0.2aa6a4","type":"not-found","name":"not-found","xml":"<outcome value='not-found'>\n","comments":"","outputs":1,"x":777.7462387084961,"y":1707.2935876846313,"z":"5083bb91.cbb384","wires":[["734e45d0.a54dbc"]]},{"id":"734e45d0.a54dbc","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Cloud region not found in AAI\" />\n","comments":"","x":944.095516204834,"y":1706.5991649627686,"z":"5083bb91.cbb384","wires":[]},{"id":"d6dc9daa.dab27","type":"get-resource","name":"get-resource VF_TO_NETWORK_ROLE_MAPPING","xml":"<get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'\n  key='SELECT * from VF_TO_NETWORK_ROLE_MAPPING WHERE vf_customization_uuid = $vnf-topology-operation-input.vnf-information.onap-model-information.model-customization-uuid'\n  pfx='db.vf-network-role-mapping[]'>\n\n","comments":"","outputs":1,"x":608.8095321655273,"y":2041.9045181274414,"z":"5083bb91.cbb384","wires":[["fb8ff7f3.9c6578","21c9fd46.cdb8b2"]]},{"id":"2a8c3297.b95dbe","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'No entries found in VF_TO_NETWORK_ROLE_MAPPING for VNF customization UUID ' + $vnf-topology-operation-input.vnf-information.onap-model-information.model-customization-uuid`\" />\n","comments":"","x":1344.5237121582031,"y":2059.618698120117,"z":"5083bb91.cbb384","wires":[]},{"id":"fb8ff7f3.9c6578","type":"failure","name":"failure","xml":"<outcome value='failure'>\n","comments":"","outputs":1,"x":904.5952033996582,"y":2020.6186828613281,"z":"5083bb91.cbb384","wires":[["3531361a.0233ba"]]},{"id":"21c9fd46.cdb8b2","type":"not-found","name":"not-found","xml":"<outcome value='not-found'>\n","comments":"","outputs":1,"x":913.166633605957,"y":2064.904396057129,"z":"5083bb91.cbb384","wires":[["bf344dbf.57e7d"]]},{"id":"3531361a.0233ba","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error reading VF_TO_NETWORK_ROLE_MAPPING table\" />\n","comments":"","x":1079.5951843261719,"y":2020.4283332824707,"z":"5083bb91.cbb384","wires":[]},{"id":"e1fffb5d.139e58","type":"block","name":"block : atomic","xml":"<block atomic=\"true\">","atomic":"true","outputs":1,"x":709.5715866088867,"y":2490.71391582489,"z":"5083bb91.cbb384","wires":[["611b38f2.51f0b8","37408b0a.59aa74","8956c374.edb43","fbd0fea8.b0301","dd0ec04d.0901","c56cd3a7.e3e8d","8d1a1df.f9acde","1905c415.59545c"]]},{"id":"8956c374.edb43","type":"get-resource","name":"get-resource l3-network","xml":"<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"l3-networks\" \n\t\tkey=\"l3-network.network-role = $db.vf-network-role-mapping[$role-index].network-role\"\n        pfx='aai.l3-network' local-only='false'\n>\n","comments":"","outputs":1,"x":942.4286041259766,"y":2169.999779701233,"z":"5083bb91.cbb384","wires":[["c79e82cf.08146","59d32d05.f01e74"]]},{"id":"59d32d05.f01e74","type":"failure","name":"failure","xml":"<outcome value='failure'>\n","comments":"","outputs":1,"x":1146.476318359375,"y":2192.1426191329956,"z":"5083bb91.cbb384","wires":[["7d74e0ae.ec3dc"]]},{"id":"7d74e0ae.ec3dc","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error retrieving l3-network from AAI\" />\n","comments":"","x":1321.4762916564941,"y":2192.1426553726196,"z":"5083bb91.cbb384","wires":[]},{"id":"c79e82cf.08146","type":"not-found","name":"not-found","xml":"<outcome value='not-found'>\n","comments":"","outputs":1,"x":1155.404914855957,"y":2150.428352355957,"z":"5083bb91.cbb384","wires":[["a3dc9d39.f743"]]},{"id":"a3dc9d39.f743","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'No active l3-network found in AAI with cloud_region_id '\n          + $vnf-topology-operation-input.vnf-request-input.aic-cloud-region + ' and network_role '\n          + $db.vf-network-role-mapping[$network-index].network-role`\" />\n","comments":"","x":1321.754192352295,"y":2149.7339296340942,"z":"5083bb91.cbb384","wires":[]},{"id":"611b38f2.51f0b8","type":"set","name":"set vnf-network data","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].network-role'\n    value='`$db.vf-network-role-mapping[$role-index].network-role`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].network-name'\n    value='`$aai.l3-network.l3-network[$db-network-index].network-name`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].neutron-id'\n    value='`$aai.l3-network.l3-network[$db-network-index].neutron-network-id`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].network-id'\n    value='`$aai.l3-network.l3-network[$db-network-index].network-id`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].contrail-network-fqdn'\n    value='`$aai.l3-network.l3-network[$db-network-index].contrail-network-fqdn`' />\n","comments":"","x":931.6191940307617,"y":2657.0000228881836,"z":"5083bb91.cbb384","wires":[]},{"id":"e15d873e.f3a578","type":"for","name":"for each cloud-region availability zone","xml":"<for index='idx' start='0' end='`$aai.az.availability-zone_length`' >\n","comments":"","outputs":1,"x":543.3335571289062,"y":3071.618803024292,"z":"5083bb91.cbb384","wires":[["e9252ccb.d2705"]]},{"id":"b1db1f98.d448e","type":"set","name":"set availability-zone","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.availability-zones.availability-zone[$idx]'\n  value='`$aai.az.availability-zone[$idx].availability-zone-name`' />\n","comments":"","x":1005.0002403259277,"y":3040.952217102051,"z":"5083bb91.cbb384","wires":[]},{"id":"859c6fc2.42cc1","type":"set","name":"set vnf-parameters-data","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.'\n  value='vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.' />\n","comments":"","x":502.9524841308594,"y":2921.5711631774902,"z":"5083bb91.cbb384","wires":[]},{"id":"15c078e.5c6e387","type":"save","name":"save generic-vnf l3-network relationships","xml":"<save plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\"\n   resource=\"generic-vnf:relationship-list\"\n   key=\"generic-vnf.vnf-id = $service-data.vnfs.vnf[$vnf-index].vnf-id\"\n   force=\"true\" pfx=\"tmp.AnAI-data\">\n    <parameter name=\"relationship-list.relationship[0].related-to\" value=\"l3-network\" />\n    <parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"l3-network.network-id\" />\n    <parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$vnf-nw-index].network-id`\" />\n","comments":"","outputs":1,"x":969.5240173339844,"y":3215.381015777588,"z":"5083bb91.cbb384","wires":[["8c9a1ab5.ce5b08","e70903d4.4bb15"]]},{"id":"fb26450c.7d69d8","type":"returnSuccess","name":"return success","xml":"<return status='success'>\n<parameter name=\"ack-final-indicator\" value=\"Y\" />\n<parameter name=\"error-code\" value=\"200\" />\n<parameter name=\"error-message\" value=\"`$error-message`\" />\n","comments":"","x":466.0953674316406,"y":3602.1901140213013,"z":"5083bb91.cbb384","wires":[]},{"id":"e0aec656.73c228","type":"set","name":"set vnf-level-oper-status to PendingCreate","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-level-oper-status.order-status' value='PendingCreate' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-level-oper-status.last-rpc-action' value='`$vnf-topology-operation-input.sdnc-request-header.svc-action`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-level-oper-status.last-action' value='`$vnf-topology-operation-input.request-information.request-action`' />\n","comments":"","x":555.9088134765625,"y":3504.527594566345,"z":"5083bb91.cbb384","wires":[]},{"id":"59e68b20.a9f1d4","type":"for","name":"for each network-role","xml":"<for index='role-index' start='0' end='`$db.vf-network-role-mapping_length`'>","comments":"","outputs":1,"x":492.90489196777344,"y":2490.7141189575195,"z":"5083bb91.cbb384","wires":[["e1fffb5d.139e58"]]},{"id":"d09af1c.f6ecc1","type":"set","name":"set network-index = 0","xml":"<set>\n<parameter name='network-index' value='0' />\n","comments":"","x":511.2380676269531,"y":2108.8094577789307,"z":"5083bb91.cbb384","wires":[]},{"id":"37408b0a.59aa74","type":"set","name":"increment network-index","xml":"<set>\n<parameter name='network-index' value='`$network-index + 1`' />\n","comments":"","x":941.9525146484375,"y":2794.6189250946045,"z":"5083bb91.cbb384","wires":[]},{"id":"ee6fbe81.c9b8d","type":"set","name":"set vnf-network_length","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network_length'\n  value='`$network-index`' />\n","comments":"","x":501.8095703125,"y":2871.571207046509,"z":"5083bb91.cbb384","wires":[]},{"id":"161882c2.0524bd","type":"set","name":"copy input data","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.sdnc-request-header.' value='$vnf-topology-operation-input.sdnc-request-header.' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.request-information.' value='$vnf-topology-operation-input.request-information.' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.service-information.' value='$vnf-topology-operation-input.service-information.' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-information.' value='$vnf-topology-operation-input.vnf-information.' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-request-input.' value='$vnf-topology-operation-input.vnf-request-input.' />\n\n","comments":"","x":471.4286422729492,"y":3452.1904258728027,"z":"5083bb91.cbb384","wires":[]},{"id":"8fe9a7cd.91ae28","type":"for","name":"for each vnf-network","xml":"<for index='vnf-nw-index' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network_length`' >\n","comments":"","outputs":1,"x":492.52392578125,"y":3214.380931854248,"z":"5083bb91.cbb384","wires":[["e79df5e2.3bfb98"]]},{"id":"e79df5e2.3bfb98","type":"block","name":"block : atomic","xml":"<block atomic=\"true\">","atomic":"true","outputs":1,"x":696.1905670166016,"y":3214.380892753601,"z":"5083bb91.cbb384","wires":[["15c078e.5c6e387"]]},{"id":"92cd0a7d.aee888","type":"set","name":"set new vnf_length","xml":"<set>\n<parameter name='service-data.vnfs.vnf_length' value='`$vnf-index + 1`' />\n","comments":"","x":507.0952491760254,"y":764.7619781494141,"z":"5083bb91.cbb384","wires":[]},{"id":"b405840f.b908e8","type":"for","name":"for each cloud-region relationship","xml":"<for index='idx' start='0' end='`$aai.cloud-region.relationship-list.relationship_length`' >\n","comments":"","outputs":1,"x":556.4285736083984,"y":1818.0951700210571,"z":"5083bb91.cbb384","wires":[["c203a95d.692928"]]},{"id":"c203a95d.692928","type":"switchNode","name":"switch related-to","xml":"<switch test='`$aai.cloud-region.relationship-list.relationship[$idx].related-to`'>\n","comments":"","outputs":1,"x":804.1071166992188,"y":1817.8450994491577,"z":"5083bb91.cbb384","wires":[["f1cc745c.42f608"]]},{"id":"f1cc745c.42f608","type":"outcome","name":"complex","xml":"<outcome value='complex'>\n","comments":"","outputs":1,"x":973.5714378356934,"y":1817.2379217147827,"z":"5083bb91.cbb384","wires":[["7ed2b7fb.548078"]]},{"id":"d747b0d7.af821","type":"set","name":"set aic-clli","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.aic-clli'\n  value='`$aai-uid-split[$aai-uid-split_length - 1]`' />\n","comments":"","x":1294.2857360839844,"y":1816.9045791625977,"z":"5083bb91.cbb384","wires":[]},{"id":"555188e7.5bae08","type":"switchNode","name":"switch aic-clli","xml":"<switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.aic-clli`'>\n","comments":"","outputs":1,"x":492.3333511352539,"y":1974.0474872589111,"z":"5083bb91.cbb384","wires":[["20f33836.314ae8"]]},{"id":"20f33836.314ae8","type":"outcome","name":"NULL","xml":"<outcome value=''>","comments":"","outputs":1,"x":640.4761848449707,"y":1974.0474700927734,"z":"5083bb91.cbb384","wires":[["dd195a67.9e4528"]]},{"id":"dd195a67.9e4528","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'Unable to find aic-clli in AAI for aic-cloud-region ' + $vnf-topology-operation-input.vnf-request-input.aic-cloud-region`\" />\n","comments":"","x":787.6190452575684,"y":1973.6189041137695,"z":"5083bb91.cbb384","wires":[]},{"id":"3b4ed31b.2aa0ec","type":"set","name":"set from DB","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-invariant-uuid'\n  value='`$db.vf-model.invariant-uuid`' />\n","comments":"","x":915.9287452697754,"y":1290.0475587844849,"z":"5083bb91.cbb384","wires":[]},{"id":"84e4b6d4.cddc08","type":"for","name":"for each l3-network","xml":"<for index='db-network-index' start='0' end='`$aai.l3-network.l3-network_length`' >\n","comments":"","outputs":1,"x":1049.8811492919922,"y":2413.571388244629,"z":"5083bb91.cbb384","wires":[["6477f1c9.11cbd"]]},{"id":"6477f1c9.11cbd","type":"switchNode","name":"switch orchestration-status","xml":"<switch test='`$aai.l3-network.l3-network[$db-network-index].orchestration-status`'>\n","comments":"","outputs":1,"x":1278.452350616455,"y":2412.142815589905,"z":"5083bb91.cbb384","wires":[["2d02e762.92bf68","a48ca1a4.9260d","b6321bf9.9a57b8","a22ac71b.7c92f8","f6d8dcbb.95d7e"]]},{"id":"2d02e762.92bf68","type":"outcome","name":"Pending Delete","xml":"<outcome value='Pending Delete'>\n","comments":"","outputs":1,"x":1515.1192626953125,"y":2457.8095235824585,"z":"5083bb91.cbb384","wires":[["a5e2243e.79eec8"]]},{"id":"a48ca1a4.9260d","type":"other","name":"other","xml":"<outcome value='Other'>\n","comments":"","outputs":1,"x":1487.9764022827148,"y":2508.809504508972,"z":"5083bb91.cbb384","wires":[["6842d9dd.26f8c8"]]},{"id":"1bfffb3d.8635e5","type":"switchNode","name":"switch related-to","xml":"<switch test='`$aai.l3-network.l3-network[$db-network-index].relationship-list.relationship[$db-rel-index].related-to`'>\n","comments":"","outputs":1,"x":1853.6907539367676,"y":2507.3808450698853,"z":"5083bb91.cbb384","wires":[["105409f.8c324f6"]]},{"id":"6842d9dd.26f8c8","type":"for","name":"for each relationship","xml":"<for silentFailure='true' index='db-rel-index' start='0' end='`$aai.l3-network.l3-network[$db-network-index].relationship-list.relationship_length`' >\n","comments":"","outputs":1,"x":1657.9763145446777,"y":2508.3808813095093,"z":"5083bb91.cbb384","wires":[["1bfffb3d.8635e5"]]},{"id":"105409f.8c324f6","type":"outcome","name":"cloud-region","xml":"<outcome value='cloud-region'>\n","comments":"","outputs":1,"x":2027.9763946533203,"y":2506.9522914886475,"z":"5083bb91.cbb384","wires":[["8c0fac20.7b6d4"]]},{"id":"8c0fac20.7b6d4","type":"for","name":"for each relationship data","xml":"<for silentFailure='true' index='db-data-index' start='0' end='`$aai.l3-network.l3-network[$db-network-index].relationship-list.relationship[$db-rel-index].relationship-data_length`' >\n","comments":"","outputs":1,"x":2225.119094848633,"y":2507.380759239197,"z":"5083bb91.cbb384","wires":[["23b4c525.ad999a"]]},{"id":"23b4c525.ad999a","type":"switchNode","name":"switch relationship-key","xml":"<switch test='`$aai.l3-network.l3-network[$db-network-index].relationship-list.relationship[$db-rel-index].relationship-data[$db-data-index].relationship-key`'>\n","comments":"","outputs":1,"x":2456.547695159912,"y":2506.9521341323853,"z":"5083bb91.cbb384","wires":[["ad4b7c5c.5ff53"]]},{"id":"ad4b7c5c.5ff53","type":"outcome","name":"cloud-region.cloud-region-id","xml":"<outcome value='cloud-region.cloud-region-id'>\n","comments":"","outputs":1,"x":2697.9762268066406,"y":2506.95223903656,"z":"5083bb91.cbb384","wires":[["8b527005.34699"]]},{"id":"8b527005.34699","type":"switchNode","name":"switch relationship-value == cloud-region-id","xml":"<switch test='`$aai.l3-network.l3-network[$db-network-index].relationship-list.relationship[$db-rel-index].relationship-data[$db-data-index].relationship-value == $vnf-topology-operation-input.vnf-request-input.aic-cloud-region`'>\n","comments":"","outputs":1,"x":3002.2621459960938,"y":2506.8092947006226,"z":"5083bb91.cbb384","wires":[["1ee4a77a.9542e9"]]},{"id":"1ee4a77a.9542e9","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":3242.262176513672,"y":2506.9522399902344,"z":"5083bb91.cbb384","wires":[["ea9b8e4a.f0362"]]},{"id":"fbd0fea8.b0301","type":"block","name":"block","xml":"<block>\n","atomic":"false","comments":"","outputs":1,"x":888.0953330993652,"y":2481.4284858703613,"z":"5083bb91.cbb384","wires":[["84e4b6d4.cddc08","640fc2e9.3ee98c"]]},{"id":"640fc2e9.3ee98c","type":"returnSuccess","name":"CATCH BREAK","xml":"<return status='success'>\n\n","comments":"","x":1039.4287414550781,"y":2554.7617197036743,"z":"5083bb91.cbb384","wires":[]},{"id":"c702789.b589088","type":"returnFailure","name":"BREAK","xml":"<return status='failure'>\n","comments":"","x":3543.095157623291,"y":2524.761643409729,"z":"5083bb91.cbb384","wires":[]},{"id":"dd0ec04d.0901","type":"set","name":"set l3-network-id = -1","xml":"<set>\n<parameter name='l3-network-id' value='-1' />\n","comments":"","x":932.4287033081055,"y":2284.7616996765137,"z":"5083bb91.cbb384","wires":[]},{"id":"ea9b8e4a.f0362","type":"block","name":"block : atomic","xml":"<block atomic=\"true\">","atomic":"true","outputs":1,"x":3388.0951538085938,"y":2506.4283485412598,"z":"5083bb91.cbb384","wires":[["d78ad9d8.5d8c78","c702789.b589088"]]},{"id":"d78ad9d8.5d8c78","type":"set","name":"set l3-network-id = this l3-network","xml":"<set>\n<parameter name='l3-network-id' value='`$aai.l3-network.l3-network[$db-network-index].network-id`' />\n","comments":"","x":3624.7618255615234,"y":2481.4283475875854,"z":"5083bb91.cbb384","wires":[]},{"id":"c56cd3a7.e3e8d","type":"switchNode","name":"switch l3-network-id","xml":"<switch test='`$l3-network-id`'>\n","comments":"","outputs":1,"x":929.4286270141602,"y":2608.428741455078,"z":"5083bb91.cbb384","wires":[["36280e92.ad7cb2"]]},{"id":"36280e92.ad7cb2","type":"outcome","name":"-1","xml":"<outcome value='-1'>\n","comments":"","outputs":1,"x":1099.4285774230957,"y":2608.428497314453,"z":"5083bb91.cbb384","wires":[["3be921aa.df808e"]]},{"id":"3be921aa.df808e","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'Unable to find l3-network in AAI for network role ' + $db.vf-network-role-mapping[$role-index].network-role`\" />\n","comments":"","x":1247.7619400024414,"y":2608.4286346435547,"z":"5083bb91.cbb384","wires":[]},{"id":"c7f99789.bdf418","type":"switchNode","name":"switch input model-invariant-uuid","xml":"<switch test='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-invariant-uuid`'>\n","comments":"","outputs":1,"x":559.7858200073242,"y":1312.8720026016235,"z":"5083bb91.cbb384","wires":[["47b49582.d69f7c","c9c231d.a31acd"]]},{"id":"47b49582.d69f7c","type":"outcome","name":"NULL","xml":"<outcome value=''>","comments":"","outputs":1,"x":765.4524917602539,"y":1290.0149660110474,"z":"5083bb91.cbb384","wires":[["3b4ed31b.2aa0ec"]]},{"id":"c9c231d.a31acd","type":"other","name":"other","xml":"<outcome value='Other'>\n","comments":"","outputs":1,"x":766.8810882568359,"y":1334.3005571365356,"z":"5083bb91.cbb384","wires":[["d6283c1d.df5e5"]]},{"id":"d6283c1d.df5e5","type":"set","name":"set from input","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-invariant-uuid'\n  value='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-invariant-uuid`' />\n","comments":"","x":921.1668243408203,"y":1333.7291293144226,"z":"5083bb91.cbb384","wires":[]},{"id":"1204474.d3b3db9","type":"set","name":"set from DB","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-uuid'\n  value='`$db.vf-model.uuid`' />\n","comments":"","x":916.8810157775879,"y":1378.5862350463867,"z":"5083bb91.cbb384","wires":[]},{"id":"ed2bee8b.f19af","type":"switchNode","name":"switch input model-uuid","xml":"<switch test='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-uuid`'>\n","comments":"","outputs":1,"x":532.4048385620117,"y":1401.4107398986816,"z":"5083bb91.cbb384","wires":[["2399ff70.6432c","2e93ac0a.a66e94"]]},{"id":"2399ff70.6432c","type":"outcome","name":"NULL","xml":"<outcome value=''>","comments":"","outputs":1,"x":766.4048118591309,"y":1378.553671836853,"z":"5083bb91.cbb384","wires":[["1204474.d3b3db9"]]},{"id":"2e93ac0a.a66e94","type":"other","name":"other","xml":"<outcome value='Other'>\n","comments":"","outputs":1,"x":767.8334083557129,"y":1422.8392629623413,"z":"5083bb91.cbb384","wires":[["79226175.2b687"]]},{"id":"79226175.2b687","type":"set","name":"set from input","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-uuid'\n  value='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-uuid`' />\n","comments":"","x":922.1191444396973,"y":1422.2678351402283,"z":"5083bb91.cbb384","wires":[]},{"id":"83a56bac.491658","type":"set","name":"set from DB","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-version'\n  value='`$db.vf-model.version`' />\n","comments":"","x":914.0239486694336,"y":1467.4434423446655,"z":"5083bb91.cbb384","wires":[]},{"id":"10b2b5e7.5b556a","type":"switchNode","name":"switch input model-version","xml":"<switch test='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-version`'>\n","comments":"","outputs":1,"x":540.5477104187012,"y":1490.2678871154785,"z":"5083bb91.cbb384","wires":[["2f9db03f.c491c","1978d9cb.d98de6"]]},{"id":"2f9db03f.c491c","type":"outcome","name":"NULL","xml":"<outcome value=''>","comments":"","outputs":1,"x":763.5476951599121,"y":1467.410849571228,"z":"5083bb91.cbb384","wires":[["83a56bac.491658"]]},{"id":"1978d9cb.d98de6","type":"other","name":"other","xml":"<outcome value='Other'>\n","comments":"","outputs":1,"x":764.9762916564941,"y":1511.6964406967163,"z":"5083bb91.cbb384","wires":[["7d30ca25.4b3c44"]]},{"id":"7d30ca25.4b3c44","type":"set","name":"set from input","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-version'\n  value='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-version`' />\n","comments":"","x":919.2620277404785,"y":1511.1250128746033,"z":"5083bb91.cbb384","wires":[]},{"id":"30711380.8e3a9c","type":"set","name":"set from DB","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-name'\n  value='`$db.vf-model.name`' />\n","comments":"","x":914.0239486694336,"y":1554.5862646102905,"z":"5083bb91.cbb384","wires":[]},{"id":"b6894e3b.427f7","type":"switchNode","name":"switch input model-name","xml":"<switch test='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-name`'>\n","comments":"","outputs":1,"x":535.5477104187012,"y":1577.4107093811035,"z":"5083bb91.cbb384","wires":[["d278d695.c74378","48c0ba5a.c19a64"]]},{"id":"d278d695.c74378","type":"outcome","name":"NULL","xml":"<outcome value=''>","comments":"","outputs":1,"x":763.5476951599121,"y":1554.553671836853,"z":"5083bb91.cbb384","wires":[["30711380.8e3a9c"]]},{"id":"48c0ba5a.c19a64","type":"other","name":"other","xml":"<outcome value='Other'>\n","comments":"","outputs":1,"x":764.9762916564941,"y":1598.8392629623413,"z":"5083bb91.cbb384","wires":[["a7528ae.1a9da78"]]},{"id":"a7528ae.1a9da78","type":"set","name":"set from input","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-name'\n  value='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-name`' />\n","comments":"","x":919.2620277404785,"y":1598.2678351402283,"z":"5083bb91.cbb384","wires":[]},{"id":"a5e2243e.79eec8","type":"block","name":"block","xml":"<block>\n","atomic":"false","comments":"","outputs":1,"x":1668.3333549499512,"y":2458.586400985718,"z":"5083bb91.cbb384","wires":[[]]},{"id":"f6d8dcbb.95d7e","type":"outcome","name":"PendingDelete","xml":"<outcome value='PendingDelete'>\n","comments":"","outputs":1,"x":1512.9999961853027,"y":2413.5863151550293,"z":"5083bb91.cbb384","wires":[["9951c6e.9aa9138"]]},{"id":"9951c6e.9aa9138","type":"block","name":"block","xml":"<block>\n","atomic":"false","comments":"","outputs":1,"x":1668.2140884399414,"y":2414.3631925582886,"z":"5083bb91.cbb384","wires":[[]]},{"id":"a22ac71b.7c92f8","type":"outcome","name":"Pending Create","xml":"<outcome value='Pending Create'>\n","comments":"","outputs":1,"x":1514.9999961853027,"y":2370.2528190612793,"z":"5083bb91.cbb384","wires":[["6fce3bd5.f4e834"]]},{"id":"6fce3bd5.f4e834","type":"block","name":"block","xml":"<block>\n","atomic":"false","comments":"","outputs":1,"x":1668.2140884399414,"y":2371.0296964645386,"z":"5083bb91.cbb384","wires":[[]]},{"id":"b6321bf9.9a57b8","type":"outcome","name":"PendingCreate","xml":"<outcome value='PendingCreate'>\n","comments":"","outputs":1,"x":1514.9999961853027,"y":2326.9195671081543,"z":"5083bb91.cbb384","wires":[["b2172720.159c18"]]},{"id":"b2172720.159c18","type":"block","name":"block","xml":"<block>\n","atomic":"false","comments":"","outputs":1,"x":1668.2140884399414,"y":2327.6964445114136,"z":"5083bb91.cbb384","wires":[[]]},{"id":"8d1a1df.f9acde","type":"for","name":"for each A&AI subnet","xml":"<for index='subnet-index' start='0' end='`$aai.l3-network.l3-network[0].subnets.subnet_length`' >\n","comments":"","outputs":1,"x":931.6667633056641,"y":2701.919626235962,"z":"5083bb91.cbb384","wires":[["38d73ded.fd6fe2"]]},{"id":"38d73ded.fd6fe2","type":"set","name":"set subnet data","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].subnets-data.subnet-data[$subnet-index].ip-version'\n   value='`$aai.l3-network.l3-network[$db-network-index].subnets.subnet[$subnet-index].ip-version`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].subnets-data.subnet-data[$subnet-index].subnet-id'\n   value='`$aai.l3-network.l3-network[$db-network-index].subnets.subnet[$subnet-index].subnet-id`' />\n","comments":"","x":1129.9999389648438,"y":2700.2532052993774,"z":"5083bb91.cbb384","wires":[]},{"id":"1905c415.59545c","type":"set","name":"set subnet_length","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].subnets-data.subnet-data_length'\n   value='`$aai.l3-network.l3-network[0].subnets.subnet_length`' />\n","comments":"","x":920.3333282470703,"y":2746.919708251953,"z":"5083bb91.cbb384","wires":[]},{"id":"7eb11b41.3e53d4","type":"set","name":"set availability-zones.max-count and length","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.availability-zones.max-count'\n   value='`$db.vf-model.avail-zone-max-count`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.availability-zones.availability-zone_length'\n   value='`$aai.az.availability-zone_length`' />\n","comments":"","x":563.0000610351562,"y":3159.6342582702637,"z":"5083bb91.cbb384","wires":[]},{"id":"76228b8.6690274","type":"set","name":"set vnf-name","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.vnf-name'\n   value='`$tmp.vnf-name`' />\n","comments":"","x":496.66663360595703,"y":1246.9197664260864,"z":"5083bb91.cbb384","wires":[]},{"id":"bf0a4f73.3427c","type":"save","name":"update generic-vnf","xml":"<update plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\"\n   resource=\"generic-vnf\"\n   key=\"generic-vnf.vnf-id = $service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.vnf-id\"\n   force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"vnf-name\" value=\"`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.vnf-name`\" />\n<parameter name=\"prov-status\" value=\"PREPROV\" />\n<parameter name=\"operational-status\" value=\"out-of-service-path\" />\n<parameter name=\"equipment-role\" value=\"`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.nf-role`\" />\n<parameter name=\"model-invariant-id\" value=\"`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-invariant-uuid`\" />\n<parameter name=\"model-version-id\" value=\"`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-uuid`\" />\n<parameter name=\"model-customization-id\" value=\"`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-customization-uuid`\" />\n<parameter name=\"selflink\" value=\"`$vnf-object-path`\" />\n","comments":"","outputs":1,"x":483.3333282470703,"y":3369.300033569336,"z":"5083bb91.cbb384","wires":[["69da107b.fb799","7a401d78.a37844"]]},{"id":"780bff7b.fe23","type":"set","name":"set vnf-object-path","xml":"<set>\n<parameter name='vnf-object-path'\n value=\"`'restconf/config/GENERIC-RESOURCE-API:services/service/'\n + $vnf-topology-operation-input.service-information.service-instance-id\n + '/service-data/vnfs/vnf/'\n + $service-data.vnfs.vnf[$vnf-index].vnf-id\n + '/vnf-data/vnf-topology'`\"/>\n\n","comments":"","x":483.33336639404297,"y":3299.30051612854,"z":"5083bb91.cbb384","wires":[]},{"id":"b4297c00.0fc6b8","type":"set","name":"set vnf-id","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-id'\n   value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />\n","comments":"","x":484.9999771118164,"y":1198.5863094329834,"z":"5083bb91.cbb384","wires":[]},{"id":"74cb887a.748ed8","type":"execute","name":"printContext","xml":"<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >\n<parameter name='filename' value='/var/tmp/bgb-viprend.log' />\n","comments":"","outputs":1,"x":461.00009536743164,"y":3550.967363357544,"z":"5083bb91.cbb384","wires":[[]]},{"id":"9b1367c3.3e1fd8","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'No generic-vnf found in AAI for vnf ID ' + $service-data.vnfs.vnf[$vnf-index].vnf-id`\" />\n","comments":"","x":1406.666805267334,"y":3235.9671211242676,"z":"5083bb91.cbb384","wires":[]},{"id":"8c9a1ab5.ce5b08","type":"failure","name":"failure","xml":"<outcome value='failure'>\n","comments":"","outputs":1,"x":1219.3573722839355,"y":3192.919590950012,"z":"5083bb91.cbb384","wires":[["3dcbea4.1096316"]]},{"id":"e70903d4.4bb15","type":"not-found","name":"not-found","xml":"<outcome value='not-found'>\n","comments":"","outputs":1,"x":1227.9288024902344,"y":3237.205304145813,"z":"5083bb91.cbb384","wires":[["9b1367c3.3e1fd8"]]},{"id":"3dcbea4.1096316","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error updating generic-vnf in AAI\" />\n","comments":"","x":1409.3573989868164,"y":3192.729326248169,"z":"5083bb91.cbb384","wires":[]},{"id":"31bdedf0.2bef82","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'No generic-vnf found in AAI for vnf ID ' + $service-data.vnfs.vnf[$vnf-index].vnf-id`\" />\n","comments":"","x":886.6667442321777,"y":3390.967043876648,"z":"5083bb91.cbb384","wires":[]},{"id":"69da107b.fb799","type":"failure","name":"failure","xml":"<outcome value='failure'>\n","comments":"","outputs":1,"x":699.3573112487793,"y":3347.9195137023926,"z":"5083bb91.cbb384","wires":[["b5e15cb2.cab62"]]},{"id":"7a401d78.a37844","type":"not-found","name":"not-found","xml":"<outcome value='not-found'>\n","comments":"","outputs":1,"x":707.9287414550781,"y":3392.2052268981934,"z":"5083bb91.cbb384","wires":[["31bdedf0.2bef82"]]},{"id":"b5e15cb2.cab62","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error updating selflink in generic-vnf in AAI\" />\n","comments":"","x":889.3573379516602,"y":3347.7292490005493,"z":"5083bb91.cbb384","wires":[]},{"id":"83344e86.aa812","type":"set","name":"set model-customization-uuid","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-customization-uuid'\n  value='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-customization-uuid`' />\n","comments":"","x":548.3332977294922,"y":1650.2529134750366,"z":"5083bb91.cbb384","wires":[]},{"id":"f66871af.e5692","type":"execute","name":"split related-link","xml":"<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split'>\n   <parameter name='ctx_memory_result_key' value='aai-uid-split' />\n   <parameter name='original_string' value='`$aai.cloud-region.relationship-list.relationship[$idx].related-link`' />\n   <parameter name='regex' value='/' />\n","comments":"","outputs":1,"x":1313.6665954589844,"y":1771.6664972305298,"z":"5083bb91.cbb384","wires":[[]]},{"id":"7ed2b7fb.548078","type":"block","name":"block : atomic","xml":"<block atomic=\"true\">","atomic":"true","outputs":1,"x":1133.3332977294922,"y":1818.333285331726,"z":"5083bb91.cbb384","wires":[["f66871af.e5692","d747b0d7.af821","399a4263.6a360e"]]},{"id":"399a4263.6a360e","type":"break","name":"break","xml":"<break>\n","comments":"","x":1283.3332595825195,"y":1861.666582107544,"z":"5083bb91.cbb384","wires":[]},{"id":"e9252ccb.d2705","type":"block","name":"block : atomic","xml":"<block atomic=\"true\">","atomic":"true","outputs":1,"x":795,"y":3070.7143869400024,"z":"5083bb91.cbb384","wires":[["b1db1f98.d448e","d45ddc40.768c2"]]},{"id":"d45ddc40.768c2","type":"save","name":"save generic-vnf availability-zone relationship","xml":"<save plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\"\n   resource=\"generic-vnf:relationship-list\"\n   key=\"generic-vnf.vnf-id = $service-data.vnfs.vnf[$vnf-index].vnf-id\"\n   force=\"true\" pfx=\"tmp.AnAI-data\">\n    <parameter name=\"relationship-list.relationship[0].related-to\" value=\"availability-zone\" />\n    <parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"cloud-region.cloud-owner\" />\n    <parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"CloudOwner\" />\n    <parameter name=\"relationship-list.relationship[0].relationship-data[1].relationship-key\" value=\"cloud-region.cloud-region-id\" />\n    <parameter name=\"relationship-list.relationship[0].relationship-data[1].relationship-value\" value=\"`$vnf-topology-operation-input.vnf-request-input.aic-cloud-region`\" />\n    <parameter name=\"relationship-list.relationship[0].relationship-data[2].relationship-key\" value=\"availability-zone.availability-zone-name\" />\n    <parameter name=\"relationship-list.relationship[0].relationship-data[2].relationship-value\" value=\"`$aai.az.availability-zone[$idx].availability-zone-name`\" />\n","comments":"","outputs":1,"x":1086.9048156738281,"y":3094.0478343963623,"z":"5083bb91.cbb384","wires":[["a2d3128e.390bf","8b3808e2.f32948"]]},{"id":"a97c0980.2d72a8","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'No generic-vnf found in AAI for vnf ID ' + $service-data.vnfs.vnf[$vnf-index].vnf-id`\" />\n","comments":"","x":1540.47607421875,"y":3117.9671936035156,"z":"5083bb91.cbb384","wires":[]},{"id":"a2d3128e.390bf","type":"failure","name":"failure","xml":"<outcome value='failure'>\n","comments":"","outputs":1,"x":1353.1666412353516,"y":3074.9196634292603,"z":"5083bb91.cbb384","wires":[["e7b70608.415b38"]]},{"id":"8b3808e2.f32948","type":"not-found","name":"not-found","xml":"<outcome value='not-found'>\n","comments":"","outputs":1,"x":1361.7380714416504,"y":3119.205376625061,"z":"5083bb91.cbb384","wires":[["a97c0980.2d72a8"]]},{"id":"e7b70608.415b38","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error updating generic-vnf in AAI\" />\n","comments":"","x":1543.1666679382324,"y":3074.729398727417,"z":"5083bb91.cbb384","wires":[]},{"id":"bf344dbf.57e7d","type":"set","name":"set mapping rows to 0","xml":"<set>\n<parameter name='db.vf-network-role-mapping_length' value='0' />\n","comments":"","x":1107.1427688598633,"y":2064.52388381958,"z":"5083bb91.cbb384","wires":[]},{"id":"a6739756.d975f8","type":"switchNode","name":"switch AAI availability-zone_length","xml":"<switch test='`$aai.az.availability-zone_length`'>\n","comments":"","outputs":1,"x":535.7142868041992,"y":2974.523973464966,"z":"5083bb91.cbb384","wires":[["2876e97f.ae3916"]]},{"id":"2876e97f.ae3916","type":"outcome","name":"NULL","xml":"<outcome value=''>","comments":"","outputs":1,"x":754.2857055664062,"y":2974.0953826904297,"z":"5083bb91.cbb384","wires":[["32c7e4de.36637c"]]},{"id":"ea591bcc.24cec8","type":"set","name":"set availability-zone_length to 0","xml":"<set>\n<parameter name='aai.az.availability-zone_length' value='0' />\n","comments":"","x":1355.7143478393555,"y":2992.6666202545166,"z":"5083bb91.cbb384","wires":[]},{"id":"32c7e4de.36637c","type":"switchNode","name":"switch AZ max count > 0","xml":"<switch test='`$db.vf-model.avail-zone-max-count &gt; 0`'>\n","comments":"","outputs":1,"x":942.857177734375,"y":2974.5236945152283,"z":"5083bb91.cbb384","wires":[["a4226dd4.17547","29731a8a.ed2356"]]},{"id":"a4226dd4.17547","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1145.7142848968506,"y":2948.8094444274902,"z":"5083bb91.cbb384","wires":[["7e365163.fc36a"]]},{"id":"29731a8a.ed2356","type":"outcomeFalse","name":"false","xml":"<outcome value='false'>\n","comments":"","outputs":1,"x":1147.1429061889648,"y":2993.0951919555664,"z":"5083bb91.cbb384","wires":[["ea591bcc.24cec8"]]},{"id":"7e365163.fc36a","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'No availability zones found in AAI for cloud region '\n       + $vnf-topology-operation-input.vnf-request-input.aic-cloud-region`\" />\n","comments":"","x":1297.142822265625,"y":2948.5238494873047,"z":"5083bb91.cbb384","wires":[]},{"id":"b3f8a06f.e304d","type":"get-resource","name":"get-resource availability zones","xml":"<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"availability-zones\" \n\t\tkey=\"cloud-region.cloud-owner = 'CloudOwner' AND \n\t\t     cloud-region.cloud-region-id = $vnf-topology-operation-input.vnf-request-input.aic-cloud-region AND\n\t\t     depth='0'\"\n        pfx='aai.az' local-only='false' >\n\n","comments":"","outputs":1,"x":545.7143096923828,"y":1901.4286441802979,"z":"5083bb91.cbb384","wires":[["c6cdd578.1d9f88"]]},{"id":"c6cdd578.1d9f88","type":"failure","name":"failure","xml":"<outcome value='failure'>\n","comments":"","outputs":1,"x":770.9605255126953,"y":1900.829496383667,"z":"5083bb91.cbb384","wires":[["450c32ab.82b7bc"]]},{"id":"450c32ab.82b7bc","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error retrieving availability zones from AAI\" />\n","comments":"","x":944.7104644775391,"y":1899.5796184539795,"z":"5083bb91.cbb384","wires":[]}]
+[
+  {
+    "id":"9ccf5f2f.39236",
+    "type":"dgstart",
+    "name":"DGSTART",
+    "outputs":1,
+    "x":116,
+    "y":91,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "6691cc73.e873a4"
+      ]
+    ]
+  },
+  {
+    "id":"6691cc73.e873a4",
+    "type":"service-logic",
+    "name":"GENERIC-RESOURCE-API ${project.version}",
+    "module":"GENERIC-RESOURCE-API",
+    "version":"${project.version}",
+    "comments":"",
+    "xml":"<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>",
+    "outputs":1,
+    "x":229.61902618408203,
+    "y":131.2381134033203,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "cc1c0bf8.946078"
+      ]
+    ]
+  },
+  {
+    "id":"cc1c0bf8.946078",
+    "type":"method",
+    "name":"method vnf-topology-operation-assign",
+    "xml":"<method rpc='vnf-topology-operation-assign' mode='sync'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":207.42862701416016,
+    "y":171,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "640dc66a.a29d78"
+      ]
+    ]
+  },
+  {
+    "id":"4433df34.49523",
+    "type":"comment",
+    "name":"vnf-topology-operation-assign",
+    "info":"",
+    "comments":"",
+    "x":510.34485626220703,
+    "y":38.58634376525879,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"69555d22.201ae4",
+    "type":"switchNode",
+    "name":"switch request-action",
+    "xml":"<switch test='`$vnf-topology-operation-input.request-information.request-action`'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":517.8571395874023,
+    "y":368.19043922424316,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "21e7c9f9.301dc6",
+        "4592f6ea.c358a8"
+      ]
+    ]
+  },
+  {
+    "id":"21e7c9f9.301dc6",
+    "type":"outcome",
+    "name":"CreateVnfInstance",
+    "xml":"<outcome value='CreateVnfInstance'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":771.5714340209961,
+    "y":345.3333206176758,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "68be9a6d.905a74"
+      ]
+    ]
+  },
+  {
+    "id":"4592f6ea.c358a8",
+    "type":"other",
+    "name":"other",
+    "xml":"<outcome value='Other'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":733.5713996887207,
+    "y":391.0476484298706,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "f9f1fcba.f8b9a"
+      ]
+    ]
+  },
+  {
+    "id":"68be9a6d.905a74",
+    "type":"block",
+    "name":"block",
+    "xml":"<block>\n",
+    "atomic":"false",
+    "comments":"",
+    "outputs":1,
+    "x":956.4285621643066,
+    "y":345.3333501815796,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+
+      ]
+    ]
+  },
+  {
+    "id":"f9f1fcba.f8b9a",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"If svc-action is 'assign' then request-action must be 'CreateVnfInstance'\" />\n",
+    "comments":"",
+    "x":973.5714073181152,
+    "y":391.0476064682007,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"640dc66a.a29d78",
+    "type":"block",
+    "name":"block : atomic",
+    "xml":"<block atomic=\"true\">",
+    "atomic":"true",
+    "outputs":1,
+    "x":146.11905670166016,
+    "y":1702.7857055664062,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "69555d22.201ae4",
+        "8493543d.d5add8",
+        "44e96447.88a55c",
+        "60a9b28e.fdbd6c",
+        "a2f5b96a.0efe28",
+        "38295564.a1749a",
+        "4b89c8dc.b86128",
+        "fdb92e2f.a354e",
+        "2a1ab274.7c2bee",
+        "992ab3fb.83b44",
+        "181944c4.0d0f9b",
+        "41755ac8.072364",
+        "e106d4bd.0d1078",
+        "1b1ec882.086847",
+        "2567269e.02750a",
+        "da9c0753.0051f8",
+        "e38c22e2.cce52",
+        "66001fe6.d89e4",
+        "99ebc7f4.ea5d68",
+        "c1d69c5f.488e1",
+        "71b9cf5e.13115",
+        "4bbcb529.9daacc",
+        "12e97c5b.66ee84",
+        "3d1f814c.368f2e",
+        "3315c9d5.fbc886",
+        "435802ab.cae41c",
+        "79756539.60282c",
+        "ca1ff11f.a4d9c",
+        "a7335a29.c13d48",
+        "ffd11c87.313e8",
+        "c8f006fe.b172c8"
+      ]
+    ]
+  },
+  {
+    "id":"8493543d.d5add8",
+    "type":"get-resource",
+    "name":"get-resource VF_MODEL",
+    "xml":"<get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'\n  key='SELECT * from VF_MODEL WHERE customization_uuid = $vnf-topology-operation-input.vnf-information.onap-model-information.model-customization-uuid'\n  pfx='db.vf-model'>\n\n",
+    "comments":"",
+    "outputs":1,
+    "x":530.1904449462891,
+    "y":459.333309173584,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "d5535827.ea8598",
+        "48a8f1af.2c0e6"
+      ]
+    ]
+  },
+  {
+    "id":"6f7a7f57.b3d91",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'No model found for VNF customization UUID ' + $vnf-topology-operation-input.vnf-information.onap-model-information.model-customization-uuid`\" />\n",
+    "comments":"",
+    "x":971.6189231872559,
+    "y":482.7617950439453,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"d5535827.ea8598",
+    "type":"failure",
+    "name":"failure",
+    "xml":"<outcome value='failure'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":730.9761428833008,
+    "y":439.7141466140747,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "6cb659f6.a3ccc8"
+      ]
+    ]
+  },
+  {
+    "id":"48a8f1af.2c0e6",
+    "type":"not-found",
+    "name":"not-found",
+    "xml":"<outcome value='not-found'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":739.5475730895996,
+    "y":483.9998598098755,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "6f7a7f57.b3d91"
+      ]
+    ]
+  },
+  {
+    "id":"6cb659f6.a3ccc8",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error reading VF_MODEL table\" />\n",
+    "comments":"",
+    "x":970.9761238098145,
+    "y":437.85705375671387,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"44e96447.88a55c",
+    "type":"switchNode",
+    "name":"switch service-data.vnfs.vnf_length",
+    "xml":"<switch test='`$service-data.vnfs.vnf_length`'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":560.2857131958008,
+    "y":649.5714282989502,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "b5587c41.e56ce",
+        "7e264606.a0c498"
+      ]
+    ]
+  },
+  {
+    "id":"b5587c41.e56ce",
+    "type":"other",
+    "name":"NULL",
+    "xml":"<outcome value=''>\n",
+    "comments":"",
+    "outputs":1,
+    "x":786.0000419616699,
+    "y":616.7142162322998,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "35287950.3f0336"
+      ]
+    ]
+  },
+  {
+    "id":"35287950.3f0336",
+    "type":"set",
+    "name":"set vnf-index=0",
+    "xml":"<set>\n<parameter name='vnf-index' value='0' />\n",
+    "comments":"",
+    "x":950.2857627868652,
+    "y":615.7142944335938,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"7e264606.a0c498",
+    "type":"other",
+    "name":"other",
+    "xml":"<outcome value='Other'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":787.4286041259766,
+    "y":681.0000343322754,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "1e55cf6a.800ac1"
+      ]
+    ]
+  },
+  {
+    "id":"f93c00a3.b52d2",
+    "type":"set",
+    "name":"set vnf-index = vnf_length",
+    "xml":"<set>\n<parameter name='vnf-index' value='`$service-data.vnfs.vnf_length`' />\n",
+    "comments":"",
+    "x":1126.285758972168,
+    "y":659.285722732544,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"c5a883a5.29173",
+    "type":"for",
+    "name":"for each existing VNF",
+    "xml":"<for index='idx' start='0' end='`$service-data.vnfs.vnf_length`' >\n",
+    "comments":"",
+    "outputs":1,
+    "x":1111.7142715454102,
+    "y":705.2856616973877,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "a2daf07b.6ee38"
+      ]
+    ]
+  },
+  {
+    "id":"1e55cf6a.800ac1",
+    "type":"block",
+    "name":"block",
+    "xml":"<block>\n",
+    "atomic":"false",
+    "comments":"",
+    "outputs":1,
+    "x":923.1428642272949,
+    "y":681,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "f93c00a3.b52d2",
+        "c5a883a5.29173"
+      ]
+    ]
+  },
+  {
+    "id":"a2daf07b.6ee38",
+    "type":"switchNode",
+    "name":"switch vnf-information.vnf-id == service-data.vnfs.vnf[].vnf-id",
+    "xml":"<switch test='`$vnf-topology-operation-input.vnf-information.vnf-id == $service-data.vnfs.vnf[$idx].vnf-id`'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1466.0000381469727,
+    "y":704.857141494751,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "a768ca3d.d2e178"
+      ]
+    ]
+  },
+  {
+    "id":"a768ca3d.d2e178",
+    "type":"outcomeTrue",
+    "name":"true",
+    "xml":"<outcome value='true'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1760.2857475280762,
+    "y":704.4286136627197,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "4be53ad3.39d424"
+      ]
+    ]
+  },
+  {
+    "id":"4be53ad3.39d424",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'VNF id ' + $service-data.vnfs.vnf[$idx].vnf-id\n      + ' already exists, and has order status ' + $service-data.vnfs.vnf[$idx].vnf-data.vnf-level-oper-status.order-status`\" />\n",
+    "comments":"",
+    "x":1908.8571548461914,
+    "y":704.4285736083984,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"5528274.a4ca8d8",
+    "type":"comment",
+    "name":"make sure this VNF doesn't exist already",
+    "info":"",
+    "comments":"",
+    "x":1453.1427688598633,
+    "y":662.4285717010498,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"60a9b28e.fdbd6c",
+    "type":"set",
+    "name":"set vnf-topology data",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.vnf-id'\n value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.vnf-type'\n value='`$vnf-topology-operation-input.vnf-information.vnf-type`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.nf-type'\n value='`$db.vf-model.nf-type`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.nf-role'\n value='`$db.vf-model.nf-role`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.nf-function'\n value='`$db.vf-model.nf-function`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.nf-code'\n value='`$db.vf-model.nf-code`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.tenant'\n value='`$vnf-topology-operation-input.vnf-request-input.tenant`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.aic-cloud-region'\n value='`$vnf-topology-operation-input.vnf-request-input.aic-cloud-region`' />\n \n",
+    "comments":"",
+    "x":515.9999694824219,
+    "y":811.238115310669,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"a2f5b96a.0efe28",
+    "type":"switchNode",
+    "name":"switch input vnf-name",
+    "xml":"<switch test='`$vnf-topology-operation-input.vnf-request-input.vnf-name`'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":522.4285507202148,
+    "y":1053.8571615219116,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "a74ff6a8.d70078",
+        "5026858f.a2940c"
+      ]
+    ]
+  },
+  {
+    "id":"a74ff6a8.d70078",
+    "type":"outcome",
+    "name":"NULL",
+    "xml":"<outcome value=''>",
+    "comments":"",
+    "outputs":1,
+    "x":790.6427726745605,
+    "y":976.8333864212036,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "a1df7746.405bc8"
+      ]
+    ]
+  },
+  {
+    "id":"a535733d.56088",
+    "type":"switchNode",
+    "name":"switch ecomp-generated-naming",
+    "xml":"<switch test='`$db.vf-model.ecomp-generated-naming`'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1207.071662902832,
+    "y":883.5002059936523,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "c481f2.a0820e1",
+        "fed6ce07.f1c9b",
+        "3606bd75.f9d982"
+      ]
+    ]
+  },
+  {
+    "id":"a1df7746.405bc8",
+    "type":"block",
+    "name":"block : atomic",
+    "xml":"<block atomic=\"true\">",
+    "atomic":"true",
+    "outputs":1,
+    "x":936.3572692871094,
+    "y":976.833498954773,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "ba81df66.145ca",
+        "a99511f6.3ff61",
+        "a535733d.56088"
+      ]
+    ]
+  },
+  {
+    "id":"fed6ce07.f1c9b",
+    "type":"outcome",
+    "name":"N",
+    "xml":"<outcome value='N'>",
+    "comments":"",
+    "outputs":1,
+    "x":1456.357322692871,
+    "y":885.404914855957,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "10b3babc.98e1d5"
+      ]
+    ]
+  },
+  {
+    "id":"10b3babc.98e1d5",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"No vnf-name was received but ecomp-generated-naming is not Y\" />\n",
+    "comments":"",
+    "x":1610.64310836792,
+    "y":903.9763593673706,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"c481f2.a0820e1",
+    "type":"outcome",
+    "name":"Y",
+    "xml":"<outcome value='Y'>",
+    "comments":"",
+    "outputs":1,
+    "x":1456.3572883605957,
+    "y":841.1192359924316,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "785bb471.695f2c"
+      ]
+    ]
+  },
+  {
+    "id":"3606bd75.f9d982",
+    "type":"other",
+    "name":"other",
+    "xml":"<outcome value='Other'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1456.357250213623,
+    "y":931.119234085083,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "10b3babc.98e1d5"
+      ]
+    ]
+  },
+  {
+    "id":"785bb471.695f2c",
+    "type":"block",
+    "name":"block",
+    "xml":"<block>\n",
+    "atomic":"false",
+    "comments":"",
+    "outputs":1,
+    "x":1593.5002326965332,
+    "y":841.1192359924316,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+
+      ]
+    ]
+  },
+  {
+    "id":"5026858f.a2940c",
+    "type":"other",
+    "name":"other",
+    "xml":"<outcome value='Other'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":793.2144546508789,
+    "y":1123.119125366211,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "14a356a5.aabd79"
+      ]
+    ]
+  },
+  {
+    "id":"3f38f6a8.e8ae7a",
+    "type":"set",
+    "name":"set tmp.vnf-name",
+    "xml":"<set>\n<parameter name='tmp.vnf-name' value=\"`$vnf-topology-operation-input.vnf-request-input.vnf-name`\" />\n",
+    "comments":"",
+    "x":1752.0715306599936,
+    "y":1190.5476417541504,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"ba81df66.145ca",
+    "type":"call",
+    "name":"call GENERIC-RESOURCE-API:generate-unique-name",
+    "xml":"<call module='GENERIC-RESOURCE-API' rpc='generate-unique-name' mode='sync' >\n",
+    "comments":"",
+    "outputs":1,
+    "x":1275.4763259887695,
+    "y":1049.8333959579468,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "d2300850.ff9928",
+        "88893e9e.26f3"
+      ]
+    ]
+  },
+  {
+    "id":"d2300850.ff9928",
+    "type":"failure",
+    "name":"failure",
+    "xml":"<outcome value='failure'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1571.1906140645347,
+    "y":1022.6906585693359,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "a2f8f6ce.0d9048"
+      ]
+    ]
+  },
+  {
+    "id":"88893e9e.26f3",
+    "type":"success",
+    "name":"success",
+    "xml":"<outcome value='success'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1574.5239639282227,
+    "y":1074.3573017120361,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "e379d995.8d07c8"
+      ]
+    ]
+  },
+  {
+    "id":"a99511f6.3ff61",
+    "type":"set",
+    "name":"set variables for generating unique name",
+    "xml":"<set>\n<parameter name='generate-unique-name-input.index-table-name' value='VNF_NAME_INDEX' />\n<parameter name='generate-unique-name-input.index-table-prefix-column' value='vnf_name_prefix' />\n<parameter name='generate-unique-name-input.name-table-type' value='VNF_INSTANCE' />\n<parameter name='generate-unique-name-input.prefix' value=\"`'z' + $vnf-topology-operation-input.vnf-request-input.aic-cloud-region + $db.vf-model.nf-code`\" />\n<parameter name='generate-unique-name-input.index-length' value='2' />\n",
+    "comments":"",
+    "x":1232.1430130004883,
+    "y":998.1668043136597,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"e379d995.8d07c8",
+    "type":"set",
+    "name":"set tmp.vnf-name to generated name",
+    "xml":"<set>\n<parameter name='tmp.vnf-name' value='`$generate-unique-name-output.generated-name`' />\n",
+    "comments":"",
+    "x":1815.7143491109214,
+    "y":1074.8333930969238,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"a2f8f6ce.0d9048",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`$generate-unique-name-output.error-message`\" />\n",
+    "comments":"",
+    "x":1739.0477269490561,
+    "y":1022.1191701889038,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"14a356a5.aabd79",
+    "type":"block",
+    "name":"block : atomic",
+    "xml":"<block atomic=\"true\">",
+    "atomic":"true",
+    "outputs":1,
+    "x":941.1429824829102,
+    "y":1121.7858123779297,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "ddf542b0.c6011",
+        "fea292da.2d62c"
+      ]
+    ]
+  },
+  {
+    "id":"fea292da.2d62c",
+    "type":"call",
+    "name":"call GENERIC-RESOURCE-API:generate-unique-name",
+    "xml":"<call module='GENERIC-RESOURCE-API' rpc='generate-unique-name' mode='sync' >\n",
+    "comments":"",
+    "outputs":1,
+    "x":1271.1429824829102,
+    "y":1169.7858123779297,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "fe79a9ce.cff238",
+        "854320f4.a6951"
+      ]
+    ]
+  },
+  {
+    "id":"fe79a9ce.cff238",
+    "type":"failure",
+    "name":"failure",
+    "xml":"<outcome value='failure'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1569.7143987019858,
+    "y":1139.785837173462,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "c71b771e.d085f8"
+      ]
+    ]
+  },
+  {
+    "id":"854320f4.a6951",
+    "type":"success",
+    "name":"success",
+    "xml":"<outcome value='success'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1573.0477485656738,
+    "y":1191.452480316162,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "3f38f6a8.e8ae7a"
+      ]
+    ]
+  },
+  {
+    "id":"ddf542b0.c6011",
+    "type":"set",
+    "name":"set variables for generating unique name",
+    "xml":"<set>\n<parameter name='generate-unique-name-input.name-table-type' value='VNF_INSTANCE' />\n<parameter name='generate-unique-name-input.supplied-name' value='`$vnf-topology-operation-input.vnf-request-input.vnf-name`' />\n",
+    "comments":"",
+    "x":1227.8096542358398,
+    "y":1118.1191844940186,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"c71b771e.d085f8",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`$generate-unique-name-output.error-message`\" />\n",
+    "comments":"",
+    "x":1737.5715115865073,
+    "y":1139.2143487930298,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"38295564.a1749a",
+    "type":"get-resource",
+    "name":"get-resource cloud region",
+    "xml":"<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"cloud-region\" \n\t\tkey=\"cloud-region.cloud-owner = 'CloudOwner' AND \n\t\t     cloud-region.cloud-region-id = $vnf-topology-operation-input.vnf-request-input.aic-cloud-region AND\n\t\t     depth='0'\"\n        pfx='aai.cloud-region' local-only='false' >\n\n",
+    "comments":"",
+    "outputs":1,
+    "x":544.5714492797852,
+    "y":1731.8569984436035,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "705615f3.8b4c9c",
+        "ad2a9079.440fb"
+      ]
+    ]
+  },
+  {
+    "id":"ad2a9079.440fb",
+    "type":"failure",
+    "name":"failure",
+    "xml":"<outcome value='failure'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":769.8176422119141,
+    "y":1750.00785446167,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "2721b55e.e28fda"
+      ]
+    ]
+  },
+  {
+    "id":"2721b55e.e28fda",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error retrieving cloud region from AAI\" />\n",
+    "comments":"",
+    "x":944.8176155090332,
+    "y":1750.007890701294,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"705615f3.8b4c9c",
+    "type":"not-found",
+    "name":"not-found",
+    "xml":"<outcome value='not-found'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":778.7462387084961,
+    "y":1708.2935876846313,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "5e971bd2.c85374"
+      ]
+    ]
+  },
+  {
+    "id":"5e971bd2.c85374",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Cloud region not found in AAI\" />\n",
+    "comments":"",
+    "x":945.095516204834,
+    "y":1707.5991649627686,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"4b89c8dc.b86128",
+    "type":"get-resource",
+    "name":"get-resource VF_TO_NETWORK_ROLE_MAPPING",
+    "xml":"<get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'\n  key='SELECT * from VF_TO_NETWORK_ROLE_MAPPING WHERE vf_customization_uuid = $vnf-topology-operation-input.vnf-information.onap-model-information.model-customization-uuid'\n  pfx='db.vf-network-role-mapping[]'>\n\n",
+    "comments":"",
+    "outputs":1,
+    "x":609.8095321655273,
+    "y":2042.9045181274414,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "54fe96c4.2ade08",
+        "73ebe04c.8877"
+      ]
+    ]
+  },
+  {
+    "id":"fc2923af.cfa16",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'No entries found in VF_TO_NETWORK_ROLE_MAPPING for VNF customization UUID ' + $vnf-topology-operation-input.vnf-information.onap-model-information.model-customization-uuid`\" />\n",
+    "comments":"",
+    "x":1345.5237121582031,
+    "y":2060.618698120117,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"54fe96c4.2ade08",
+    "type":"failure",
+    "name":"failure",
+    "xml":"<outcome value='failure'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":905.5952033996582,
+    "y":2021.6186828613281,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "359e53d8.b8194c"
+      ]
+    ]
+  },
+  {
+    "id":"73ebe04c.8877",
+    "type":"not-found",
+    "name":"not-found",
+    "xml":"<outcome value='not-found'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":914.166633605957,
+    "y":2065.904396057129,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "ce44b8cb.59b0b8"
+      ]
+    ]
+  },
+  {
+    "id":"359e53d8.b8194c",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error reading VF_TO_NETWORK_ROLE_MAPPING table\" />\n",
+    "comments":"",
+    "x":1080.5951843261719,
+    "y":2021.4283332824707,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"256b9444.46e22c",
+    "type":"block",
+    "name":"block : atomic",
+    "xml":"<block atomic=\"true\">",
+    "atomic":"true",
+    "outputs":1,
+    "x":710.5715866088867,
+    "y":2491.71391582489,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "94f38af4.602b28",
+        "94677688.71e6b8",
+        "adf1fe7e.9a17b",
+        "aae66b2d.04c758",
+        "f2668cde.bd454",
+        "2eaed654.44544a",
+        "ebe74367.6c98d",
+        "a16a767c.1d4a58"
+      ]
+    ]
+  },
+  {
+    "id":"adf1fe7e.9a17b",
+    "type":"get-resource",
+    "name":"get-resource l3-network",
+    "xml":"<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"l3-networks\" \n\t\tkey=\"l3-network.network-role = $db.vf-network-role-mapping[$role-index].network-role\"\n        pfx='aai.l3-network' local-only='false'\n>\n",
+    "comments":"",
+    "outputs":1,
+    "x":943.4286041259766,
+    "y":2170.999779701233,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "e410cae.f805538",
+        "d30ae5a6.b9bd78"
+      ]
+    ]
+  },
+  {
+    "id":"d30ae5a6.b9bd78",
+    "type":"failure",
+    "name":"failure",
+    "xml":"<outcome value='failure'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1147.476318359375,
+    "y":2193.1426191329956,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "3ac2e1b4.70cbce"
+      ]
+    ]
+  },
+  {
+    "id":"3ac2e1b4.70cbce",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error retrieving l3-network from AAI\" />\n",
+    "comments":"",
+    "x":1322.4762916564941,
+    "y":2193.1426553726196,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"e410cae.f805538",
+    "type":"not-found",
+    "name":"not-found",
+    "xml":"<outcome value='not-found'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1156.404914855957,
+    "y":2151.428352355957,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "5d3fbb26.bfed54"
+      ]
+    ]
+  },
+  {
+    "id":"5d3fbb26.bfed54",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'No active l3-network found in AAI with cloud_region_id '\n          + $vnf-topology-operation-input.vnf-request-input.aic-cloud-region + ' and network_role '\n          + $db.vf-network-role-mapping[$network-index].network-role`\" />\n",
+    "comments":"",
+    "x":1322.754192352295,
+    "y":2150.7339296340942,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"94f38af4.602b28",
+    "type":"set",
+    "name":"set vnf-network data",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].network-role'\n    value='`$db.vf-network-role-mapping[$role-index].network-role`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].network-name'\n    value='`$aai.l3-network.l3-network[$db-network-index].network-name`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].neutron-id'\n    value='`$aai.l3-network.l3-network[$db-network-index].neutron-network-id`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].network-id'\n    value='`$aai.l3-network.l3-network[$db-network-index].network-id`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].contrail-network-fqdn'\n    value='`$aai.l3-network.l3-network[$db-network-index].contrail-network-fqdn`' />\n",
+    "comments":"",
+    "x":932.6191940307617,
+    "y":2658.0000228881836,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"181944c4.0d0f9b",
+    "type":"for",
+    "name":"for each cloud-region availability zone",
+    "xml":"<for index='idx' start='0' end='`$aai.az.availability-zone_length`' >\n",
+    "comments":"",
+    "outputs":1,
+    "x":544.3335571289062,
+    "y":3072.618803024292,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "7193ae4f.a03bb"
+      ]
+    ]
+  },
+  {
+    "id":"bec7777f.49caa8",
+    "type":"set",
+    "name":"set availability-zone",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.availability-zones.availability-zone[$idx]'\n  value='`$aai.az.availability-zone[$idx].availability-zone-name`' />\n",
+    "comments":"",
+    "x":1006.0002403259277,
+    "y":3041.952217102051,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"41755ac8.072364",
+    "type":"set",
+    "name":"set vnf-parameters-data",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.'\n  value='vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.' />\n",
+    "comments":"",
+    "x":503.9524841308594,
+    "y":2922.5711631774902,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"4fed1d67.892644",
+    "type":"save",
+    "name":"save generic-vnf l3-network relationships",
+    "xml":"<save plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\"\n   resource=\"generic-vnf:relationship-list\"\n   key=\"generic-vnf.vnf-id = $service-data.vnfs.vnf[$vnf-index].vnf-id\"\n   force=\"true\" pfx=\"tmp.AnAI-data\">\n    <parameter name=\"relationship-list.relationship[0].related-to\" value=\"l3-network\" />\n    <parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"l3-network.network-id\" />\n    <parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$vnf-nw-index].network-id`\" />\n",
+    "comments":"",
+    "outputs":1,
+    "x":970.5240173339844,
+    "y":3216.381015777588,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "b6fac54b.97ab18",
+        "8f7c44dc.2bfaf8"
+      ]
+    ]
+  },
+  {
+    "id":"2567269e.02750a",
+    "type":"returnSuccess",
+    "name":"return success",
+    "xml":"<return status='success'>\n<parameter name=\"ack-final-indicator\" value=\"Y\" />\n<parameter name=\"error-code\" value=\"200\" />\n<parameter name=\"error-message\" value=\"`$error-message`\" />\n",
+    "comments":"",
+    "x":467.0953674316406,
+    "y":3603.1901140213013,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"1b1ec882.086847",
+    "type":"set",
+    "name":"set vnf-level-oper-status to PendingCreate",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-level-oper-status.order-status' value='PendingCreate' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-level-oper-status.last-rpc-action' value='`$vnf-topology-operation-input.sdnc-request-header.svc-action`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-level-oper-status.last-action' value='`$vnf-topology-operation-input.request-information.request-action`' />\n",
+    "comments":"",
+    "x":556.9088134765625,
+    "y":3505.527594566345,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"2a1ab274.7c2bee",
+    "type":"for",
+    "name":"for each network-role",
+    "xml":"<for index='role-index' start='0' end='`$db.vf-network-role-mapping_length`'>",
+    "comments":"",
+    "outputs":1,
+    "x":493.90489196777344,
+    "y":2491.7141189575195,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "256b9444.46e22c"
+      ]
+    ]
+  },
+  {
+    "id":"fdb92e2f.a354e",
+    "type":"set",
+    "name":"set network-index = 0",
+    "xml":"<set>\n<parameter name='network-index' value='0' />\n",
+    "comments":"",
+    "x":512.2380676269531,
+    "y":2109.8094577789307,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"94677688.71e6b8",
+    "type":"set",
+    "name":"increment network-index",
+    "xml":"<set>\n<parameter name='network-index' value='`$network-index + 1`' />\n",
+    "comments":"",
+    "x":942.9525146484375,
+    "y":2795.6189250946045,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"992ab3fb.83b44",
+    "type":"set",
+    "name":"set vnf-network_length",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network_length'\n  value='`$network-index`' />\n",
+    "comments":"",
+    "x":502.8095703125,
+    "y":2872.571207046509,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"e106d4bd.0d1078",
+    "type":"set",
+    "name":"copy input data",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.sdnc-request-header.' value='$vnf-topology-operation-input.sdnc-request-header.' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.request-information.' value='$vnf-topology-operation-input.request-information.' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.service-information.' value='$vnf-topology-operation-input.service-information.' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-information.' value='$vnf-topology-operation-input.vnf-information.' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-request-input.' value='$vnf-topology-operation-input.vnf-request-input.' />\n\n",
+    "comments":"",
+    "x":472.4286422729492,
+    "y":3453.1904258728027,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"da9c0753.0051f8",
+    "type":"for",
+    "name":"for each vnf-network",
+    "xml":"<for index='vnf-nw-index' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network_length`' >\n",
+    "comments":"",
+    "outputs":1,
+    "x":493.52392578125,
+    "y":3215.380931854248,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "4dd068e4.b72dc8"
+      ]
+    ]
+  },
+  {
+    "id":"4dd068e4.b72dc8",
+    "type":"block",
+    "name":"block : atomic",
+    "xml":"<block atomic=\"true\">",
+    "atomic":"true",
+    "outputs":1,
+    "x":697.1905670166016,
+    "y":3215.380892753601,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "4fed1d67.892644"
+      ]
+    ]
+  },
+  {
+    "id":"e38c22e2.cce52",
+    "type":"set",
+    "name":"set new vnf_length",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf_length' value='`$vnf-index + 1`' />\n",
+    "comments":"",
+    "x":508.0952491760254,
+    "y":765.7619781494141,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"66001fe6.d89e4",
+    "type":"for",
+    "name":"for each cloud-region relationship",
+    "xml":"<for index='idx' start='0' end='`$aai.cloud-region.relationship-list.relationship_length`' >\n",
+    "comments":"",
+    "outputs":1,
+    "x":557.4285736083984,
+    "y":1819.0951700210571,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "c5d7b884.059e78"
+      ]
+    ]
+  },
+  {
+    "id":"c5d7b884.059e78",
+    "type":"switchNode",
+    "name":"switch related-to",
+    "xml":"<switch test='`$aai.cloud-region.relationship-list.relationship[$idx].related-to`'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":805.1071166992188,
+    "y":1818.8450994491577,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "2d88636e.c052fc"
+      ]
+    ]
+  },
+  {
+    "id":"2d88636e.c052fc",
+    "type":"outcome",
+    "name":"complex",
+    "xml":"<outcome value='complex'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":974.5714378356934,
+    "y":1818.2379217147827,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "7c602050.7b0ac"
+      ]
+    ]
+  },
+  {
+    "id":"cbda08be.5e00d8",
+    "type":"set",
+    "name":"set aic-clli",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.aic-clli'\n  value='`$aai-uid-split[$aai-uid-split_length - 1]`' />\n",
+    "comments":"",
+    "x":1295.2857360839844,
+    "y":1817.9045791625977,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"99ebc7f4.ea5d68",
+    "type":"switchNode",
+    "name":"switch aic-clli",
+    "xml":"<switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.aic-clli`'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":493.3333511352539,
+    "y":1975.0474872589111,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "1bb0c6a6.aa0059"
+      ]
+    ]
+  },
+  {
+    "id":"1bb0c6a6.aa0059",
+    "type":"outcome",
+    "name":"NULL",
+    "xml":"<outcome value=''>",
+    "comments":"",
+    "outputs":1,
+    "x":641.4761848449707,
+    "y":1975.0474700927734,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "9d910b9.8f160f8"
+      ]
+    ]
+  },
+  {
+    "id":"9d910b9.8f160f8",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'Unable to find aic-clli in AAI for aic-cloud-region ' + $vnf-topology-operation-input.vnf-request-input.aic-cloud-region`\" />\n",
+    "comments":"",
+    "x":788.6190452575684,
+    "y":1974.6189041137695,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"911708ca.a4ec28",
+    "type":"set",
+    "name":"set from DB",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-invariant-uuid'\n  value='`$db.vf-model.invariant-uuid`' />\n",
+    "comments":"",
+    "x":916.9287452697754,
+    "y":1291.0475587844849,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"b87037e6.eb7448",
+    "type":"for",
+    "name":"for each l3-network",
+    "xml":"<for index='db-network-index' start='0' end='`$aai.l3-network.l3-network_length`' >\n",
+    "comments":"",
+    "outputs":1,
+    "x":1050.8811492919922,
+    "y":2414.571388244629,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "4cb7a54f.4eeccc"
+      ]
+    ]
+  },
+  {
+    "id":"4cb7a54f.4eeccc",
+    "type":"switchNode",
+    "name":"switch orchestration-status",
+    "xml":"<switch test='`$aai.l3-network.l3-network[$db-network-index].orchestration-status`'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1279.452350616455,
+    "y":2413.142815589905,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "65732b9e.885204",
+        "f80fc6c2.030438",
+        "265b5201.897f0e",
+        "f51d095f.d31e98",
+        "41d53be7.1f6d94"
+      ]
+    ]
+  },
+  {
+    "id":"65732b9e.885204",
+    "type":"outcome",
+    "name":"Pending Delete",
+    "xml":"<outcome value='Pending Delete'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1516.1192626953125,
+    "y":2458.8095235824585,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "716a882.9ab7178"
+      ]
+    ]
+  },
+  {
+    "id":"f80fc6c2.030438",
+    "type":"other",
+    "name":"other",
+    "xml":"<outcome value='Other'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1488.9764022827148,
+    "y":2509.809504508972,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "c6e8990a.ebd138"
+      ]
+    ]
+  },
+  {
+    "id":"3a777e92.27b412",
+    "type":"switchNode",
+    "name":"switch related-to",
+    "xml":"<switch test='`$aai.l3-network.l3-network[$db-network-index].relationship-list.relationship[$db-rel-index].related-to`'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1854.6907539367676,
+    "y":2508.3808450698853,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "7ebd2a2d.1adc64"
+      ]
+    ]
+  },
+  {
+    "id":"c6e8990a.ebd138",
+    "type":"for",
+    "name":"for each relationship",
+    "xml":"<for silentFailure='true' index='db-rel-index' start='0' end='`$aai.l3-network.l3-network[$db-network-index].relationship-list.relationship_length`' >\n",
+    "comments":"",
+    "outputs":1,
+    "x":1658.9763145446777,
+    "y":2509.3808813095093,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "3a777e92.27b412"
+      ]
+    ]
+  },
+  {
+    "id":"7ebd2a2d.1adc64",
+    "type":"outcome",
+    "name":"cloud-region",
+    "xml":"<outcome value='cloud-region'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":2028.9763946533203,
+    "y":2507.9522914886475,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "91da1633.e19528"
+      ]
+    ]
+  },
+  {
+    "id":"91da1633.e19528",
+    "type":"for",
+    "name":"for each relationship data",
+    "xml":"<for silentFailure='true' index='db-data-index' start='0' end='`$aai.l3-network.l3-network[$db-network-index].relationship-list.relationship[$db-rel-index].relationship-data_length`' >\n",
+    "comments":"",
+    "outputs":1,
+    "x":2226.119094848633,
+    "y":2508.380759239197,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "7571e6bb.7c1e98"
+      ]
+    ]
+  },
+  {
+    "id":"7571e6bb.7c1e98",
+    "type":"switchNode",
+    "name":"switch relationship-key",
+    "xml":"<switch test='`$aai.l3-network.l3-network[$db-network-index].relationship-list.relationship[$db-rel-index].relationship-data[$db-data-index].relationship-key`'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":2457.547695159912,
+    "y":2507.9521341323853,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "99351695.fbd508"
+      ]
+    ]
+  },
+  {
+    "id":"99351695.fbd508",
+    "type":"outcome",
+    "name":"cloud-region.cloud-region-id",
+    "xml":"<outcome value='cloud-region.cloud-region-id'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":2698.9762268066406,
+    "y":2507.95223903656,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "52fbb392.9ae0fc"
+      ]
+    ]
+  },
+  {
+    "id":"52fbb392.9ae0fc",
+    "type":"switchNode",
+    "name":"switch relationship-value == cloud-region-id",
+    "xml":"<switch test='`$aai.l3-network.l3-network[$db-network-index].relationship-list.relationship[$db-rel-index].relationship-data[$db-data-index].relationship-value == $vnf-topology-operation-input.vnf-request-input.aic-cloud-region`'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":3003.2621459960938,
+    "y":2507.8092947006226,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "30d6670a.932068"
+      ]
+    ]
+  },
+  {
+    "id":"30d6670a.932068",
+    "type":"outcomeTrue",
+    "name":"true",
+    "xml":"<outcome value='true'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":3243.262176513672,
+    "y":2507.9522399902344,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "f3bd4d0.b8b78b"
+      ]
+    ]
+  },
+  {
+    "id":"aae66b2d.04c758",
+    "type":"block",
+    "name":"block",
+    "xml":"<block>\n",
+    "atomic":"false",
+    "comments":"",
+    "outputs":1,
+    "x":889.0953330993652,
+    "y":2482.4284858703613,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "b87037e6.eb7448",
+        "c901ec1c.1186a"
+      ]
+    ]
+  },
+  {
+    "id":"c901ec1c.1186a",
+    "type":"returnSuccess",
+    "name":"CATCH BREAK",
+    "xml":"<return status='success'>\n\n",
+    "comments":"",
+    "x":1040.4287414550781,
+    "y":2555.7617197036743,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"4cb4ba60.e5ecf4",
+    "type":"returnFailure",
+    "name":"BREAK",
+    "xml":"<return status='failure'>\n",
+    "comments":"",
+    "x":3544.095157623291,
+    "y":2525.761643409729,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"f2668cde.bd454",
+    "type":"set",
+    "name":"set l3-network-id = -1",
+    "xml":"<set>\n<parameter name='l3-network-id' value='-1' />\n",
+    "comments":"",
+    "x":933.4287033081055,
+    "y":2285.7616996765137,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"f3bd4d0.b8b78b",
+    "type":"block",
+    "name":"block : atomic",
+    "xml":"<block atomic=\"true\">",
+    "atomic":"true",
+    "outputs":1,
+    "x":3389.0951538085938,
+    "y":2507.4283485412598,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "26d1bdef.32da62",
+        "4cb4ba60.e5ecf4"
+      ]
+    ]
+  },
+  {
+    "id":"26d1bdef.32da62",
+    "type":"set",
+    "name":"set l3-network-id = this l3-network",
+    "xml":"<set>\n<parameter name='l3-network-id' value='`$aai.l3-network.l3-network[$db-network-index].network-id`' />\n",
+    "comments":"",
+    "x":3625.7618255615234,
+    "y":2482.4283475875854,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"2eaed654.44544a",
+    "type":"switchNode",
+    "name":"switch l3-network-id",
+    "xml":"<switch test='`$l3-network-id`'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":930.4286270141602,
+    "y":2609.428741455078,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "94d5eb5b.9dfb28"
+      ]
+    ]
+  },
+  {
+    "id":"94d5eb5b.9dfb28",
+    "type":"outcome",
+    "name":"-1",
+    "xml":"<outcome value='-1'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1100.4285774230957,
+    "y":2609.428497314453,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "819df612.f478a8"
+      ]
+    ]
+  },
+  {
+    "id":"819df612.f478a8",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'Unable to find l3-network in AAI for network role ' + $db.vf-network-role-mapping[$role-index].network-role`\" />\n",
+    "comments":"",
+    "x":1248.7619400024414,
+    "y":2609.4286346435547,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"c1d69c5f.488e1",
+    "type":"switchNode",
+    "name":"switch input model-invariant-uuid",
+    "xml":"<switch test='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-invariant-uuid`'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":560.7858200073242,
+    "y":1313.8720026016235,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "81712284.6061f",
+        "bbef1dff.d32a1"
+      ]
+    ]
+  },
+  {
+    "id":"81712284.6061f",
+    "type":"outcome",
+    "name":"NULL",
+    "xml":"<outcome value=''>",
+    "comments":"",
+    "outputs":1,
+    "x":766.4524917602539,
+    "y":1291.0149660110474,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "911708ca.a4ec28"
+      ]
+    ]
+  },
+  {
+    "id":"bbef1dff.d32a1",
+    "type":"other",
+    "name":"other",
+    "xml":"<outcome value='Other'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":767.8810882568359,
+    "y":1335.3005571365356,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "9d361538.39a998"
+      ]
+    ]
+  },
+  {
+    "id":"9d361538.39a998",
+    "type":"set",
+    "name":"set from input",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-invariant-uuid'\n  value='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-invariant-uuid`' />\n",
+    "comments":"",
+    "x":922.1668243408203,
+    "y":1334.7291293144226,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"c01c75b7.d771a8",
+    "type":"set",
+    "name":"set from DB",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-uuid'\n  value='`$db.vf-model.uuid`' />\n",
+    "comments":"",
+    "x":917.8810157775879,
+    "y":1379.5862350463867,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"71b9cf5e.13115",
+    "type":"switchNode",
+    "name":"switch input model-uuid",
+    "xml":"<switch test='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-uuid`'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":533.4048385620117,
+    "y":1402.4107398986816,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "cb6c4216.48671",
+        "51d9dbfe.50eec4"
+      ]
+    ]
+  },
+  {
+    "id":"cb6c4216.48671",
+    "type":"outcome",
+    "name":"NULL",
+    "xml":"<outcome value=''>",
+    "comments":"",
+    "outputs":1,
+    "x":767.4048118591309,
+    "y":1379.553671836853,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "c01c75b7.d771a8"
+      ]
+    ]
+  },
+  {
+    "id":"51d9dbfe.50eec4",
+    "type":"other",
+    "name":"other",
+    "xml":"<outcome value='Other'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":768.8334083557129,
+    "y":1423.8392629623413,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "8668309.94373d"
+      ]
+    ]
+  },
+  {
+    "id":"8668309.94373d",
+    "type":"set",
+    "name":"set from input",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-uuid'\n  value='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-uuid`' />\n",
+    "comments":"",
+    "x":923.1191444396973,
+    "y":1423.2678351402283,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"f9c5e77b.b35768",
+    "type":"set",
+    "name":"set from DB",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-version'\n  value='`$db.vf-model.version`' />\n",
+    "comments":"",
+    "x":915.0239486694336,
+    "y":1468.4434423446655,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"4bbcb529.9daacc",
+    "type":"switchNode",
+    "name":"switch input model-version",
+    "xml":"<switch test='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-version`'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":541.5477104187012,
+    "y":1491.2678871154785,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "a7d107ab.83c758",
+        "78b9d8ab.538148"
+      ]
+    ]
+  },
+  {
+    "id":"a7d107ab.83c758",
+    "type":"outcome",
+    "name":"NULL",
+    "xml":"<outcome value=''>",
+    "comments":"",
+    "outputs":1,
+    "x":764.5476951599121,
+    "y":1468.410849571228,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "f9c5e77b.b35768"
+      ]
+    ]
+  },
+  {
+    "id":"78b9d8ab.538148",
+    "type":"other",
+    "name":"other",
+    "xml":"<outcome value='Other'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":765.9762916564941,
+    "y":1512.6964406967163,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "e7c733ab.83255"
+      ]
+    ]
+  },
+  {
+    "id":"e7c733ab.83255",
+    "type":"set",
+    "name":"set from input",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-version'\n  value='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-version`' />\n",
+    "comments":"",
+    "x":920.2620277404785,
+    "y":1512.1250128746033,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"5c05bbe1.d44bc4",
+    "type":"set",
+    "name":"set from DB",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-name'\n  value='`$db.vf-model.name`' />\n",
+    "comments":"",
+    "x":915.0239486694336,
+    "y":1555.5862646102905,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"12e97c5b.66ee84",
+    "type":"switchNode",
+    "name":"switch input model-name",
+    "xml":"<switch test='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-name`'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":536.5477104187012,
+    "y":1578.4107093811035,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "af70cdb.ef6023",
+        "f3d34dfc.cbd31"
+      ]
+    ]
+  },
+  {
+    "id":"af70cdb.ef6023",
+    "type":"outcome",
+    "name":"NULL",
+    "xml":"<outcome value=''>",
+    "comments":"",
+    "outputs":1,
+    "x":764.5476951599121,
+    "y":1555.553671836853,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "5c05bbe1.d44bc4"
+      ]
+    ]
+  },
+  {
+    "id":"f3d34dfc.cbd31",
+    "type":"other",
+    "name":"other",
+    "xml":"<outcome value='Other'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":765.9762916564941,
+    "y":1599.8392629623413,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "ba8a085e.f15f18"
+      ]
+    ]
+  },
+  {
+    "id":"ba8a085e.f15f18",
+    "type":"set",
+    "name":"set from input",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-name'\n  value='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-name`' />\n",
+    "comments":"",
+    "x":920.2620277404785,
+    "y":1599.2678351402283,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"716a882.9ab7178",
+    "type":"block",
+    "name":"block",
+    "xml":"<block>\n",
+    "atomic":"false",
+    "comments":"",
+    "outputs":1,
+    "x":1669.3333549499512,
+    "y":2459.586400985718,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+
+      ]
+    ]
+  },
+  {
+    "id":"41d53be7.1f6d94",
+    "type":"outcome",
+    "name":"PendingDelete",
+    "xml":"<outcome value='PendingDelete'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1513.9999961853027,
+    "y":2414.5863151550293,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "88ce6156.79525"
+      ]
+    ]
+  },
+  {
+    "id":"88ce6156.79525",
+    "type":"block",
+    "name":"block",
+    "xml":"<block>\n",
+    "atomic":"false",
+    "comments":"",
+    "outputs":1,
+    "x":1669.2140884399414,
+    "y":2415.3631925582886,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+
+      ]
+    ]
+  },
+  {
+    "id":"f51d095f.d31e98",
+    "type":"outcome",
+    "name":"Pending Create",
+    "xml":"<outcome value='Pending Create'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1515.9999961853027,
+    "y":2371.2528190612793,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "1d66b0a7.bf415f"
+      ]
+    ]
+  },
+  {
+    "id":"1d66b0a7.bf415f",
+    "type":"block",
+    "name":"block",
+    "xml":"<block>\n",
+    "atomic":"false",
+    "comments":"",
+    "outputs":1,
+    "x":1669.2140884399414,
+    "y":2372.0296964645386,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+
+      ]
+    ]
+  },
+  {
+    "id":"265b5201.897f0e",
+    "type":"outcome",
+    "name":"PendingCreate",
+    "xml":"<outcome value='PendingCreate'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1515.9999961853027,
+    "y":2327.9195671081543,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "569d335c.bf6c3c"
+      ]
+    ]
+  },
+  {
+    "id":"569d335c.bf6c3c",
+    "type":"block",
+    "name":"block",
+    "xml":"<block>\n",
+    "atomic":"false",
+    "comments":"",
+    "outputs":1,
+    "x":1669.2140884399414,
+    "y":2328.6964445114136,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+
+      ]
+    ]
+  },
+  {
+    "id":"ebe74367.6c98d",
+    "type":"for",
+    "name":"for each A&AI subnet",
+    "xml":"<for index='subnet-index' start='0' end='`$aai.l3-network.l3-network[0].subnets.subnet_length`' >\n",
+    "comments":"",
+    "outputs":1,
+    "x":932.6667633056641,
+    "y":2702.919626235962,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "cfa19178.3c2c3"
+      ]
+    ]
+  },
+  {
+    "id":"cfa19178.3c2c3",
+    "type":"set",
+    "name":"set subnet data",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].subnets-data.subnet-data[$subnet-index].ip-version'\n   value='`$aai.l3-network.l3-network[$db-network-index].subnets.subnet[$subnet-index].ip-version`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].subnets-data.subnet-data[$subnet-index].subnet-id'\n   value='`$aai.l3-network.l3-network[$db-network-index].subnets.subnet[$subnet-index].subnet-id`' />\n",
+    "comments":"",
+    "x":1130.9999389648438,
+    "y":2701.2532052993774,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"a16a767c.1d4a58",
+    "type":"set",
+    "name":"set subnet_length",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].subnets-data.subnet-data_length'\n   value='`$aai.l3-network.l3-network[0].subnets.subnet_length`' />\n",
+    "comments":"",
+    "x":921.3333282470703,
+    "y":2747.919708251953,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"3d1f814c.368f2e",
+    "type":"set",
+    "name":"set availability-zones.max-count and length",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.availability-zones.max-count'\n   value='`$db.vf-model.avail-zone-max-count`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.availability-zones.availability-zone_length'\n   value='`$aai.az.availability-zone_length`' />\n",
+    "comments":"",
+    "x":564.0000610351562,
+    "y":3160.6342582702637,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"3315c9d5.fbc886",
+    "type":"set",
+    "name":"set vnf-name",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.vnf-name'\n   value='`$tmp.vnf-name`' />\n",
+    "comments":"",
+    "x":497.66663360595703,
+    "y":1247.9197664260864,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"435802ab.cae41c",
+    "type":"save",
+    "name":"update generic-vnf",
+    "xml":"<update plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\"\n   resource=\"generic-vnf\"\n   key=\"generic-vnf.vnf-id = $service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.vnf-id\"\n   force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"vnf-name\" value=\"`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.vnf-name`\" />\n<parameter name=\"prov-status\" value=\"PREPROV\" />\n<parameter name=\"operational-status\" value=\"out-of-service-path\" />\n<parameter name=\"equipment-role\" value=\"`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.nf-role`\" />\n<parameter name=\"model-invariant-id\" value=\"`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-invariant-uuid`\" />\n<parameter name=\"model-version-id\" value=\"`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-uuid`\" />\n<parameter name=\"model-customization-id\" value=\"`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-customization-uuid`\" />\n<parameter name=\"selflink\" value=\"`$vnf-object-path`\" />\n",
+    "comments":"",
+    "outputs":1,
+    "x":484.3333282470703,
+    "y":3370.300033569336,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "a1a2ecfe.5a9f7",
+        "63cf7c2e.6403d4"
+      ]
+    ]
+  },
+  {
+    "id":"79756539.60282c",
+    "type":"set",
+    "name":"set vnf-object-path",
+    "xml":"<set>\n<parameter name='vnf-object-path'\n value=\"`'restconf/config/GENERIC-RESOURCE-API:services/service/'\n + $vnf-topology-operation-input.service-information.service-instance-id\n + '/service-data/vnfs/vnf/'\n + $service-data.vnfs.vnf[$vnf-index].vnf-id\n + '/vnf-data/vnf-topology'`\"/>\n\n",
+    "comments":"",
+    "x":484.33336639404297,
+    "y":3300.30051612854,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"ca1ff11f.a4d9c",
+    "type":"set",
+    "name":"set vnf-id",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-id'\n   value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />\n",
+    "comments":"",
+    "x":485.9999771118164,
+    "y":1199.5863094329834,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"858218a8.523588",
+    "type":"execute",
+    "name":"printContext",
+    "xml":"<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >\n<parameter name='filename' value='/var/tmp/bgb-viprend.log' />\n",
+    "comments":"",
+    "outputs":1,
+    "x":462.00009536743164,
+    "y":3551.967363357544,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+
+      ]
+    ]
+  },
+  {
+    "id":"90fb466f.03aa88",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'No generic-vnf found in AAI for vnf ID ' + $service-data.vnfs.vnf[$vnf-index].vnf-id`\" />\n",
+    "comments":"",
+    "x":1407.666805267334,
+    "y":3236.9671211242676,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"b6fac54b.97ab18",
+    "type":"failure",
+    "name":"failure",
+    "xml":"<outcome value='failure'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1220.3573722839355,
+    "y":3193.919590950012,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "3c644fce.dbe83"
+      ]
+    ]
+  },
+  {
+    "id":"8f7c44dc.2bfaf8",
+    "type":"not-found",
+    "name":"not-found",
+    "xml":"<outcome value='not-found'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1228.9288024902344,
+    "y":3238.205304145813,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "90fb466f.03aa88"
+      ]
+    ]
+  },
+  {
+    "id":"3c644fce.dbe83",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error updating generic-vnf in AAI\" />\n",
+    "comments":"",
+    "x":1410.3573989868164,
+    "y":3193.729326248169,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"635e0959.ef5968",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'No generic-vnf found in AAI for vnf ID ' + $service-data.vnfs.vnf[$vnf-index].vnf-id`\" />\n",
+    "comments":"",
+    "x":887.6667442321777,
+    "y":3391.967043876648,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"a1a2ecfe.5a9f7",
+    "type":"failure",
+    "name":"failure",
+    "xml":"<outcome value='failure'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":700.3573112487793,
+    "y":3348.9195137023926,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "dc15263a.8bf0c8"
+      ]
+    ]
+  },
+  {
+    "id":"63cf7c2e.6403d4",
+    "type":"not-found",
+    "name":"not-found",
+    "xml":"<outcome value='not-found'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":708.9287414550781,
+    "y":3393.2052268981934,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "635e0959.ef5968"
+      ]
+    ]
+  },
+  {
+    "id":"dc15263a.8bf0c8",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error updating selflink in generic-vnf in AAI\" />\n",
+    "comments":"",
+    "x":890.3573379516602,
+    "y":3348.7292490005493,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"a7335a29.c13d48",
+    "type":"set",
+    "name":"set model-customization-uuid",
+    "xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-customization-uuid'\n  value='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-customization-uuid`' />\n",
+    "comments":"",
+    "x":549.3332977294922,
+    "y":1651.2529134750366,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"f96ea41d.1ff208",
+    "type":"execute",
+    "name":"split related-link",
+    "xml":"<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split'>\n   <parameter name='ctx_memory_result_key' value='aai-uid-split' />\n   <parameter name='original_string' value='`$aai.cloud-region.relationship-list.relationship[$idx].related-link`' />\n   <parameter name='regex' value='/' />\n",
+    "comments":"",
+    "outputs":1,
+    "x":1314.6665954589844,
+    "y":1772.6664972305298,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+
+      ]
+    ]
+  },
+  {
+    "id":"7c602050.7b0ac",
+    "type":"block",
+    "name":"block : atomic",
+    "xml":"<block atomic=\"true\">",
+    "atomic":"true",
+    "outputs":1,
+    "x":1134.3332977294922,
+    "y":1819.333285331726,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "f96ea41d.1ff208",
+        "cbda08be.5e00d8",
+        "b2382668.d3f318"
+      ]
+    ]
+  },
+  {
+    "id":"b2382668.d3f318",
+    "type":"break",
+    "name":"break",
+    "xml":"<break>\n",
+    "comments":"",
+    "x":1284.3332595825195,
+    "y":1862.666582107544,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"7193ae4f.a03bb",
+    "type":"block",
+    "name":"block : atomic",
+    "xml":"<block atomic=\"true\">",
+    "atomic":"true",
+    "outputs":1,
+    "x":796,
+    "y":3071.7143869400024,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "bec7777f.49caa8",
+        "2fe66adc.46b646"
+      ]
+    ]
+  },
+  {
+    "id":"2fe66adc.46b646",
+    "type":"save",
+    "name":"save generic-vnf availability-zone relationship",
+    "xml":"<save plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\"\n   resource=\"generic-vnf:relationship-list\"\n   key=\"generic-vnf.vnf-id = $service-data.vnfs.vnf[$vnf-index].vnf-id\"\n   force=\"true\" pfx=\"tmp.AnAI-data\">\n    <parameter name=\"relationship-list.relationship[0].related-to\" value=\"availability-zone\" />\n    <parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"cloud-region.cloud-owner\" />\n    <parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"CloudOwner\" />\n    <parameter name=\"relationship-list.relationship[0].relationship-data[1].relationship-key\" value=\"cloud-region.cloud-region-id\" />\n    <parameter name=\"relationship-list.relationship[0].relationship-data[1].relationship-value\" value=\"`$vnf-topology-operation-input.vnf-request-input.aic-cloud-region`\" />\n    <parameter name=\"relationship-list.relationship[0].relationship-data[2].relationship-key\" value=\"availability-zone.availability-zone-name\" />\n    <parameter name=\"relationship-list.relationship[0].relationship-data[2].relationship-value\" value=\"`$aai.az.availability-zone[$idx].availability-zone-name`\" />\n",
+    "comments":"",
+    "outputs":1,
+    "x":1087.9048156738281,
+    "y":3095.0478343963623,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "31eeede2.e6b5f2",
+        "9e258d80.f8a09"
+      ]
+    ]
+  },
+  {
+    "id":"51e42555.9814cc",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'No generic-vnf found in AAI for vnf ID ' + $service-data.vnfs.vnf[$vnf-index].vnf-id`\" />\n",
+    "comments":"",
+    "x":1541.47607421875,
+    "y":3118.9671936035156,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"31eeede2.e6b5f2",
+    "type":"failure",
+    "name":"failure",
+    "xml":"<outcome value='failure'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1354.1666412353516,
+    "y":3075.9196634292603,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "e9675503.f145d8"
+      ]
+    ]
+  },
+  {
+    "id":"9e258d80.f8a09",
+    "type":"not-found",
+    "name":"not-found",
+    "xml":"<outcome value='not-found'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1362.7380714416504,
+    "y":3120.205376625061,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "51e42555.9814cc"
+      ]
+    ]
+  },
+  {
+    "id":"e9675503.f145d8",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error updating generic-vnf in AAI\" />\n",
+    "comments":"",
+    "x":1544.1666679382324,
+    "y":3075.729398727417,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"ce44b8cb.59b0b8",
+    "type":"set",
+    "name":"set mapping rows to 0",
+    "xml":"<set>\n<parameter name='db.vf-network-role-mapping_length' value='0' />\n",
+    "comments":"",
+    "x":1108.1427688598633,
+    "y":2065.52388381958,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"ffd11c87.313e8",
+    "type":"switchNode",
+    "name":"switch AAI availability-zone_length",
+    "xml":"<switch test='`$aai.az.availability-zone_length`'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":536.7142868041992,
+    "y":2975.523973464966,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "f7464066.4b3d4"
+      ]
+    ]
+  },
+  {
+    "id":"f7464066.4b3d4",
+    "type":"outcome",
+    "name":"NULL",
+    "xml":"<outcome value=''>",
+    "comments":"",
+    "outputs":1,
+    "x":755.2857055664062,
+    "y":2975.0953826904297,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "632fea45.95b4c4"
+      ]
+    ]
+  },
+  {
+    "id":"797aa504.5376fc",
+    "type":"set",
+    "name":"set availability-zone_length to 0",
+    "xml":"<set>\n<parameter name='aai.az.availability-zone_length' value='0' />\n",
+    "comments":"",
+    "x":1356.7143478393555,
+    "y":2993.6666202545166,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"632fea45.95b4c4",
+    "type":"switchNode",
+    "name":"switch AZ max count > 0",
+    "xml":"<switch test='`$db.vf-model.avail-zone-max-count &gt; 0`'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":943.857177734375,
+    "y":2975.5236945152283,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "c29ececd.4b1d9",
+        "1e15158e.a3fbea"
+      ]
+    ]
+  },
+  {
+    "id":"c29ececd.4b1d9",
+    "type":"outcomeTrue",
+    "name":"true",
+    "xml":"<outcome value='true'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1146.7142848968506,
+    "y":2949.8094444274902,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "66595a0d.b7fbd4"
+      ]
+    ]
+  },
+  {
+    "id":"1e15158e.a3fbea",
+    "type":"outcomeFalse",
+    "name":"false",
+    "xml":"<outcome value='false'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":1148.1429061889648,
+    "y":2994.0951919555664,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "797aa504.5376fc"
+      ]
+    ]
+  },
+  {
+    "id":"66595a0d.b7fbd4",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'No availability zones found in AAI for cloud region '\n       + $vnf-topology-operation-input.vnf-request-input.aic-cloud-region`\" />\n",
+    "comments":"",
+    "x":1298.142822265625,
+    "y":2949.5238494873047,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  },
+  {
+    "id":"c8f006fe.b172c8",
+    "type":"get-resource",
+    "name":"get-resource availability zones",
+    "xml":"<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"availability-zones\" \n\t\tkey=\"cloud-region.cloud-owner = 'CloudOwner' AND \n\t\t     cloud-region.cloud-region-id = $vnf-topology-operation-input.vnf-request-input.aic-cloud-region AND\n\t\t     depth='0'\"\n        pfx='aai.az' local-only='false' >\n\n",
+    "comments":"",
+    "outputs":1,
+    "x":546.7143096923828,
+    "y":1902.4286441802979,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "9a0f1e6d.bbdfb"
+      ]
+    ]
+  },
+  {
+    "id":"9a0f1e6d.bbdfb",
+    "type":"failure",
+    "name":"failure",
+    "xml":"<outcome value='failure'>\n",
+    "comments":"",
+    "outputs":1,
+    "x":771.9605255126953,
+    "y":1901.829496383667,
+    "z":"fd246789.67c9b8",
+    "wires":[
+      [
+        "57e15af7.8d7174"
+      ]
+    ]
+  },
+  {
+    "id":"57e15af7.8d7174",
+    "type":"returnFailure",
+    "name":"return failure",
+    "xml":"<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error retrieving availability zones from AAI\" />\n",
+    "comments":"",
+    "x":945.7104644775391,
+    "y":1900.5796184539795,
+    "z":"fd246789.67c9b8",
+    "wires":[
+
+    ]
+  }
+]
