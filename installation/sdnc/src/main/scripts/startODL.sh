@@ -45,6 +45,8 @@ if [ ! -f ${SDNC_HOME}/.installed ]
 then
 	echo "Installing SDN-C database"
 	${SDNC_HOME}/bin/installSdncDb.sh
+	echo "Installing SDN-C keyStore"
+	${SDNC_HOME}/bin/addSdncKeyStore.sh
 	echo "Starting OpenDaylight"
 	${ODL_HOME}/bin/start
 	echo "Waiting ${SLEEP_TIME} seconds for OpenDaylight to initialize"
