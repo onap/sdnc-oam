@@ -21,6 +21,33 @@
 # ============LICENSE_END=========================================================
 ###
 
+function enable_odl_cluster(){
+  if [ -z $SDNC_REPLICAS]; then
+     echo "SDNC_REPLICAS is not configured in Env field"
+     exit
+  fi
+
+  echo "Installing Opendaylight cluster features"
+  ${ODL_HOME}/bin/client -u karaf feature:install odl-mdsal-clustering
+  ${ODL_HOME}/bin/client -u karaf feature:install odl-jolokia
+
+  echo "Update cluster information statically"
+  hm=$(hostname)
+  echo "Get current Hostname ${hm}"
+
+  node=($(echo ${hm} | tr '-' '\n'))
+  node_name=${node[0]}
+  node_index=${node[1]}
+  node_list="${node_name}-0.sdnhostcluster.onap-sdnc.svc.cluster.local";
+  
+  for ((i=1;i<=${SDNC_REPLICAS};i++));
+  do
+    node_list="${node_list} ${node_name}-$i.sdnhostcluster.onap-sdnc.svc.cluster.local"
+  done
+
+  /opt/opendaylight/current/bin/configure_cluster.sh $((node_index+1)) ${node_list}
+}
+
 
 # Install SDN-C platform components if not already installed and start container
 
@@ -29,6 +56,7 @@ ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD:-Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJv
 SDNC_HOME=${SDNC_HOME:-/opt/onap/sdnc}
 SLEEP_TIME=${SLEEP_TIME:-120}
 MYSQL_PASSWD=${MYSQL_PASSWD:-openECOMP1.0}
+ENABLE_ODL_CLUSTER=${ENABLE_ODL_CLUSTER:-false}
 
 #
 # Wait for database
@@ -59,6 +87,7 @@ then
 		${SDNC_HOME}/svclogic/bin/install.sh
 	fi
 
+        if $ENABLE_ODL_CLUSTER ; then enable_odl_cluster ; fi
 
 	echo "Restarting OpenDaylight"
 	${ODL_HOME}/bin/stop
