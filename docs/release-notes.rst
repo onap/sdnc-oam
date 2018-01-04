@@ -3,6 +3,26 @@
 Release Notes
 =============
 
+Version: 1.2.1
+--------------
+
+
+:Release Date: 2018-11-16
+
+**Bug Fixes**
+
+   - `SDNC-145 <https://jira.onap.org/browse/SDNC-145>`_ Error message refers to wrong parameters
+   - `SDNC-195 <https://jira.onap.org/browse/SDNC-195>`_ UEB listener doesn't insert correct parameters for allotted resources in DB table ALLOTTED_RESOURCE_MODEL
+   - `SDNC-198 <https://jira.onap.org/browse/SDNC-198>`_ CSIT job fails
+   - `SDNC-201 <https://jira.onap.org/browse/SDNC-201>`_ Fix DG bugs from integration tests
+   - `SDNC-202 <https://jira.onap.org/browse/SDNC-202>`_ Search for service -data null match, set vGW LAN IP via Heat
+   - `SDNC-211 <https://jira.onap.org/browse/SDNC-211>`_ Update SDNC Amsterdam branch to use maintenance release versions
+   - `SDNC-212 <https://jira.onap.org/browse/SDNC-212>`_ Duplicate file name
+
+
+
+
+
 Version: 1.2.0
 --------------
 
