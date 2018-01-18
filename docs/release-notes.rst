@@ -7,7 +7,7 @@ Version: 1.2.1
 --------------
 
 
-:Release Date: 2018-11-16
+:Release Date: 2018-01-18
 
 **Bug Fixes**
 
@@ -27,7 +27,7 @@ Version: 1.2.0
 --------------
 
 
-:Release Date: 2018-11-16
+:Release Date: 2017-11-16
 
 
 
