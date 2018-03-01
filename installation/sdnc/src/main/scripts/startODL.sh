@@ -28,8 +28,8 @@ function enable_odl_cluster(){
   fi
 
   echo "Installing Opendaylight cluster features"
-  ${ODL_HOME}/bin/client -u karaf feature:install odl-mdsal-clustering
-  ${ODL_HOME}/bin/client -u karaf feature:install odl-jolokia
+  ${ODL_HOME}/bin/client  feature:install odl-mdsal-clustering
+  ${ODL_HOME}/bin/client  feature:install odl-jolokia
 
   echo "Update cluster information statically"
   hm=$(hostname)
