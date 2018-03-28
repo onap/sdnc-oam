@@ -28,8 +28,8 @@ function enable_odl_cluster(){
   fi
 
   echo "Installing Opendaylight cluster features"
-  ${ODL_HOME}/bin/client  feature:install odl-mdsal-clustering
-  ${ODL_HOME}/bin/client  feature:install odl-jolokia
+  ${ODL_HOME}/bin/client feature:install odl-mdsal-clustering
+  ${ODL_HOME}/bin/client feature:install odl-jolokia
 
   echo "Update cluster information statically"
   hm=$(hostname)
@@ -38,14 +38,31 @@ function enable_odl_cluster(){
   node=($(echo ${hm} | tr '-' '\n'))
   node_name=${node[0]}
   node_index=${node[1]}
-  node_list="${node_name}-0.sdnhost-cluster.onap-sdnc.svc.cluster.local";
 
-  for ((i=1;i<${SDNC_REPLICAS};i++));
-  do
-    node_list="${node_list} ${node_name}-$i.sdnhost-cluster.onap-sdnc.svc.cluster.local"
-  done
+  if [ -z $PEER_ODL_CLUSTER ]; then
+    echo "This is a local cluster"
+    node_list="${node_name}-0.sdnhost-cluster.onap.svc.cluster.local";
 
-  /opt/opendaylight/current/bin/configure_cluster.sh $((node_index+1)) ${node_list}
+    for ((i=1;i<${SDNC_REPLICAS};i++));
+    do
+      node_list="${node_list} ${node_name}-$i.sdnhost-cluster.onap.svc.cluster.local"
+    done
+    /opt/opendaylight/current/bin/configure_cluster.sh $((node_index+1)) ${node_list}
+  else
+    echo "This is a Geo cluster"
+
+    if $IS_PRIMARY_CLUSTER; then
+       PRIMARY_NODE=${MY_ODL_CLUSTER}
+       SECONDARY_NODE=${PEER_ODL_CLUSTER}
+    else
+       PRIMARY_NODE=${PEER_ODL_CLUSTER}
+       SECONDARY_NODE=${MY_ODL_CLUSTER}
+       member_offset=4
+    fi
+
+    node_list="${PRIMARY_NODE} ${SECONDARY_NODE}"
+    /opt/onap/sdnc/bin/configure_geo_cluster.sh $((node_index+member_offset)) ${node_list}
+  fi
 }
 
 
@@ -57,6 +74,8 @@ SDNC_HOME=${SDNC_HOME:-/opt/onap/sdnc}
 SLEEP_TIME=${SLEEP_TIME:-120}
 MYSQL_PASSWD=${MYSQL_PASSWD:-openECOMP1.0}
 ENABLE_ODL_CLUSTER=${ENABLE_ODL_CLUSTER:-false}
+IS_PRIMARY_CLUSTER=${IS_PRIMARY_CLUSTER:-false}
+MY_ODL_CLUSTER=${MY_ODL_CLUSTER:-127.0.0.1}
 
 #
 # Wait for database
