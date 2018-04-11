@@ -110,6 +110,8 @@ then
 
 	echo "Restarting OpenDaylight"
 	${ODL_HOME}/bin/stop
+	echo "Waiting 60 seconds for OpenDaylight stop to complete"
+    sleep 60
 	echo "Installed at `date`" > ${SDNC_HOME}/.installed
 fi
 
