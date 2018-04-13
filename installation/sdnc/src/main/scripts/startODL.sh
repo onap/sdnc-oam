@@ -71,6 +71,7 @@ function enable_odl_cluster(){
 ODL_HOME=${ODL_HOME:-/opt/opendaylight/current}
 ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD:-Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U}
 SDNC_HOME=${SDNC_HOME:-/opt/onap/sdnc}
+CCSDK_HOME=${CCSDK_HOME:-/opt/onap/ccsdk}
 SLEEP_TIME=${SLEEP_TIME:-120}
 MYSQL_PASSWD=${MYSQL_PASSWD:-openECOMP1.0}
 ENABLE_ODL_CLUSTER=${ENABLE_ODL_CLUSTER:-false}
@@ -95,6 +96,7 @@ then
 	echo "Installing SDN-C keyStore"
 	${SDNC_HOME}/bin/addSdncKeyStore.sh
 	echo "Starting OpenDaylight"
+	${CCSDK_HOME}/bin/installOdlHostKey.sh
 	${ODL_HOME}/bin/start
 	echo "Waiting ${SLEEP_TIME} seconds for OpenDaylight to initialize"
 	sleep ${SLEEP_TIME}
