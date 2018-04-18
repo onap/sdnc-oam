@@ -9,7 +9,7 @@ ENV SDNC_CONFIG_DIR /opt/onap/sdnc/data/properties
 
 
 # Overlay ODL credential database with pre-staged credentials
-COPY idmlight.db.mv.db /opt/opendaylight/current
+COPY idmlight.db.mv.db /opt/opendaylight/current/data
 
 # copy onap
 COPY opt /opt
