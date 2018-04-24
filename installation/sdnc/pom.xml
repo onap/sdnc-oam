@@ -14,17 +14,49 @@
 	<artifactId>installation-sdnc</artifactId>
 	<version>1.3.1-SNAPSHOT</version>
 
-    <name>sdnc-oam :: installation :: ${project.artifactId}</name>
+	<name>sdnc-oam :: installation :: ${project.artifactId}</name>
 	<description>Creates SDN Controller Docker container</description>
 
 	<properties>
 		<image.name>onap/sdnc-image</image.name>
 		<sdnc.project.version>${project.version}</sdnc.project.version>
-        <sdnc.northbound.version>1.3.1-SNAPSHOT</sdnc.northbound.version>
+		<sdnc.northbound.version>1.3.1-SNAPSHOT</sdnc.northbound.version>
 		<docker.buildArg.https_proxy>${https_proxy}</docker.buildArg.https_proxy>
-        <maven.build.timestamp.format>yyyyMMdd'T'HHmmss'Z'</maven.build.timestamp.format>
+		<maven.build.timestamp.format>yyyyMMdd'T'HHmmss'Z'</maven.build.timestamp.format>
 	</properties>
 
+    <dependencies>
+    		<dependency>
+    			<groupId>org.onap.sdnc.northbound</groupId>
+    			<artifactId>generic-resource-api-installer</artifactId>
+    			<version>${sdnc.northbound.version}</version>
+    			<type>zip</type>
+    		</dependency>
+    		<dependency>
+    			<groupId>org.onap.sdnc.northbound</groupId>
+    			<artifactId>vnfapi-installer</artifactId>
+    			<version>${sdnc.northbound.version}</version>
+    			<type>zip</type>
+    		</dependency>
+    		<dependency>
+    			<groupId>org.onap.sdnc.northbound</groupId>
+    			<artifactId>vnftools-installer</artifactId>
+    			<version>${sdnc.northbound.version}</version>
+    			<type>zip</type>
+    		</dependency>
+    		<dependency>
+    			<groupId>org.onap.ccsdk.sli.adaptors</groupId>
+    			<artifactId>ansible-adapter-installer</artifactId>
+    			<version>${ccsdk.sli.adaptors.version}</version>
+    			<type>zip</type>
+    		</dependency>
+    		<dependency>
+    			<groupId>org.onap.ccsdk.sli.northbound</groupId>
+    			<artifactId>lcm-installer</artifactId>
+    			<version>${ccsdk.sli.northbound.version}</version>
+    			<type>zip</type>
+    		</dependency>
+    </dependencies>
 
 	<build>
 		<plugins>
@@ -44,18 +76,16 @@
 								println project.properties['sdnc.project.version'];
 								def versionArray;
 								if ( project.properties['sdnc.project.version'] != null ) {
-									versionArray =
-									project.properties['sdnc.project.version'].split('\\.');
+								   versionArray = project.properties['sdnc.project.version'].split('\\.');
 								}
 
 								if (project.properties['sdnc.project.version'].endsWith("-SNAPSHOT")) {
-									project.properties['project.docker.latesttag.version']=versionArray[0] + '.' + versionArray[1] + "-STAGING-latest";
+								    project.properties['project.docker.latesttag.version']=versionArray[0] + '.' + versionArray[1] + "-STAGING-latest";
 								} else {
-									project.properties['project.docker.latesttag.version']=versionArray[0] + '.' + versionArray[1] + "-STAGING-latest";
+								    project.properties['project.docker.latesttag.version']=versionArray[0] + '.' + versionArray[1] + "-STAGING-latest";
 								}
 
-								println 'New Tag for docker:' +
-								project.properties['project.docker.latesttag.version'];
+								println 'New Tag for docker:' + project.properties['project.docker.latesttag.version'];
 							</source>
 						</configuration>
 					</execution>
@@ -229,29 +259,59 @@
 				</executions>
 			</plugin>
 			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.0.2</version>
+				<executions>
+					<execution>
+						<id>unpack-sdnc-features</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>unpack-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/target/docker-stage/opt/onap/sdnc/features</outputDirectory>
+							<includeGroupIds>org.onap.sdnc</includeGroupIds>
+							<excludeTransitive>true</excludeTransitive>
+						</configuration>
+					</execution>
+					<execution>
+						<id>unpack-extra-ccsdk-features</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>unpack-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/target/docker-stage/opt/onap/ccsdk/features</outputDirectory>
+							<includeGroupIds>org.onap.ccsdk</includeGroupIds>
+							<excludeTransitive>true</excludeTransitive>
+						</configuration>
+					</execution>
+					<execution>
+						<id>unpack dgs</id>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>unpack</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${basedir}/target/docker-stage/opt/onap/sdnc</outputDirectory>
+							<artifactItems>
+								<artifactItem>
+									<groupId>${project.groupId}</groupId>
+									<artifactId>platform-logic-installer</artifactId>
+									<version>${project.version}</version>
+									<type>zip</type>
+								</artifactItem>
+							</artifactItems>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<artifactId>exec-maven-plugin</artifactId>
 				<groupId>org.codehaus.mojo</groupId>
 				<version>1.5.0</version>
 				<executions>
-
-					<execution>
-						<id>Get features</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>/bin/bash</executable>
-							<environmentVariables>
-								<SDNC_NORTHBOUND_VERSION>${sdnc.northbound.version}</SDNC_NORTHBOUND_VERSION>
-								<SDNC_OAM_VERSION>${project.version}</SDNC_OAM_VERSION>
-							</environmentVariables>
-							<arguments>
-								<argument>${basedir}/src/main/scripts/installZips.sh</argument>
-								<argument>${basedir}/target/docker-stage/opt/onap/sdnc</argument>
-							</arguments>
-						</configuration>
-					</execution>
 
 					<execution>
 						<id>change shell permissions</id>
