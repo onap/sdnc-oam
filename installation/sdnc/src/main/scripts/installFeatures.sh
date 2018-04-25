@@ -25,7 +25,12 @@ ODL_HOME=${ODL_HOME:-/opt/opendaylight/current}
 ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD:-Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U}
 SDNC_HOME=${SDNC_HOME:-/opt/onap/sdnc}
 CCSDK_HOME=${CCSDK_HOME:-/opt/onap/ccsdk}
+CCSDK_FEATURE_DIR=${CCSDK_FEATURE_DIR:-${CCSDK_HOME}/features}
 SDNC_FEATURE_DIR=${SDNC_FEATURE_DIR:-${SDNC_HOME}/features}
+
+CCSDK_EXTRAS=" \
+   ansible-adapter \
+   lcm"
 
 
 
@@ -39,6 +44,18 @@ SDNC_NORTHBOUND_VERSION=${SDNC_NORTHBOUND_VERSION:-1.3.1-SNAPSHOT}
 
 # Install CCSDK features
 ${CCSDK_HOME}/bin/installCcsdkFeatures.sh
+
+# Install CCSDK extras, used by SDNC but not APP-C
+echo "Installing CCSDK extras"
+for feature in ${CCSDK_FEATURES}
+do
+	if [ -f ${CCSDK_FEATURE_DIR}/ccsdk-${feature}/install-feature.sh ]
+	then
+		${CCSDK_FEATURE_DIR}/ccsdk-${feature}/install-feature.sh
+    else
+    	     echo "No installer found for ${feature}"
+    fi
+done
 
 
 echo "Installing SDN-C northbound"
