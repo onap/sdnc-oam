@@ -16,10 +16,7 @@ RUN apt-get -y install vim
 RUN apt-get -y install python2.7
 RUN apt-get -y install python-pip
 
-##Ansible:
-RUN apt-get -y install software-properties-common
-RUN apt-add-repository -y ppa:ansible/ansible
-RUN apt-get -y install ansible
+
 
 # copy files needed
 COPY opt /opt/
