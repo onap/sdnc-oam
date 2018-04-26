@@ -1,6 +1,5 @@
 # Base ubuntu with added packages needed for open ecomp
-#FROM onap/ccsdk-ubuntu-image:${ccsdk.distribution.version}
-FROM onap/ccsdk-ubuntu-image:0.2.1-SNAPSHOT
+FROM onap/ccsdk-ubuntu-image:${ccsdk.distribution.version}
 
 LABEL maintainer="SDN-C Team (sdnc@lists.openecomp.org)"
 
@@ -16,9 +15,6 @@ RUN apt-get -y install vim
 ##Python:
 RUN apt-get -y install python2.7
 RUN apt-get -y install python-pip
-RUN pip install PyMySQL
-RUN pip install cherrypy
-RUN pip install requests
 
 ##Ansible:
 RUN apt-get -y install software-properties-common
@@ -30,7 +26,7 @@ COPY opt /opt/
 
 WORKDIR /opt/onap/sdnc
 
-ENTRYPOINT exec python RestServer.py > RestServer.out
+ENTRYPOINT exec startAnsibleServer.sh
 #CMD ["/bin/bash"]
 EXPOSE 8000
 
