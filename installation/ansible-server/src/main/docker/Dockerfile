@@ -18,7 +18,7 @@ RUN apt-get -y install python-pip
 
 ##Ansible:
 RUN apt-get -y install software-properties-common
-RUN apt-add-repository ppa:ansible/ansible
+RUN apt-add-repository ppa:ansible/ansible < /dev/null
 RUN apt-get -y install ansible
 
 # copy files needed
