@@ -1,7 +1,7 @@
 #/bin/bash
 exec &> /var/log/ansible-server.log
 
-if [ ! -d /tmp/.ansible-server-installed]
+if [ ! -f /tmp/.ansible-server-installed ]
 then
 	pip install PyMySQL
 	pip install cherrypy

@@ -23,7 +23,7 @@ COPY opt /opt/
 
 WORKDIR /opt/onap/sdnc
 
-ENTRYPOINT exec startAnsibleServer.sh
+#ENTRYPOINT exec startAnsibleServer.sh
 #CMD ["/bin/bash"]
 EXPOSE 8000
 
