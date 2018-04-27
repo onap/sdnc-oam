@@ -1,4 +1,5 @@
 #/bin/bash
+exec &> /var/log/ansible-server.log
 
 if [ ! -d /tmp/.ansible-server-installed]
 then
@@ -13,4 +14,4 @@ then
 fi
 
 cd /opt/onap/sdnc
-exec python RestServer.py > RestServer.out
+exec python RestServer.py
