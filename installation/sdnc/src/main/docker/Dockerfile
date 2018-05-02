@@ -6,7 +6,13 @@ MAINTAINER SDN-C Team (sdnc@lists.onap.org)
 ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 ENV ODL_HOME /opt/opendaylight/current
 ENV SDNC_CONFIG_DIR /opt/onap/sdnc/data/properties
+ENV SSL_CERTS_DIR /etc/ssl/certs
+ENV JAVA_SECURITY_DIR $SSL_CERTS_DIR/java
 
+# imstall ssl and java certificates
+COPY AAF_RootCA.cer $SSL_CERTS_DIR
+COPY truststoreONAPall.jks $JAVA_SECURITY_DIR
+RUN keytool -importkeystore -srckeystore $JAVA_SECURITY_DIR/truststoreONAPall.jks -srcstorepass changeit -destkeystore $JAVA_SECURITY_DIR/cacerts  -deststorepass changeit
 
 # Overlay ODL credential database with pre-staged credentials
 COPY idmlight.db.mv.db /opt/opendaylight/current/data
