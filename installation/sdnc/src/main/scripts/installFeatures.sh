@@ -47,7 +47,7 @@ ${CCSDK_HOME}/bin/installCcsdkFeatures.sh
 
 # Install CCSDK extras, used by SDNC but not APP-C
 echo "Installing CCSDK extras"
-for feature in ${CCSDK_FEATURES}
+for feature in ${CCSDK_EXTRAS}
 do
 	if [ -f ${CCSDK_FEATURE_DIR}/ccsdk-${feature}/install-feature.sh ]
 	then
