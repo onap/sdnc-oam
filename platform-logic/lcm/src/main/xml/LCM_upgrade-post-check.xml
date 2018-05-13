@@ -1,403 +1,398 @@
-<service-logic xmlns='http://www.onap.org/sdnc/svclogic'
-	xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-	xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd'
-	module='LCM' version='${project.version}'>
-	<method rpc='upgrade-post-check' mode='sync'>
+<?xml version="1.0"?>
+<service-logic xmlns="http://www.onap.org/sdnc/svclogic"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.onap.org/sdnc/svclogic ./svclogic.xsd"
+	module="LCM" version="${project.version}">
+	<method rpc="upgrade-post-check" mode="sync">
 		<block>
-			<execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode'
-				method='readProperties'>
-				<parameter name='fileName' value='%SDNC_CONFIG_DIR%/lcm-dg.properties' />
-				<parameter name='contextPrefix' value='prop' />
+			<execute plugin="org.onap.ccsdk.sli.plugins.prop.PropertiesNode"
+				method="readProperties">
+				<parameter name="fileName" value="%SDNC_CONFIG_DIR%/lcm-dg.properties" />
+				<parameter name="contextPrefix" value="prop" />
 			</execute>
 			<set>
-				<parameter name='status.code' value='200' />
-				<parameter name='status.message' value='unexpected return from DG' />
+				<parameter name="status.code" value="200" />
+				<parameter name="status.message" value="unexpected return from DG" />
 			</set>
-			<execute plugin='org.onap.ccsdk.sli.adaptors.ansible.AnsibleAdapter'
-				method='reqExec'>
-				<parameter name='AgentUrl' value='`$prop.ansible.agenturl`' />
-				<parameter name='User' value='`$prop.ansible.user`' />
-				<parameter name='Password' value='`prop.ansible.password`' />
-				<parameter name='LocalParameters' value='`$prop.ansible.lcm.localparameters`' />
-				<parameter name='EnvParameters' value='`$upgrade-post-check-input.payload`' />
-				<parameter name='NodeList' value='`$prop.ansible.nodelist`' />
-				<parameter name='Timeout' value='`$prop.ansible.timeout`' />
-				<parameter name='Version' value='`$prop.ansible.version`' />
-				<parameter name='Id'
-					value='`$upgrade-post-check-input.common-header.request-id`' />
-				<parameter name='PlaybookName'
-					value='`$prop.lcm.upgrade-post-check.playbookname`' />
-				<outcome value='not-found'>
+			<execute plugin="org.onap.ccsdk.sli.adaptors.ansible.AnsibleAdapter"
+				method="reqExec">
+				<parameter name="AgentUrl" value="`$prop.ansible.agenturl`" />
+				<parameter name="User" value="`$prop.ansible.user`" />
+				<parameter name="Password" value="`prop.ansible.password`" />
+				<parameter name="LocalParameters" value="`$prop.ansible.lcm.localparameters`" />
+				<parameter name="EnvParameters" value="`$upgrade-post-check-input.payload`" />
+				<parameter name="NodeList" value="`$prop.ansible.nodelist`" />
+				<parameter name="Timeout" value="`$prop.ansible.timeout`" />
+				<parameter name="Version" value="`$prop.ansible.version`" />
+				<parameter name="Id"
+					value="`$upgrade-post-check-input.common-header.request-id`" />
+				<parameter name="PlaybookName"
+					value="`$prop.lcm.upgrade-post-check.playbookname`" />
+				<outcome value="not-found">
 					<block>
 						<set>
-							<parameter name='$org.onap.appc.adapter.ansible.result.code'
-								value='401' />
-							<parameter name='org.onap.appc.adapter.ansible.message'
-								value='Ansible Adapter was not found' />
+							<parameter name="$org.onap.appc.adapter.ansible.result.code"
+								value="401" />
+							<parameter name="org.onap.appc.adapter.ansible.message"
+								value="Ansible Adapter was not found" />
 						</set>
 						<block>
 							<set>
-								<parameter name='lcm-dmaap.version' value='`$prop.lcm.dmaap.version`' />
-								<parameter name='lcm-dmaap.correlation-id'
-									value='`$upgrade-post-check-input.common-header.sub-request-id`' />
-								<parameter name='lcm-dmaap.partition' value='`$prop.lcm.dmaap.partition`' />
-								<parameter name='lcm-dmaap.rpc-name' value='upgrade-post-check' />
-								<parameter name='lcm-dmaap.type' value='`$prop.lcm.dmaap.type`' />
-								<parameter name='lcm-dmaap.timestamp'
-									value='`$upgrade-post-check-input.common-header.timestamp`' />
-								<parameter name='lcm-dmaap.api-ver'
-									value='`$upgrade-post-check-input.common-header.api-ver`' />
-								<parameter name='lcm-dmaap.originator-id'
-									value='`$upgrade-post-check-input.common-header.originator-id`' />
-								<parameter name='lcm-dmaap.request-id'
-									value='`$upgrade-post-check-input.common-header.originator-id`' />
-								<parameter name='lcm-dmaap.sub-request-id'
-									value='`$upgrade-post-check-input.common-header.sub-request-id`' />
-								<parameter name='lcm-dmaap.flags.mode'
-									value='`$upgrade-post-check-input.common-header.flags.mode`' />
-								<parameter name='lcm-dmaap.flags.force'
-									value='`$upgrade-post-check-input.common-header.flags.force`' />
-								<parameter name='lcm-dmaap.flags.ttl'
-									value='`$upgrade-post-check-input.common-header.flags.ttl`' />
-								<parameter name='lcm-dmaap.payload'
-									value='`$org.onap.appc.adapter.ansible.results`' />
-								<parameter name='lcm-dmaap.status.code'
-									value='`$org.onap.appc.adapter.ansible.result.code`' />
-								<parameter name='lcm-dmaap.status.message'
-									value='`$org.onap.appc.adapter.ansible.message`' />
+								<parameter name="lcm-dmaap.version" value="`$prop.lcm.dmaap.version`" />
+								<parameter name="lcm-dmaap.correlation-id"
+									value="`$upgrade-post-check-input.common-header.sub-request-id`" />
+								<parameter name="lcm-dmaap.partition" value="`$prop.lcm.dmaap.partition`" />
+								<parameter name="lcm-dmaap.rpc-name" value="upgrade-post-check" />
+								<parameter name="lcm-dmaap.type" value="`$prop.lcm.dmaap.type`" />
+								<parameter name="lcm-dmaap.timestamp"
+									value="`$upgrade-post-check-input.common-header.timestamp`" />
+								<parameter name="lcm-dmaap.api-ver"
+									value="`$upgrade-post-check-input.common-header.api-ver`" />
+								<parameter name="lcm-dmaap.originator-id"
+									value="`$upgrade-post-check-input.common-header.originator-id`" />
+								<parameter name="lcm-dmaap.request-id"
+									value="`$upgrade-post-check-input.common-header.originator-id`" />
+								<parameter name="lcm-dmaap.sub-request-id"
+									value="`$upgrade-post-check-input.common-header.sub-request-id`" />
+								<parameter name="lcm-dmaap.flags.mode"
+									value="`$upgrade-post-check-input.common-header.flags.mode`" />
+								<parameter name="lcm-dmaap.flags.force"
+									value="`$upgrade-post-check-input.common-header.flags.force`" />
+								<parameter name="lcm-dmaap.flags.ttl"
+									value="`$upgrade-post-check-input.common-header.flags.ttl`" />
+								<parameter name="lcm-dmaap.payload"
+									value="`$org.onap.appc.adapter.ansible.results`" />
+								<parameter name="lcm-dmaap.status.code"
+									value="`$org.onap.appc.adapter.ansible.result.code`" />
+								<parameter name="lcm-dmaap.status.message"
+									value="`$org.onap.appc.adapter.ansible.message`" />
 							</set>
-							<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode'
-								method='sendRequest'>
-								<parameter name='templateFileName'
+							<execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode"
+								method="sendRequest">
+								<parameter name="templateFileName"
 									value="`$prop.restapi.templateDir + '/' + $prop.restapi.lcm.dmaap.publish.templatefile`" />
-								<parameter name='restapiUrl' value='`$prop.lcm.dmaap.url`' />
-								<parameter name='restapiUser' value='`$prop.lcm.dmaap.user`' />
-								<parameter name='restapiPassword' value='`$prop.lcm.dmaap.password`' />
-								<parameter name='format' value='json' />
-								<parameter name='httpMethod' value='POST' />
-								<parameter name='contentType' value='application/json' />
+								<parameter name="restapiUrl" value="`$prop.lcm.dmaap.url`" />
+								<parameter name="restapiUser" value="`$prop.lcm.dmaap.user`" />
+								<parameter name="restapiPassword" value="`$prop.lcm.dmaap.password`" />
+								<parameter name="format" value="json" />
+								<parameter name="httpMethod" value="POST" />
+								<parameter name="contentType" value="application/json" />
 								<parameter name="responsePrefix" value="lcm" />
-								<outcome value='failure'>
+								<outcome value="failure">
 									<record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
 										<parameter name="logger" value="message-log" />
-										<parameter name="field1" value='Failed to Publish to DMaap' />
+										<parameter name="field1" value="Failed to Publish to DMaap" />
 									</record>
 								</outcome>
 							</execute>
-							<return status='failure'>
-								<parameter name='status.code' value='401' />
-								<parameter name='status.message'
-									value='`$org.onap.appc.adapter.ansible.message`' />
+							<return status="failure">
+								<parameter name="status.code" value="401" />
+								<parameter name="status.message"
+									value="`$org.onap.appc.adapter.ansible.message`" />
 							</return>
 						</block>
 					</block>
 				</outcome>
-				<outcome value='failure'>
+				<outcome value="failure">
 					<block>
 						<set>
-							<parameter name='lcm-dmaap.version' value='`$prop.lcm.dmaap.version`' />
-							<parameter name='lcm-dmaap.correlation-id'
-								value='`$upgrade-post-check-input.common-header.sub-request-id`' />
-							<parameter name='lcm-dmaap.partition' value='`$prop.lcm.dmaap.partition`' />
-							<parameter name='lcm-dmaap.rpc-name' value='upgrade-post-check' />
-							<parameter name='lcm-dmaap.type' value='`$prop.lcm.dmaap.type`' />
-							<parameter name='lcm-dmaap.timestamp'
-								value='`$upgrade-post-check-input.common-header.timestamp`' />
-							<parameter name='lcm-dmaap.api-ver'
-								value='`$upgrade-post-check-input.common-header.api-ver`' />
-							<parameter name='lcm-dmaap.originator-id'
-								value='`$upgrade-post-check-input.common-header.originator-id`' />
-							<parameter name='lcm-dmaap.request-id'
-								value='`$upgrade-post-check-input.common-header.originator-id`' />
-							<parameter name='lcm-dmaap.sub-request-id'
-								value='`$upgrade-post-check-input.common-header.sub-request-id`' />
-							<parameter name='lcm-dmaap.flags.mode'
-								value='`$upgrade-post-check-input.common-header.flags.mode`' />
-							<parameter name='lcm-dmaap.flags.force'
-								value='`$upgrade-post-check-input.common-header.flags.force`' />
-							<parameter name='lcm-dmaap.flags.ttl'
-								value='`$upgrade-post-check-input.common-header.flags.ttl`' />
-							<parameter name='lcm-dmaap.payload'
-								value='`$org.onap.appc.adapter.ansible.results`' />
-							<parameter name='lcm-dmaap.status.code'
-								value='`$org.onap.appc.adapter.ansible.result.code`' />
-							<parameter name='lcm-dmaap.status.message'
-								value='`$org.onap.appc.adapter.ansible.message`' />
+							<parameter name="lcm-dmaap.version" value="`$prop.lcm.dmaap.version`" />
+							<parameter name="lcm-dmaap.correlation-id"
+								value="`$upgrade-post-check-input.common-header.sub-request-id`" />
+							<parameter name="lcm-dmaap.partition" value="`$prop.lcm.dmaap.partition`" />
+							<parameter name="lcm-dmaap.rpc-name" value="upgrade-post-check" />
+							<parameter name="lcm-dmaap.type" value="`$prop.lcm.dmaap.type`" />
+							<parameter name="lcm-dmaap.timestamp"
+								value="`$upgrade-post-check-input.common-header.timestamp`" />
+							<parameter name="lcm-dmaap.api-ver"
+								value="`$upgrade-post-check-input.common-header.api-ver`" />
+							<parameter name="lcm-dmaap.originator-id"
+								value="`$upgrade-post-check-input.common-header.originator-id`" />
+							<parameter name="lcm-dmaap.request-id"
+								value="`$upgrade-post-check-input.common-header.originator-id`" />
+							<parameter name="lcm-dmaap.sub-request-id"
+								value="`$upgrade-post-check-input.common-header.sub-request-id`" />
+							<parameter name="lcm-dmaap.flags.mode"
+								value="`$upgrade-post-check-input.common-header.flags.mode`" />
+							<parameter name="lcm-dmaap.flags.force"
+								value="`$upgrade-post-check-input.common-header.flags.force`" />
+							<parameter name="lcm-dmaap.flags.ttl"
+								value="`$upgrade-post-check-input.common-header.flags.ttl`" />
+							<parameter name="lcm-dmaap.payload"
+								value="`$org.onap.appc.adapter.ansible.results`" />
+							<parameter name="lcm-dmaap.status.code"
+								value="`$org.onap.appc.adapter.ansible.result.code`" />
+							<parameter name="lcm-dmaap.status.message"
+								value="`$org.onap.appc.adapter.ansible.message`" />
 						</set>
-						<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode'
-							method='sendRequest'>
-							<parameter name='templateFileName'
+						<execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode"
+							method="sendRequest">
+							<parameter name="templateFileName"
 								value="`$prop.restapi.templateDir + '/' + $prop.restapi.lcm.dmaap.publish.templatefile`" />
-							<parameter name='restapiUrl' value='`$prop.lcm.dmaap.url`' />
-							<parameter name='restapiUser' value='`$prop.lcm.dmaap.user`' />
-							<parameter name='restapiPassword' value='`$prop.lcm.dmaap.password`' />
-							<parameter name='format' value='json' />
-							<parameter name='httpMethod' value='POST' />
-							<parameter name='contentType' value='application/json' />
+							<parameter name="restapiUrl" value="`$prop.lcm.dmaap.url`" />
+							<parameter name="restapiUser" value="`$prop.lcm.dmaap.user`" />
+							<parameter name="restapiPassword" value="`$prop.lcm.dmaap.password`" />
+							<parameter name="format" value="json" />
+							<parameter name="httpMethod" value="POST" />
+							<parameter name="contentType" value="application/json" />
 							<parameter name="responsePrefix" value="lcm" />
-							<outcome value='failure'>
+							<outcome value="failure">
 								<record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
 									<parameter name="logger" value="message-log" />
-									<parameter name="field1" value='Failed to Publish to DMaap' />
+									<parameter name="field1" value="Failed to Publish to DMaap" />
 								</record>
 							</outcome>
 						</execute>
-						<return status='failure'>
-							<parameter name='status.code' value='401' />
-							<parameter name='status.message'
-								value='`$org.onap.appc.adapter.ansible.message`' />
+						<return status="failure">
+							<parameter name="status.code" value="401" />
+							<parameter name="status.message"
+								value="`$org.onap.appc.adapter.ansible.message`" />
 						</return>
 					</block>
 				</outcome>
-				<outcome value='Other'>
+				<outcome value="Other">
 					<switch test="`$org.onap.appc.adapter.ansible.result.code`">
-						<outcome value='101'>
+						<outcome value="101">
 							<block>
 								<set>
-									<parameter name='lcm-dmaap.version' value='`$prop.lcm.dmaap.version`' />
-									<parameter name='lcm-dmaap.correlation-id'
-										value='`$upgrade-post-check-input.common-header.sub-request-id`' />
-									<parameter name='lcm-dmaap.partition' value='`$prop.lcm.dmaap.partition`' />
-									<parameter name='lcm-dmaap.rpc-name' value='upgrade-post-check' />
-									<parameter name='lcm-dmaap.type' value='`$prop.lcm.dmaap.type`' />
-									<parameter name='lcm-dmaap.timestamp'
-										value='`$upgrade-post-check-input.common-header.timestamp`' />
-									<parameter name='lcm-dmaap.api-ver'
-										value='`$upgrade-post-check-input.common-header.api-ver`' />
-									<parameter name='lcm-dmaap.originator-id'
-										value='`$upgrade-post-check-input.common-header.originator-id`' />
-									<parameter name='lcm-dmaap.request-id'
-										value='`$upgrade-post-check-input.common-header.originator-id`' />
-									<parameter name='lcm-dmaap.sub-request-id'
-										value='`$upgrade-post-check-input.common-header.sub-request-id`' />
-									<parameter name='lcm-dmaap.flags.mode'
-										value='`$upgrade-post-check-input.common-header.flags.mode`' />
-									<parameter name='lcm-dmaap.flags.force'
-										value='`$upgrade-post-check-input.common-header.flags.force`' />
-									<parameter name='lcm-dmaap.flags.ttl'
-										value='`$upgrade-post-check-input.common-header.flags.ttl`' />
-									<parameter name='lcm-dmaap.payload'
-										value='`$org.onap.appc.adapter.ansible.results`' />
-									<parameter name='lcm-dmaap.status.code'
-										value='`$org.onap.appc.adapter.ansible.result.code`' />
-									<parameter name='lcm-dmaap.status.message'
-										value='`$org.onap.appc.adapter.ansible.message`' />
+									<parameter name="lcm-dmaap.version" value="`$prop.lcm.dmaap.version`" />
+									<parameter name="lcm-dmaap.correlation-id"
+										value="`$upgrade-post-check-input.common-header.sub-request-id`" />
+									<parameter name="lcm-dmaap.partition" value="`$prop.lcm.dmaap.partition`" />
+									<parameter name="lcm-dmaap.rpc-name" value="upgrade-post-check" />
+									<parameter name="lcm-dmaap.type" value="`$prop.lcm.dmaap.type`" />
+									<parameter name="lcm-dmaap.timestamp"
+										value="`$upgrade-post-check-input.common-header.timestamp`" />
+									<parameter name="lcm-dmaap.api-ver"
+										value="`$upgrade-post-check-input.common-header.api-ver`" />
+									<parameter name="lcm-dmaap.originator-id"
+										value="`$upgrade-post-check-input.common-header.originator-id`" />
+									<parameter name="lcm-dmaap.request-id"
+										value="`$upgrade-post-check-input.common-header.originator-id`" />
+									<parameter name="lcm-dmaap.sub-request-id"
+										value="`$upgrade-post-check-input.common-header.sub-request-id`" />
+									<parameter name="lcm-dmaap.flags.mode"
+										value="`$upgrade-post-check-input.common-header.flags.mode`" />
+									<parameter name="lcm-dmaap.flags.force"
+										value="`$upgrade-post-check-input.common-header.flags.force`" />
+									<parameter name="lcm-dmaap.flags.ttl"
+										value="`$upgrade-post-check-input.common-header.flags.ttl`" />
+									<parameter name="lcm-dmaap.payload"
+										value="`$org.onap.appc.adapter.ansible.results`" />
+									<parameter name="lcm-dmaap.status.code"
+										value="`$org.onap.appc.adapter.ansible.result.code`" />
+									<parameter name="lcm-dmaap.status.message"
+										value="`$org.onap.appc.adapter.ansible.message`" />
 								</set>
 								<execute
-									plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode'
-									method='sendRequest'>
-									<parameter name='templateFileName'
+									plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode"
+									method="sendRequest">
+									<parameter name="templateFileName"
 										value="`$prop.restapi.templateDir + '/' + $prop.restapi.lcm.dmaap.publish.templatefile`" />
-									<parameter name='restapiUrl' value='`$prop.lcm.dmaap.url`' />
-									<parameter name='restapiUser' value='`$prop.lcm.dmaap.user`' />
-									<parameter name='restapiPassword' value='`$prop.lcm.dmaap.password`' />
-									<parameter name='format' value='json' />
-									<parameter name='httpMethod' value='POST' />
-									<parameter name='contentType' value='application/json' />
+									<parameter name="restapiUrl" value="`$prop.lcm.dmaap.url`" />
+									<parameter name="restapiUser" value="`$prop.lcm.dmaap.user`" />
+									<parameter name="restapiPassword" value="`$prop.lcm.dmaap.password`" />
+									<parameter name="format" value="json" />
+									<parameter name="httpMethod" value="POST" />
+									<parameter name="contentType" value="application/json" />
 									<parameter name="responsePrefix" value="lcm" />
-									<outcome value='failure'>
+									<outcome value="failure">
 										<record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
 											<parameter name="logger" value="message-log" />
-											<parameter name="field1" value='Failed to Publish to DMaap' />
+											<parameter name="field1" value="Failed to Publish to DMaap" />
 										</record>
 									</outcome>
 								</execute>
-								<return status='failure'>
-									<parameter name='status.code' value='401' />
-									<parameter name='status.message'
-										value='`$org.onap.appc.adapter.ansible.message`' />
+								<return status="failure">
+									<parameter name="status.code" value="401" />
+									<parameter name="status.message"
+										value="`$org.onap.appc.adapter.ansible.message`" />
 								</return>
 							</block>
 						</outcome>
-						<outcome value='500'>
+						<outcome value="500">
 							<block>
 								<set>
-									<parameter name='lcm-dmaap.version' value='`$prop.lcm.dmaap.version`' />
-									<parameter name='lcm-dmaap.correlation-id'
-										value='`$upgrade-post-check-input.common-header.sub-request-id`' />
-									<parameter name='lcm-dmaap.partition' value='`$prop.lcm.dmaap.partition`' />
-									<parameter name='lcm-dmaap.rpc-name' value='upgrade-post-check' />
-									<parameter name='lcm-dmaap.type' value='`$prop.lcm.dmaap.type`' />
-									<parameter name='lcm-dmaap.timestamp'
-										value='`$upgrade-post-check-input.common-header.timestamp`' />
-									<parameter name='lcm-dmaap.api-ver'
-										value='`$upgrade-post-check-input.common-header.api-ver`' />
-									<parameter name='lcm-dmaap.originator-id'
-										value='`$upgrade-post-check-input.common-header.originator-id`' />
-									<parameter name='lcm-dmaap.request-id'
-										value='`$upgrade-post-check-input.common-header.originator-id`' />
-									<parameter name='lcm-dmaap.sub-request-id'
-										value='`$upgrade-post-check-input.common-header.sub-request-id`' />
-									<parameter name='lcm-dmaap.flags.mode'
-										value='`$upgrade-post-check-input.common-header.flags.mode`' />
-									<parameter name='lcm-dmaap.flags.force'
-										value='`$upgrade-post-check-input.common-header.flags.force`' />
-									<parameter name='lcm-dmaap.flags.ttl'
-										value='`$upgrade-post-check-input.common-header.flags.ttl`' />
-									<parameter name='lcm-dmaap.payload'
-										value='`$org.onap.appc.adapter.ansible.results`' />
-									<parameter name='lcm-dmaap.status.code'
-										value='`$org.onap.appc.adapter.ansible.result.code`' />
-									<parameter name='lcm-dmaap.status.message'
-										value='`$org.onap.appc.adapter.ansible.message`' />
+									<parameter name="lcm-dmaap.version" value="`$prop.lcm.dmaap.version`" />
+									<parameter name="lcm-dmaap.correlation-id"
+										value="`$upgrade-post-check-input.common-header.sub-request-id`" />
+									<parameter name="lcm-dmaap.partition" value="`$prop.lcm.dmaap.partition`" />
+									<parameter name="lcm-dmaap.rpc-name" value="upgrade-post-check" />
+									<parameter name="lcm-dmaap.type" value="`$prop.lcm.dmaap.type`" />
+									<parameter name="lcm-dmaap.timestamp"
+										value="`$upgrade-post-check-input.common-header.timestamp`" />
+									<parameter name="lcm-dmaap.api-ver"
+										value="`$upgrade-post-check-input.common-header.api-ver`" />
+									<parameter name="lcm-dmaap.originator-id"
+										value="`$upgrade-post-check-input.common-header.originator-id`" />
+									<parameter name="lcm-dmaap.request-id"
+										value="`$upgrade-post-check-input.common-header.originator-id`" />
+									<parameter name="lcm-dmaap.sub-request-id"
+										value="`$upgrade-post-check-input.common-header.sub-request-id`" />
+									<parameter name="lcm-dmaap.flags.mode"
+										value="`$upgrade-post-check-input.common-header.flags.mode`" />
+									<parameter name="lcm-dmaap.flags.force"
+										value="`$upgrade-post-check-input.common-header.flags.force`" />
+									<parameter name="lcm-dmaap.flags.ttl"
+										value="`$upgrade-post-check-input.common-header.flags.ttl`" />
+									<parameter name="lcm-dmaap.payload"
+										value="`$org.onap.appc.adapter.ansible.results`" />
+									<parameter name="lcm-dmaap.status.code"
+										value="`$org.onap.appc.adapter.ansible.result.code`" />
+									<parameter name="lcm-dmaap.status.message"
+										value="`$org.onap.appc.adapter.ansible.message`" />
 								</set>
 								<execute
-									plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode'
-									method='sendRequest'>
-									<parameter name='templateFileName'
+									plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode"
+									method="sendRequest">
+									<parameter name="templateFileName"
 										value="`$prop.restapi.templateDir + '/' + $prop.restapi.lcm.dmaap.publish.templatefile`" />
-									<parameter name='restapiUrl' value='`$prop.lcm.dmaap.url`' />
-									<parameter name='restapiUser' value='`$prop.lcm.dmaap.user`' />
-									<parameter name='restapiPassword' value='`$prop.lcm.dmaap.password`' />
-									<parameter name='format' value='json' />
-									<parameter name='httpMethod' value='POST' />
-									<parameter name='contentType' value='application/json' />
+									<parameter name="restapiUrl" value="`$prop.lcm.dmaap.url`" />
+									<parameter name="restapiUser" value="`$prop.lcm.dmaap.user`" />
+									<parameter name="restapiPassword" value="`$prop.lcm.dmaap.password`" />
+									<parameter name="format" value="json" />
+									<parameter name="httpMethod" value="POST" />
+									<parameter name="contentType" value="application/json" />
 									<parameter name="responsePrefix" value="lcm" />
-									<outcome value='failure'>
+									<outcome value="failure">
 										<record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
 											<parameter name="logger" value="message-log" />
-											<parameter name="field1" value='Failed to Publish to DMaap' />
+											<parameter name="field1" value="Failed to Publish to DMaap" />
 										</record>
 									</outcome>
 								</execute>
-								<return status='failure'>
-									<parameter name='status.code' value='401' />
-									<parameter name='status.message'
-										value='`$org.onap.appc.adapter.ansible.message`' />
+								<return status="failure">
+									<parameter name="status.code" value="401" />
+									<parameter name="status.message"
+										value="`$org.onap.appc.adapter.ansible.message`" />
 								</return>
 							</block>
 						</outcome>
-						<outcome value='100'>
-							<execute plugin='org.onap.ccsdk.sli.adaptors.ansible.AnsibleAdapter'
-								method='reqExecResult'>
-								<parameter name='AgentUrl' value='`$prop.ansible.agenturl`' />
-								<parameter name='User' value='`$prop.ansible.user`' />
-								<parameter name='Password' value='`$prop.ansible.password`' />
-								<parameter name='Id'
-									value='`$upgrade-post-check-input.common-header.request-id`' />
-								<parameter name='PlaybookName'
-									value='`$prop.lcm.upgrade-post-check.playbookname`' />
-
-
-
-
-
-								<outcome value='failure'>
+						<outcome value="100">
+							<execute plugin="org.onap.ccsdk.sli.adaptors.ansible.AnsibleAdapter"
+								method="reqExecResult">
+								<parameter name="AgentUrl" value="`$prop.ansible.agenturl`" />
+								<parameter name="User" value="`$prop.ansible.user`" />
+								<parameter name="Password" value="`$prop.ansible.password`" />
+								<parameter name="Id" value="`$org.onap.appc.adapter.ansible.Id`" />
+								<parameter name="PlaybookName"
+									value="`$prop.lcm.upgrade-post-check.playbookname`" />
+								<outcome value="failure">
 									<block>
 										<set>
-											<parameter name='lcm-dmaap.version' value='`$prop.lcm.dmaap.version`' />
-											<parameter name='lcm-dmaap.correlation-id'
-												value='`$upgrade-post-check-input.common-header.sub-request-id`' />
-											<parameter name='lcm-dmaap.partition' value='`$prop.lcm.dmaap.partition`' />
-											<parameter name='lcm-dmaap.rpc-name' value='upgrade-post-check' />
-											<parameter name='lcm-dmaap.type' value='`$prop.lcm.dmaap.type`' />
-											<parameter name='lcm-dmaap.timestamp'
-												value='`$upgrade-post-check-input.common-header.timestamp`' />
-											<parameter name='lcm-dmaap.api-ver'
-												value='`$upgrade-post-check-input.common-header.api-ver`' />
-											<parameter name='lcm-dmaap.originator-id'
-												value='`$upgrade-post-check-input.common-header.originator-id`' />
-											<parameter name='lcm-dmaap.request-id'
-												value='`$upgrade-post-check-input.common-header.originator-id`' />
-											<parameter name='lcm-dmaap.sub-request-id'
-												value='`$upgrade-post-check-input.common-header.sub-request-id`' />
-											<parameter name='lcm-dmaap.flags.mode'
-												value='`$upgrade-post-check-input.common-header.flags.mode`' />
-											<parameter name='lcm-dmaap.flags.force'
-												value='`$upgrade-post-check-input.common-header.flags.force`' />
-											<parameter name='lcm-dmaap.flags.ttl'
-												value='`$upgrade-post-check-input.common-header.flags.ttl`' />
-											<parameter name='lcm-dmaap.payload'
-												value='`$org.onap.appc.adapter.ansible.results`' />
-											<parameter name='lcm-dmaap.status.code'
-												value='`$org.onap.appc.adapter.ansible.result.code`' />
-											<parameter name='lcm-dmaap.status.message'
-												value='`$org.onap.appc.adapter.ansible.message`' />
+											<parameter name="lcm-dmaap.version" value="`$prop.lcm.dmaap.version`" />
+											<parameter name="lcm-dmaap.correlation-id"
+												value="`$upgrade-post-check-input.common-header.sub-request-id`" />
+											<parameter name="lcm-dmaap.partition" value="`$prop.lcm.dmaap.partition`" />
+											<parameter name="lcm-dmaap.rpc-name" value="upgrade-post-check" />
+											<parameter name="lcm-dmaap.type" value="`$prop.lcm.dmaap.type`" />
+											<parameter name="lcm-dmaap.timestamp"
+												value="`$upgrade-post-check-input.common-header.timestamp`" />
+											<parameter name="lcm-dmaap.api-ver"
+												value="`$upgrade-post-check-input.common-header.api-ver`" />
+											<parameter name="lcm-dmaap.originator-id"
+												value="`$upgrade-post-check-input.common-header.originator-id`" />
+											<parameter name="lcm-dmaap.request-id"
+												value="`$upgrade-post-check-input.common-header.originator-id`" />
+											<parameter name="lcm-dmaap.sub-request-id"
+												value="`$upgrade-post-check-input.common-header.sub-request-id`" />
+											<parameter name="lcm-dmaap.flags.mode"
+												value="`$upgrade-post-check-input.common-header.flags.mode`" />
+											<parameter name="lcm-dmaap.flags.force"
+												value="`$upgrade-post-check-input.common-header.flags.force`" />
+											<parameter name="lcm-dmaap.flags.ttl"
+												value="`$upgrade-post-check-input.common-header.flags.ttl`" />
+											<parameter name="lcm-dmaap.payload"
+												value="`$org.onap.appc.adapter.ansible.results`" />
+											<parameter name="lcm-dmaap.status.code"
+												value="`$org.onap.appc.adapter.ansible.result.code`" />
+											<parameter name="lcm-dmaap.status.message"
+												value="`$org.onap.appc.adapter.ansible.message`" />
 										</set>
 										<execute
-											plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode'
-											method='sendRequest'>
-											<parameter name='templateFileName'
+											plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode"
+											method="sendRequest">
+											<parameter name="templateFileName"
 												value="`$prop.restapi.templateDir + '/' + $prop.restapi.lcm.dmaap.publish.templatefile`" />
-											<parameter name='restapiUrl' value='`$prop.lcm.dmaap.url`' />
-											<parameter name='restapiUser' value='`$prop.lcm.dmaap.user`' />
-											<parameter name='restapiPassword' value='`$prop.lcm.dmaap.password`' />
-											<parameter name='format' value='json' />
-											<parameter name='httpMethod' value='POST' />
-											<parameter name='contentType' value='application/json' />
+											<parameter name="restapiUrl" value="`$prop.lcm.dmaap.url`" />
+											<parameter name="restapiUser" value="`$prop.lcm.dmaap.user`" />
+											<parameter name="restapiPassword" value="`$prop.lcm.dmaap.password`" />
+											<parameter name="format" value="json" />
+											<parameter name="httpMethod" value="POST" />
+											<parameter name="contentType" value="application/json" />
 											<parameter name="responsePrefix" value="lcm" />
-											<outcome value='failure'>
+											<outcome value="failure">
 												<record
 													plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
 													<parameter name="logger" value="message-log" />
-													<parameter name="field1" value='Failed to Publish to DMaap' />
+													<parameter name="field1" value="Failed to Publish to DMaap" />
 												</record>
 											</outcome>
 										</execute>
-										<return status='failure'>
-											<parameter name='status.code' value='401' />
-											<parameter name='status.message'
-												value='`$org.onap.appc.adapter.ansible.message`' />
+										<return status="failure">
+											<parameter name="status.code" value="401" />
+											<parameter name="status.message"
+												value="`$org.onap.appc.adapter.ansible.message`" />
 										</return>
 									</block>
 								</outcome>
-								<outcome value='success'>
+								<outcome value="success">
 									<block>
 										<set>
-											<parameter name='lcm-dmaap.version' value='`$prop.lcm.dmaap.version`' />
-											<parameter name='lcm-dmaap.correlation-id'
-												value='`$upgrade-post-check-input.common-header.sub-request-id`' />
-											<parameter name='lcm-dmaap.partition' value='`$prop.lcm.dmaap.partition`' />
-											<parameter name='lcm-dmaap.rpc-name' value='upgrade-post-check' />
-											<parameter name='lcm-dmaap.type' value='`$prop.lcm.dmaap.type`' />
-											<parameter name='lcm-dmaap.timestamp'
-												value='`$upgrade-post-check-input.common-header.timestamp`' />
-											<parameter name='lcm-dmaap.api-ver'
-												value='`$upgrade-post-check-input.common-header.api-ver`' />
-											<parameter name='lcm-dmaap.originator-id'
-												value='`$upgrade-post-check-input.common-header.originator-id`' />
-											<parameter name='lcm-dmaap.request-id'
-												value='`$upgrade-post-check-input.common-header.originator-id`' />
-											<parameter name='lcm-dmaap.sub-request-id'
-												value='`$upgrade-post-check-input.common-header.sub-request-id`' />
-											<parameter name='lcm-dmaap.flags.mode'
-												value='`$upgrade-post-check-input.common-header.flags.mode`' />
-											<parameter name='lcm-dmaap.flags.force'
-												value='`$upgrade-post-check-input.common-header.flags.force`' />
-											<parameter name='lcm-dmaap.flags.ttl'
-												value='`$upgrade-post-check-input.common-header.flags.ttl`' />
-											<parameter name='lcm-dmaap.payload'
-												value='`$org.onap.appc.adapter.ansible.results`' />
-											<parameter name='lcm-dmaap.status.code'
-												value='`$org.onap.appc.adapter.ansible.result.code`' />
-											<parameter name='lcm-dmaap.status.message'
-												value='`$org.onap.appc.adapter.ansible.message`' />
+											<parameter name="lcm-dmaap.version" value="`$prop.lcm.dmaap.version`" />
+											<parameter name="lcm-dmaap.correlation-id"
+												value="`$upgrade-post-check-input.common-header.sub-request-id`" />
+											<parameter name="lcm-dmaap.partition" value="`$prop.lcm.dmaap.partition`" />
+											<parameter name="lcm-dmaap.rpc-name" value="upgrade-post-check" />
+											<parameter name="lcm-dmaap.type" value="`$prop.lcm.dmaap.type`" />
+											<parameter name="lcm-dmaap.timestamp"
+												value="`$upgrade-post-check-input.common-header.timestamp`" />
+											<parameter name="lcm-dmaap.api-ver"
+												value="`$upgrade-post-check-input.common-header.api-ver`" />
+											<parameter name="lcm-dmaap.originator-id"
+												value="`$upgrade-post-check-input.common-header.originator-id`" />
+											<parameter name="lcm-dmaap.request-id"
+												value="`$upgrade-post-check-input.common-header.originator-id`" />
+											<parameter name="lcm-dmaap.sub-request-id"
+												value="`$upgrade-post-check-input.common-header.sub-request-id`" />
+											<parameter name="lcm-dmaap.flags.mode"
+												value="`$upgrade-post-check-input.common-header.flags.mode`" />
+											<parameter name="lcm-dmaap.flags.force"
+												value="`$upgrade-post-check-input.common-header.flags.force`" />
+											<parameter name="lcm-dmaap.flags.ttl"
+												value="`$upgrade-post-check-input.common-header.flags.ttl`" />
+											<parameter name="lcm-dmaap.payload"
+												value="`$org.onap.appc.adapter.ansible.results`" />
+											<parameter name="lcm-dmaap.status.code"
+												value="`$org.onap.appc.adapter.ansible.result.code`" />
+											<parameter name="lcm-dmaap.status.message"
+												value="`$org.onap.appc.adapter.ansible.message`" />
 										</set>
 										<execute
-											plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode'
-											method='sendRequest'>
-											<parameter name='templateFileName'
+											plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode"
+											method="sendRequest">
+											<parameter name="templateFileName"
 												value="`$prop.restapi.templateDir + '/' + $prop.restapi.lcm.dmaap.publish.templatefile`" />
-											<parameter name='restapiUrl' value='`$prop.lcm.dmaap.url`' />
-											<parameter name='restapiUser' value='`$prop.lcm.dmaap.user`' />
-											<parameter name='restapiPassword' value='`$prop.lcm.dmaap.password`' />
-											<parameter name='format' value='json' />
-											<parameter name='httpMethod' value='POST' />
-											<parameter name='contentType' value='application/json' />
+											<parameter name="restapiUrl" value="`$prop.lcm.dmaap.url`" />
+											<parameter name="restapiUser" value="`$prop.lcm.dmaap.user`" />
+											<parameter name="restapiPassword" value="`$prop.lcm.dmaap.password`" />
+											<parameter name="format" value="json" />
+											<parameter name="httpMethod" value="POST" />
+											<parameter name="contentType" value="application/json" />
 											<parameter name="responsePrefix" value="lcm" />
-											<outcome value='failure'>
+											<outcome value="failure">
 												<record
 													plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
 													<parameter name="logger" value="message-log" />
-													<parameter name="field1" value='Failed to Publish to DMaap' />
+													<parameter name="field1" value="Failed to Publish to DMaap" />
 												</record>
 											</outcome>
 										</execute>
-										<return status='success'>
-											<parameter name='status.code'
-												value='`$org.onap.appc.adapter.ansible.result.code`' />
-											<parameter name='status.message'
-												value='`$org.onap.appc.adapter.ansible.message`' />
+										<return status="success">
+											<parameter name="status.code"
+												value="`$org.onap.appc.adapter.ansible.result.code`" />
+											<parameter name="status.message"
+												value="`$org.onap.appc.adapter.ansible.message`" />
 										</return>
 									</block>
 								</outcome>
