@@ -15,6 +15,6 @@ SDNC Northbound
    logging.rst
    installation.rst
    configuration.rst
-   administration.rst
+   build.rst
    humaninterfaces.rst
    release-notes.rst
