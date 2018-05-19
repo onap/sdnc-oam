@@ -1,868 +1,575 @@
-<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='1.2.0-SNAPSHOT-INT110901'>
-    <method rpc='vf-module-topology-operation-assign' mode='sync'>
-        <block atomic="true">
-            <switch test='`$vf-module-topology-operation-input.request-information.request-action`'>
-                <outcome value='CreateVfModuleInstance'>
-                    <block></block>
-                </outcome>
-                <outcome value='Other'>
-                    <return status='failure'>
-                        <parameter name='ack-final' value='Y'/>
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="If svc-action is 'assign' then request-action must be 'CreateVfModuleInstance'" />
-                    </return>
-                </outcome>
-            </switch>
-            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
-                          key='SELECT * from VF_MODULE_MODEL WHERE customization_uuid = $vf-module-topology-operation-input.vf-module-information.onap-model-information.model-customization-uuid'
-                          pfx='db.vf-module-model'>
-                <outcome value='failure'>
-                    <return status='failure'>
-                        <parameter name='ack-final' value='Y'/>
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="Error reading VF_MODULE_MODEL table" />
-                    </return>
-                </outcome>
-                <outcome value='not-found'>
-                    <return status='failure'>
-                        <parameter name='ack-final' value='Y'/>
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="`'No model found for VF module customization UUID ' + $vf-module-topology-operation-input.vf-module-information.onap-model-information.model-customization-uuid`" />
-                    </return>
-                </outcome>
-            </get-resource>
-            <set>
-                <parameter name='vnf-index' value='-1' />
-            </set>
-            <switch test='`$service-data.vnfs.vnf_length`'>
-                <outcome value=''>
-                    <return status='failure'>
-                        <parameter name='ack-final' value='Y'/>
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="There are no VNFs defined in MD-SAL" />
-                    </return>
-                </outcome>
-                <outcome value='Other'>
-                    <for index='idx' start='0' end='`$service-data.vnfs.vnf_length`' >
-                        <switch test='`$service-data.vnfs.vnf[$idx].vnf-id == $vf-module-topology-operation-input.vnf-information.vnf-id`'>
-                            <outcome value='true'>
-                                <block>
-                                    <set>
-                                        <parameter name='vnf-index' value='`$idx`' />
-                                    </set>
-                                    <break></break>
-                                </block>
-                            </outcome>
-                        </switch>
-                    </for>
-                </outcome>
-            </switch>
-            <switch test='`$vnf-index`'>
-                <outcome value='-1'>
-                    <return status='failure'>
-                        <parameter name='ack-final' value='Y'/>
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="`'Unable to find VNF ID ' + $vf-module-topology-operation-input.vnf-information.vnf-id + ' in MD-SAL'`" />
-                    </return>
-                </outcome>
-            </switch>
-            <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-level-oper-status.order-status`'>
-                <outcome value='Created'>
-                    <block></block>
-                </outcome>
-                <outcome value='Other'>
-                    <return status='failure'>
-                        <parameter name='ack-final' value='Y'/>
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="`'VNF order status is ' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-level-oper-status.order-status + ' but should be Created'`" />
-                    </return>
-                </outcome>
-            </switch>
-            <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`'>
-                <outcome value=''>
-                    <set>
-                        <parameter name='vf-module-index' value='0' />
-                    </set>
-                </outcome>
-                <outcome value='Other'>
-                    <block>
-                        <set>
-                            <parameter name='vf-module-index' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`' />
-                        </set>
-                        <for index='idx' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`' >
-                            <switch test='`$vf-module-topology-operation-input.vf-module-information.vf-module-id == $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$idx].vf-module-id`'>
-                                <outcome value='true'>
-                                    <return status='failure'>
-                                        <parameter name='ack-final' value='Y'/>
-                                        <parameter name="error-code" value="500" />
-                                        <parameter name="error-message" value="`'VF module id ' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$idx].vf-module-id + ' already exists, and status is ' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$idx].vf-module-data.vf-module-level-oper-status.order-status`" />
-                                    </return>
-                                </outcome>
-                            </switch>
-                        </for>
-                    </block>
-                </outcome>
-            </switch>
-            <set>
-                <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length' value='`$vf-module-index + 1`' />
-            </set>
-            <set>
-                <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id'
-                           value='`$vf-module-topology-operation-input.vf-module-information.vf-module-id`' />
-            </set>
-            <set>
-                <parameter name='tmp.vf-module-topology.vf-module-topology-identifier.vf-module-id' value='`$vf-module-topology-operation-input.vf-module-information.vf-module-id`' />
-                <parameter name='tmp.vf-module-topology.vf-module-topology-identifier.vf-module-name' value='`$vf-module-topology-operation-input.vf-module-request-input.vf-module-name`' />
-                <parameter name='tmp.vf-module-topology.vf-module-topology-identifier.vf-module-type' value='`$vf-module-topology-operation-input.vf-module-information.vf-module-type`' />
-                <parameter name='tmp.vf-module-topology.tenant' value='`$vf-module-topology-operation-input.vf-module-request-input.tenant`' />
-                <parameter name='tmp.vf-module-topology.aic-cloud-region' value='`$vf-module-topology-operation-input.vf-module-request-input.aic-cloud-region`' />
-            </set>
-            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
-                          resource="cloud-region"
-                          key="cloud-region.cloud-owner = 'CloudOwner' AND
-             cloud-region.cloud-region-id = $vf-module-topology-operation-input.vf-module-request-input.aic-cloud-region"
-                          pfx='aai.cloud-region' local-only='false' >
-                <outcome value='not-found'>
-                    <return status='failure'>
-                        <parameter name='ack-final' value='Y'/>
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="Cloud region not found in AAI" />
-                    </return>
-                </outcome>
-                <outcome value='failure'>
-                    <return status='failure'>
-                        <parameter name='ack-final' value='Y'/>
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="Error retrieving cloud region from AAI" />
-                    </return>
-                </outcome>
-            </get-resource>
-            <for index='idx' start='0' end='`$aai.cloud-region.relationship-list.relationship_length`' >
-                <switch test='`$aai.cloud-region.relationship-list.relationship[$idx].related-to`'>
-                    <outcome value='complex'>
-                        <block atomic="true">
-                            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split'>
-                                <parameter name='ctx_memory_result_key' value='aai-uid-split' />
-                                <parameter name='original_string' value='`$aai.cloud-region.relationship-list.relationship[$idx].related-link`' />
-                                <parameter name='regex' value='/' />
-                            </execute>
-                            <set>
-                                <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.aic-clli'
-                                           value='`$aai-uid-split[$aai-uid-split_length - 1]`' />
-                            </set>
-                            <break></break>
-                        </block>
-                    </outcome>
-                </switch>
-            </for>
-            <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.aic-clli`'>
-                <outcome value=''>
-                    <return status='failure'>
-                        <parameter name='ack-final' value='Y'/>
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="`'Unable to find aic-clli in AAI for aic-cloud-region ' + $vf-module-topology-operation-input.vf-module-request-input.aic-cloud-region`" />
-                    </return>
-                </outcome>
-            </switch>
-            <switch test='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-invariant-uuid`'>
-                <outcome value=''>
-                    <set>
-                        <parameter name='tmp.vf-module-topology.onap-model-information.model-invariant-uuid'
-                                   value='`$db.vf-module-model.invariant-uuid`' />
-                    </set>
-                </outcome>
-                <outcome value='Other'>
-                    <set>
-                        <parameter name='tmp.vf-module-topology.onap-model-information.model-invariant-uuid'
-                                   value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-invariant-uuid`' />
-                    </set>
-                </outcome>
-            </switch>
-            <switch test='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-uuid`'>
-                <outcome value=''>
-                    <set>
-                        <parameter name='tmp.vf-module-topology.onap-model-information.model-uuid'
-                                   value='`$db.vf-module-model.uuid`' />
-                    </set>
-                </outcome>
-                <outcome value='Other'>
-                    <set>
-                        <parameter name='tmp.vf-module-topology.onap-model-information.model-uuid'
-                                   value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-uuid`' />
-                    </set>
-                </outcome>
-            </switch>
-            <switch test='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-version`'>
-                <outcome value=''>
-                    <set>
-                        <parameter name='tmp.vf-module-topology.onap-model-information.model-version'
-                                   value='`$db.vf-module-model.version`' />
-                    </set>
-                </outcome>
-                <outcome value='Other'>
-                    <set>
-                        <parameter name='tmp.vf-module-topology.onap-model-information.model-version'
-                                   value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-version`' />
-                    </set>
-                </outcome>
-            </switch>
-            <switch test='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-name`'>
-                <outcome value=''>
-                    <set>
-                        <parameter name='tmp.vf-module-topology.onap-model-information.model-name'
-                                   value='`$db.vf-module-model.name`' />
-                    </set>
-                </outcome>
-                <outcome value='Other'>
-                    <set>
-                        <parameter name='tmp.vf-module-topology.onap-model-information.model-name'
-                                   value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-name`' />
-                    </set>
-                </outcome>
-            </switch>
-            <set>
-                <parameter name='tmp.vf-module-topology.onap-model-information.model-customization-uuid'
-                           value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-customization-uuid`' />
-            </set>
-            <set>
-                <parameter name='tmp.vf-module-topology.vf-module-parameters.'
-                           value='vf-module-topology-operation-input.vf-module-request-input.vf-module-input-parameters.' />
-            </set>
-            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
-                          key='SELECT * from VF_MODULE_TO_VFC_MAPPING WHERE vf_module_customization_uuid = $vf-module-topology-operation-input.vf-module-information.onap-model-information.model-customization-uuid'
-                          pfx='db.vf-module-to-vfc-mapping[]'>
-                <outcome value='failure'>
-                    <return status='failure'>
-                        <parameter name='ack-final' value='Y'/>
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="Error reading VF_MODULE_TO_VFC_MAPPING table" />
-                    </return>
-                </outcome>
-                <outcome value='not-found'>
-                    <set>
-                        <parameter name='db.vf-module-to-vfc-mapping_length' value='0' />
-                    </set>
-                </outcome>
-            </get-resource>
-            <set>
-                <parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm_length'
-                           value='`$db.vf-module-to-vfc-mapping_length`' />
-            </set>
-            <for index='vm-type-index' start='0' end='`$db.vf-module-to-vfc-mapping_length`' >
-                <block atomic="true">
-                    <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
-                                  key='SELECT * from VFC_MODEL WHERE customization_uuid = $db.vf-module-to-vfc-mapping[$vm-type-index].vfc-customization-uuid'
-                                  pfx='db.vfc-model'>
-                        <outcome value='failure'>
-                            <return status='failure'>
-                                <parameter name='ack-final' value='Y'/>
-                                <parameter name="error-code" value="500" />
-                                <parameter name="error-message" value="Error reading VFC_MODEL table" />
-                            </return>
-                        </outcome>
-                        <outcome value='not-found'>
-                            <return status='failure'>
-                                <parameter name='ack-final' value='Y'/>
-                                <parameter name="error-code" value="500" />
-                                <parameter name="error-message" value="`'No entries found in VFC_MODEL table for customization UUID ' + $db.vf-module-to-vfc-mapping[$db-vm-index].vfc_customization_uuid`" />
-                            </return>
-                        </outcome>
-                    </get-resource>
-                    <switch test="$db.vfc-model.ecomp-generated-naming == 'Y'">
-                        <outcome value='false'>
-                            <return status='failure'>
-                                <parameter name='ack-final' value='Y'/>
-                                <parameter name="error-code" value="500" />
-                                <parameter name="error-message" value="`'ECOMP generated naming is not Y for VFC customization UUID ' + $db.vf-module-to-vfc-mapping[$db-vm-index].vfc_customization_uuid`" />
-                            </return>
-                        </outcome>
-                    </switch>
-                    <set>
-                        <parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-type'
-                                   value='`$db.vf-module-to-vfc-mapping[$vm-type-index].vm-type`' />
-                        <parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].nfc-naming-code'
-                                   value='`$db.vfc-model.nfc-naming-code`' />
-                        <parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-type-tag'
-                                   value='`$db.vfc-model.vm-type-tag`' />
-                        <parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-count'
-                                   value='`$db.vf-module-to-vfc-mapping[$vm-type-index].vm-count`' />
-                    </set>
-                    <set>
-                        <parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-names.vm-name_length'
-                                   value='`$db.vf-module-to-vfc-mapping[$vm-type-index].vm-count`' />
-                    </set>
-                    <for index='vm-index' start='0' end='`$db.vf-module-to-vfc-mapping[$vm-type-index].vm-count`' >
-                        <block atomic="true">
-                            <set>
-                                <parameter name='generate-unique-name-input.index-table-name' value='VM_NAME_INDEX' />
-                                <parameter name='generate-unique-name-input.index-table-prefix-column' value='vm_name_prefix' />
-                                <parameter name='generate-unique-name-input.name-table-type' value='VM_INSTANCE' />
-                                <parameter name='generate-unique-name-input.prefix' value="`$service-data.vnfs.vnf[$vnf-index].vnf-name + $db.vfc-model.nfc-naming-code`" />
-                                <parameter name='generate-unique-name-input.index-length' value='3' />
-                            </set>
-                            <call module='GENERIC-RESOURCE-API' rpc='generate-unique-name' mode='sync' >
-                                <outcome value='failure'>
-                                    <return status='failure'>
-                                        <parameter name='ack-final' value='Y'/>
-                                        <parameter name="error-code" value="500" />
-                                        <parameter name="error-message" value="`$generate-unique-name-output.error-message`" />
-                                    </return>
-                                </outcome>
-                                <outcome value='success'>
-                                    <set>
-                                        <parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-names.vm-name[$vm-index]' value='`$generate-unique-name-output.generated-name`' />
-                                    </set>
-                                </outcome>
-                            </call>
-                        </block>
-                    </for>
-                    <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
-                                  key='SELECT * from VFC_TO_NETWORK_ROLE_MAPPING WHERE vfc_customization_uuid = $db.vf-module-to-vfc-mapping[$vm-type-index].vfc-customization-uuid'
-                                  pfx='db.vfc-to-network-role-mapping[]'>
-                        <outcome value='failure'>
-                            <return status='failure'>
-                                <parameter name='ack-final' value='Y'/>
-                                <parameter name="error-code" value="500" />
-                                <parameter name="error-message" value="Error reading VFC_TO_NETWORK_ROLE_MAPPING table" />
-                            </return>
-                        </outcome>
-                        <outcome value='not-found'>
-                            <set>
-                                <parameter name='db.vfc-to-network-role-mapping_length' value='0' />
-                            </set>
-                        </outcome>
-                    </get-resource>
-                    <for index='network-role-index' start='0' end='`$db.vfc-to-network-role-mapping_length`' >
-                        <block atomic="true">
-                            <set>
-                                <parameter name='network-index' value='-1' />
-                            </set>
-                            <for silentFailure='true' index='idx' start='0' end='`$service-data.networks.network_length`' >
-                                <switch test='`$service-data.networks.network[$idx].network-data.network-topology.network-topology-identifier-structure.network-role == $db.vfc-to-network-role-mapping[$network-role-index].network-role`'>
-                                    <outcome value='true'>
-                                        <block>
-                                            <set>
-                                                <parameter name='network-index' value='`$idx`' />
-                                            </set>
-                                            <break></break>
-                                        </block>
-                                    </outcome>
-                                </switch>
-                            </for>
-                            <switch test='`$network-index`'>
-                                <outcome value='-1'>
-                                    <return status='failure'>
-                                        <parameter name='ack-final' value='Y'/>
-                                        <parameter name="error-code" value="500" />
-                                        <parameter name="error-message" value="`'No network found in MD-SAL with network-role ' + $db.vfc-to-network-role-mapping[$network-role-index].network-role`" />
-                                    </return>
-                                </outcome>
-                            </switch>
-                            <!--This isn't a node in MD-SAL, but we need to save this for later when we are doing EIPAM processing-->
-                            <set>
-                                <parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-id'
-                                           value='`$service-data.networks.network[$idx].network-data.network-topology.network-topology-identifier-structure.network-id`' />
-                            </set>
-                            <set>
-                                <parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-role'
-                                           value='`$db.vfc-to-network-role-mapping[$network-role-index].network-role`' />
-                                <parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-role-tag'
-                                           value='`$db.vfc-to-network-role-mapping[$network-role-index].network-role-tag`' />
-                            </set>
-                            <switch test='`$db.vfc-to-network-role-mapping[$network-role-index].ipv4-ip-version`'>
-                                <outcome value=''>
-                                    <set>
-                                        <parameter name='network-information-index' value='-1' />
-                                    </set>
-                                </outcome>
-                                <outcome value='4'>
-                                    <block atomic="true">
-                                        <set>
-                                            <parameter name='network-information-index' value='0' />
-                                        </set>
-                                        <set>
-                                            <parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$network-information-index].ip-version'
-                                                       value='4' />
-                                            <parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$network-information-index].use-dhcp'
-                                                       value='`$db.vfc-to-network-role-mapping[$network-role-index].ipv4-use-dhcp`' />
-                                            <parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$network-information-index].ip-count'
-                                                       value='`$db.vfc-to-network-role-mapping[$network-role-index].ipv4-count`' />
-                                        </set>
-                                    </block>
-                                </outcome>
-                            </switch>
-                            <switch test='`$db.vfc-to-network-role-mapping[$network-role-index].ipv6-ip-version`'>
-                                <outcome value=''>
-                                    <block></block>
-                                </outcome>
-                                <outcome value='6'>
-                                    <block atomic="true">
-                                        <set>
-                                            <parameter name='network-information-index' value='`$network-information-index + 1`' />
-                                        </set>
-                                        <set>
-                                            <parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$network-information-index].ip-version'
-                                                       value='6' />
-                                            <parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$network-information-index].use-dhcp'
-                                                       value='`$db.vfc-to-network-role-mapping[$network-role-index].ipv6-use-dhcp`' />
-                                            <parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$network-information-index].ip-count'
-                                                       value='`$db.vfc-to-network-role-mapping[$network-role-index].ipv6-count`' />
-                                        </set>
-                                    </block>
-                                </outcome>
-                            </switch>
-                            <switch test='`$network-information-index`'>
-                                <outcome value='-1'>
-                                    <block></block>
-                                </outcome>
-                                <outcome value='Other'>
-                                    <set>
-                                        <parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item_length'
-                                                   value='`$network-information-index + 1`' />
-                                    </set>
-                                </outcome>
-                            </switch>
-                        </block>
-                    </for>
-                    <set>
-                        <parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network_length'
-                                   value='`$db.vfc-to-network-role-mapping_length`' />
-                    </set>
-                </block>
-            </for>
-            <set>
-                <parameter name='plans-index' value='0' />
-            </set>
-            <for index='vm-type-index' start='0' end='`$tmp.vf-module-topology.vf-module-assignments.vms.vm_length`' >
-                <block atomic="true">
-                    <for index='network-role-index' start='0' end='`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network_length`' >
-                        <block atomic="true">
-                            <for index='ip-version-index' start='0' end='`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item_length`' >
-                                <switch test='`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$ip-version-index].use-dhcp`'>
-                                    <outcome value='N'>
-                                        <block atomic="true">
-                                            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
-                                                          key='SELECT * from EIPAM_IP_SUBNETS WHERE network_id = $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-id
-                                                          AND address_family = $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$ip-version-index].ip-version'
-                                                          pfx='db.eipam-ip-subnets[]'>
-                                                <outcome value='failure'>
-                                                    <return status='failure'>
-                                                        <parameter name='ack-final' value='Y'/>
-                                                        <parameter name="error-code" value="500" />
-                                                        <parameter name="error-message" value="Error reading EIPAM_IP_SUBNETS table" />
-                                                    </return>
-                                                </outcome>
-                                                <outcome value='not-found'>
-                                                    <return status='failure'>
-                                                        <parameter name='ack-final' value='Y'/>
-                                                        <parameter name="error-code" value="500" />
-                                                        <parameter name="error-message" value="`'No entries found in EIPAM_IP_SUBNETS table for network ID ' + $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-id + ' and address family ' + $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$ip-version-index].ip-version`" />
-                                                    </return>
-                                                </outcome>
-                                            </get-resource>
-                                            <set>
-                                                <parameter name='max-level' value='-1' />
-                                            </set>
-                                            <for index='subnets-index' start='0' end='`$db.eipam-ip-subnets_length`' >
-                                                <block atomic="true">
-                                                    <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
-                                                                  key='SELECT * from EIPAM_IP_SUBNET_KEYS WHERE entity_id = $db.eipam-ip-subnets[$subnets-index].entity-id'
-                                                                  pfx='db.eipam-ip-subnet-keys[]'>
-                                                        <outcome value='failure'>
-                                                            <return status='failure'>
-                                                                <parameter name='ack-final' value='Y'/>
-                                                                <parameter name="error-code" value="500" />
-                                                                <parameter name="error-message" value="Error reading EIPAM_IP_SUBNET_KEYS table" />
-                                                            </return>
-                                                        </outcome>
-                                                        <outcome value='not-found'>
-                                                            <return status='failure'>
-                                                                <parameter name='ack-final' value='Y'/>
-                                                                <parameter name="error-code" value="500" />
-                                                                <parameter name="error-message" value="`'No entries found in EIPAM_IP_SUBNET_KEYS table for entity ID ' + $db.eipam-ip-subnets[$subnets-index].entity-id`" />
-                                                            </return>
-                                                        </outcome>
-                                                    </get-resource>
-                                                    <for index='keys-index' start='0' end='`$db.eipam-ip-subnet-keys_length`' >
-                                                        <block atomic="true">
-                                                            <switch test='`$db.eipam-ip-subnet-keys[$keys-index].level &gt; $max-level`'>
-                                                                <outcome value='true'>
-                                                                    <set>
-                                                                        <parameter name='max-level' value='`$db.eipam-ip-subnet-keys[$keys-index].level`' />
-                                                                        <parameter name='selected-entity-id' value='`$db.eipam-ip-subnet-keys[$keys-index].entity-id`' />
-                                                                        <parameter name='selected-plan-name' value='`$db.eipam-ip-subnets[$subnets-index].plan-name`' />
-                                                                    </set>
-                                                                </outcome>
-                                                            </switch>
-                                                        </block>
-                                                    </for>
-                                                    <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
-                                                                  key='SELECT * from EIPAM_IP_SUBNET_KEYS WHERE entity_id = $selected-entity-id order by level'
-                                                                  pfx='db.eipam-ip-subnet-keys[]'>
-                                                        <outcome value='failure'>
-                                                            <return status='failure'>
-                                                                <parameter name='ack-final' value='Y'/>
-                                                                <parameter name="error-code" value="500" />
-                                                                <parameter name="error-message" value="Error reading EIPAM_IP_SUBNET_KEYS table" />
-                                                            </return>
-                                                        </outcome>
-                                                        <outcome value='not-found'>
-                                                            <return status='failure'>
-                                                                <parameter name='ack-final' value='Y'/>
-                                                                <parameter name="error-code" value="500" />
-                                                                <parameter name="error-message" value="`'No entries found in EIPAM_IP_SUBNET_KEYS table for entity ID ' + $selected-entity-id`" />
-                                                            </return>
-                                                        </outcome>
-                                                    </get-resource>
-                                                    <for index='request-index' start='0' end='`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$ip-version-index].ip-count`' >
-                                                        <block atomic="true">
-                                                            <for index='level-index' start='0' end='`$db.eipam-ip-subnet-keys_length`' >
-                                                                <set>
-                                                                    <parameter name='eipam-ip-block.plans[$plans-index].requests[$request-index].pools[$level-index].key-name'
-                                                                               value='`$db.eipam-ip-subnet-keys[$level-index].key-name`' />
-                                                                    <parameter name='eipam-ip-block.plans[$plans-index].requests[$request-index].pools[$level-index].key-value'
-                                                                               value='`$db.eipam-ip-subnet-keys[$level-index].key-value`' />
-                                                                </set>
-                                                            </for>
-                                                            <set>
-                                                                <parameter name='eipam-ip-block.plans[$plans-index].requests[$request-index].pools_length'
-                                                                           value='`$db.eipam-ip-subnet-keys_length`' />
-                                                            </set>
-                                                            <set>
-                                                                <parameter name='generate-unique-name-input.index-table-name' value='EIPAM_CLIENT_KEY_INDEX' />
-                                                                <parameter name='generate-unique-name-input.index-table-prefix-column' value='vnf_name_prefix' />
-                                                                <parameter name='generate-unique-name-input.name-table-type' value='CLIENT_KEY' />
-                                                                <parameter name='generate-unique-name-input.prefix' value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.vnf-name + $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].nfc-naming-code + ':' + $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-id + ':' + $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$ip-version-index].ip-version + ':'`" />
-                                                                <parameter name='generate-unique-name-input.index-length' value='' />
-                                                            </set>
-                                                            <call module='GENERIC-RESOURCE-API' rpc='generate-unique-name' mode='sync' >
-                                                                <outcome value='failure'>
-                                                                    <return status='failure'>
-                                                                        <parameter name='ack-final' value='Y'/>
-                                                                        <parameter name="error-code" value="500" />
-                                                                        <parameter name="error-message" value="`$generate-unique-name-output.error-message`" />
-                                                                    </return>
-                                                                </outcome>
-                                                            </call>
-                                                            <set>
-                                                                <parameter name='eipam-ip-block.plans[$plans-index].requests[$request-index].client-key'
-                                                                           value='`$generate-unique-name-output.generated-name`' />
-                                                                <parameter name='eipam-ip-block.plans[$plans-index].requests[$request-index].info'
-                                                                           value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id`' />
-                                                                <parameter name='eipam-ip-block.plans[$plans-index].requests[$request-index].mask'
-                                                                           value='32' />
-                                                            </set>
-                                                        </block>
-                                                    </for>
-                                                    <set>
-                                                        <parameter name='eipam-ip-block.plans[$plans-index].requests_length'
-                                                                   value='`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$ip-version-index].ip-count`' />
-                                                    </set>
-                                                </block>
-                                            </for>
-                                            <set>
-                                                <parameter name='eipam-ip-block.plans[$plans-index].plan-name' value='`$selected-plan-name`' />
-                                                <parameter name='eipam-ip-block.plans[$plans-index].address-family'
-                                                           value='`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$ip-version-index].ip-version`' />
-                                            </set>
-                                            <set>
-                                                <parameter name='plans-index' value='`$plans-index + 1`' />
-                                            </set>
-                                        </block>
-                                    </outcome>
-                                </switch>
-                            </for>
-                        </block>
-                    </for>
-                </block>
-            </for>
-            <set>
-                <parameter name='eipam-ip-block.plans_length' value='`$plans-index`' />
-            </set>
-            <!--EIPAM plug-in needs this attribute set with this name-->
-            <set>
-                <parameter name='service-data.service-information.service-type' value='`$service-data.service-information.subscription-service-type`' />
-            </set>
-            <switch test='`$plans-index &gt; 0`'>
-                <outcome value='true'>
-                    <execute plugin="com.att.sdnctl.sli.plugin.eipam.EIPAMPlugin" method="assignIPAddress">
-                        <outcome value='failure'>
-                            <return status="failure">
-                                <parameter name="ack-final" value="Y" />
-                                <parameter name="error-code" value="500"/>
-                                <parameter name="error-message" value="An error occured while obtaining new address blocks from EIPAM." />
-                            </return>
-                        </outcome>
-                    </execute>
-                </outcome>
-            </switch>
-            <set>
-                <parameter name='plans-index' value='0' />
-            </set>
-            <for index='vm-type-index' start='0' end='`$tmp.vf-module-topology.vf-module-assignments.vms.vm_length`' >
-                <for index='network-role-index' start='0' end='`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network_length`' >
-                    <for index='ip-version-index' start='0' end='`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item_length`' >
-                        <switch test='`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$ip-version-index].use-dhcp`'>
-                            <outcome value='N'>
-                                <block atomic="true">
-                                    <for index='ip-index' start='0' end='`$eipam-ip-block.plans[$plans-index].requests_length`' >
-                                        <set>
-                                            <parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$ip-version-index].network-ips.network-ip[$ip-index]'
-                                                       value='`$eipam-ip-block.plans[$plans-index].requests[$ip-index].ip-prefix`' />
-                                        </set>
-                                    </for>
-                                    <set>
-                                        <parameter name='plans-index' value='`$plans-index + 1`' />
-                                    </set>
-                                </block>
-                            </outcome>
-                        </switch>
-                    </for>
-                </for>
-            </for>
-            <set>
-                <parameter name='vf-module-object-path'
-                           value="`'restconf/config/GENERIC-RESOURCE-API:services/service/' + $service-data.service-topology.service-topology-identifier.service-instance-id + '/service-data/vnfs/vnf/' + $service-data.vnfs.vnf[$vnf-index].vnf-id + '/vnf-data/vf-modules/vf-module/' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id + '/vf-module-data/vf-module-topology/'`"/>
-            </set>
-            <update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
-                    resource="vf-module"
-                    key="vf-module.vf-module-id = $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id
-                    AND generic-vnf.vnf-id = $service-data.vnfs.vnf[$vnf-index].vnf-id"
-                    force="true" pfx="tmp.AnAI-data">
-                <parameter name="vf-module-name" value="`$tmp.vf-module-topology.vf-module-topology-identifier.vf-module-name`" />
-                <parameter name="model-invariant-id" value="`$tmp.vf-module-topology.onap-model-information.model-invariant-uuid`" />
-                <parameter name="model-version-id" value="`$tmp.vf-module-topology.onap-model-information.model-uuid`" />
-                <parameter name="model-customization-id" value="`$tmp.vf-module-topology.onap-model-information.model-customization-uuid`" />
-                <parameter name="selflink" value="`$vf-module-object-path`" />
-                <outcome value='failure'>
-                    <block atomic="true">
-                        <switch test='`$plans-index &gt; 0`'>
-                            <outcome value='true'>
-                                <block atomic="true">
-                                    <set>
-                                        <parameter name='tmp.status' value="`'PENDING_DELETE_' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-id`" />
-                                    </set>
-                                    <update plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL"
-                                            key="UPDATE EIPAM_IP_ASSIGNMENTS set status = $tmp.status WHERE info = $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-id" >
-                                        <outcome value='failure'>
-                                            <return status='failure'>
-                                                <parameter name='ack-final' value='Y'/>
-                                                <parameter name="error-code" value="500" />
-                                                <parameter name="error-message" value="Error updating EIPAM_IP_ASSIGNMENTS table on rollback" />
-                                            </return>
-                                        </outcome>
-                                    </update>
-                                    <execute plugin="com.att.sdnctl.sli.plugin.eipam.EIPAMPlugin" method="unassignIPAddress">
-                                        <parameter name="deleteEIPAM_status" value="`$tmp.status`" />
-                                        <outcome value='failure'>
-                                            <return status='failure'>
-                                                <parameter name='ack-final' value='Y'/>
-                                                <parameter name="error-code" value="500" />
-                                                <parameter name="error-message" value="Error in EIPAM unassign IP address on rollback" />
-                                            </return>
-                                        </outcome>
-                                    </execute>
-                                </block>
-                            </outcome>
-                        </switch>
-                        <return status='failure'>
-                            <parameter name='ack-final' value='Y'/>
-                            <parameter name="error-code" value="500" />
-                            <parameter name="error-message" value="Error updating vf-module in AAI" />
-                        </return>
-                    </block>
-                </outcome>
-                <outcome value='not-found'>
-                    <block atomic="true">
-                        <switch test='`$plans-index &gt; 0`'>
-                            <outcome value='true'>
-                                <block atomic="true">
-                                    <set>
-                                        <parameter name='tmp.status' value="`'PENDING_DELETE_' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-id`" />
-                                    </set>
-                                    <update plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL"
-                                            key="UPDATE EIPAM_IP_ASSIGNMENTS set status = $tmp.status WHERE info = $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-id" >
-                                        <outcome value='failure'>
-                                            <return status='failure'>
-                                                <parameter name='ack-final' value='Y'/>
-                                                <parameter name="error-code" value="500" />
-                                                <parameter name="error-message" value="Error updating EIPAM_IP_ASSIGNMENTS table on rollback" />
-                                            </return>
-                                        </outcome>
-                                    </update>
-                                    <execute plugin="com.att.sdnctl.sli.plugin.eipam.EIPAMPlugin" method="unassignIPAddress">
-                                        <parameter name="deleteEIPAM_status" value="`$tmp.status`" />
-                                        <outcome value='failure'>
-                                            <return status='failure'>
-                                                <parameter name='ack-final' value='Y'/>
-                                                <parameter name="error-code" value="500" />
-                                                <parameter name="error-message" value="Error in EIPAM unassign IP address on rollback" />
-                                            </return>
-                                        </outcome>
-                                    </execute>
-                                </block>
-                            </outcome>
-                        </switch>
-                        <return status='failure'>
-                            <parameter name='ack-final' value='Y'/>
-                            <parameter name="error-code" value="500" />
-                            <parameter name="error-message" value="`'No vf-module found in AAI for vf module ID ' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id`" />
-                        </return>
-                    </block>
-                </outcome>
-            </update>
-            <for index='vm-type-index' start='0' end='`$tmp.vf-module-topology.vf-module-assignments.vms.vm_length`' >
-                <for index='network-role-index' start='0' end='`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network_length`' >
-                    <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
-                          resource="vf-module:relationship-list"
-                          key="vf-module.vf-module-id = $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id
-                          AND generic-vnf.vnf-id = $service-data.vnfs.vnf[$vnf-index].vnf-id"
-                          force="true" pfx="tmp.AnAI-data">
-                        <parameter name="relationship-list.relationship[0].related-to" value="l3-network" />
-                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="l3-network.network-id" />
-                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-id`" />
-                        <outcome value='failure'>
-                            <block atomic="true">
-                                <switch test='`$plans-index &gt; 0`'>
-                                    <outcome value='true'>
-                                        <block atomic="true">
-                                            <set>
-                                                <parameter name='tmp.status' value="`'PENDING_DELETE_' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-id`" />
-                                            </set>
-                                            <update plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL"
-                                                    key="UPDATE EIPAM_IP_ASSIGNMENTS set status = $tmp.status WHERE info = $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-id" >
-                                                <outcome value='failure'>
-                                                    <return status='failure'>
-                                                        <parameter name='ack-final' value='Y'/>
-                                                        <parameter name="error-code" value="500" />
-                                                        <parameter name="error-message" value="Error updating EIPAM_IP_ASSIGNMENTS table on rollback" />
-                                                    </return>
-                                                </outcome>
-                                            </update>
-                                            <execute plugin="com.att.sdnctl.sli.plugin.eipam.EIPAMPlugin" method="unassignIPAddress">
-                                                <parameter name="deleteEIPAM_status" value="`$tmp.status`" />
-                                                <outcome value='failure'>
-                                                    <return status='failure'>
-                                                        <parameter name='ack-final' value='Y'/>
-                                                        <parameter name="error-code" value="500" />
-                                                        <parameter name="error-message" value="Error in EIPAM unassign IP address on rollback" />
-                                                    </return>
-                                                </outcome>
-                                            </execute>
-                                        </block>
-                                    </outcome>
-                                </switch>
-                                <return status='failure'>
-                                    <parameter name='ack-final' value='Y'/>
-                                    <parameter name="error-code" value="500" />
-                                    <parameter name="error-message" value="Error updating vf-module relationships in AAI" />
-                                </return>
-                            </block>
-                        </outcome>
-                        <outcome value='not-found'>
-                            <block atomic="true">
-                                <switch test='`$plans-index &gt; 0`'>
-                                    <outcome value='true'>
-                                        <block atomic="true">
-                                            <set>
-                                                <parameter name='tmp.status' value="`'PENDING_DELETE_' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-id`" />
-                                            </set>
-                                            <update plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL"
-                                                    key="UPDATE EIPAM_IP_ASSIGNMENTS set status = $tmp.status WHERE info = $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-id" >
-                                                <outcome value='failure'>
-                                                    <return status='failure'>
-                                                        <parameter name='ack-final' value='Y'/>
-                                                        <parameter name="error-code" value="500" />
-                                                        <parameter name="error-message" value="Error updating EIPAM_IP_ASSIGNMENTS table on rollback" />
-                                                    </return>
-                                                </outcome>
-                                            </update>
-                                            <execute plugin="com.att.sdnctl.sli.plugin.eipam.EIPAMPlugin" method="unassignIPAddress">
-                                                <parameter name="deleteEIPAM_status" value="`$tmp.status`" />
-                                                <outcome value='failure'>
-                                                    <return status='failure'>
-                                                        <parameter name='ack-final' value='Y'/>
-                                                        <parameter name="error-code" value="500" />
-                                                        <parameter name="error-message" value="Error in EIPAM unassign IP address on rollback" />
-                                                    </return>
-                                                </outcome>
-                                            </execute>
-                                        </block>
-                                    </outcome>
-                                </switch>
-                                <return status='failure'>
-                                    <parameter name='ack-final' value='Y'/>
-                                    <parameter name="error-code" value="500" />
-                                    <parameter name="error-message" value="`'No vf-module found in AAI for vf module ID ' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id`" />
-                                </return>
-                            </block>
-                        </outcome>
-                    </save>
-                </for>
-            </for>
-            <for index='vm-type-index' start='0' end='`$tmp.vf-module-topology.vf-module-assignments.vms.vm_length`' >
-                <for index='vm-index' start='0' end='`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-count`' >
-                    <block atomic="true">
-                        <delete plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
-                                key='DELETE from VIPR_CONFIGURATION WHERE vnf_id = $service-data.vnfs.vnf[$vnf-index].vnf-id
-                                AND ecomp_service_instance_id = $service-data.service-information.service-instance-id
-                                AND vm_name = $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-names.vm-name[$vm-index]' >
-                            <outcome value='failure'>
-                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
-                                    <parameter name="logger" value="message-log"/>
-                                    <parameter name="field1" value="__TIMESTAMP__"/>
-                                    <parameter name="field2" value="GENERIC-RESOURCE-API.vf-module-topology-operation-assign:REQID"/>
-                                    <parameter name="field3" value="`$vf-module-topology-operation-input.sdnc-request-header.svc-request-id`"/>
-                                    <parameter name="field4" value="Failed to insert VIPR_CONFIGURATION record"/>
-                                </record>
-                            </outcome>
-                        </delete>
-                        <save plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL"
-                              key="INSERT INTO VIPR_CONFIGURATION (vnf_id, vnf_name, ecomp_service_instance_id, vm_name, cloud_region_id, cloud_owner) VALUES ( $service-data.vnfs.vnf[$vnf-index].vnf-id , $service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.vnf-name , $service-data.service-information.service-instance-id , $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-names.vm-name[$vm-index] , $tmp.vf-module-topology.aic-cloud-region , 'CloudOwner')" >
-                            <outcome value='failure'>
-                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
-                                    <parameter name="logger" value="message-log"/>
-                                    <parameter name="field1" value="__TIMESTAMP__"/>
-                                    <parameter name="field2" value="GENERIC-RESOURCE-API.vf-module-topology-operation-assign:REQID"/>
-                                    <parameter name="field3" value="`$vf-module-topology-operation-input.sdnc-request-header.svc-request-id`"/>
-                                    <parameter name="field4" value="Failed to insert VIPR_CONFIGURATION record"/>
-                                </record>
-                            </outcome>
-                        </save>
-                    </block>
-                </for>
-            </for>
-            <set>
-                <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.' value='$tmp.vf-module-topology.' />
-            </set>
-            <set>
-                <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.sdnc-request-header.'
-                           value='$vf-module-topology-operation-input.sdnc-request-header.' />
-                <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.request-information.'
-                           value='$vf-module-topology-operation-input.request-information.' />
-                <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.service-information.'
-                           value='$vf-module-topology-operation-input.service-information.' />
-                <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vnf-information.'
-                           value='$vf-module-topology-operation-input.vnf-information.' />
-                <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-information.'
-                           value='$vf-module-topology-operation-input.vf-module-information.' />
-                <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.'
-                           value='$vf-module-topology-operation-input.vf-module-request-input.' />
-            </set>
-            <call module='GENERIC-RESOURCE-API' rpc='gw-vfmodule-update' mode='sync' ></call>
-            <set>
-                <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-level-oper-status.order-status'
-                           value='PendingCreate' />
-                <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-level-oper-status.last-rpc-action'
-                           value='`$vf-module-topology-operation-input.sdnc-request-header.svc-action`' />
-                <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-level-oper-status.last-action'
-                           value='`$vf-module-topology-operation-input.sdnc-request-header.request-action`' />
-            </set>
-            <return status='success'>
-                <parameter name="ack-final-indicator" value="Y" />
-                <parameter name="error-code" value="200" />
-                <parameter name="error-message" value="`$error-message`" />
-            </return>
-        </block>
-    </method>
-</service-logic>
+<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='1.2.0-SNAPSHOT-INT110901'><method rpc='vf-module-topology-operation-assign' mode='sync'>
+<block atomic="true"><switch test='`$vf-module-topology-operation-input.request-information.request-action`'>
+<outcome value='CreateVfModuleInstance'>
+<block>
+</block></outcome><outcome value='Other'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="If svc-action is 'assign' then request-action must be 'CreateVfModuleInstance'" />
+</return></outcome></switch><get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+  key='SELECT * from VF_MODULE_MODEL WHERE customization_uuid = $vf-module-topology-operation-input.vf-module-information.onap-model-information.model-customization-uuid'
+  pfx='db.vf-module-model'>
+
+<outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error reading VF_MODULE_MODEL table" />
+</return></outcome><outcome value='not-found'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`'No model found for VF module customization UUID ' + $vf-module-topology-operation-input.vf-module-information.onap-model-information.model-customization-uuid`" />
+</return></outcome></get-resource><set>
+<parameter name='vnf-index' value='-1' />
+</set><switch test='`$service-data.vnfs.vnf_length`'>
+<outcome value=''>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="There are no VNFs defined in MD-SAL" />
+</return></outcome><outcome value='Other'>
+<for index='idx' start='0' end='`$service-data.vnfs.vnf_length`' >
+<switch test='`$service-data.vnfs.vnf[$idx].vnf-id == $vf-module-topology-operation-input.vnf-information.vnf-id`'>
+<outcome value='true'>
+<block>
+<set>
+<parameter name='vnf-index' value='`$idx`' />
+</set><break></break></block></outcome></switch></for></outcome></switch><switch test='`$vnf-index`'>
+<outcome value='-1'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`'Unable to find VNF ID ' + $vf-module-topology-operation-input.vnf-information.vnf-id + ' in MD-SAL'`" />
+</return></outcome></switch><switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-level-oper-status.order-status`'>
+<outcome value='Created'>
+<block>
+</block></outcome><outcome value='Other'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`'VNF order status is ' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-level-oper-status.order-status + ' but should be Created'`" />
+</return></outcome></switch><switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`'>
+<outcome value=''>
+<set>
+<parameter name='vf-module-index' value='0' />
+</set></outcome><outcome value='Other'>
+<block>
+<set>
+<parameter name='vf-module-index' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`' />
+</set><for index='idx' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`' >
+<switch test='`$vf-module-topology-operation-input.vf-module-information.vf-module-id == $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$idx].vf-module-id`'>
+<outcome value='true'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`'VF module id ' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$idx].vf-module-id
+       + ' already exists, and status is ' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$idx].vf-module-data.vf-module-level-oper-status.order-status`" />
+</return></outcome></switch></for></block></outcome></switch><set>
+<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length' value='`$vf-module-index + 1`' />
+</set><set>
+<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id'
+   value='`$vf-module-topology-operation-input.vf-module-information.vf-module-id`' />
+</set><set>
+<parameter name='tmp.vf-module-topology.vf-module-topology-identifier.vf-module-id' value='`$vf-module-topology-operation-input.vf-module-information.vf-module-id`' />
+<parameter name='tmp.vf-module-topology.vf-module-topology-identifier.vf-module-name' value='`$vf-module-topology-operation-input.vf-module-request-input.vf-module-name`' />
+<parameter name='tmp.vf-module-topology.vf-module-topology-identifier.vf-module-type' value='`$vf-module-topology-operation-input.vf-module-information.vf-module-type`' />
+<parameter name='tmp.vf-module-topology.tenant' value='`$vf-module-topology-operation-input.vf-module-request-input.tenant`' />
+<parameter name='tmp.vf-module-topology.aic-cloud-region' value='`$vf-module-topology-operation-input.vf-module-request-input.aic-cloud-region`' />
+</set><get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+		resource="cloud-region" 
+		key="cloud-region.cloud-owner = 'CloudOwner' AND 
+		     cloud-region.cloud-region-id = $vf-module-topology-operation-input.vf-module-request-input.aic-cloud-region"
+        pfx='aai.cloud-region' local-only='false' >
+
+<outcome value='not-found'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Cloud region not found in AAI" />
+</return></outcome><outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error retrieving cloud region from AAI" />
+</return></outcome></get-resource><for index='idx' start='0' end='`$aai.cloud-region.relationship-list.relationship_length`' >
+<switch test='`$aai.cloud-region.relationship-list.relationship[$idx].related-to`'>
+<outcome value='complex'>
+<block atomic="true"><execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split'>
+   <parameter name='ctx_memory_result_key' value='aai-uid-split' />
+   <parameter name='original_string' value='`$aai.cloud-region.relationship-list.relationship[$idx].related-link`' />
+   <parameter name='regex' value='/' />
+</execute><set>
+<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.aic-clli'
+   value='`$aai-uid-split[$aai-uid-split_length - 1]`' />
+</set><break></break></block></outcome></switch></for><switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.aic-clli`'>
+<outcome value=''><return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`'Unable to find aic-clli in AAI for aic-cloud-region ' + $vf-module-topology-operation-input.vf-module-request-input.aic-cloud-region`" />
+</return></outcome></switch><switch test='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-invariant-uuid`'>
+<outcome value=''><set>
+<parameter name='tmp.vf-module-topology.onap-model-information.model-invariant-uuid'
+  value='`$db.vf-module-model.invariant-uuid`' />
+</set></outcome><outcome value='Other'>
+<set>
+<parameter name='tmp.vf-module-topology.onap-model-information.model-invariant-uuid'
+  value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-invariant-uuid`' />
+</set></outcome></switch><switch test='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-uuid`'>
+<outcome value=''><set>
+<parameter name='tmp.vf-module-topology.onap-model-information.model-uuid'
+  value='`$db.vf-module-model.uuid`' />
+</set></outcome><outcome value='Other'>
+<set>
+<parameter name='tmp.vf-module-topology.onap-model-information.model-uuid'
+  value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-uuid`' />
+</set></outcome></switch><switch test='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-version`'>
+<outcome value=''><set>
+<parameter name='tmp.vf-module-topology.onap-model-information.model-version'
+  value='`$db.vf-module-model.version`' />
+</set></outcome><outcome value='Other'>
+<set>
+<parameter name='tmp.vf-module-topology.onap-model-information.model-version'
+  value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-version`' />
+</set></outcome></switch><switch test='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-name`'>
+<outcome value=''><set>
+<parameter name='tmp.vf-module-topology.onap-model-information.model-name'
+  value='`$db.vf-module-model.name`' />
+</set></outcome><outcome value='Other'>
+<set>
+<parameter name='tmp.vf-module-topology.onap-model-information.model-name'
+  value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-name`' />
+</set></outcome></switch><set>
+<parameter name='tmp.vf-module-topology.onap-model-information.model-customization-uuid'
+  value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-customization-uuid`' />
+</set><set>
+<parameter name='tmp.vf-module-topology.vf-module-parameters.'
+  value='vf-module-topology-operation-input.vf-module-request-input.vf-module-input-parameters.' />
+</set><get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+  key='SELECT * from VF_MODULE_TO_VFC_MAPPING WHERE vf_module_customization_uuid = $vf-module-topology-operation-input.vf-module-information.onap-model-information.model-customization-uuid'
+  pfx='db.vf-module-to-vfc-mapping[]'>
+
+<outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error reading VF_MODULE_TO_VFC_MAPPING table" />
+</return></outcome><outcome value='not-found'>
+<set>
+<parameter name='db.vf-module-to-vfc-mapping_length' value='0' />
+</set></outcome></get-resource><set>
+<parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm_length'
+  value='`$db.vf-module-to-vfc-mapping_length`' />
+</set><for index='vm-type-index' start='0' end='`$db.vf-module-to-vfc-mapping_length`' >
+<block atomic="true"><get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+  key='SELECT * from VFC_MODEL WHERE customization_uuid = $db.vf-module-to-vfc-mapping[$vm-type-index].vfc-customization-uuid'
+  pfx='db.vfc-model'>
+
+<outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error reading VFC_MODEL table" />
+</return></outcome><outcome value='not-found'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`'No entries found in VFC_MODEL table for customization UUID ' + $db.vf-module-to-vfc-mapping[$db-vm-index].vfc_customization_uuid`" />
+</return></outcome></get-resource><switch test="$db.vfc-model.ecomp-generated-naming == 'Y'">
+<outcome value='false'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`'ECOMP generated naming is not Y for VFC customization UUID ' + $db.vf-module-to-vfc-mapping[$db-vm-index].vfc_customization_uuid`" />
+</return></outcome></switch><set>
+<parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-type'
+   value='`$db.vf-module-to-vfc-mapping[$vm-type-index].vm-type`' />
+<parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].nfc-naming-code'
+   value='`$db.vfc-model.nfc-naming-code`' />
+<parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-type-tag'
+   value='`$db.vfc-model.vm-type-tag`' />
+<parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-count'
+   value='`$db.vf-module-to-vfc-mapping[$vm-type-index].vm-count`' />
+</set><set>
+<parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-names.vm-name_length'
+  value='`$db.vf-module-to-vfc-mapping[$vm-type-index].vm-count`' />
+</set><for index='vm-index' start='0' end='`$db.vf-module-to-vfc-mapping[$vm-type-index].vm-count`' >
+<block atomic="true"><set>
+<parameter name='generate-unique-name-input.index-table-name' value='VM_NAME_INDEX' />
+<parameter name='generate-unique-name-input.index-table-prefix-column' value='vm_name_prefix' />
+<parameter name='generate-unique-name-input.name-table-type' value='VM_INSTANCE' />
+<parameter name='generate-unique-name-input.prefix' value="`$service-data.vnfs.vnf[$vnf-index].vnf-name + $db.vfc-model.nfc-naming-code`" />
+<parameter name='generate-unique-name-input.index-length' value='3' />
+</set><call module='GENERIC-RESOURCE-API' rpc='generate-unique-name' mode='sync' >
+<outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`$generate-unique-name-output.error-message`" />
+</return></outcome><outcome value='success'>
+<set>
+<parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-names.vm-name[$vm-index]' value='`$generate-unique-name-output.generated-name`' />
+</set></outcome></call></block></for><get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+  key='SELECT * from VFC_TO_NETWORK_ROLE_MAPPING WHERE vfc_customization_uuid = $db.vf-module-to-vfc-mapping[$vm-type-index].vfc-customization-uuid'
+  pfx='db.vfc-to-network-role-mapping[]'>
+
+<outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error reading VFC_TO_NETWORK_ROLE_MAPPING table" />
+</return></outcome><outcome value='not-found'>
+<set>
+<parameter name='db.vfc-to-network-role-mapping_length' value='0' />
+</set></outcome></get-resource><for index='network-role-index' start='0' end='`$db.vfc-to-network-role-mapping_length`' >
+<block atomic="true"><set>
+<parameter name='network-index' value='-1' />
+</set><for silentFailure='true' index='idx' start='0' end='`$service-data.networks.network_length`' >
+<switch test='`$service-data.networks.network[$idx].network-data.network-topology.network-topology-identifier-structure.network-role == $db.vfc-to-network-role-mapping[$network-role-index].network-role`'>
+<outcome value='true'>
+<block>
+<set>
+<parameter name='network-index' value='`$idx`' />
+</set><break></break></block></outcome></switch></for><switch test='`$network-index`'>
+<outcome value='-1'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`'No network found in MD-SAL with network-role ' + $db.vfc-to-network-role-mapping[$network-role-index].network-role`" />
+</return></outcome></switch><!--This isn't a node in MD-SAL, but we need to save this for later when we are doing EIPAM processing--><set>
+<parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-id'
+  value='`$service-data.networks.network[$idx].network-data.network-topology.network-topology-identifier-structure.network-id`' />
+</set><set>
+<parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-role'
+   value='`$db.vfc-to-network-role-mapping[$network-role-index].network-role`' />
+<parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-role-tag'
+   value='`$db.vfc-to-network-role-mapping[$network-role-index].network-role-tag`' />
+</set><switch test='`$db.vfc-to-network-role-mapping[$network-role-index].ipv4-ip-version`'>
+<outcome value=''><set>
+<parameter name='network-information-index' value='-1' />
+
+</set></outcome><outcome value='4'>
+<block atomic="true"><set>
+<parameter name='network-information-index' value='0' />
+</set><set>
+<parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$network-information-index].ip-version'
+   value='4' />
+<parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$network-information-index].use-dhcp'
+   value='`$db.vfc-to-network-role-mapping[$network-role-index].ipv4-use-dhcp`' />
+<parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$network-information-index].ip-count'
+   value='`$db.vfc-to-network-role-mapping[$network-role-index].ipv4-count`' />
+</set></block></outcome></switch><switch test='`$db.vfc-to-network-role-mapping[$network-role-index].ipv6-ip-version`'>
+<outcome value=''><block>
+</block></outcome><outcome value='6'>
+<block atomic="true"><set>
+<parameter name='network-information-index' value='`$network-information-index + 1`' />
+</set><set>
+<parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$network-information-index].ip-version'
+   value='6' />
+<parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$network-information-index].use-dhcp'
+   value='`$db.vfc-to-network-role-mapping[$network-role-index].ipv6-use-dhcp`' />
+<parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$network-information-index].ip-count'
+   value='`$db.vfc-to-network-role-mapping[$network-role-index].ipv6-count`' />
+</set></block></outcome></switch><switch test='`$network-information-index`'>
+<outcome value='-1'><block>
+</block></outcome><outcome value='Other'>
+<set>
+<parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item_length'
+   value='`$network-information-index + 1`' />
+</set></outcome></switch></block></for><set>
+<parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network_length'
+  value='`$db.vfc-to-network-role-mapping_length`' />
+</set></block></for><set>
+<parameter name='plans-index' value='0' />
+</set><for index='vm-type-index' start='0' end='`$tmp.vf-module-topology.vf-module-assignments.vms.vm_length`' >
+<block atomic="true"><for index='network-role-index' start='0' end='`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network_length`' >
+<block atomic="true"><for index='ip-version-index' start='0' end='`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item_length`' >
+<switch test='`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$ip-version-index].use-dhcp`'>
+<outcome value='N'>
+<block atomic="true"><get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+  key='SELECT * from EIPAM_IP_SUBNETS WHERE network_id = $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-id
+    AND address_family = $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$ip-version-index].ip-version'
+  pfx='db.eipam-ip-subnets[]'>
+
+<outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error reading EIPAM_IP_SUBNETS table" />
+</return></outcome><outcome value='not-found'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`'No entries found in EIPAM_IP_SUBNETS table for network ID '
+        + $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-id
+        + ' and address family ' + $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$ip-version-index].ip-version`" />
+</return></outcome></get-resource><set>
+<parameter name='max-level' value='-1' />
+</set><for index='subnets-index' start='0' end='`$db.eipam-ip-subnets_length`' >
+<block atomic="true"><get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+  key='SELECT * from EIPAM_IP_SUBNET_KEYS WHERE entity_id = $db.eipam-ip-subnets[$subnets-index].entity-id'
+  pfx='db.eipam-ip-subnet-keys[]'>
+
+<outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error reading EIPAM_IP_SUBNET_KEYS table" />
+</return></outcome><outcome value='not-found'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`'No entries found in EIPAM_IP_SUBNET_KEYS table for entity ID '
+        + $db.eipam-ip-subnets[$subnets-index].entity-id`" /></return></outcome></get-resource><for index='keys-index' start='0' end='`$db.eipam-ip-subnet-keys_length`' >
+<block atomic="true"><switch test='`$db.eipam-ip-subnet-keys[$keys-index].level &gt; $max-level`'>
+<outcome value='true'>
+<set>
+<parameter name='max-level' value='`$db.eipam-ip-subnet-keys[$keys-index].level`' />
+<parameter name='selected-entity-id' value='`$db.eipam-ip-subnet-keys[$keys-index].entity-id`' />
+<parameter name='selected-plan-name' value='`$db.eipam-ip-subnets[$subnets-index].plan-name`' />
+</set></outcome></switch></block></for><get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+  key='SELECT * from EIPAM_IP_SUBNET_KEYS WHERE entity_id = $selected-entity-id order by level'
+  pfx='db.eipam-ip-subnet-keys[]'>
+
+<outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error reading EIPAM_IP_SUBNET_KEYS table" />
+</return></outcome><outcome value='not-found'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`'No entries found in EIPAM_IP_SUBNET_KEYS table for entity ID '
+        + $selected-entity-id`" /></return></outcome></get-resource><for index='request-index' start='0' end='`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$ip-version-index].ip-count`' >
+<block atomic="true"><for index='level-index' start='0' end='`$db.eipam-ip-subnet-keys_length`' >
+<set>
+<parameter name='eipam-ip-block.plans[$plans-index].requests[$request-index].pools[$level-index].key-name'
+   value='`$db.eipam-ip-subnet-keys[$level-index].key-name`' />
+<parameter name='eipam-ip-block.plans[$plans-index].requests[$request-index].pools[$level-index].key-value'
+   value='`$db.eipam-ip-subnet-keys[$level-index].key-value`' />
+</set></for><set>
+<parameter name='eipam-ip-block.plans[$plans-index].requests[$request-index].pools_length'
+   value='`$db.eipam-ip-subnet-keys_length`' />
+</set><set>
+<parameter name='generate-unique-name-input.index-table-name' value='EIPAM_CLIENT_KEY_INDEX' />
+<parameter name='generate-unique-name-input.index-table-prefix-column' value='vnf_name_prefix' />
+<parameter name='generate-unique-name-input.name-table-type' value='CLIENT_KEY' />
+<parameter name='generate-unique-name-input.prefix' value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.vnf-name + $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].nfc-naming-code + ':' + $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-id + ':' + $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$ip-version-index].ip-version + ':'`" />
+<parameter name='generate-unique-name-input.index-length' value='' />
+</set><call module='GENERIC-RESOURCE-API' rpc='generate-unique-name' mode='sync' >
+<outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`$generate-unique-name-output.error-message`" />
+</return></outcome></call><set>
+<parameter name='eipam-ip-block.plans[$plans-index].requests[$request-index].client-key'
+   value='`$generate-unique-name-output.generated-name`' />
+<parameter name='eipam-ip-block.plans[$plans-index].requests[$request-index].info'
+   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id`' />
+<parameter name='eipam-ip-block.plans[$plans-index].requests[$request-index].mask'
+   value='32' />
+</set></block></for><set>
+<parameter name='eipam-ip-block.plans[$plans-index].requests_length'
+   value='`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$ip-version-index].ip-count`' />
+</set></block></for><set>
+<parameter name='eipam-ip-block.plans[$plans-index].plan-name' value='`$selected-plan-name`' />
+<parameter name='eipam-ip-block.plans[$plans-index].address-family'
+   value='`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$ip-version-index].ip-version`' />
+</set><set>
+<parameter name='plans-index' value='`$plans-index + 1`' />
+</set></block></outcome></switch></for></block></for></block></for><set>
+<parameter name='eipam-ip-block.plans_length' value='`$plans-index`' />
+</set><!--EIPAM plug-in needs this attribute set with this name--><set>
+<parameter name='service-data.service-information.service-type' value='`$service-data.service-information.subscription-service-type`' />
+</set><switch test='`$plans-index &gt; 0`'>
+<outcome value='true'>
+<execute plugin="com.att.sdnctl.sli.plugin.eipam.EIPAMPlugin" method="assignIPAddress"><outcome value='failure'><return status="failure">
+	<parameter name="ack-final" value="Y" />
+	<parameter name="error-code" value="500"/>
+	<parameter name="error-message" value="An error occured while obtaining new address blocks from EIPAM." />
+</return></outcome></execute></outcome></switch><set>
+<parameter name='plans-index' value='0' />
+</set><for index='vm-type-index' start='0' end='`$tmp.vf-module-topology.vf-module-assignments.vms.vm_length`' >
+<for index='network-role-index' start='0' end='`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network_length`' >
+<for index='ip-version-index' start='0' end='`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item_length`' >
+<switch test='`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$ip-version-index].use-dhcp`'>
+<outcome value='N'>
+<block atomic="true"><for index='ip-index' start='0' end='`$eipam-ip-block.plans[$plans-index].requests_length`' >
+<set>
+<parameter name='tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-information-items.network-information-item[$ip-version-index].network-ips.network-ip[$ip-index]'
+  value='`$eipam-ip-block.plans[$plans-index].requests[$ip-index].ip-prefix`' />
+</set></for><set>
+<parameter name='plans-index' value='`$plans-index + 1`' />
+</set></block></outcome></switch></for></for></for><set>
+<parameter name='vf-module-object-path'
+ value="`'restconf/config/GENERIC-RESOURCE-API:services/service/'
+ + $service-data.service-topology.service-topology-identifier.service-instance-id
+ + '/service-data/vnfs/vnf/'
+ + $service-data.vnfs.vnf[$vnf-index].vnf-id
+ + '/vnf-data/vf-modules/vf-module/'
+ + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id
+ + '/vf-module-data/vf-module-topology/'`"/>
+
+</set><update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+   resource="vf-module"
+   key="vf-module.vf-module-id = $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id
+      AND generic-vnf.vnf-id = $service-data.vnfs.vnf[$vnf-index].vnf-id"
+   force="true" pfx="tmp.AnAI-data">
+<parameter name="vf-module-name" value="`$tmp.vf-module-topology.vf-module-topology-identifier.vf-module-name`" />
+<parameter name="model-invariant-id" value="`$tmp.vf-module-topology.onap-model-information.model-invariant-uuid`" />
+<parameter name="model-version-id" value="`$tmp.vf-module-topology.onap-model-information.model-uuid`" />
+<parameter name="model-customization-id" value="`$tmp.vf-module-topology.onap-model-information.model-customization-uuid`" />
+<parameter name="selflink" value="`$vf-module-object-path`" />
+<outcome value='failure'>
+<block atomic="true"><switch test='`$plans-index &gt; 0`'>
+<outcome value='true'>
+<block atomic="true"><set>
+<parameter name='tmp.status' value="`'PENDING_DELETE_' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-id`" />
+</set><update plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL"
+key="UPDATE EIPAM_IP_ASSIGNMENTS set status = $tmp.status WHERE info = $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-id" ><outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error updating EIPAM_IP_ASSIGNMENTS table on rollback" />
+</return></outcome></update><execute plugin="com.att.sdnctl.sli.plugin.eipam.EIPAMPlugin" method="unassignIPAddress">
+<parameter name="deleteEIPAM_status" value="`$tmp.status`" />
+<outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error in EIPAM unassign IP address on rollback" />
+</return></outcome></execute></block></outcome></switch><return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error updating vf-module in AAI" />
+</return></block></outcome><outcome value='not-found'>
+<block atomic="true"><switch test='`$plans-index &gt; 0`'>
+<outcome value='true'>
+<block atomic="true"><set>
+<parameter name='tmp.status' value="`'PENDING_DELETE_' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-id`" />
+</set><update plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL"
+key="UPDATE EIPAM_IP_ASSIGNMENTS set status = $tmp.status WHERE info = $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-id" ><outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error updating EIPAM_IP_ASSIGNMENTS table on rollback" />
+</return></outcome></update><execute plugin="com.att.sdnctl.sli.plugin.eipam.EIPAMPlugin" method="unassignIPAddress">
+<parameter name="deleteEIPAM_status" value="`$tmp.status`" />
+<outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error in EIPAM unassign IP address on rollback" />
+</return></outcome></execute></block></outcome></switch><return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`'No vf-module found in AAI for vf module ID ' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id`" />
+</return></block></outcome></update><for index='vm-type-index' start='0' end='`$tmp.vf-module-topology.vf-module-assignments.vms.vm_length`' >
+<for index='network-role-index' start='0' end='`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network_length`' >
+<save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+   resource="vf-module:relationship-list"
+   key="vf-module.vf-module-id = $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id
+      AND generic-vnf.vnf-id = $service-data.vnfs.vnf[$vnf-index].vnf-id"
+   force="true" pfx="tmp.AnAI-data">
+    <parameter name="relationship-list.relationship[0].related-to" value="l3-network" />
+    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="l3-network.network-id" />
+    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-id`" />
+<outcome value='failure'>
+<block atomic="true"><switch test='`$plans-index &gt; 0`'>
+<outcome value='true'>
+<block atomic="true"><set>
+<parameter name='tmp.status' value="`'PENDING_DELETE_' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-id`" />
+</set><update plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL"
+key="UPDATE EIPAM_IP_ASSIGNMENTS set status = $tmp.status WHERE info = $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-id" ><outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error updating EIPAM_IP_ASSIGNMENTS table on rollback" />
+</return></outcome></update><execute plugin="com.att.sdnctl.sli.plugin.eipam.EIPAMPlugin" method="unassignIPAddress">
+<parameter name="deleteEIPAM_status" value="`$tmp.status`" />
+<outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error in EIPAM unassign IP address on rollback" />
+</return></outcome></execute></block></outcome></switch><return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error updating vf-module relationships in AAI" />
+</return></block></outcome><outcome value='not-found'>
+<block atomic="true"><switch test='`$plans-index &gt; 0`'>
+<outcome value='true'>
+<block atomic="true"><set>
+<parameter name='tmp.status' value="`'PENDING_DELETE_' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-id`" />
+</set><update plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL"
+key="UPDATE EIPAM_IP_ASSIGNMENTS set status = $tmp.status WHERE info = $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-id" ><outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error updating EIPAM_IP_ASSIGNMENTS table on rollback" />
+</return></outcome></update><execute plugin="com.att.sdnctl.sli.plugin.eipam.EIPAMPlugin" method="unassignIPAddress">
+<parameter name="deleteEIPAM_status" value="`$tmp.status`" />
+<outcome value='failure'>
+<return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="Error in EIPAM unassign IP address on rollback" />
+</return></outcome></execute></block></outcome></switch><return status='failure'>
+	<parameter name='ack-final' value='Y'/>
+	<parameter name="error-code" value="500" />
+    <parameter name="error-message" value="`'No vf-module found in AAI for vf module ID ' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id`" />
+</return></block></outcome></save></for></for><for index='vm-type-index' start='0' end='`$tmp.vf-module-topology.vf-module-assignments.vms.vm_length`' >
+<for index='vm-index' start='0' end='`$tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-count`' >
+<block atomic="true"><delete plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+  key='DELETE from VIPR_CONFIGURATION WHERE vnf_id = $service-data.vnfs.vnf[$vnf-index].vnf-id
+     AND ecomp_service_instance_id = $service-data.service-information.service-instance-id
+     AND vm_name = $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-names.vm-name[$vm-index]' ><outcome value='failure'>
+<record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="GENERIC-RESOURCE-API.vf-module-topology-operation-assign:REQID"/>
+<parameter name="field3" value="`$vf-module-topology-operation-input.sdnc-request-header.svc-request-id`"/>
+<parameter name="field4" value="Failed to insert VIPR_CONFIGURATION record"/>
+</record></outcome></delete><save plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL"
+key="INSERT INTO VIPR_CONFIGURATION (vnf_id, vnf_name, ecomp_service_instance_id, vm_name, cloud_region_id, cloud_owner) VALUES ( $service-data.vnfs.vnf[$vnf-index].vnf-id , $service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-topology-identifier-structure.vnf-name , $service-data.service-information.service-instance-id , $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-names.vm-name[$vm-index] , $tmp.vf-module-topology.aic-cloud-region , 'CloudOwner')" ><outcome value='failure'>
+<record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+<parameter name="logger" value="message-log"/>
+<parameter name="field1" value="__TIMESTAMP__"/>
+<parameter name="field2" value="GENERIC-RESOURCE-API.vf-module-topology-operation-assign:REQID"/>
+<parameter name="field3" value="`$vf-module-topology-operation-input.sdnc-request-header.svc-request-id`"/>
+<parameter name="field4" value="Failed to insert VIPR_CONFIGURATION record"/>
+</record></outcome></save></block></for></for><set>
+<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.' value='$tmp.vf-module-topology.' />
+</set><set>
+<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.sdnc-request-header.'
+   value='$vf-module-topology-operation-input.sdnc-request-header.' />
+<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.request-information.'
+   value='$vf-module-topology-operation-input.request-information.' />
+<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.service-information.'
+   value='$vf-module-topology-operation-input.service-information.' />
+<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vnf-information.'
+   value='$vf-module-topology-operation-input.vnf-information.' />
+<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-information.'
+   value='$vf-module-topology-operation-input.vf-module-information.' />
+<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.'
+   value='$vf-module-topology-operation-input.vf-module-request-input.' />
+<parameter name="service-object-path" 
+   value="`'restconf/config/GENERIC-RESOURCE-API:services/service/'+$vf-module-operation-input.service-information.service-instance-id+'/service-data/service-topology/'`" />
+
+
+</set><call module='GENERIC-RESOURCE-API' rpc='gw-vfmodule-update' mode='sync' >
+</call><set>
+<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-level-oper-status.order-status'
+  value='PendingCreate' />
+<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-level-oper-status.last-rpc-action'
+  value='`$vf-module-topology-operation-input.sdnc-request-header.svc-action`' />
+<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-level-oper-status.last-action'
+  value='`$vf-module-topology-operation-input.sdnc-request-header.request-action`' />
+</set><return status='success'>
+<parameter name="ack-final-indicator" value="Y" />
+<parameter name="error-code" value="200" />
+<parameter name="error-message" value="`$error-message`" />
+</return></block></method></service-logic>
