@@ -1,0 +1,194 @@
+[
+    {
+        "id": "85add9d3.6d38c8",
+        "type": "method",
+        "name": "unlock",
+        "xml": "<method rpc='unlock' mode='sync'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 535.5,
+        "y": 83,
+        "z": "1bef9bfd.091c84",
+        "wires": [
+            [
+                "a726273f.d4087"
+            ]
+        ]
+    },
+    {
+        "id": "6cc2acd4.57558c",
+        "type": "service-logic",
+        "name": "LCM ${project.version}",
+        "module": "LCM",
+        "version": "${project.version}",
+        "comments": "",
+        "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='LCM' version='${project.version}'>",
+        "outputs": 1,
+        "x": 306.49993896484375,
+        "y": 84,
+        "z": "1bef9bfd.091c84",
+        "wires": [
+            [
+                "85add9d3.6d38c8"
+            ]
+        ]
+    },
+    {
+        "id": "3b5bd72a.fb19f8",
+        "type": "returnSuccess",
+        "name": "return success",
+        "xml": "<return status='success'>\n<parameter name='status.code' value='400' />\n<parameter name='status.message' value='SDNC Unlock Mock returns success'/>",
+        "comments": "",
+        "x": 388.5,
+        "y": 472,
+        "z": "1bef9bfd.091c84",
+        "wires": []
+    },
+    {
+        "id": "7bee7647.02e808",
+        "type": "dgstart",
+        "name": "DGSTART",
+        "outputs": 1,
+        "x": 103.5,
+        "y": 83,
+        "z": "1bef9bfd.091c84",
+        "wires": [
+            [
+                "6cc2acd4.57558c"
+            ]
+        ]
+    },
+    {
+        "id": "a726273f.d4087",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 139.41668701171875,
+        "y": 237.08334350585938,
+        "z": "1bef9bfd.091c84",
+        "wires": [
+            [
+                "c733c1eb.f6dc98",
+                "8a3a4a22.8cd238",
+                "5c905e45.08ff1",
+                "ff16f6f7.bb02d",
+                "3b5bd72a.fb19f8"
+            ]
+        ]
+    },
+    {
+        "id": "c733c1eb.f6dc98",
+        "type": "execute",
+        "name": "execute Properties",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >\n    <parameter name='fileName' value='%SDNC_CONFIG_DIR%/lcm-dg.properties' />\n    <parameter name='contextPrefix' value='prop' />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 426.5,
+        "y": 222.08334350585938,
+        "z": "1bef9bfd.091c84",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ff16f6f7.bb02d",
+        "type": "execute",
+        "name": "execute DmaapMsg",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n    <parameter name='templateFileName' value=\"`$prop.restapi.templateDir + '/' + $prop.restapi.lcm.dmaap.publish.templatefile`\" />\n    <parameter name='restapiUrl' value='`$prop.lcm.dmaap.url`' />\n    <parameter name='restapiUser' value='`$prop.lcm.dmaap.user`' />\n    <parameter name='restapiPassword' value='`$prop.lcm.dmaap.password`' />\n    <parameter name='format' value='json' />\n    <parameter name='httpMethod' value='POST' />\n    <parameter name='contentType' value='application/json' />\n    <parameter name=\"responsePrefix\" value=\"lcm\" />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 402.5,
+        "y": 399.0833435058594,
+        "z": "1bef9bfd.091c84",
+        "wires": [
+            [
+                "4150232b.d9de94"
+            ]
+        ]
+    },
+    {
+        "id": "4150232b.d9de94",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 611.5,
+        "y": 397.0833435058594,
+        "z": "1bef9bfd.091c84",
+        "wires": [
+            [
+                "1c38db15.1f052d"
+            ]
+        ]
+    },
+    {
+        "id": "f6eb674d.c21",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1506.9999389648438,
+        "y": 415.0833511352539,
+        "z": "1bef9bfd.091c84",
+        "wires": [
+            [
+                "db43d1c.5a1cab"
+            ]
+        ]
+    },
+    {
+        "id": "1c38db15.1f052d",
+        "type": "record",
+        "name": "record",
+        "xml": "<record plugin=\"org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder\"> \n\t<parameter name=\"logger\" value=\"message-log\"/> \n\t<parameter name=\"field1\" value='Failed to Publish to DMaap'/>",
+        "comments": "",
+        "outputs": 1,
+        "x": 771.5,
+        "y": 397.0833435058594,
+        "z": "1bef9bfd.091c84",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "db43d1c.5a1cab",
+        "type": "record",
+        "name": "record",
+        "xml": "<record plugin=\"org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder\"> \n\t<parameter name=\"logger\" value=\"message-log\"/> \n\t<parameter name=\"field1\" value='Failed to Publish to DMaap'/>",
+        "comments": "",
+        "outputs": 1,
+        "x": 1628.4166870117188,
+        "y": 416.0833511352539,
+        "z": "1bef9bfd.091c84",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "5c905e45.08ff1",
+        "type": "set",
+        "name": "set",
+        "xml": "<set>\n<parameter name='lcm-dmaap.version' value='`$prop.lcm.dmaap.version`'/>\n<parameter name='lcm-dmaap.correlation-id' value=\"`$unlock-input.common-header.request-id + '-' + $unlock-input.common-header.sub-request-id`\"/>\n<parameter name='lcm-dmaap.partition' value='`$prop.lcm.dmaap.partition`'/>\n<parameter name='lcm-dmaap.rpc-name' value='unlock'/>\n<parameter name='lcm-dmaap.type' value='`$prop.lcm.dmaap.type`'/>\n<parameter name='lcm-dmaap.timestamp' value='`$unlock-input.common-header.timestamp`'/>\n<parameter name='lcm-dmaap.api-ver' value='`$unlock-input.common-header.api-ver`'/>\n<parameter name='lcm-dmaap.originator-id' value='`$unlock-input.common-header.originator-id`'/>\n<parameter name='lcm-dmaap.request-id' value='`$unlock-input.common-header.originator-id`'/>\n<parameter name='lcm-dmaap.sub-request-id' value='`$unlock-input.common-header.sub-request-id`'/>\n<parameter name='lcm-dmaap.flags.mode' value='`$unlock-input.common-header.flags.mode`'/>\n<parameter name='lcm-dmaap.flags.force' value='`$unlock-input.common-header.flags.force`'/>\n<parameter name='lcm-dmaap.flags.ttl' value='`$unlock-input.common-header.flags.ttl`'/>\n<parameter name='lcm-dmaap.status.code' value='400' />\n<parameter name='lcm-dmaap.status.message' value='SDNC Lock Mock returns success'/>\n",
+        "comments": "",
+        "x": 374.5,
+        "y": 331.0833435058594,
+        "z": "1bef9bfd.091c84",
+        "wires": []
+    },
+    {
+        "id": "8a3a4a22.8cd238",
+        "type": "set",
+        "name": "set default status value",
+        "xml": "<set>\n<parameter name='status.code' value='200' />\n<parameter name='status.message' value='unexpected return from DG' />\n",
+        "comments": "",
+        "x": 428.5,
+        "y": 274,
+        "z": "1bef9bfd.091c84",
+        "wires": []
+    }
+]
