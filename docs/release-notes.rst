@@ -133,6 +133,7 @@ Version: 1.3.0
 SDNC code has been formally scanned during build time using NexusIQ and all Critical vulnerabilities have been addressed, items that remain open have been assessed for risk and determined to be false positive. The SDNC open Critical security vulnerabilities and their risk assessment have been documented as part of the `project <https://wiki.onap.org/pages/viewpage.action?pageId=28379582>`_.
 
 Quick Links:
+
 - `SDNC project page <https://wiki.onap.org/display/DW/Software+Defined+Network+Controller+Project>`_
 - `Passing Badge information for SDNC <https://bestpractices.coreinfrastructure.org/en/projects/1703>`_
 - `Project Vulnerability Review Table for SDNC <https://wiki.onap.org/pages/viewpage.action?pageId=28379582>`_
