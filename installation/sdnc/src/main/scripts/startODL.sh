@@ -28,8 +28,9 @@ function enable_odl_cluster(){
   fi
 
   echo "Installing Opendaylight cluster features"
-  ${ODL_HOME}/bin/client feature:install odl-mdsal-clustering
-  ${ODL_HOME}/bin/client feature:install odl-jolokia
+  cat $ODL_HOME/etc/org.apache.karaf.features.cfg | sed -e "\|featuresBoot=config|s|$|,odl-mdsal-clustering,odl-jolokia|" > $ODL_HOME/etc/org.apache.karaf.features.cfg
+  #${ODL_HOME}/bin/client feature:install odl-mdsal-clustering
+  #${ODL_HOME}/bin/client feature:install odl-jolokia
 
   echo "Update cluster information statically"
   hm=$(hostname)
@@ -95,26 +96,18 @@ then
 	${SDNC_HOME}/bin/installSdncDb.sh
 	echo "Installing SDN-C keyStore"
 	${SDNC_HOME}/bin/addSdncKeyStore.sh
-	echo "Starting OpenDaylight"
-	${CCSDK_HOME}/bin/installOdlHostKey.sh
-	${ODL_HOME}/bin/start
-	echo "Waiting ${SLEEP_TIME} seconds for OpenDaylight to initialize"
-	sleep ${SLEEP_TIME}
-	echo "Installing SDN-C platform features"
-	${SDNC_HOME}/bin/installFeatures.sh
+
+	#${CCSDK_HOME}/bin/installOdlHostKey.sh
+
 	if [ -x ${SDNC_HOME}/svclogic/bin/install.sh ]
 	then
 		echo "Installing directed graphs"
 		${SDNC_HOME}/svclogic/bin/install.sh
 	fi
 
-        if $ENABLE_ODL_CLUSTER ; then enable_odl_cluster ; fi
+    if $ENABLE_ODL_CLUSTER ; then enable_odl_cluster ; fi
 
-	echo "Restarting OpenDaylight"
-	${ODL_HOME}/bin/stop
-	echo "Waiting 60 seconds for OpenDaylight stop to complete"
-    sleep 60
 	echo "Installed at `date`" > ${SDNC_HOME}/.installed
 fi
 
-exec ${ODL_HOME}/bin/karaf
+exec ${ODL_HOME}/bin/karaf server
