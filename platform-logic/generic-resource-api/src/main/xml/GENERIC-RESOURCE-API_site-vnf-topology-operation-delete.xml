@@ -1,0 +1,101 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='1.2.1-SNAPSHOT'>
+    <method rpc='site-vnf-topology-operation-delete' mode='sync'>
+        <block atomic="true">
+            <switch test='`$service-data.vnfs.vnf_length`'>
+                <outcome value='0'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="vnf-topology-operation-input.vnf-request-input.vnf-id not found in service-data" />
+                    </return>
+                </outcome>
+                <outcome value=''>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="vnf-topology-operation-input.vnf-request-input.vnf-id not found in service-data" />
+                    </return>
+                </outcome>
+                <outcome value='Other'>
+                    <block atomic="true">
+                        <for index='vidx' start='0' end='`$service-data.vnfs.vnf_length`' >
+                            <switch test="`$service-data.vnfs.vnf[$vidx].vnf-id == $vnf-topology-operation-input.vnf-information.vnf-id`">
+                                <outcome value='true'>
+                                    <set>
+                                        <parameter name='tmp.vidx' value='`$vidx`' />
+                                        <parameter name='ctx.vnf-data.' value='`$service-data.vnfs.vnf[$vidx].`' />
+                                    </set>
+                                </outcome>
+                            </switch>
+                        </for>
+                        <switch test="`$tmp.vidx`">
+                            <outcome value=''>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="vnf-topology-operation-input.vnf-request-input.vnf-id not found in service-data" />
+                                </return>
+                            </outcome>
+                        </switch>
+                    </block>
+                </outcome>
+            </switch>
+            <switch test="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-level-oper-status.order-status == 'PendingDelete'`">
+                <outcome value='false'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="Cannot delete a VNF in a Created state" />
+                    </return>
+                </outcome>
+            </switch>
+            <switch test="`$ctx.vnf-data.vf-modules.vf-module_length`">
+                <outcome value='0'>
+                    <block></block>
+                </outcome>
+                <outcome value=''>
+                    <block></block>
+                </outcome>
+                <outcome value='Other'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="Cannot delete the VNF because there are VFs defined" />
+                    </return>
+                </outcome>
+            </switch>
+            <switch test='`$service-data.vnfs.vnf_length`'>
+                <outcome value='1'>
+                    <set>
+                        <parameter name="service-data.vnfs." value=""/>
+                    </set>
+                </outcome>
+                <outcome value='Other'>
+                    <block atomic="true">
+                        <for index='idx' start='`$vnf-index + 1`' end='`$service-data.vnfs.vnf_length`' >
+                            <set>
+                                <parameter name="$tmpidx" value="`$idx - 1`"/>
+                                <parameter name="service-data.vnfs.vnf[$tmpidx]." value="$service-data.vnfs.vnf[$idx]." />
+                            </set>
+                        </for>
+                        <set>
+                            <parameter name="service-data.vnfs.vnf[$service-data.vnfs.vnf_length-1]." value=""/>
+                        </set>
+                        <set>
+                            <parameter name="service-data.vnfs.vnf_length" value="`$service-data.vnfs.vnf_length - 1`"/>
+                        </set>
+                    </block>
+                </outcome>
+            </switch>
+            <delete plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='generic-vnf' 
+      key='generic-vnf.vnf-id = $prop.vnf-index' ></delete>
+            <return status='success'>
+                <parameter name="ack-final-indicator" value="Y" />
+                <parameter name="error-code" value="200" />
+                <parameter name="error-message" value="`$error-message`" />
+            </return>
+        </block>
+    </method>
+</service-logic>
