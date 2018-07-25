@@ -1,21 +1,77 @@
-<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'><method rpc='vnf-topology-operation' mode='sync'>
-<block atomic="true"><call module='GENERIC-RESOURCE-API' rpc='validate-vnf-input' mode='sync' >
-</call><switch test='`$vnf-topology-operation-input.sdnc-request-header.svc-action`'>
-<outcome value='assign'>
-<call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-assign' mode='sync' >
-</call></outcome><outcome value='activate'>
-<call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-activate' mode='sync' >
-</call></outcome><outcome value='deactivate'>
-<call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-deactivate' mode='sync' >
-</call></outcome><outcome value='unassign'>
-<call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-unassign' mode='sync' >
-</call></outcome><outcome value='Other'>
-<return status='failure'>
-	<parameter name='ack-final' value='Y'/>
-	<parameter name="error-code" value="500" />
-    <parameter name="error-message" value="`$vnf-topology-operation-input.sdnc-request-header.svc-action + ' is not a valid svc-action'`" />
-</return></outcome></switch><return status='success'>
-<parameter name="ack-final-indicator" value="Y" />
-<parameter name="error-code" value="200" />
-<parameter name="error-message" value="`$error-message`" />
-</return></block></method></service-logic>
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    <method rpc='vnf-topology-operation' mode='sync'>
+        <block atomic="true">
+            <call module='GENERIC-RESOURCE-API' rpc='validate-vnf-input' mode='sync' ></call>
+            <switch test='`$vnf-topology-operation-input.sdnc-request-header.svc-action`'>
+                <outcome value='assign'>
+                    <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-assign' mode='sync' ></call>
+                </outcome>
+                <outcome value='activate'>
+                    <block atomic="true">
+                        <switch test='`$vnf-topology-operation-input.request-information.request-action`'>
+                            <outcome value='ActivateSiteInstance'>
+                                <call module='GENERIC-RESOURCE-API' rpc='sotn-vnf-topology-operation-activate' mode='sync' ></call>
+                            </outcome>
+                            <outcome value='Other'>
+                                <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-activate' mode='sync' ></call>
+                            </outcome>
+                        </switch>
+                    </block>
+                </outcome>
+                <outcome value='deactivate'>
+                    <block atomic="true">
+                        <switch test='`$vnf-topology-operation-input.request-information.request-action`'>
+                            <outcome value='DeActivateSiteInstance'>
+                                <call module='GENERIC-RESOURCE-API' rpc='sotn-vnf-topology-operation-deactivate' mode='sync' ></call>
+                            </outcome>
+                            <outcome value='Other'>
+                                <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-deactivate' mode='sync' ></call>
+                            </outcome>
+                        </switch>
+                    </block>
+                </outcome>
+                <outcome value='unassign'>
+                    <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-unassign' mode='sync' ></call>
+                </outcome>
+                <outcome value='create'>
+                    <block atomic="true">
+                        <switch test='`$vnf-topology-operation-input.request-information.request-action`'>
+                            <outcome value='CreateSiteInstance'>
+                                <call module='GENERIC-RESOURCE-API' rpc='sotn-vnf-topology-operation-create' mode='sync' ></call>
+                            </outcome>
+                            <outcome value='Other'>
+                                <block></block>
+                            </outcome>
+                        </switch>
+                    </block>
+                </outcome>
+                <outcome value='delete'>
+                    <block atomic="true">
+                        <switch test='`$vnf-topology-operation-input.request-information.request-action`'>
+                            <outcome value='DeleteSiteInstance'>
+                                <call module='GENERIC-RESOURCE-API' rpc='sotn-vnf-topology-operation-delete' mode='sync' ></call>
+                            </outcome>
+                            <outcome value='Other'>
+                                <block></block>
+                            </outcome>
+                        </switch>
+                    </block>
+                </outcome>
+                <outcome value='Other'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="`$vnf-topology-operation-input.sdnc-request-header.svc-action + ' is not a valid svc-action'`" />
+                    </return>
+                </outcome>
+            </switch>
+            <return status='success'>
+                <parameter name="ack-final-indicator" value="Y" />
+                <parameter name="error-code" value="200" />
+                <parameter name="error-message" value="`$error-message`" />
+            </return>
+        </block>
+    </method>
+</service-logic>
