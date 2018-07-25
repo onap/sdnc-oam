@@ -1,0 +1,67 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>
+    <method rpc='esr-thirdparty-sdnc-discovery' mode='sync'>
+        <block atomic="true">
+            <switch test="`$data-change-notification-input.aai-event-trigger`">
+                <outcome value='Update'>
+                    <block atomic="true">
+                        <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                            <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/actokentemplate.json'`" />
+                            <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/v2/tokens'`" />
+                            <parameter name="format" value="json"/>
+                            <parameter name="httpMethod" value="post"/>
+                            <parameter name="responsePrefix" value="token-result"/>
+                            <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.openecomp.client.jks"/>
+                            <parameter name="trustStorePassword" value="adminadmin"/>
+                            <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                            <parameter name="keyStorePassword" value="adminadmin"/>
+                            <outcome value='success'>
+                                <set>
+                                    <parameter name='prop.sdncRestApi.token_id' value='`$token-result.data.token_id`' />
+                                </set>
+                            </outcome>
+                            <outcome value='failure'>
+                                <block></block>
+                            </outcome>
+                        </execute>
+                        <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                            <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-network:networks'`" />
+                            <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
+                            <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
+                            <parameter name="format" value="json"/>
+                            <parameter name="httpMethod" value="get"/>
+                            <parameter name="responsePrefix" value="topology"/>
+                            <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.openecomp.client.jks"/>
+                            <parameter name="trustStorePassword" value="adminadmin"/>
+                            <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                            <parameter name="keyStorePassword" value="adminadmin"/>
+                            <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
+                            <outcome value='success'>
+                                <block atomic="true"></block>
+                            </outcome>
+                            <outcome value='failure'>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="Error executing Create vpn rest api" />
+                                </return>
+                            </outcome>
+                        </execute>
+                        <for index='nidx' start='0' end='`$topology.networks.network_length`' >
+                            <block>
+                                <set>
+                                    <parameter name='network.' value='`$topology.networks.network[$nidx].`' />
+                                </set>
+                                <call module='DataChange' rpc='update-network-to-aai' mode='sync' ></call>
+                            </block>
+                        </for>
+                    </block>
+                </outcome>
+                <outcome value='delete'>
+                    <block atomic="true"></block>
+                </outcome>
+            </switch>
+        </block>
+    </method>
+</service-logic>
