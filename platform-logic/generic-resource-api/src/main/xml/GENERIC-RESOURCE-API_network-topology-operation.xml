@@ -7,76 +7,57 @@
             <switch test='`$network-topology-operation-input.sdnc-request-header.svc-action`'>
                 <outcome value='assign'>
                     <block atomic="true">
-                        <call module='GENERIC-RESOURCE-API' rpc='network-topology-operation-assign' mode='sync' ></call>
+                        <switch test='`$service-data.networks.network[$tmp.nidx].network-data.network-level-oper-status.order-status`'>
+                            <outcome value='Created'>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="`'Network is not in appropriate state for assign. Current state is ' + $service-data.networks.network[$tmp.nidx].network-data.network-level-oper-status.order-status`" />
+                                </return>
+                            </outcome>
+                            <outcome value='PendingDelete'>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="`'Network is not in appropriate state for assign. Current state is ' + $service-data.networks.network[$tmp.nidx].network-data.network-level-oper-status.order-status`" />
+                                </return>
+                            </outcome>
+                            <outcome value='PendingCreate'>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="`'Network is not in appropriate state for assign. Current state is ' + $service-data.networks.network[$tmp.nidx].network-data.network-level-oper-status.order-status`" />
+                                </return>
+                            </outcome>
+                            <outcome value='Other'>
+                                <call module='GENERIC-RESOURCE-API' rpc='network-topology-operation-assign' mode='sync' ></call>
+                            </outcome>
+                        </switch>
                     </block>
                 </outcome>
                 <outcome value='activate'>
-                    <switch test='`$network-topology-operation-input.request-information.request-action`'>
-                        <outcome value='ActivateSOTNConnectivityInstance'>
-                            <call module='GENERIC-RESOURCE-API' rpc='sotn-network-topology-operation-activate' mode='sync' ></call>
-                        </outcome>
-                        <outcome value='ActivateDCINetworkInstance'>
-                            <call module='GENERIC-RESOURCE-API' rpc='dci-connects-network-topology-operation-activate' mode='sync' ></call>
-                        </outcome>
-                        <outcome value='other'>
-                            <block atomic="true">
-                                <switch test='`$service-data.networks.network_length`'>
-                                    <outcome value=''>
-                                        <return status='failure'>
-                                            <parameter name='ack-final' value='Y'/>
-                                            <parameter name="error-code" value="500" />
-                                            <parameter name="error-message" value="network-topology-operation-input.network-request-input.network-id not found in service-data" />
-                                        </return>
-                                    </outcome>
-                                    <outcome value='Other'>
-                                        <block atomic="true">
-                                            <for index='nidx' start='0' end='`$service-data.networks.network_length`' >
-                                                <switch test="`$service-data.networks.network[$nidx].network-id == $network-topology-operation-input.network-information.network-id`">
-                                                    <outcome value='true'>
-                                                        <set>
-                                                            <parameter name='tmp.nidx' value='`$nidx`' />
-                                                            <parameter name='ctx.network-data.' value='`$service-data.networks.network[$nidx].`' />
-                                                        </set>
-                                                    </outcome>
-                                                </switch>
-                                            </for>
-                                            <switch test="`$tmp.nidx`">
-                                                <outcome value=''>
-                                                    <return status='failure'>
-                                                        <parameter name='ack-final' value='Y'/>
-                                                        <parameter name="error-code" value="500" />
-                                                        <parameter name="error-message" value="network-topology-operation-input.network-request-input.network-id not found in service-data" />
-                                                    </return>
-                                                </outcome>
-                                            </switch>
-                                        </block>
-                                    </outcome>
-                                </switch>
-                                <switch test='`$service-data.networks.network[$tmp.nidx].network-data.network-level-oper-status.order-status`'>
-                                    <outcome value='PendingCreate'>
-                                        <call module='GENERIC-RESOURCE-API' rpc='network-topology-operation-activate' mode='sync' ></call>
-                                    </outcome>
-                                    <outcome value='Other'>
-                                        <return status='failure'>
-                                            <parameter name='ack-final' value='Y'/>
-                                            <parameter name="error-code" value="500" />
-                                            <parameter name="error-message" value="`'Network is not in appropriate state for activate. Current state is ' + $service-data.networks.network[$tmp.nidx].network-data.network-level-oper-status.order-status`" />
-                                        </return>
-                                    </outcome>
-                                </switch>
-                            </block>
-                        </outcome>
-                    </switch>
-                </outcome>
-                <outcome value='deactivate'>
                     <block atomic="true">
-                        <switch test='`$network-topology-operation-input.request-information.request-action`'>
-                            <outcome value='DeactivateSOTNConnectivityInstance'>
-                                <call module='GENERIC-RESOURCE-API' rpc='sotn-network-topology-operation-deactivate' mode='sync' ></call>
+                        <switch test='`$service-data.networks.network_length`'>
+                            <outcome value=''>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="network-topology-operation-input.network-request-input.network-id not found in service-data" />
+                                </return>
                             </outcome>
                             <outcome value='Other'>
                                 <block atomic="true">
-                                    <switch test='`$service-data.networks.network_length`'>
+                                    <for index='nidx' start='0' end='`$service-data.networks.network_length`' >
+                                        <switch test="`$service-data.networks.network[$nidx].network-id == $network-topology-operation-input.network-information.network-id`">
+                                            <outcome value='true'>
+                                                <set>
+                                                    <parameter name='tmp.nidx' value='`$nidx`' />
+                                                    <parameter name='network-data.' value='`$service-data.networks.network[$nidx].`' />
+                                                </set>
+                                            </outcome>
+                                        </switch>
+                                    </for>
+                                    <switch test="`$tmp.nidx`">
                                         <outcome value=''>
                                             <return status='failure'>
                                                 <parameter name='ack-final' value='Y'/>
@@ -85,51 +66,182 @@
                                             </return>
                                         </outcome>
                                         <outcome value='Other'>
-                                            <block atomic="true">
-                                                <for index='nidx' start='0' end='`$service-data.networks.network_length`' >
-                                                    <switch test="`$service-data.networks.network[$nidx].network-id == $network-topology-operation-input.network-information.network-id`">
-                                                        <outcome value='true'>
-                                                            <set>
-                                                                <parameter name='tmp.nidx' value='`$nidx`' />
-                                                                <parameter name='ctx.network-data.' value='`$service-data.networks.network[$nidx].`' />
-                                                            </set>
-                                                        </outcome>
-                                                    </switch>
-                                                </for>
-                                                <switch test="`$tmp.nidx`">
-                                                    <outcome value=''>
-                                                        <return status='failure'>
-                                                            <parameter name='ack-final' value='Y'/>
-                                                            <parameter name="error-code" value="500" />
-                                                            <parameter name="error-message" value="network-topology-operation-input.network-request-input.network-id not found in service-data" />
-                                                        </return>
-                                                    </outcome>
-                                                </switch>
-                                            </block>
-                                        </outcome>
-                                    </switch>
-                                    <switch test='`$service-data.networks.network[$tmp.nidx].network-data.network-level-oper-status.order-status`'>
-                                        <outcome value='Created'>
-                                            <switch test='`$network-topology-operation-input.request-information.request-action`'>
-                                                <outcome value='DeActivateDCINetworkInstance'>
-                                                    <call module='GENERIC-RESOURCE-API' rpc='dci-connects-network-topology-operation-deactivate' mode='sync' ></call>
-                                                </outcome>
-                                                <outcome value='Other'>
-                                                    <call module='GENERIC-RESOURCE-API' rpc='network-topology-operation-deactivate' mode='sync' ></call>
-                                                </outcome>
-                                            </switch>
-                                        </outcome>
-                                        <outcome value='Other'>
-                                            <return status='failure'>
-                                                <parameter name='ack-final' value='Y'/>
-                                                <parameter name="error-code" value="500" />
-                                                <parameter name="error-message" value="`'Network is not in appropriate state for deactivate. Current state is ' + $service-data.networks.network[$tmp.nidx].network-data.network-level-oper-status.order-status`" />
-                                            </return>
+                                            <set>
+                                                <parameter name='nidx' value='`$tmp.nidx`' />
+                                            </set>
                                         </outcome>
                                     </switch>
                                 </block>
                             </outcome>
                         </switch>
+                        <switch test='`$network-topology-operation-input.network-information.network-instance-group-id`'>
+                            <outcome value=''>
+                                <return status='success'>
+                                    <parameter name='' value='' />
+                                </return>
+                            </outcome>
+                            <outcome value='Other'>
+                                <block>
+                                    <switch test='`$service-data.network-instance-groups.network-instance-group_length`'>
+                                        <outcome value=''>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="network-topology-operation-input.network-request-input.network-instance-group-id not found in service-data" />
+                                            </return>
+                                        </outcome>
+                                        <outcome value='Other'>
+                                            <block atomic="true">
+                                                <for index='ngidx' start='0' end='`$service-data.network-instance-groups.network-instance-_length`' >
+                                                    <switch test="`$service-data.network-instance-groups.network-instance-group[$nidx].network-instance-group-id == $network-topology-operation-input.network-information.network-instance-group-id`">
+                                                        <outcome value='true'>
+                                                            <block atomic="true">
+                                                                <set>
+                                                                    <parameter name='tmp.ngidx' value='`$ngidx`' />
+                                                                    <parameter name='ctx.network-instance-group-data.' value='`$service-data.network-instance-groups.network-instance-group[$ngidx].`' />
+                                                                </set>
+                                                            </block>
+                                                        </outcome>
+                                                    </switch>
+                                                </for>
+                                            </block>
+                                        </outcome>
+                                    </switch>
+                                </block>
+                            </outcome>
+                        </switch>
+                        <switch test='`$service-data.networks.network[$tmp.nidx].network-data.network-level-oper-status.order-status`'>
+                            <outcome value='PendingCreate'>
+                                <call module='GENERIC-RESOURCE-API' rpc='network-topology-operation-activate' mode='sync' ></call>
+                            </outcome>
+                            <outcome value='Other'>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="`'Network is not in appropriate state for activate. Current state is ' + $service-data.networks.network[$tmp.nidx].network-data.network-level-oper-status.order-status`" />
+                                </return>
+                            </outcome>
+                        </switch>
+                    </block>
+                </outcome>
+                <outcome value='changeassign'>
+                    <block atomic="true">
+                        <switch test='`$service-data.networks.network_length`'>
+                            <outcome value=''>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="network-topology-operation-input.network-request-input.network-id not found in service-data" />
+                                </return>
+                            </outcome>
+                            <outcome value='Other'>
+                                <block atomic="true">
+                                    <for index='nidx' start='0' end='`$service-data.networks.network_length`' >
+                                        <switch test="`$service-data.networks.network[$nidx].network-id == $network-topology-operation-input.network-information.network-id`">
+                                            <outcome value='true'>
+                                                <set>
+                                                    <parameter name='tmp.nidx' value='`$nidx`' />
+                                                    <parameter name='network-data.' value='`$service-data.networks.network[$nidx].`' />
+                                                </set>
+                                            </outcome>
+                                        </switch>
+                                    </for>
+                                    <switch test="`$tmp.nidx`">
+                                        <outcome value=''>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="network-topology-operation-input.network-request-input.network-id not found in service-data" />
+                                            </return>
+                                        </outcome>
+                                        <outcome value='Other'>
+                                            <set>
+                                                <parameter name='nidx' value='`$tmp.nidx`' />
+                                            </set>
+                                        </outcome>
+                                    </switch>
+                                </block>
+                            </outcome>
+                        </switch>
+                        <call module='GENERIC-RESOURCE-API' rpc='network-topology-operation-changeassign' mode='sync' ></call>
+                    </block>
+                </outcome>
+                <outcome value='deactivate'>
+                    <block atomic="true">
+                        <switch test='`$service-data.networks.network_length`'>
+                            <outcome value=''>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="network-topology-operation-input.network-request-input.network-id not found in service-data" />
+                                </return>
+                            </outcome>
+                            <outcome value='Other'>
+                                <block atomic="true">
+                                    <for index='nidx' start='0' end='`$service-data.networks.network_length`' >
+                                        <switch test="`$service-data.networks.network[$nidx].network-id == $network-topology-operation-input.network-information.network-id`">
+                                            <outcome value='true'>
+                                                <set>
+                                                    <parameter name='tmp.nidx' value='`$nidx`' />
+                                                    <parameter name='network-data.' value='`$service-data.networks.network[$nidx].`' />
+                                                </set>
+                                            </outcome>
+                                        </switch>
+                                    </for>
+                                    <switch test="`$tmp.nidx`">
+                                        <outcome value=''>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="network-topology-operation-input.network-request-input.network-id not found in service-data" />
+                                            </return>
+                                        </outcome>
+                                        <outcome value='Other'>
+                                            <set>
+                                                <parameter name='nidx' value='`$tmp.nidx`' />
+                                            </set>
+                                        </outcome>
+                                    </switch>
+                                </block>
+                            </outcome>
+                        </switch>
+                        <switch test='`$network-topology-operation-input.network-information.network-instance-group-id`'>
+                            <outcome value=''>
+                                <return status='success'>
+                                    <parameter name='' value='' />
+                                </return>
+                            </outcome>
+                            <outcome value='Other'>
+                                <block>
+                                    <switch test='`$service-data.network-instance-groups.network-instance-group_length`'>
+                                        <outcome value=''>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="network-topology-operation-input.network-request-input.network-instance-group-id not found in service-data" />
+                                            </return>
+                                        </outcome>
+                                        <outcome value='Other'>
+                                            <block atomic="true">
+                                                <for index='ngidx' start='0' end='`$service-data.network-instance-groups.network-instance-_length`' >
+                                                    <switch test="`$service-data.network-instance-groups.network-instance-group[$nidx].network-instance-group-id == $network-topology-operation-input.network-information.network-instance-group-id`">
+                                                        <outcome value='true'>
+                                                            <block atomic="true">
+                                                                <set>
+                                                                    <parameter name='tmp.ngidx' value='`$ngidx`' />
+                                                                    <parameter name='ctx.network-instance-group-data.' value='`$service-data.network-instance-groups.network-instance-group[$ngidx].`' />
+                                                                </set>
+                                                            </block>
+                                                        </outcome>
+                                                    </switch>
+                                                </for>
+                                            </block>
+                                        </outcome>
+                                    </switch>
+                                </block>
+                            </outcome>
+                        </switch>
+                        <call module='GENERIC-RESOURCE-API' rpc='network-topology-operation-deactivate' mode='sync' ></call>
                     </block>
                 </outcome>
                 <outcome value='unassign'>
@@ -149,7 +261,7 @@
                                             <outcome value='true'>
                                                 <set>
                                                     <parameter name='tmp.nidx' value='`$nidx`' />
-                                                    <parameter name='ctx.network-data.' value='`$service-data.networks.network[$nidx].`' />
+                                                    <parameter name='network-data.' value='`$service-data.networks.network[$nidx].`' />
                                                 </set>
                                             </outcome>
                                         </switch>
@@ -161,6 +273,47 @@
                                                 <parameter name="error-code" value="500" />
                                                 <parameter name="error-message" value="network-topology-operation-input.network-request-input.network-id not found in service-data" />
                                             </return>
+                                        </outcome>
+                                        <outcome value='Other'>
+                                            <set>
+                                                <parameter name='nidx' value='`$tmp.nidx`' />
+                                            </set>
+                                        </outcome>
+                                    </switch>
+                                </block>
+                            </outcome>
+                        </switch>
+                        <switch test='`$network-topology-operation-input.network-information.network-instance-group-id`'>
+                            <outcome value=''>
+                                <return status='success'>
+                                    <parameter name='' value='' />
+                                </return>
+                            </outcome>
+                            <outcome value='Other'>
+                                <block>
+                                    <switch test='`$service-data.network-instance-groups.network-instance-group_length`'>
+                                        <outcome value=''>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="network-topology-operation-input.network-request-input.network-instance-group-id not found in service-data" />
+                                            </return>
+                                        </outcome>
+                                        <outcome value='Other'>
+                                            <block atomic="true">
+                                                <for index='ngidx' start='0' end='`$service-data.network-instance-groups.network-instance-_length`' >
+                                                    <switch test="`$service-data.network-instance-groups.network-instance-group[$nidx].network-instance-group-id == $network-topology-operation-input.network-information.network-instance-group-id`">
+                                                        <outcome value='true'>
+                                                            <block atomic="true">
+                                                                <set>
+                                                                    <parameter name='tmp.ngidx' value='`$ngidx`' />
+                                                                    <parameter name='ctx.network-instance-group-data.' value='`$service-data.network-instance-groups.network-instance-group[$ngidx].`' />
+                                                                </set>
+                                                            </block>
+                                                        </outcome>
+                                                    </switch>
+                                                </for>
+                                            </block>
                                         </outcome>
                                     </switch>
                                 </block>
@@ -189,30 +342,6 @@
                         <parameter name="error-code" value="500" />
                         <parameter name="error-message" value="sdnc-request-header.svc-action is a required input" />
                     </return>
-                </outcome>
-                <outcome value='create'>
-                    <switch test='`$network-topology-operation-input.request-information.request-action`'>
-                        <outcome value='CreateSOTNConnectivityInstance'>
-                            <call module='GENERIC-RESOURCE-API' rpc='sotn-network-topology-operation-create' mode='sync' ></call>
-                        </outcome>
-                        <outcome value='other'>
-                            <block atomic="true">
-                                <call module='GENERIC-RESOURCE-API' rpc='network-topology-operation-create' mode='sync' ></call>
-                            </block>
-                        </outcome>
-                    </switch>
-                </outcome>
-                <outcome value='delete'>
-                    <switch test='`$network-topology-operation-input.request-information.request-action`'>
-                        <outcome value='DeleteSOTNConnectivityInstance'>
-                            <call module='GENERIC-RESOURCE-API' rpc='sotn-network-topology-operation-delete' mode='sync' ></call>
-                        </outcome>
-                        <outcome value='other'>
-                            <block atomic="true">
-                                <call module='GENERIC-RESOURCE-API' rpc='network-topology-operation-delete' mode='sync' ></call>
-                            </block>
-                        </outcome>
-                    </switch>
                 </outcome>
             </switch>
             <set>

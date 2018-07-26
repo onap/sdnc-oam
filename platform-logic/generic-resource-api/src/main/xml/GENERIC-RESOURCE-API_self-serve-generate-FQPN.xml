@@ -1,0 +1,129 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    <method rpc='self-serve-generate-FQPN' mode='sync'>
+        <block atomic="true">
+            <set>
+                <parameter name='eipam-ip-block.plan-name' value='`$tmp.ss.plan-name`' />
+            </set>
+            <set>
+                <parameter name='self-serve-generate-FQPN-output.' value='' />
+            </set>
+            <execute plugin="com.att.sdnctl.sli.plugin.eipam.EIPAMPlugin" method="getPlanTopology">
+                <outcome value='failure'>
+                    <return status="failure">
+                        <parameter name="ack-final" value="Y" />
+                        <parameter name="error-code" value="500"/>
+                        <parameter name="error-message" value="`'An error occured while getting Keyname and Keyvalue for address plan, '+ $eipam-ip-block.planName + ', from EIPAM'`" />
+                    </return>
+                </outcome>
+            </execute>
+            <switch test='`$eipam-ip-block.getPlanTopologyResponse.TopologyDetails_length`'>
+                <outcome value=''>
+                    <return status="failure">
+                        <parameter name="ack-final" value="Y" />
+                        <parameter name="error-code" value="500"/>
+                        <parameter name="error-message" value="eipam-ip-block.getPlanTopologyResponse.TopologyDetails is null" />
+                    </return>
+                </outcome>
+            </switch>
+            <for index="resp-index" start="0" end="`$eipam-ip-block.getPlanTopologyResponse.TopologyDetails_length`">
+                <switch test='`$eipam-ip-block.plan-name == $eipam-ip-block.getPlanTopologyResponse.PlanName`'>
+                    <outcome value='false'>
+                        <return status="failure">
+                            <parameter name="ack-final" value="Y" />
+                            <parameter name="error-code" value="500"/>
+                            <parameter name="error-message" value="`'eipam response plan-name ['+ $eipam-ip-block.getPlanTopologyResponse.PlanName + ' is not the same as input '+$eipam-ip-block.planName`" />
+                        </return>
+                    </outcome>
+                </switch>
+                <set>
+                    <parameter name='pool-index'
+   value='`$eipam-ip-block.getPlanTopologyResponse.TopologyDetails[$resp-index].Level - 1`' />
+                </set>
+                <set>
+                    <parameter name='tmp.getPlanTopologyResponse.key-name' 
+	value='`$eipam-ip-block.getPlanTopologyResponse.TopologyDetails[$resp-index].KeyName`' />
+                </set>
+                <set>
+                    <parameter name='tmp.getPlanTopologyResponse.key-value-format' 
+	value='`$eipam-ip-block.getPlanTopologyResponse.TopologyDetails[$resp-index].KeyValueFormat`' />
+                </set>
+                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                    <parameter name="original_string" value="`$tmp.getPlanTopologyResponse.key-value-format`" />
+                    <parameter name="regex" value=":" />
+                    <parameter name="ctx_memory_result_key" value="tmp.split.key-value-format" />
+                </execute>
+                <set>
+                    <parameter name='tmp.final.key-value' value="" />
+                </set>
+                <for index="split-index" start="0" end="`$tmp.split.key-value-format_length`">
+                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                        <parameter name="source" value="`$tmp.split.key-value-format[$split-index]`" />
+                        <parameter name="target" value="${"/>
+                        <parameter name="replacement" value=""/>
+                        <parameter name="outputPath" value="tmp.split-value"/>
+                    </execute>
+                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                        <parameter name="source" value="`$tmp.split-value`" />
+                        <parameter name="target" value="}"/>
+                        <parameter name="replacement" value=""/>
+                        <parameter name="outputPath" value="tmp.ss.split-value"/>
+                    </execute>
+                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                        <parameter name="logger" value="message-log"/>
+                        <parameter name="field1" value="__TIMESTAMP__"/>
+                        <parameter name="field2" value="`'SS: tmp.ss.split-value: ' + $tmp.ss.split-value`"/>
+                    </record>
+                    <for index="pidx" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`">
+                        <set>
+                            <parameter name='tmp.ss.param.capability-name' 
+	value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.capability-name`' />
+                        </set>
+                        <switch test='`$tmp.ss.param.capability-name == $ss.capability-name`'>
+                            <outcome value='true'>
+                                <for index="kidx" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$ss.param-index].resource-resolution-data.resource-key_length`">
+                                    <set>
+                                        <parameter name='tmp.ss.resource-key.name' 
+	value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.resource-key[$kidx].name`' />
+                                    </set>
+                                    <switch test='`$tmp.ss.split-value == $tmp.ss.resource-key.name`'>
+                                        <outcome value='true'>
+                                            <set>
+                                                <parameter name='tmp.ss.partial.key-value' 
+	value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.resource-key[$kidx].value`' />
+                                            </set>
+                                        </outcome>
+                                    </switch>
+                                </for>
+                            </outcome>
+                        </switch>
+                    </for>
+                    <switch test='`$split-index == 0`'>
+                        <outcome value='true'>
+                            <set>
+                                <parameter name='tmp.ss.final.key-value' value="`$tmp.ss.partial.key-value`" />
+                            </set>
+                        </outcome>
+                        <outcome value='false'>
+                            <set>
+                                <parameter name='tmp.ss.final.key-value' 
+	value="`$tmp.ss.final.key-value + ':' + $tmp.ss.partial.key-value`" />
+                            </set>
+                        </outcome>
+                    </switch>
+                </for>
+                <set>
+                    <parameter name='self-serve-generate-FQPN-output.pools[$pool-index].key-name'
+   value='`$tmp.getPlanTopologyResponse.key-name`' />
+                    <parameter name='self-serve-generate-FQPN-output.pools[$pool-index].key-value'
+	value='`$tmp.ss.final.key-value`' />
+                </set>
+            </for>
+            <set>
+                <parameter name='self-serve-generate-FQPN-output.pools_length' 
+	value='`$eipam-ip-block.getPlanTopologyResponse.TopologyDetails_length`' />
+            </set>
+        </block>
+    </method>
+</service-logic>

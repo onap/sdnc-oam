@@ -9,6 +9,7 @@
                         <parameter name='eipam-ip-block.entity-id' value='' />
                         <parameter name='eipam-ip-block.ip-prefix' value='' />
                         <parameter name='eipam-ip-block.mask' value='' />
+                        <parameter name='tmp.location8' value='' />
                         <parameter name='tmp.l3-network.level1.v4.entity-id' value='' />
                         <parameter name='tmp.l3-network.level1.v4.ip-prefix' value='' />
                         <parameter name='tmp.l3-network.level1.v4.mask' value='' />
@@ -30,6 +31,12 @@
                         <parameter name='tmp.l3-network.level2.v6.pool.pre-existing' value='false' />
                         <parameter name='tmp.l3-network.level2.v6.subnet.pre-existing' value='false' />
                     </set>
+                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='substring'>
+                        <parameter name="string" value="`$aai.complex.physical-location-id`" />
+                        <parameter name="result" value="tmp.location8"/>
+                        <parameter name="begin-index" value="0" />
+                        <parameter name="end-index" value="8" />
+                    </execute>
                     <set>
                         <parameter name='tmp.region' value='`$aai.complex.region`' />
                         <parameter name='tmp.cloud-region-id' value="`$aai.cloud-region.cloud-region-id`" />
@@ -42,20 +49,19 @@
                         <parameter name='eipam-ip-block.plans_length' value='0' />
                         <parameter name='eipam-pool.v4.pre-existing' value='false' />
                         <parameter name='eipam-pool.v6.pre-existing' value='false' />
-                        <parameter name="tmp.level1-key-value" value="`$aai.complex.physical-location-id + ':' + $aai.cloud-region.cloud-region-id`" />
+                        <parameter name="tmp.level1-key-value" value="`$tmp.location8 + ':' + $aai.cloud-region.cloud-region-id`" />
                         <parameter name="tmp.level2-key-value" value="`$network-model.network-role + ':' + $tmp.l3-network.network-id`" />
                         <parameter name="tmp.ipv4-cidr-mask" value="`$network-model.ipv4-cidr-mask`" />
                         <parameter name="tmp.ipv6-cidr-mask" value="`$network-model.ipv6-cidr-mask`" />
                     </set>
+                    <!--subnet and subnet_keys are deleted in the EIPAMPlugin-->
+                    <set>
+                        <parameter name="eipam-ip-block.subnet-size-override-v4" value="`$network-model.ipv4-cidr-mask`" />
+                        <parameter name="eipam-ip-block.subnet-size-override-v6" value="`$network-model.ipv6-cidr-mask`" />
+                    </set>
                     <switch test="`$network-topology-operation-input.network-request-input.network-input-parameters.param_length`">
                         <outcome value=''>
-                            <block>
-                                <!--subnet and subnet_keys are deleted in the EIPAMPlugin-->
-                                <set>
-                                    <parameter name="eipam-ip-block.subnet-size-override-v4" value="`$network-model.ipv4-cidr-mask`" />
-                                    <parameter name="eipam-ip-block.subnet-size-override-v6" value="`$network-model.ipv6-cidr-mask`" />
-                                </set>
-                            </block>
+                            <block></block>
                         </outcome>
                         <outcome value='Other'>
                             <block>
@@ -69,12 +75,6 @@
                                                     <parameter name='eipam-ip-block.subnet-size-override-v4' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$pidx].value`' />
                                                 </set>
                                             </outcome>
-                                            <outcome value='Other'>
-                                                <!--subnet and subnet_keys are deleted in the EIPAMPlugin-->
-                                                <set>
-                                                    <parameter name="eipam-ip-block.subnet-size-override-v4" value="`$network-model.ipv4-cidr-mask`" />
-                                                </set>
-                                            </outcome>
                                         </execute>
                                         <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='contains'  emitsOutcome='true' >
                                             <parameter name="source" value="`$network-topology-operation-input.network-request-input.network-input-parameters.param[$pidx].name`" />
@@ -82,12 +82,6 @@
                                             <outcome value='true'>
                                                 <set>
                                                     <parameter name='eipam-ip-block.subnet-size-override-v6' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param[$pidx].value`' />
-                                                </set>
-                                            </outcome>
-                                            <outcome value='Other'>
-                                                <!--subnet and subnet_keys are deleted in the EIPAMPlugin-->
-                                                <set>
-                                                    <parameter name="eipam-ip-block.subnet-size-override-v6" value="`$network-model.ipv6-cidr-mask`" />
                                                 </set>
                                             </outcome>
                                         </execute>

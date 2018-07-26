@@ -1,0 +1,171 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    <method rpc='self-serve-aai-vfmodule-put' mode='sync'>
+        <block atomic='true'>
+            <switch test='`$vnf-index`'>
+                <outcome value=''>
+                    <return status='failure'>
+                        <parameter name='error-code' value='500' />
+                        <parameter name='error-message' value='vnf-index is required' />
+                    </return>
+                </outcome>
+                <outcome value='Other'>
+                    <block>
+                        <for index="k" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param_length`" >
+                            <block>
+                                <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$k].name`'>
+                                    <outcome value='vnf-id'>
+                                        <block>
+                                            <set>
+                                                <parameter name='vnf-id' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$k].value`' />
+                                            </set>
+                                        </block>
+                                    </outcome>
+                                    <outcome value='ipv4-loopback0-address'>
+                                        <block>
+                                            <set>
+                                                <parameter name='ipv4-loopback0-address' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$k].value`' />
+                                            </set>
+                                        </block>
+                                    </outcome>
+                                    <outcome value='as-number'>
+                                        <block>
+                                            <set>
+                                                <parameter name='as-number' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$k].value`' />
+                                            </set>
+                                        </block>
+                                    </outcome>
+                                    <outcome value='vlan-id-outer'>
+                                        <block>
+                                            <set>
+                                                <parameter name='vlan-id-outer' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$k].value`' />
+                                            </set>
+                                        </block>
+                                    </outcome>
+                                </switch>
+                            </block>
+                        </for>
+                        <for index="j" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`" >
+                            <block>
+                                <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$j].name`'>
+                                    <outcome value='vf-module-id'>
+                                        <set>
+                                            <parameter name='vf-module-id' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$j].value`' />
+                                        </set>
+                                    </outcome>
+                                    <outcome value='vf-module-name'>
+                                        <set>
+                                            <parameter name='vf-module-name' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$j].value`' />
+                                        </set>
+                                    </outcome>
+                                    <outcome value='volume-group-id'>
+                                        <set>
+                                            <parameter name='volume-group-id' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$j].value`' />
+                                        </set>
+                                    </outcome>
+                                    <outcome value='volume-group-name'>
+                                        <set>
+                                            <parameter name='volume-group-name' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$j].value`' />
+                                        </set>
+                                    </outcome>
+                                    <outcome value='cloud-region'>
+                                        <set>
+                                            <parameter name='cloud-region' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$j].value`' />
+                                        </set>
+                                    </outcome>
+                                </switch>
+                            </block>
+                        </for>
+                    </block>
+                </outcome>
+            </switch>
+            <block>
+                <update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+	resource="generic-vnf"
+		key="generic-vnf.vnf-id = $vnf-id "
+	pfx="tmp.AnAI-data.vnf" >
+                    <parameter name="ipv4-loopback0-address" value='`$ipv4-loopback0-address`' />
+                    <parameter name="ipv4-oam-address" value='`$ipv4-oam-address`' />
+                    <parameter name="as-number" value='`$as-number`' />
+                    <parameter name="vlan-id-outer" value='`$vlan-id-outer`' />
+                    <outcome value='failure'>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                            <parameter name="logger" value="message-log" />
+                            <parameter name="level" value="error" />
+                            <parameter name="field1" value="Error for PUT in AAI for generic-vnf." />
+                            <parameter name="field2" value="`$tmp.AnAI-data.vnf.error-code`" />
+                            <parameter name="field3" value="`$tmp.AnAI-data.vnf.error-message`" />
+                        </record>
+                    </outcome>
+                    <outcome value='not-found'>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                            <parameter name="logger" value="message-log" />
+                            <parameter name="level" value="error" />
+                            <parameter name="field1" value="Error for PUT in AAI for generic-vnf." />
+                            <parameter name="field2" value="`$tmp.AnAI-data.vnf.error-code`" />
+                            <parameter name="field3" value="`$tmp.AnAI-data.vnf.error-message`" />
+                        </record>
+                    </outcome>
+                    <outcome value='success'>
+                        <update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+	resource="vf-module"
+		key="vf-module.vf-module-id = $vf-module-id "
+	pfx="tmp.AnAI-data.vfmodule" >
+                            <parameter name="vf-module-name" value='`$vf-module-name`' />
+                            <outcome value='failure'>
+                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                    <parameter name="logger" value="message-log" />
+                                    <parameter name="level" value="error" />
+                                    <parameter name="field1" value="Error for PUT in AAI for vf-module" />
+                                    <parameter name="field2" value="`$tmp.AnAI-data.vnf.error-code`" />
+                                    <parameter name="field3" value="`$tmp.AnAI-data.vnf.error-message`" />
+                                </record>
+                            </outcome>
+                            <outcome value='not-found'>
+                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                    <parameter name="logger" value="message-log" />
+                                    <parameter name="level" value="error" />
+                                    <parameter name="field1" value="Error for PUT in AAI for vf-module" />
+                                    <parameter name="field2" value="`$tmp.AnAI-data.vnf.error-code`" />
+                                    <parameter name="field3" value="`$tmp.AnAI-data.vnf.error-message`" />
+                                </record>
+                            </outcome>
+                            <outcome value='success'>
+                                <update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+	resource="volume-group"
+		key="volume-group-id = $volume-group-id and 
+				cloud-region.cloud-owner = $prop.cloud-region.cloud-owner and
+				cloud-region.cloud-region-id = $cloud-region "
+		pfx="tmp.AnAI-data.vnf" >
+                                    <parameter name="volume-group-name" value='`$volume-group-name`' />
+                                    <outcome value='failure'>
+                                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                            <parameter name="logger" value="message-log" />
+                                            <parameter name="level" value="error" />
+                                            <parameter name="field1" value="Error Saving in AAI" />
+                                            <parameter name="field2" value="`$tmp.AnAI-data.vnf.error-code`" />
+                                            <parameter name="field3" value="`$tmp.AnAI-data.vnf.error-message`" />
+                                        </record>
+                                    </outcome>
+                                    <outcome value='not-found'>
+                                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                            <parameter name="logger" value="message-log" />
+                                            <parameter name="level" value="error" />
+                                            <parameter name="field1" value="Error Saving in AAI" />
+                                            <parameter name="field2" value="`$tmp.AnAI-data.vnf.error-code`" />
+                                            <parameter name="field3" value="`$tmp.AnAI-data.vnf.error-message`" />
+                                        </record>
+                                    </outcome>
+                                    <outcome value='success'>
+                                        <return status='success'></return>
+                                    </outcome>
+                                </update>
+                            </outcome>
+                        </update>
+                    </outcome>
+                </update>
+            </block>
+        </block>
+    </method>
+</service-logic>

@@ -1,0 +1,262 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    <method rpc='self-serve-vlan-tag-assign' mode='sync'>
+        <block atomic='true'>
+            <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
+                <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />
+                <parameter name='contextPrefix' value='prop' />
+                <outcome value='success'>
+                    <record  plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                        <parameter name="logger" value="message-log"/>
+                        <parameter name="field1" value="__TIMESTAMP__"/>
+                        <parameter name="field2" value="GENERIC-RESOURCE-API"/>
+                        <parameter name="field3" value="self-serve-vlan-tag-assign: read properties file." />
+                    </record>
+                </outcome>
+                <outcome value='failure'>
+                    <block>
+                        <record  plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                            <parameter name="logger" value="message-log"/>
+                            <parameter name="field1" value="__TIMESTAMP__"/>
+                            <parameter name="field2" value="GENERIC-RESOURCE-API"/>
+                            <parameter name="field3" value="self-serve-vlan-tag-assign: failed to read properties file." />
+                            <parameter name="field4" value="generic-resource-api-dg.properties"/>
+                        </record>
+                        <return status='failure'>
+                            <parameter name='error-code' value='500' />
+                            <parameter name='error-message' value='self-serve-vlan-tag-assign: could not read generic-resource-api properties' />
+                        </return>
+                    </block>
+                </outcome>
+            </execute>
+            <call module='GENERIC-RESOURCE-API' rpc='self-serve-capability-param-resolution' mode='sync' ></call>
+            <for index='capIdx' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`' >
+                <switch test="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module.param[$capIdx].resource-resolution-data.capability-name == $ss.capability-name`">
+                    <outcome value='true'>
+                        <switch test="`$ss.capability-action`">
+                            <outcome value='assign'>
+                                <block atomic='true'>
+                                    <set>
+                                        <parameter name='sscap.res-target-type' value='`$prop.restapi.ss.capreserve.targettype`' />
+                                    </set>
+                                    <for index='rkIdx' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$capIdx].resource-resolution-data.resource-key_length`' >
+                                        <switch test="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$capIdx].resource-resolution-data.resource-key[$rkIdx].name`">
+                                            <outcome value='vlan-recipe'>
+                                                <set>
+                                                    <parameter name='sscap.res-service-model' value='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$capIdx].resource-resolution-data.resource-key[$rkIdx].value`' />
+                                                </set>
+                                            </outcome>
+                                            <outcome value='vnf-name'>
+                                                <set>
+                                                    <parameter name='sscap.res-entity-id' value='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$capIdx].resource-resolution-data.resource-key[$rkIdx].value`' />
+                                                </set>
+                                            </outcome>
+                                            <outcome value='nf-role'>
+                                                <set>
+                                                    <parameter name='sscap.res-entity-type' value='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$capIdx].resource-resolution-data.resource-key[$rkIdx].value`' />
+                                                </set>
+                                            </outcome>
+                                            <outcome value='aic-site-id'>
+                                                <set>
+                                                    <parameter name='sscap.res-target-id' value='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$capIdx].resource-resolution-data.resource-key[$rkIdx].value`' />
+                                                </set>
+                                            </outcome>
+                                            <outcome value='vlan-tag-type'>
+                                                <set>
+                                                    <parameter name='sscap.res-endpoint-position' value='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$capIdx].resource-resolution-data.resource-key[$rkIdx].value`' />
+                                                </set>
+                                            </outcome>
+                                        </switch>
+                                    </for>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                        <parameter name="logger" value="message-log"/>
+                                        <parameter name="field1" value="__TIMESTAMP__"/>
+                                        <parameter name="field2" value="GENERIC-RESOURCE-API"/>
+                                        <parameter name="field3" value="self-serve-vlan-tag-assign: reserve params"/>
+                                        <parameter name="field4" value='`$sscap.res-service-model`'/>
+                                        <parameter name="field5" value='`$sscap.res-entity-type`'/>
+                                        <parameter name="field6" value='`$sscap.res-entity-id`'/>
+                                        <parameter name="field7" value='`$sscap.res-target-type.`' />
+                                        <parameter name="field8" value='`$sscap.res-target-id`'/>
+                                        <parameter name="field9" value='`$sscap.res.endpoint-position`' />
+                                    </record>
+                                    <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                        <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/' + $prop.restapi.ss.capreserve.templatefile`" />
+                                        <parameter name='restapiUser' value='`$prop.controller.user`' />
+                                        <parameter name='restapiPassword' value='`$prop.controller.pwd`' />
+                                        <parameter name='format' value='json' />
+                                        <parameter name='httpMethod' value='post' />
+                                        <parameter name='responsePrefix' value='tmp.sscapres-response' />
+                                        <outcome value='failure'>
+                                            <block>
+                                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                    <parameter name="logger" value="message-log"/>
+                                                    <parameter name="field1" value="__TIMESTAMP__"/>
+                                                    <parameter name="field2" value="GENERIC-RESOURCE-API"/>
+                                                    <parameter name="field3" value="self-serve-vlan-tag-assign: restapi reserve execution failed"/>
+                                                </record>
+                                                <set>
+                                                    <parameter name='sscap.reserve.response-code' value='500' />
+                                                    <parameter name='sscap.reserve.response-message' value='Self Serve Capacity Api restapi reserve execution failed' />
+                                                    <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-mofule[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$capIdx].resource-resolution-data.status' value='FAILED' />
+                                                </set>
+                                                <return status='failure'>
+                                                    <parameter name='error-code' value='500' />
+                                                    <parameter name='error-message' value='self-serve-vlan-tag-assign: reserve failed' />
+                                                </return>
+                                            </block>
+                                        </outcome>
+                                        <outcome value='success'>
+                                            <switch test="`$tmp.sscapres-response.response-code`">
+                                                <outcome value='200'>
+                                                    <block>
+                                                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                            <parameter name="logger" value="message-log"/>
+                                                            <parameter name="field1" value="__TIMESTAMP__"/>
+                                                            <parameter name="field2" value="GENERIC-RESOURCE-API"/>
+                                                            <parameter name="field3" value="self-serve-vlan-tag-assign: reserve successful"/>
+                                                            <parameter name="field4" value='`$tmp.sscapres-response.response-code`'/>
+                                                            <parameter name="field5" value='`$tmp.sscapres-response.response-message`'/>
+                                                            <parameter name="field6" value='`$tmp.sscapres-response.output.reservation-entity-list[0].reservation-target-list[0].resource-list[0].allocated`' />
+                                                            <parameter name="field7" value='`$tmp.sscapres-response.output.reservation-entity-list[0].reservation-target-list[0].resource-list[0].end-point-position`' />
+                                                        </record>
+                                                        <set>
+                                                            <parameter name='pmIdx' value='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-mofule[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length' />
+                                                        </set>
+                                                        <set>
+                                                            <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-mofule[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$capIdx].resource-resolution-data.status' value='SUCCESS' />
+                                                            <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-mofule[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pmIdx].value' value='$tmp.sscapres-response.output.reservation-entity-list[0].reservation-target-list[0].resource-list[0].allocated' />
+                                                            <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-mofule[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pmIdx].name' value='$tmp.sscapres-response.output.reservation-entity-list[0].reservation-target-list[0].resource-list[0].end-point-position' />
+                                                        </set>
+                                                    </block>
+                                                </outcome>
+                                                <outcome value='Other'>
+                                                    <block>
+                                                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                            <parameter name="logger" value="message-log"/>
+                                                            <parameter name="field1" value="__TIMESTAMP__"/>
+                                                            <parameter name="field2" value="GENERIC-RESOURCE-API"/>
+                                                            <parameter name="field3" value="self-serve-vlan-tag-assign: reserve failed"/>
+                                                            <parameter name="field4" value='`$tmp.sscapres-response.response-code`'/>
+                                                            <parameter name="field5" value='`$tmp.sscapres-response.response-message`'/>
+                                                        </record>
+                                                        <set>
+                                                            <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-mofule[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$capIdx].resource-resolution-data.status' value='FAILED' />
+                                                        </set>
+                                                    </block>
+                                                </outcome>
+                                            </switch>
+                                        </outcome>
+                                    </execute>
+                                </block>
+                            </outcome>
+                            <outcome value='unassign'>
+                                <block atomic='true'>
+                                    <for index='rkIdx' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$capIdx].resource-resolution-data.resource-key_length`' >
+                                        <switch test="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$capIdx].resource-resolution-data.resource-key[$rkIdx].name`">
+                                            <outcome value='vnf-name'>
+                                                <set>
+                                                    <parameter name='sscap.rel-entity-id' value='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$capIdx].resource-resolution-data.resource-key[$rkIdx].value`' />
+                                                </set>
+                                            </outcome>
+                                            <outcome value='nf-role'>
+                                                <set>
+                                                    <parameter name='sscap.rel-entity-type' value='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$capIdx].resource-resolution-data.resource-key[$rkIdx].value`' />
+                                                </set>
+                                            </outcome>
+                                            <outcome value='vlan-tag-type'>
+                                                <set>
+                                                    <parameter name='sscap.rel-endpoint-position' value='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$capIdx].resource-resolution-data.resource-key[$rkIdx].value`' />
+                                                </set>
+                                            </outcome>
+                                        </switch>
+                                    </for>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                        <parameter name="logger" value="message-log"/>
+                                        <parameter name="field1" value="__TIMESTAMP__"/>
+                                        <parameter name="field2" value="GENERIC-RESOURCE-API"/>
+                                        <parameter name="field3" value="self-serve-vlan-tag-assign: release params"/>
+                                        <parameter name="field4" value='`$sscap.res-entity-type`'/>
+                                        <parameter name="field5" value='`$sscap.res-entity-id`'/>
+                                        <parameter name="field6" value='`$sscap.res.endpoint-position`' />
+                                    </record>
+                                    <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                        <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/' + $prop.restapi.ss.caprelease.templatefile`" />
+                                        <parameter name='restapiUrl' value='`$prop.controller.url`' />
+                                        <parameter name='restapiUser' value='`$prop.controller.user`' />
+                                        <parameter name='restapiPassword' value='`$prop.controller.pwd`' />
+                                        <parameter name='format' value='json' />
+                                        <parameter name='httpMethod' value='post' />
+                                        <parameter name='responsePrefix' value='tmp.sscaprel-response' />
+                                        <outcome value='failure'>
+                                            <block>
+                                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                    <parameter name="logger" value="message-log"/>
+                                                    <parameter name="field1" value="__TIMESTAMP__"/>
+                                                    <parameter name="field2" value="GENERIC-RESOURCE-API"/>
+                                                    <parameter name="field3" value="self-serve-vlan-tag-assign: restapi release execution failed"/>
+                                                </record>
+                                                <set>
+                                                    <parameter name='sscap.release.response-code' value='500' />
+                                                    <parameter name='sscap.release.response-message' value='Self Serve Capacity Api restapi release execution failed' />
+                                                    <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-mofule[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$capIdx].resource-resolution-data.status' value='FAILED' />
+                                                </set>
+                                                <return status='failure'>
+                                                    <parameter name='error-code' value='500' />
+                                                    <parameter name='error-message' value='self-serve-vlan-tag-assign: release failed' />
+                                                </return>
+                                            </block>
+                                        </outcome>
+                                        <outcome value='success'>
+                                            <switch test="`$tmp.sscaprel-response.response-code`">
+                                                <outcome value='200'>
+                                                    <block>
+                                                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                            <parameter name="logger" value="message-log"/>
+                                                            <parameter name="field1" value="__TIMESTAMP__"/>
+                                                            <parameter name="field2" value="GENERIC-RESOURCE-API"/>
+                                                            <parameter name="field3" value="self-serve-vlan-tag-assign: release successful"/>
+                                                            <parameter name="field4" value='`$tmp.sscaprel-response.response-code`'/>
+                                                            <parameter name="field5" value='`$tmp.sscaprel-response.response-message`'/>
+                                                        </record>
+                                                        <set>
+                                                            <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-mofule[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$capIdx].resource-resolution-data.status' value='DELETED' />
+                                                        </set>
+                                                    </block>
+                                                </outcome>
+                                                <outcome value='Other'>
+                                                    <block>
+                                                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                            <parameter name="logger" value="message-log"/>
+                                                            <parameter name="field1" value="__TIMESTAMP__"/>
+                                                            <parameter name="field2" value="GENERIC-RESOURCE-API"/>
+                                                            <parameter name="field3" value="self-serve-vlan-tag-assign: release failed"/>
+                                                            <parameter name="field4" value='`$tmp.sscaprel-response.response-code`'/>
+                                                            <parameter name="field5" value='`$tmp.sscaprel-response.response-message`'/>
+                                                        </record>
+                                                        <set>
+                                                            <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-mofule[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$capIdx].resource-resolution-data.status' value='FAILED' />
+                                                        </set>
+                                                        <return status='failure'>
+                                                            <parameter name='error-code' value='500' />
+                                                            <parameter name='error-message' value='self-serve-vlan-tag-assign: release failed' />
+                                                        </return>
+                                                    </block>
+                                                </outcome>
+                                            </switch>
+                                        </outcome>
+                                    </execute>
+                                </block>
+                            </outcome>
+                        </switch>
+                    </outcome>
+                </switch>
+            </for>
+            <return status='success'>
+                <parameter name="error-code" value="200" />
+                <parameter name="error-message" value="`$error-message`" />
+            </return>
+        </block>
+    </method>
+</service-logic>

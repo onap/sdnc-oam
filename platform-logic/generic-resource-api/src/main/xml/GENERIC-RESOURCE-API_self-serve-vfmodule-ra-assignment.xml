@@ -1,0 +1,213 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    <method rpc='self-serve-vfmodule-ra-assignment' mode='sync'>
+        <block atomic="true">
+            <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils" method="generateUUID" >
+                <parameter name="ctx-destination" value="tmp.return.generate.vnf-se-serv-uuid" />
+                <outcome value='failure'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="generateUUID is failed" />
+                    </return>
+                </outcome>
+            </execute>
+            <set>
+                <parameter name="request-id" value="`$tmp.return.generate.vnf-se-serv-uuid`"/>
+                <parameter name="resource-type" value="`$vf-module-topology-operation-input.vf-module-information.vf-module-type`" />
+                <parameter name="resource-id" value="`$vf-module-topology-operation-input.vf-module-information.vf-module-id`" />
+                <parameter name="action-name" value="resource-assignment-action"/>
+                <parameter name="responsePrefix" value="sriovAssign" />
+            </set>
+            <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`'>
+                <outcome value=''>
+                    <set>
+                        <parameter name='highnum' value='0' />
+                        <parameter name='prehighnum' value='0'/>
+                    </set>
+                </outcome>
+                <outcome value='Other'>
+                    <set>
+                        <parameter name='highnum' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`' />
+                        <parameter name='prehighnum' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`' />
+                    </set>
+                </outcome>
+            </switch>
+            <for index='i' start='0' end='`$vf-module-topology-operation-input.vf-module-request-input.vf-module-input-parameters.param_length`' >
+                <switch test='`$vf-module-topology-operation-input.vf-module-request-input.vf-module-input-parameters.param[$i].name`'>
+                    <outcome value='sdnc_model_name'>
+                        <set>
+                            <parameter name='tmp.sdnc-model-name' value='`$vf-module-topology-operation-input.vf-module-request-input.vf-module-input-parameters.param[$i].value`' />
+                        </set>
+                    </outcome>
+                    <outcome value='sdnc_model_version'>
+                        <set>
+                            <parameter name='tmp.sdnc-model-version' value='`$vf-module-topology-operation-input.vf-module-request-input.vf-module-input-parameters.param[$i].value`' />
+                        </set>
+                    </outcome>
+                    <outcome value='vf_module_label'>
+                        <set>
+                            <parameter name='tmp.vf-module-label' value='`$vf-module-topology-operation-input.vf-module-request-input.vf-module-input-parameters.param[$i].value`' />
+                        </set>
+                    </outcome>
+                    <outcome value='Other'>
+                        <set>
+                            <parameter name="tmp.config-name-value-other-payload" value="`$tmp.config-name-value-other-payload + '&quot;' + $vf-module-topology-operation-input.vf-module-request-input.vf-module-input-parameters.param[$i].name + '&quot;:&quot;' + $vf-module-topology-operation-input.vf-module-request-input.vf-module-input-parameters.param[$i].value + '&quot;,'`"/>
+                        </set>
+                    </outcome>
+                </switch>
+            </for>
+            <switch test="`$tmp.sdnc-model-name == '' or $tmp.sdnc-model-version == '' or $tmp.vf-module-label == ''`">
+                <outcome value='true'>
+                    <block atomic="true">
+                        <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+  key='SELECT * from VF_MODEL WHERE customization_uuid = $vf-module-topology-operation-input.vnf-information.onap-model-information.model-customization-uuid'
+  pfx='db1.vf-model'>
+                            <outcome value='failure'>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="Error reading VF_MODEL table" />
+                                </return>
+                            </outcome>
+                            <outcome value='success'>
+                                <set>
+                                    <parameter name='tmp.sdnc-model-name' value='`$db1.vf-model.sdnc-model-name`' />
+                                    <parameter name='tmp.sdnc-model-version' value='`$db1.vf-model.sdnc-model-version`' />
+                                </set>
+                            </outcome>
+                        </get-resource>
+                        <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+  key='SELECT vf_module_label from VF_MODULE_MODEL WHERE vf_customization_uuid = $vf-module-topology-operation-input.vnf-information.onap-model-information.model-customization-uuid'
+  pfx='db1.vf-module-model'>
+                            <outcome value='failure'>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="Error reading VF_MODULE_MODEL table" />
+                                </return>
+                            </outcome>
+                            <outcome value='success'>
+                                <set>
+                                    <parameter name='tmp.vf-module-label' value='`$db1.vf-module-model.vf-module-label`' />
+                                </set>
+                            </outcome>
+                        </get-resource>
+                    </block>
+                </outcome>
+            </switch>
+            <set>
+                <parameter name="tmp.config-name-value-payload4" value="`$tmp.config-name-value-other-payload + '&quot;service-instance-id&quot;:&quot;' + $vf-module-topology-operation-input.service-information.service-instance-id + '&quot;,'`"/>
+                <parameter name="tmp.config-name-value-payload5" value="`$tmp.config-name-value-payload4 + '&quot;vnf-id&quot;:&quot;' + $vf-module-topology-operation-input.vnf-information.vnf-id + '&quot;,'`"/>
+                <parameter name="tmp.config-name-value-payload6" value="`$tmp.config-name-value-payload5 + '&quot;vf-module-model-customization-uuid&quot;:&quot;' + $vf-module-topology-operation-input.vf-module-information.onap-model-information.model-customization-uuid + '&quot;,'`"/>
+                <parameter name="tmp.config-name-value-payload7" value="`$tmp.config-name-value-payload6 + '&quot;vnf-model-customization-uuid&quot;:&quot;' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-information.onap-model-information.model-customization-uuid + '&quot;,'`"/>
+                <parameter name="tmp.config-name-value-payload8" value="`$tmp.config-name-value-payload7 + '&quot;vf-module-id&quot;:&quot;' + $vf-module-topology-operation-input.vf-module-information.vf-module-id + '&quot;,'`"/>
+                <parameter name="tmp.config-name-value-payload9" value="`$tmp.config-name-value-payload8 + '&quot;aic-cloud-region&quot;:&quot;' + $vf-module-topology-operation-input.vf-module-request-input.aic-cloud-region + '&quot;'`"/>
+                <parameter name="tmp.config-name-value-payload91" value="`'{' + $tmp.config-name-value-payload9 + '}'`" />
+            </set>
+            <execute plugin='org.openecomp.sdnc.config.assignment.service.ConfigAssignmentNode' method='process'>
+                <parameter name="request-id" value='`$request-id`' />
+                <parameter name="resource-id" value='`$resource-id`' />
+                <parameter name="resource-type" value='`$resource-type`' />
+                <parameter name="action-name" value='`$action-name`' />
+                <parameter name="template-names" value="`'[&quot;' + $tmp.vf-module-label + '&quot;]'`" />
+                <parameter name="service-template-name" value='`$tmp.sdnc-model-name`' />
+                <parameter name="service-template-version" value='`$tmp.sdnc-model-version`' />
+                <parameter name='input-data' value='`$tmp.config-name-value-payload91`' />
+                <parameter name="prifix" value="sriovAssign" />
+                <outcome value='failure'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="Error from ConfigAssignmentNode" />
+                    </return>
+                </outcome>
+                <outcome value='not-found'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="Error from ConfigAssignmentNode" />
+                    </return>
+                </outcome>
+            </execute>
+            <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils" method="jsonStringToCtx">
+                <parameter name="source" value="`'sriovAssign.mashed-data.' + $tmp.vf-module-label`" />
+                <parameter name="outputPath" value="jsonContextPrefix" />
+                <parameter name="isEscaped" value="false" />
+            </execute>
+            <for index='i' start='0' end='`$jsonContextPrefix.resource-accumulator-resolved-data_length`' >
+                <block atomic="true">
+                    <set>
+                        <parameter name='tmp.mso.param.found' value='false' />
+                    </set>
+                    <switch test='`$prehighnum &gt; 0`'>
+                        <outcome value='true'>
+                            <for index='cnt' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`' >
+                                <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$cnt].name == $jsonContextPrefix.resource-accumulator-resolved-data[$i].param-name`'>
+                                    <outcome value='true'>
+                                        <set>
+                                            <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$cnt].value`' value='`$jsonContextPrefix.resource-accumulator-resolved-data[$i].param-value`'/>
+                                            <parameter name='tmp.mso.param.found' value='true' />
+                                        </set>
+                                    </outcome>
+                                </switch>
+                            </for>
+                        </outcome>
+                    </switch>
+                    <switch test='`$tmp.mso.param.found`'>
+                        <outcome value='false'>
+                            <set>
+                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].name`' value='`$jsonContextPrefix.resource-accumulator-resolved-data[$i].param-name`'/>
+                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].value`' value='`$jsonContextPrefix.resource-accumulator-resolved-data[$i].param-value`'/>
+                                <parameter name='highnum' value='`$highnum + 1`' />
+                            </set>
+                        </outcome>
+                    </switch>
+                </block>
+            </for>
+            <for index='i' start='0' end='`$jsonContextPrefix.capability-data_length`' >
+                <block atomic="true">
+                    <set>
+                        <parameter name='num' value='0' />
+                    </set>
+                    <for index='j' start='0' end='`$jsonContextPrefix.capability-data[$i].key-mapping_length`' >
+                        <block atomic='true'>
+                            <for index='l' start='0' end='`$jsonContextPrefix.capability-data[$i].key-mapping[$j].output-key-mapping_length`' >
+                                <block atomic="true">
+                                    <set>
+                                        <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].name`' value='`$jsonContextPrefix.capability-data[$i].key-mapping[$j].output-key-mapping[$l].resource-name`'/>
+                                        <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].value`' value='`$jsonContextPrefix.capability-data[$i].key-mapping[$j].output-key-mapping[$l].resource-value`'/>
+                                        <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].resource-resolution-data.capability-name`' value='`$jsonContextPrefix.capability-data[$i].capability-name`'/>
+                                        <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].resource-resolution-data.status`' value='PENDING'/>
+                                    </set>
+                                    <switch test="`$jsonContextPrefix.capability-data[$i].key-mapping[$j].payload_length == ''`">
+                                        <outcome value='true'></outcome>
+                                        <outcome value='false'>
+                                            <for index='k' start='0' end='`$jsonContextPrefix.capability-data[$i].key-mapping[$j].payload_length`' >
+                                                <block atomic='true'>
+                                                    <set>
+                                                        <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].resource-resolution-data.resource-key[$num].name`' value='`$jsonContextPrefix.capability-data[$i].key-mapping[$j].payload[$k].param-name`'/>
+                                                        <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].resource-resolution-data.resource-key[$num].value`' value='`$jsonContextPrefix.capability-data[$i].key-mapping[$j].payload[$k].param-value`'/>
+                                                    </set>
+                                                    <set>
+                                                        <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].resource-resolution-data.resource-key_length`' value='`$num + 1`'/>
+                                                        <parameter name='num' value='`$num + 1`' />
+                                                    </set>
+                                                </block>
+                                            </for>
+                                        </outcome>
+                                    </switch>
+                                    <set>
+                                        <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`' value='`$highnum + 1`'/>
+                                        <parameter name='highnum' value='`$highnum + 1`' />
+                                    </set>
+                                </block>
+                            </for>
+                        </block>
+                    </for>
+                </block>
+            </for>
+        </block>
+    </method>
+</service-logic>

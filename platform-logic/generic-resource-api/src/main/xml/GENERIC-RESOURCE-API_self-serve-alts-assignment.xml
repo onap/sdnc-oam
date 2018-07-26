@@ -1,0 +1,653 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    <method rpc='self-serve-alts-assignment' mode='sync'>
+        <block>
+            <call module='GENERIC-RESOURCE-API' rpc='self-serve-capability-param-resolution' mode='sync' ></call>
+            <switch test='`$ss.capability-name`'>
+                <outcome value='alts-license-assign'>
+                    <switch test='`$ss.capability-action`'>
+                        <outcome value='assign'>
+                            <block atomic='true'>
+                                <switch test='`$vnf-index`'>
+                                    <outcome value=''>
+                                        <return status='failure'>
+                                            <parameter name='error-code' value='500' />
+                                            <parameter name='error-message' value='vnf-index is required' />
+                                        </return>
+                                    </outcome>
+                                    <outcome value='Other'>
+                                        <block>
+                                            <for index="i" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param_length`" >
+                                                <block>
+                                                    <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.capability-name`'>
+                                                        <outcome value='alts-license-assign'>
+                                                            <block>
+                                                                <set>
+                                                                    <parameter name='license-param-index' value='`$i`' />
+                                                                </set>
+                                                            </block>
+                                                        </outcome>
+                                                        <outcome value='alts-entitlement-assign'>
+                                                            <block>
+                                                                <set>
+                                                                    <parameter name='entitlement-param-index' value='`$i`' />
+                                                                </set>
+                                                            </block>
+                                                        </outcome>
+                                                    </switch>
+                                                </block>
+                                            </for>
+                                            <for index="k" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param_length`" >
+                                                <block>
+                                                    <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$k].name`'>
+                                                        <outcome value='license-key'>
+                                                            <block>
+                                                                <set>
+                                                                    <parameter name='license-key-index' value='`$k`' />
+                                                                </set>
+                                                            </block>
+                                                        </outcome>
+                                                        <outcome value='entitlement-key'>
+                                                            <block>
+                                                                <set>
+                                                                    <parameter name='entitlement-key-index' value='`$k`' />
+                                                                </set>
+                                                            </block>
+                                                        </outcome>
+                                                    </switch>
+                                                </block>
+                                            </for>
+                                            <switch test='`$ss.capability-name`'>
+                                                <outcome value='alts-license-assign'>
+                                                    <set>
+                                                        <parameter name='param-index' value='`$license-param-index`' />
+                                                    </set>
+                                                </outcome>
+                                                <outcome value='alts-entitlement-assign'>
+                                                    <set>
+                                                        <parameter name='param-index' value='`$entitlement-param-index`' />
+                                                    </set>
+                                                </outcome>
+                                            </switch>
+                                            <for index="j" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key_length`" >
+                                                <block>
+                                                    <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key[$j].name`'>
+                                                        <outcome value='vnf-id'>
+                                                            <set>
+                                                                <parameter name='alts.vnf-id' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key[$j].value`' />
+                                                            </set>
+                                                        </outcome>
+                                                        <outcome value='vnf_name'>
+                                                            <set>
+                                                                <parameter name='alts.vnf-name' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key[$j].value`' />
+                                                            </set>
+                                                        </outcome>
+                                                        <outcome value='license-assignment-group-uuid'>
+                                                            <set>
+                                                                <parameter name='alts.license-assignment-group-uuid' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key[$j].value`' />
+                                                            </set>
+                                                        </outcome>
+                                                        <outcome value='entitlement-assignment-group-uuid'>
+                                                            <set>
+                                                                <parameter name='alts.entitlement-assignment-group-uuid' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key[$j].value`' />
+                                                            </set>
+                                                        </outcome>
+                                                    </switch>
+                                                </block>
+                                            </for>
+                                        </block>
+                                    </outcome>
+                                </switch>
+                                <execute plugin="com.att.sdnctl.sli.plugin.altsTools.AltsTools" method="acquireLicense" >
+                                    <parameter name="error-prefix" value="alts.error" />
+                                    <parameter name="prefix" value="alts.resp" />
+                                    <parameter name="assignment-group" value="`$alts.license-assignment-group-uuid`" />
+                                    <parameter name="hostname" value="`$alts.vnf-name`" />
+                                    <parameter name="vnf-id" value="`$alts.vnf-id`" />
+                                    <outcome value='success'>
+                                        <block>
+                                            <set>
+                                                <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$license-key-index].value' value='`$alts.resp.license-key`' />
+                                                <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.status' value='SUCCESS' />
+                                            </set>
+                                            <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+	resource="license"
+		key="generic-vnf.vnf-id = $alts.vnf-id 
+			AND license.group-uuid = $alts.license-assignment-group-uuid
+			AND license.resource-uuid = $alts.resp.license-key"
+	pfx="tmp.AnAI.license" >
+                                                <parameter name="group-uuid" value='`$alts.license-assignment-group-uuid`' />
+                                                <parameter name="resource-uuid" value='`$alts.resp.license-key`' />
+                                                <outcome value='failure'>
+                                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                        <parameter name="logger" value="message-log" />
+                                                        <parameter name="level" value="error" />
+                                                        <parameter name="field1" value="Error Saving in AAI" />
+                                                        <parameter name="field2" value="`$tmp.AnAI-data.vnf.error-code`" />
+                                                        <parameter name="field3" value="`$tmp.AnAI-data.vnf.error-message`" />
+                                                    </record>
+                                                </outcome>
+                                                <outcome value='not-found'>
+                                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                        <parameter name="logger" value="message-log" />
+                                                        <parameter name="level" value="error" />
+                                                        <parameter name="field1" value="Error Saving in AAI" />
+                                                        <parameter name="field2" value="`$tmp.AnAI-data.vnf.error-code`" />
+                                                        <parameter name="field3" value="`$tmp.AnAI-data.vnf.error-message`" />
+                                                    </record>
+                                                </outcome>
+                                            </save>
+                                        </block>
+                                    </outcome>
+                                    <outcome value="failure">
+                                        <block>
+                                            <set>
+                                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.status`' value='FAILED' />
+                                            </set>
+                                        </block>
+                                    </outcome>
+                                    <outcome value="not-found">
+                                        <block>
+                                            <set>
+                                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.status`' value='FAILED' />
+                                            </set>
+                                        </block>
+                                    </outcome>
+                                    <outcome value="unsupported-method">
+                                        <block>
+                                            <set>
+                                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.status`' value='FAILED' />
+                                            </set>
+                                        </block>
+                                    </outcome>
+                                </execute>
+                            </block>
+                        </outcome>
+                        <outcome value='unassign'>
+                            <block atomic='true'>
+                                <switch test='`$vnf-index`'>
+                                    <outcome value=''>
+                                        <return status='failure'>
+                                            <parameter name='error-code' value='500' />
+                                            <parameter name='error-message' value='vnf-index is required' />
+                                        </return>
+                                    </outcome>
+                                    <outcome value='Other'>
+                                        <block>
+                                            <for index="i" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param_length`" >
+                                                <block>
+                                                    <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.capability-name`'>
+                                                        <outcome value='alts-license-assign'>
+                                                            <block>
+                                                                <set>
+                                                                    <parameter name='license-param-index' value='`$i`' />
+                                                                </set>
+                                                            </block>
+                                                        </outcome>
+                                                        <outcome value='alts-entitlement-assign'>
+                                                            <block>
+                                                                <set>
+                                                                    <parameter name='entitlement-param-index' value='`$i`' />
+                                                                </set>
+                                                            </block>
+                                                        </outcome>
+                                                    </switch>
+                                                </block>
+                                            </for>
+                                            <for index="k" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param_length`" >
+                                                <block>
+                                                    <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$k].name`'>
+                                                        <outcome value='license-key'>
+                                                            <block>
+                                                                <set>
+                                                                    <parameter name='license-key-index' value='`$k`' />
+                                                                </set>
+                                                            </block>
+                                                        </outcome>
+                                                        <outcome value='entitlement-key'>
+                                                            <block>
+                                                                <set>
+                                                                    <parameter name='entitlement-key-index' value='`$k`' />
+                                                                </set>
+                                                            </block>
+                                                        </outcome>
+                                                    </switch>
+                                                </block>
+                                            </for>
+                                            <switch test='`$ss.capability-name`'>
+                                                <outcome value='alts-license-assign'>
+                                                    <set>
+                                                        <parameter name='param-index' value='`$license-param-index`' />
+                                                    </set>
+                                                </outcome>
+                                                <outcome value='alts-entitlement-assign'>
+                                                    <set>
+                                                        <parameter name='param-index' value='`$entitlement-param-index`' />
+                                                    </set>
+                                                </outcome>
+                                            </switch>
+                                            <for index="j" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key_length`" >
+                                                <block>
+                                                    <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key[$j].name`'>
+                                                        <outcome value='vnf-id'>
+                                                            <set>
+                                                                <parameter name='alts.vnf-id' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key[$j].value`' />
+                                                            </set>
+                                                        </outcome>
+                                                        <outcome value='vnf_name'>
+                                                            <set>
+                                                                <parameter name='alts.vnf-name' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key[$j].value`' />
+                                                            </set>
+                                                        </outcome>
+                                                        <outcome value='license-assignment-group-uuid'>
+                                                            <set>
+                                                                <parameter name='alts.license-assignment-group-uuid' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key[$j].value`' />
+                                                            </set>
+                                                        </outcome>
+                                                        <outcome value='entitlement-assignment-group-uuid'>
+                                                            <set>
+                                                                <parameter name='alts.entitlement-assignment-group-uuid' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key[$j].value`' />
+                                                            </set>
+                                                        </outcome>
+                                                    </switch>
+                                                </block>
+                                            </for>
+                                        </block>
+                                    </outcome>
+                                </switch>
+                                <execute plugin="com.att.sdnctl.sli.plugin.altsTools.AltsTools" method="releaseLicense" >
+                                    <parameter name="asset-uuid" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$license-key-index].value`" />
+                                    <parameter name="error-prefix" value="alts.error" />
+                                    <parameter name="prefix" value="alts.resp" />
+                                    <parameter name="assignment-group" value="`$alts.license-assignment-group-uuid`" />
+                                    <parameter name="hostname" value="`$alts.vnf-name`" />
+                                    <parameter name="vnf-id" value="`$alts.vnf-id`" />
+                                    <outcome value='success'>
+                                        <block>
+                                            <set>
+                                                <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.status' value='DELETED' />
+                                            </set>
+                                            <update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+resource="license"
+key="generic-vnf.vnf-id = $alts.vnf-id "
+force="true"
+local-only="false"
+pfx="tmp.AnAI-data.vnf" >
+                                                <parameter name="group-uuid" value='' />
+                                                <parameter name="resource-uuid" value='' />
+                                                <outcome value='failure'>
+                                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                        <parameter name="logger" value="message-log" />
+                                                        <parameter name="level" value="error" />
+                                                        <parameter name="field1" value="Error updating in AAI" />
+                                                        <parameter name="field2" value="`$tmp.AnAI-data.vnf.error-code`" />
+                                                        <parameter name="field3" value="`$tmp.AnAI-data.vnf.error-message`" />
+                                                    </record>
+                                                </outcome>
+                                                <outcome value='not-found'>
+                                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                        <parameter name="logger" value="message-log" />
+                                                        <parameter name="level" value="error" />
+                                                        <parameter name="field1" value="Error updating in AAI" />
+                                                        <parameter name="field2" value="`$tmp.AnAI-data.vnf.error-code`" />
+                                                        <parameter name="field3" value="`$tmp.AnAI-data.vnf.error-message`" />
+                                                    </record>
+                                                </outcome>
+                                            </update>
+                                        </block>
+                                    </outcome>
+                                    <outcome value="failure">
+                                        <block>
+                                            <return status='failure'>
+                                                <parameter name='error-code' value='`$alts.error.error-code`' />
+                                                <parameter name='error-message' value='`$alts.error.error-message`' />
+                                            </return>
+                                        </block>
+                                    </outcome>
+                                    <outcome value="not-found">
+                                        <block>
+                                            <return status='failure'>
+                                                <parameter name='error-code' value='`$alts.error.error-code`' />
+                                                <parameter name='error-message' value='`$alts.error.error-message`' />
+                                            </return>
+                                        </block>
+                                    </outcome>
+                                    <outcome value="unsupported-method">
+                                        <block>
+                                            <return status='failure'>
+                                                <parameter name='error-code' value='`$alts.error.error-code`' />
+                                                <parameter name='error-message' value='`$alts.error.error-message`' />
+                                            </return>
+                                        </block>
+                                    </outcome>
+                                </execute>
+                            </block>
+                        </outcome>
+                    </switch>
+                </outcome>
+                <outcome value='alts-entitlement-assign'>
+                    <switch test='`$ss.capability-action`'>
+                        <outcome value='assign'>
+                            <block atomic='true'>
+                                <switch test='`$vnf-index`'>
+                                    <outcome value=''>
+                                        <return status='failure'>
+                                            <parameter name='error-code' value='500' />
+                                            <parameter name='error-message' value='vnf-index is required' />
+                                        </return>
+                                    </outcome>
+                                    <outcome value='Other'>
+                                        <block>
+                                            <for index="i" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param_length`" >
+                                                <block>
+                                                    <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.capability-name`'>
+                                                        <outcome value='alts-license-assign'>
+                                                            <block>
+                                                                <set>
+                                                                    <parameter name='license-param-index' value='`$i`' />
+                                                                </set>
+                                                            </block>
+                                                        </outcome>
+                                                        <outcome value='alts-entitlement-assign'>
+                                                            <block>
+                                                                <set>
+                                                                    <parameter name='entitlement-param-index' value='`$i`' />
+                                                                </set>
+                                                            </block>
+                                                        </outcome>
+                                                    </switch>
+                                                </block>
+                                            </for>
+                                            <for index="k" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param_length`" >
+                                                <block>
+                                                    <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$k].name`'>
+                                                        <outcome value='license-key'>
+                                                            <block>
+                                                                <set>
+                                                                    <parameter name='license-key-index' value='`$k`' />
+                                                                </set>
+                                                            </block>
+                                                        </outcome>
+                                                        <outcome value='entitlement-key'>
+                                                            <block>
+                                                                <set>
+                                                                    <parameter name='entitlement-key-index' value='`$k`' />
+                                                                </set>
+                                                            </block>
+                                                        </outcome>
+                                                    </switch>
+                                                </block>
+                                            </for>
+                                            <switch test='`$ss.capability-name`'>
+                                                <outcome value='alts-license-assign'>
+                                                    <set>
+                                                        <parameter name='param-index' value='`$license-param-index`' />
+                                                    </set>
+                                                </outcome>
+                                                <outcome value='alts-entitlement-assign'>
+                                                    <set>
+                                                        <parameter name='param-index' value='`$entitlement-param-index`' />
+                                                    </set>
+                                                </outcome>
+                                            </switch>
+                                            <for index="j" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key_length`" >
+                                                <block>
+                                                    <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key[$j].name`'>
+                                                        <outcome value='vnf-id'>
+                                                            <set>
+                                                                <parameter name='alts.vnf-id' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key[$j].value`' />
+                                                            </set>
+                                                        </outcome>
+                                                        <outcome value='vnf_name'>
+                                                            <set>
+                                                                <parameter name='alts.vnf-name' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key[$j].value`' />
+                                                            </set>
+                                                        </outcome>
+                                                        <outcome value='license-assignment-group-uuid'>
+                                                            <set>
+                                                                <parameter name='alts.license-assignment-group-uuid' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key[$j].value`' />
+                                                            </set>
+                                                        </outcome>
+                                                        <outcome value='entitlement-assignment-group-uuid'>
+                                                            <set>
+                                                                <parameter name='alts.entitlement-assignment-group-uuid' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key[$j].value`' />
+                                                            </set>
+                                                        </outcome>
+                                                    </switch>
+                                                </block>
+                                            </for>
+                                        </block>
+                                    </outcome>
+                                </switch>
+                                <execute plugin="com.att.sdnctl.sli.plugin.altsTools.AltsTools" method="acquireEntitlement" >
+                                    <parameter name="error-prefix" value="alts.error" />
+                                    <parameter name="prefix" value="alts.resp" />
+                                    <parameter name="assignment-group" value="`$alts.entitlement-assignment-group-uuid`" />
+                                    <parameter name="hostname" value="`$alts.vnf-name`" />
+                                    <parameter name="vnf-id" value="`$alts.vnf-id`" />
+                                    <outcome value='success'>
+                                        <block>
+                                            <set>
+                                                <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$entitlement-key-index].value' value='`$alts.resp.license-key`' />
+                                                <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.status' value='SUCCESS' />
+                                            </set>
+                                            <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+	resource="entitlement"
+		key="generic-vnf.vnf-id = $alts.vnf-id  
+			AND entitlement.group-uuid = $alts.entitlement-assignment-group-uuid 
+			AND entitlement.resource-uuid = $alts.resp.license-key "
+	pfx="tmp.AnAI.entitlement" >
+                                                <parameter name="group-uuid" value='`$alts.entitlement-assignment-group-uuid`' />
+                                                <parameter name="resource-uuid" value='`$alts.resp.license-key`' />
+                                                <outcome value='failure'>
+                                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                        <parameter name="logger" value="message-log" />
+                                                        <parameter name="level" value="error" />
+                                                        <parameter name="field1" value="Error Saving in AAI" />
+                                                        <parameter name="field2" value="`$tmp.AnAI-data.vnf.error-code`" />
+                                                        <parameter name="field3" value="`$tmp.AnAI-data.vnf.error-message`" />
+                                                    </record>
+                                                </outcome>
+                                                <outcome value='not-found'>
+                                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                        <parameter name="logger" value="message-log" />
+                                                        <parameter name="level" value="error" />
+                                                        <parameter name="field1" value="Error Saving in AAI" />
+                                                        <parameter name="field2" value="`$tmp.AnAI-data.vnf.error-code`" />
+                                                        <parameter name="field3" value="`$tmp.AnAI-data.vnf.error-message`" />
+                                                    </record>
+                                                </outcome>
+                                            </save>
+                                        </block>
+                                    </outcome>
+                                    <outcome value="failure">
+                                        <block>
+                                            <set>
+                                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.status`' value='FAILED' />
+                                            </set>
+                                        </block>
+                                    </outcome>
+                                    <outcome value="not-found">
+                                        <block>
+                                            <set>
+                                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.status`' value='FAILED' />
+                                            </set>
+                                        </block>
+                                    </outcome>
+                                    <outcome value="unsupported-method">
+                                        <block>
+                                            <set>
+                                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.status`' value='FAILED' />
+                                            </set>
+                                        </block>
+                                    </outcome>
+                                </execute>
+                            </block>
+                        </outcome>
+                        <outcome value='unassign'>
+                            <block atomic='true'>
+                                <switch test='`$vnf-index`'>
+                                    <outcome value=''>
+                                        <return status='failure'>
+                                            <parameter name='error-code' value='500' />
+                                            <parameter name='error-message' value='vnf-index is required' />
+                                        </return>
+                                    </outcome>
+                                    <outcome value='Other'>
+                                        <block>
+                                            <for index="i" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param_length`" >
+                                                <block>
+                                                    <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.capability-name`'>
+                                                        <outcome value='alts-license-assign'>
+                                                            <block>
+                                                                <set>
+                                                                    <parameter name='license-param-index' value='`$i`' />
+                                                                </set>
+                                                            </block>
+                                                        </outcome>
+                                                        <outcome value='alts-entitlement-assign'>
+                                                            <block>
+                                                                <set>
+                                                                    <parameter name='entitlement-param-index' value='`$i`' />
+                                                                </set>
+                                                            </block>
+                                                        </outcome>
+                                                    </switch>
+                                                </block>
+                                            </for>
+                                            <for index="k" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param_length`" >
+                                                <block>
+                                                    <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$k].name`'>
+                                                        <outcome value='license-key'>
+                                                            <block>
+                                                                <set>
+                                                                    <parameter name='license-key-index' value='`$k`' />
+                                                                </set>
+                                                            </block>
+                                                        </outcome>
+                                                        <outcome value='entitlement-key'>
+                                                            <block>
+                                                                <set>
+                                                                    <parameter name='entitlement-key-index' value='`$k`' />
+                                                                </set>
+                                                            </block>
+                                                        </outcome>
+                                                    </switch>
+                                                </block>
+                                            </for>
+                                            <switch test='`$ss.capability-name`'>
+                                                <outcome value='alts-license-assign'>
+                                                    <set>
+                                                        <parameter name='param-index' value='`$license-param-index`' />
+                                                    </set>
+                                                </outcome>
+                                                <outcome value='alts-entitlement-assign'>
+                                                    <set>
+                                                        <parameter name='param-index' value='`$entitlement-param-index`' />
+                                                    </set>
+                                                </outcome>
+                                            </switch>
+                                            <for index="j" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key_length`" >
+                                                <block>
+                                                    <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key[$j].name`'>
+                                                        <outcome value='vnf-id'>
+                                                            <set>
+                                                                <parameter name='alts.vnf-id' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key[$j].value`' />
+                                                            </set>
+                                                        </outcome>
+                                                        <outcome value='vnf_name'>
+                                                            <set>
+                                                                <parameter name='alts.vnf-name' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key[$j].value`' />
+                                                            </set>
+                                                        </outcome>
+                                                        <outcome value='license-assignment-group-uuid'>
+                                                            <set>
+                                                                <parameter name='alts.license-assignment-group-uuid' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key[$j].value`' />
+                                                            </set>
+                                                        </outcome>
+                                                        <outcome value='entitlement-assignment-group-uuid'>
+                                                            <set>
+                                                                <parameter name='alts.entitlement-assignment-group-uuid' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.resource-key[$j].value`' />
+                                                            </set>
+                                                        </outcome>
+                                                    </switch>
+                                                </block>
+                                            </for>
+                                        </block>
+                                    </outcome>
+                                </switch>
+                                <execute plugin="com.att.sdnctl.sli.plugin.altsTools.AltsTools" method="releaseEntitlement" >
+                                    <parameter name="asset-uuid" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$entitlement-key-index].value`" />
+                                    <parameter name="error-prefix" value="alts.error" />
+                                    <parameter name="prefix" value="alts.resp" />
+                                    <parameter name="assignment-group" value="`$alts.entitlement-assignment-group-uuid`" />
+                                    <parameter name="hostname" value="`$alts.vnf-name`" />
+                                    <parameter name="vnf-id" value="`$alts.vnf-id`" />
+                                    <outcome value='success'>
+                                        <block>
+                                            <set>
+                                                <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$param-index].resource-resolution-data.status' value='DELETED' />
+                                            </set>
+                                            <update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+resource="license"
+key="generic-vnf.vnf-id = $alts.vnf-id "
+force="true"
+local-only="false"
+pfx="tmp.AnAI-data.vnf" >
+                                                <parameter name="group-uuid" value='' />
+                                                <parameter name="resource-uuid" value='' />
+                                                <outcome value='failure'>
+                                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                        <parameter name="logger" value="message-log" />
+                                                        <parameter name="level" value="error" />
+                                                        <parameter name="field1" value="Error updating in AAI" />
+                                                        <parameter name="field2" value="`$tmp.AnAI-data.vnf.error-code`" />
+                                                        <parameter name="field3" value="`$tmp.AnAI-data.vnf.error-message`" />
+                                                    </record>
+                                                </outcome>
+                                                <outcome value='not-found'>
+                                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                        <parameter name="logger" value="message-log" />
+                                                        <parameter name="level" value="error" />
+                                                        <parameter name="field1" value="Error updating in AAI" />
+                                                        <parameter name="field2" value="`$tmp.AnAI-data.vnf.error-code`" />
+                                                        <parameter name="field3" value="`$tmp.AnAI-data.vnf.error-message`" />
+                                                    </record>
+                                                </outcome>
+                                            </update>
+                                        </block>
+                                    </outcome>
+                                    <outcome value="failure">
+                                        <block>
+                                            <return status='failure'>
+                                                <parameter name='error-code' value='`$alts.error.error-code`' />
+                                                <parameter name='error-message' value='`$alts.error.error-message`' />
+                                            </return>
+                                        </block>
+                                    </outcome>
+                                    <outcome value="not-found">
+                                        <block>
+                                            <return status='failure'>
+                                                <parameter name='error-code' value='`$alts.error.error-code`' />
+                                                <parameter name='error-message' value='`$alts.error.error-message`' />
+                                            </return>
+                                        </block>
+                                    </outcome>
+                                    <outcome value="unsupported-method">
+                                        <block>
+                                            <return status='failure'>
+                                                <parameter name='error-code' value='`$alts.error.error-code`' />
+                                                <parameter name='error-message' value='`$alts.error.error-message`' />
+                                            </return>
+                                        </block>
+                                    </outcome>
+                                </execute>
+                            </block>
+                        </outcome>
+                    </switch>
+                </outcome>
+            </switch>
+        </block>
+    </method>
+</service-logic>

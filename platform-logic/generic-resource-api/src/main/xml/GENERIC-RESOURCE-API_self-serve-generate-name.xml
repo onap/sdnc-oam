@@ -1,0 +1,453 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    <method rpc='self-serve-generate-name' mode='sync'>
+        <block atomic="true">
+            <set>
+                <parameter name='tmp.naming-data-payload' value='{&quot;elements&quot;:[' />
+            </set>
+            <call module='GENERIC-RESOURCE-API' rpc='self-serve-capability-param-resolution' mode='sync' >
+                <outcome value='failure'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="Error from capability-param-resolution" />
+                    </return>
+                </outcome>
+                <outcome value='not-found'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="Error from capability-param-resolution" />
+                    </return>
+                </outcome>
+            </call>
+            <switch test="`$ss.capability-type == 'vnf'`">
+                <outcome value='true'>
+                    <for index='i' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param_length`' >
+                        <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.capability-name == $ss.capability-name`'>
+                            <outcome value='true'>
+                                <block>
+                                    <switch test="`$ss.capability-action == 'unassign'`">
+                                        <outcome value='true'>
+                                            <block atomic='true'>
+                                                <set>
+                                                    <parameter name='tmp.naming-data-payload' value="`$tmp.naming-data-payload + '{'`" />
+                                                </set>
+                                                <for index='j' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.resource-key_length`' >
+                                                    <switch test="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.resource-key[$j].name == 'external-key'`">
+                                                        <outcome value='true'>
+                                                            <set>
+                                                                <parameter name="tmp.naming-data-payload" value="`$tmp.naming-data-payload + '&quot;' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.resource-key[$j].name + '&quot;:' + '&quot;' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.resource-key[$j].value + '&quot;,'`"/>
+                                                            </set>
+                                                        </outcome>
+                                                    </switch>
+                                                </for>
+                                                <set>
+                                                    <parameter name='tmp.naming-data-payload' value="`$tmp.naming-data-payload + '},'`" />
+                                                </set>
+                                                <set>
+                                                    <parameter name='tmp.naming-data-payload' value="`$tmp.naming-data-payload + ']}'`" />
+                                                </set>
+                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace'>
+                                                    <parameter name='outputPath' value='tmp.naming-data-payload' />
+                                                    <parameter name='source' value='`$tmp.naming-data-payload`' />
+                                                    <parameter name='target' value=',}' />
+                                                    <parameter name='replacement' value='}' />
+                                                </execute>
+                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace'>
+                                                    <parameter name='outputPath' value='tmp.naming-data-payload' />
+                                                    <parameter name='source' value='`$tmp.naming-data-payload`' />
+                                                    <parameter name='target' value=',]' />
+                                                    <parameter name='replacement' value=']' />
+                                                </execute>
+                                                <execute plugin='org.openecomp.sdnc.prov.namegeneration.node.UnAssignNameNode' method='process'>
+                                                    <parameter name='payload' value='`$tmp.naming-data-payload`' />
+                                                    <parameter name="prifix" value="nameGenResponse" />
+                                                    <outcome value='failure'>
+                                                        <block>
+                                                            <set>
+                                                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.status`' value='FAILED' />
+                                                            </set>
+                                                            <return status='failure'>
+                                                                <parameter name='ack-final' value='Y'/>
+                                                                <parameter name="error-code" value="500" />
+                                                                <parameter name="error-message" value="Error from NameGenerationNode Unassign" />
+                                                            </return>
+                                                        </block>
+                                                    </outcome>
+                                                    <outcome value='not-found'>
+                                                        <block>
+                                                            <set>
+                                                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.status`' value='FAILED' />
+                                                            </set>
+                                                            <return status='failure'>
+                                                                <parameter name='ack-final' value='Y'/>
+                                                                <parameter name="error-code" value="500" />
+                                                                <parameter name="error-message" value="Error from NameGenerationNode Unassign" />
+                                                            </return>
+                                                        </block>
+                                                    </outcome>
+                                                </execute>
+                                                <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils" method="jsonStringToCtx">
+                                                    <parameter name="source" value="nameGenResponse.response-payload" />
+                                                    <parameter name="outputPath" value="jsonContextPrefix" />
+                                                    <parameter name="isEscaped" value="false" />
+                                                </execute>
+                                                <set>
+                                                    <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.status`' value='DELETED' />
+                                                </set>
+                                                <for index='n' start='0' end='`$jsonContextPrefix.elements_length`' >
+                                                    <for index='l' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param_length`' >
+                                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='contains'  emitsOutcome='true' >
+                                                            <parameter name="source" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$l].value`" />
+                                                            <parameter name="target" value="$"/>
+                                                            <outcome value='true'>
+                                                                <block>
+                                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split'>
+                                                                        <parameter name='ctx_memory_result_key' value='resource-resolution-split' />
+                                                                        <parameter name='original_string' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$l].value`' />
+                                                                        <parameter name='regex' value='\$\{' />
+                                                                    </execute>
+                                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split'>
+                                                                        <parameter name='ctx_memory_result_key' value='s2' />
+                                                                        <parameter name='original_string' value='`$resource-resolution-split[1]`' />
+                                                                        <parameter name='regex' value='\}' />
+                                                                    </execute>
+                                                                    <switch test='`$s2[0] == $jsonContextPrefix.elements[$n].resource-name`'>
+                                                                        <outcome value='true'>
+                                                                            <set>
+                                                                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$l].value`' value="`$jsonContextPrefix.elements[$n].resource-value`" />
+                                                                            </set>
+                                                                        </outcome>
+                                                                    </switch>
+                                                                </block>
+                                                            </outcome>
+                                                        </execute>
+                                                    </for>
+                                                </for>
+                                            </block>
+                                        </outcome>
+                                    </switch>
+                                    <switch test="`$ss.capability-action == 'assign'`">
+                                        <outcome value='true'>
+                                            <block atomic='true'>
+                                                <set>
+                                                    <parameter name='tmp.naming-data-payload' value="`$tmp.naming-data-payload + '{'`" />
+                                                </set>
+                                                <for index='j' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.resource-key_length`' >
+                                                    <set>
+                                                        <parameter name="tmp.naming-data-payload" value="`$tmp.naming-data-payload + '&quot;' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.resource-key[$j].name + '&quot;:' + '&quot;' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.resource-key[$j].value + '&quot;,'`"/>
+                                                    </set>
+                                                </for>
+                                                <set>
+                                                    <parameter name='tmp.naming-data-payload' value="`$tmp.naming-data-payload + '},'`" />
+                                                </set>
+                                                <set>
+                                                    <parameter name='tmp.naming-data-payload' value="`$tmp.naming-data-payload + ']}'`" />
+                                                </set>
+                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace'>
+                                                    <parameter name='outputPath' value='tmp.naming-data-payload' />
+                                                    <parameter name='source' value='`$tmp.naming-data-payload`' />
+                                                    <parameter name='target' value=',}' />
+                                                    <parameter name='replacement' value='}' />
+                                                </execute>
+                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace'>
+                                                    <parameter name='outputPath' value='tmp.naming-data-payload' />
+                                                    <parameter name='source' value='`$tmp.naming-data-payload`' />
+                                                    <parameter name='target' value=',]' />
+                                                    <parameter name='replacement' value=']' />
+                                                </execute>
+                                                <execute plugin='org.openecomp.sdnc.prov.namegeneration.node.AssignNameNode' method='process'>
+                                                    <parameter name='payload' value='`$tmp.naming-data-payload`' />
+                                                    <parameter name="prifix" value="nameGenResponse" />
+                                                    <outcome value='failure'>
+                                                        <block>
+                                                            <set>
+                                                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.status`' value='FAILED' />
+                                                            </set>
+                                                            <return status='failure'>
+                                                                <parameter name='ack-final' value='Y'/>
+                                                                <parameter name="error-code" value="500" />
+                                                                <parameter name="error-message" value="Error from NameGenerationNode Assign" />
+                                                            </return>
+                                                        </block>
+                                                    </outcome>
+                                                    <outcome value='not-found'>
+                                                        <block>
+                                                            <set>
+                                                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.status`' value='FAILED' />
+                                                            </set>
+                                                            <return status='failure'>
+                                                                <parameter name='ack-final' value='Y'/>
+                                                                <parameter name="error-code" value="500" />
+                                                                <parameter name="error-message" value="Error from NameGenerationNode Assign" />
+                                                            </return>
+                                                        </block>
+                                                    </outcome>
+                                                </execute>
+                                                <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils" method="jsonStringToCtx">
+                                                    <parameter name="source" value="nameGenResponse.response-payload" />
+                                                    <parameter name="outputPath" value="jsonContextPrefix" />
+                                                    <parameter name="isEscaped" value="false" />
+                                                </execute>
+                                                <set>
+                                                    <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.status`' value='SUCCESS' />
+                                                </set>
+                                                <for index='n' start='0' end='`$jsonContextPrefix.elements_length`' >
+                                                    <for index='l' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param_length`' >
+                                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='contains'  emitsOutcome='true' >
+                                                            <parameter name="source" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$l].value`" />
+                                                            <parameter name="target" value="$"/>
+                                                            <outcome value='true'>
+                                                                <block>
+                                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split'>
+                                                                        <parameter name='ctx_memory_result_key' value='resource-resolution-split' />
+                                                                        <parameter name='original_string' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$l].value`' />
+                                                                        <parameter name='regex' value='\$\{' />
+                                                                    </execute>
+                                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split'>
+                                                                        <parameter name='ctx_memory_result_key' value='s2' />
+                                                                        <parameter name='original_string' value='`$resource-resolution-split[1]`' />
+                                                                        <parameter name='regex' value='\}' />
+                                                                    </execute>
+                                                                    <switch test='`$s2[0] == $jsonContextPrefix.elements[$n].resource-name`'>
+                                                                        <outcome value='true'>
+                                                                            <set>
+                                                                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$l].value`' value="`$jsonContextPrefix.elements[$n].resource-value`" />
+                                                                            </set>
+                                                                        </outcome>
+                                                                    </switch>
+                                                                </block>
+                                                            </outcome>
+                                                        </execute>
+                                                    </for>
+                                                </for>
+                                            </block>
+                                        </outcome>
+                                    </switch>
+                                </block>
+                            </outcome>
+                        </switch>
+                    </for>
+                </outcome>
+            </switch>
+            <switch test="`$ss.capability-type == 'vf-module'`">
+                <outcome value='true'>
+                    <for index='i' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`' >
+                        <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.capability-name == $ss.capability-name`'>
+                            <outcome value='true'>
+                                <block>
+                                    <switch test="`$ss.capability-action == 'unassign'`">
+                                        <outcome value='true'>
+                                            <block atomic='true'>
+                                                <set>
+                                                    <parameter name='tmp.naming-data-payload' value="`$tmp.naming-data-payload + '{'`" />
+                                                </set>
+                                                <for index='j' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.resource-key_length`' >
+                                                    <switch test="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.resource-key[$j].name == 'external-key'`">
+                                                        <outcome value='true'>
+                                                            <set>
+                                                                <parameter name="tmp.naming-data-payload" value="`$tmp.naming-data-payload + '&quot;' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.resource-key[$j].name + '&quot;:' + '&quot;' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.resource-key[$j].value + '&quot;,'`"/>
+                                                            </set>
+                                                        </outcome>
+                                                    </switch>
+                                                </for>
+                                                <set>
+                                                    <parameter name='tmp.naming-data-payload' value="`$tmp.naming-data-payload + '},'`" />
+                                                </set>
+                                                <set>
+                                                    <parameter name='tmp.naming-data-payload' value="`$tmp.naming-data-payload + ']}'`" />
+                                                </set>
+                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace'>
+                                                    <parameter name='outputPath' value='tmp.naming-data-payload' />
+                                                    <parameter name='source' value='`$tmp.naming-data-payload`' />
+                                                    <parameter name='target' value=',}' />
+                                                    <parameter name='replacement' value='}' />
+                                                </execute>
+                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace'>
+                                                    <parameter name='outputPath' value='tmp.naming-data-payload' />
+                                                    <parameter name='source' value='`$tmp.naming-data-payload`' />
+                                                    <parameter name='target' value=',]' />
+                                                    <parameter name='replacement' value=']' />
+                                                </execute>
+                                                <execute plugin='org.openecomp.sdnc.prov.namegeneration.node.UnAssignNameNode' method='process'>
+                                                    <parameter name='payload' value='`$tmp.naming-data-payload`' />
+                                                    <parameter name="prifix" value="nameGenResponse" />
+                                                    <outcome value='failure'>
+                                                        <block>
+                                                            <set>
+                                                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.status`' value='FAILED' />
+                                                            </set>
+                                                            <return status='failure'>
+                                                                <parameter name='ack-final' value='Y'/>
+                                                                <parameter name="error-code" value="500" />
+                                                                <parameter name="error-message" value="Error from NameGenerationNode Unassign" />
+                                                            </return>
+                                                        </block>
+                                                    </outcome>
+                                                    <outcome value='not-found'>
+                                                        <block>
+                                                            <set>
+                                                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.status`' value='FAILED' />
+                                                            </set>
+                                                            <return status='failure'>
+                                                                <parameter name='ack-final' value='Y'/>
+                                                                <parameter name="error-code" value="500" />
+                                                                <parameter name="error-message" value="Error from NameGenerationNode Unassign" />
+                                                            </return>
+                                                        </block>
+                                                    </outcome>
+                                                </execute>
+                                                <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils" method="jsonStringToCtx">
+                                                    <parameter name="source" value="nameGenResponse.response-payload" />
+                                                    <parameter name="outputPath" value="jsonContextPrefix" />
+                                                    <parameter name="isEscaped" value="false" />
+                                                </execute>
+                                                <set>
+                                                    <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.status`' value='DELETED' />
+                                                </set>
+                                                <for index='n' start='0' end='`$jsonContextPrefix.elements_length`' >
+                                                    <for index='l' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`' >
+                                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='contains'  emitsOutcome='true' >
+                                                            <parameter name="source" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$l].value`" />
+                                                            <parameter name="target" value="$"/>
+                                                            <outcome value='true'>
+                                                                <block>
+                                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split'>
+                                                                        <parameter name='ctx_memory_result_key' value='resource-resolution-split' />
+                                                                        <parameter name='original_string' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$l].value`' />
+                                                                        <parameter name='regex' value='\$\{' />
+                                                                    </execute>
+                                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split'>
+                                                                        <parameter name='ctx_memory_result_key' value='s2' />
+                                                                        <parameter name='original_string' value='`$resource-resolution-split[1]`' />
+                                                                        <parameter name='regex' value='\}' />
+                                                                    </execute>
+                                                                    <switch test='`$s2[0] == $jsonContextPrefix.elements[$n].resource-name`'>
+                                                                        <outcome value='true'>
+                                                                            <set>
+                                                                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$l].value`' value="`$jsonContextPrefix.elements[$n].resource-value`" />
+                                                                            </set>
+                                                                        </outcome>
+                                                                    </switch>
+                                                                </block>
+                                                            </outcome>
+                                                        </execute>
+                                                    </for>
+                                                </for>
+                                            </block>
+                                        </outcome>
+                                    </switch>
+                                    <switch test="`$ss.capability-action == 'assign'`">
+                                        <outcome value='true'>
+                                            <block atomic='true'>
+                                                <set>
+                                                    <parameter name='tmp.naming-data-payload' value="`$tmp.naming-data-payload + '{'`" />
+                                                </set>
+                                                <for index='j' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.resource-key_length`' >
+                                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                        <parameter name="logger" value="message-log" />
+                                                        <parameter name="level" value="info" />
+                                                        <parameter name="field1" value="`'AJJJ13' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.resource-key[$j].name`" />
+                                                        <parameter name="field2" value="`'AJJJ14' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.resource-key[$j].value`" />
+                                                    </record>
+                                                    <set>
+                                                        <parameter name="tmp.naming-data-payload" value="`$tmp.naming-data-payload + '&quot;' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.resource-key[$j].name + '&quot;:' + '&quot;' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.resource-key[$j].value + '&quot;,'`"/>
+                                                    </set>
+                                                </for>
+                                                <set>
+                                                    <parameter name='tmp.naming-data-payload' value="`$tmp.naming-data-payload + '},'`" />
+                                                </set>
+                                                <set>
+                                                    <parameter name='tmp.naming-data-payload' value="`$tmp.naming-data-payload + ']}'`" />
+                                                </set>
+                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace'>
+                                                    <parameter name='outputPath' value='tmp.naming-data-payload' />
+                                                    <parameter name='source' value='`$tmp.naming-data-payload`' />
+                                                    <parameter name='target' value=',}' />
+                                                    <parameter name='replacement' value='}' />
+                                                </execute>
+                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace'>
+                                                    <parameter name='outputPath' value='tmp.naming-data-payload' />
+                                                    <parameter name='source' value='`$tmp.naming-data-payload`' />
+                                                    <parameter name='target' value=',]' />
+                                                    <parameter name='replacement' value=']' />
+                                                </execute>
+                                                <execute plugin='org.openecomp.sdnc.prov.namegeneration.node.AssignNameNode' method='process'>
+                                                    <parameter name='payload' value='`$tmp.naming-data-payload`' />
+                                                    <parameter name="prifix" value="nameGenResponse" />
+                                                    <outcome value='failure'>
+                                                        <block>
+                                                            <set>
+                                                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.status`' value='FAILED' />
+                                                            </set>
+                                                            <return status='failure'>
+                                                                <parameter name='ack-final' value='Y'/>
+                                                                <parameter name="error-code" value="500" />
+                                                                <parameter name="error-message" value="Error from NameGenerationNode Assign" />
+                                                            </return>
+                                                        </block>
+                                                    </outcome>
+                                                    <outcome value='not-found'>
+                                                        <block>
+                                                            <set>
+                                                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.status`' value='FAILED' />
+                                                            </set>
+                                                            <return status='failure'>
+                                                                <parameter name='ack-final' value='Y'/>
+                                                                <parameter name="error-code" value="500" />
+                                                                <parameter name="error-message" value="Error from NameGenerationNode Assign" />
+                                                            </return>
+                                                        </block>
+                                                    </outcome>
+                                                </execute>
+                                                <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils" method="jsonStringToCtx">
+                                                    <parameter name="source" value="nameGenResponse.response-payload" />
+                                                    <parameter name="outputPath" value="jsonContextPrefix" />
+                                                    <parameter name="isEscaped" value="false" />
+                                                </execute>
+                                                <set>
+                                                    <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.status`' value='SUCCESS' />
+                                                </set>
+                                                <for index='n' start='0' end='`$jsonContextPrefix.elements_length`' >
+                                                    <for index='l' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`' >
+                                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='contains'  emitsOutcome='true' >
+                                                            <parameter name="source" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$l].value`" />
+                                                            <parameter name="target" value="$"/>
+                                                            <outcome value='true'>
+                                                                <block>
+                                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split'>
+                                                                        <parameter name='ctx_memory_result_key' value='resource-resolution-split' />
+                                                                        <parameter name='original_string' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$l].value`' />
+                                                                        <parameter name='regex' value='\$\{' />
+                                                                    </execute>
+                                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split'>
+                                                                        <parameter name='ctx_memory_result_key' value='s2' />
+                                                                        <parameter name='original_string' value='`$resource-resolution-split[1]`' />
+                                                                        <parameter name='regex' value='\}' />
+                                                                    </execute>
+                                                                    <switch test='`$s2[0] == $jsonContextPrefix.elements[$n].resource-name`'>
+                                                                        <outcome value='true'>
+                                                                            <set>
+                                                                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$l].value`' value="`$jsonContextPrefix.elements[$n].resource-value`" />
+                                                                            </set>
+                                                                        </outcome>
+                                                                    </switch>
+                                                                </block>
+                                                            </outcome>
+                                                        </execute>
+                                                    </for>
+                                                </for>
+                                            </block>
+                                        </outcome>
+                                    </switch>
+                                </block>
+                            </outcome>
+                        </switch>
+                    </for>
+                </outcome>
+            </switch>
+        </block>
+    </method>
+</service-logic>

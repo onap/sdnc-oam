@@ -1,0 +1,615 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    <method rpc='self-serve-mac-address-assign' mode='sync'>
+        <block atomic='true'>
+            <switch test="`$ss.capability-name`">
+                <outcome value='Other'>
+                    <block>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                            <parameter name="logger" value="message-log"/>
+                            <parameter name="field1" value="__TIMESTAMP__"/>
+                            <parameter name="field2" value="self-serve-mac-address-assign: ss.capability-name is not set"/>
+                        </record>
+                        <return status='failure'>
+                            <parameter name='error-code' value='401' />
+                            <parameter name='error-message' value='ss.capability-name is not set' />
+                        </return>
+                    </block>
+                </outcome>
+                <outcome value=''>
+                    <block>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                            <parameter name="logger" value="message-log"/>
+                            <parameter name="field1" value="__TIMESTAMP__"/>
+                            <parameter name="field2" value="self-serve-mac-address-assign: ss.capability-name is not set"/>
+                        </record>
+                        <return status='failure'>
+                            <parameter name='error-code' value='401' />
+                            <parameter name='error-message' value='ss.capability-name is not set' />
+                        </return>
+                    </block>
+                </outcome>
+                <outcome value='null'>
+                    <block>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                            <parameter name="logger" value="message-log"/>
+                            <parameter name="field1" value="__TIMESTAMP__"/>
+                            <parameter name="field2" value="self-serve-mac-address-assign: ss.capability-name is not set"/>
+                        </record>
+                        <return status='failure'>
+                            <parameter name='error-code' value='401' />
+                            <parameter name='error-message' value='ss.capability-name is not set' />
+                        </return>
+                    </block>
+                </outcome>
+                <outcome value='mac-address-assign'>
+                    <record plugin="com.att.sdnctl.sli.recording.Slf4jRecorder">
+                        <parameter name="logger" value="message-log"/>
+                        <parameter name="field1" value="__TIMESTAMP__"/>
+                        <parameter name="field2" value="self-serve-mac-address-assign: ss.capability-name is mac-address-assign"/>
+                    </record>
+                </outcome>
+            </switch>
+            <switch test="`$ss.capability-action`">
+                <outcome value='Other'></outcome>
+                <outcome value=''>
+                    <block>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                            <parameter name="logger" value="message-log"/>
+                            <parameter name="field1" value="__TIMESTAMP__"/>
+                            <parameter name="field2" value="self-serve-mac-address-assign: ss.capability-action is not set"/>
+                        </record>
+                        <return status='failure'>
+                            <parameter name='error-code' value='401' />
+                            <parameter name='error-message' value='ss.capability-action is not set' />
+                        </return>
+                    </block>
+                </outcome>
+                <outcome value='null'></outcome>
+                <outcome value='ASSIGN'>
+                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                        <parameter name="logger" value="message-log"/>
+                        <parameter name="field1" value="__TIMESTAMP__"/>
+                        <parameter name="field2" value="self-serve-mac-address-assign: ss.capability-action is ASSIGN"/>
+                    </record>
+                </outcome>
+                <outcome value='UNASSIGN'>
+                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                        <parameter name="logger" value="message-log"/>
+                        <parameter name="field1" value="__TIMESTAMP__"/>
+                        <parameter name="field2" value="self-serve-mac-address-assign: ss.capability-action is UNASSIGN"/>
+                    </record>
+                </outcome>
+            </switch>
+            <block atomic='true'>
+                <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                    <parameter name="logger" value="message-log"/>
+                    <parameter name="field1" value="__TIMESTAMP__"/>
+                    <parameter name="field2" value="self-serve-mac-address-assign: call self-service-capability-param-resolution DG"/>
+                </record>
+                <set>
+                    <!--<parameter name='generate-unique-name-input.index-table-name' value='VM_NAME_INDEX' />-->
+                </set>
+                <call module='GENERIC-RESOURCE-API' rpc='self-serve-capability-param-resolution' mode='sync' >
+                    <outcome value='failure'>
+                        <block>
+                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                <parameter name="logger" value="message-log"/>
+                                <parameter name="field1" value="__TIMESTAMP__"/>
+                                <parameter name="field2" value="self-serve-mac-address-assign: Failure calling self-service-capability-param-resolution"/>
+                            </record>
+                            <return status='failure'>
+                                <parameter name='error-code' value='402' />
+                                <parameter name='error-message' value='Failure calling self-service-capability-param-resolution' />
+                            </return>
+                        </block>
+                    </outcome>
+                    <outcome value='success'></outcome>
+                </call>
+            </block>
+            <block atomic='true'>
+                <set>
+                    <parameter name='tmp.vf-module-parameters-length' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`' />
+                </set>
+                <for index='vf-module-param-index' start='0' end='`$tmp.vf-module-parameters-length`' >
+                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                        <parameter name="logger" value="message-log"/>
+                        <parameter name="field1" value="__TIMESTAMP__"/>
+                        <parameter name="field2" value="self-serve-mac-address-assign: vf-module-param-index"/>
+                        <parameter name="field3" value='`$vf-module-param-index`'/>
+                    </record>
+                    <block>
+                        <set>
+                            <parameter name='vfModuleParamsCapabilityName' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.capability-name`'  />
+                        </set>
+                        <switch test="`$ss.capability-name == $vfModuleParamsCapabilityName`">
+                            <outcome value='true'>
+                                <block>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                        <parameter name="logger" value="message-log"/>
+                                        <parameter name="field1" value="__TIMESTAMP__"/>
+                                        <parameter name="field2" value="self-serve-mac-address-assign: Found ss.capability-name MATCH"/>
+                                    </record>
+                                    <set>
+                                        <parameter name='tmp.resource-resolution-data.' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.`'  />
+                                    </set>
+                                    <break/>
+                                </block>
+                            </outcome>
+                            <outcome value='false'></outcome>
+                        </switch>
+                    </block>
+                </for>
+            </block>
+            <switch test="`$tmp.resource-resolution-data.status == 'PENDING'`">
+                <outcome value='false'>
+                    <block>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                            <parameter name="logger" value="message-log"/>
+                            <parameter name="field1" value="__TIMESTAMP__"/>
+                            <parameter name="field2" value="self-serve-mac-address-assign: reseouce-resolution-data.status is not PENDING"/>
+                        </record>
+                        <set>
+                            <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                        </set>
+                        <return status='failure'>
+                            <parameter name='error-code' value='401' />
+                            <parameter name='error-message' value='reseouce-resolution-data.status is not PENDING' />
+                        </return>
+                    </block>
+                </outcome>
+            </switch>
+            <block atomic='true'>
+                <set>
+                    <parameter name='tmp.resource-key-length' value='`$tmp.resource-resolution-data.resource-key_length`' />
+                </set>
+                <for index='key-index' start='0' end='`$tmp.resource-resolution-data.resource-key_length`' >
+                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                        <parameter name="logger" value="message-log"/>
+                        <parameter name="field1" value="__TIMESTAMP__"/>
+                        <parameter name="field2" value="self-serve-mac-address-assign: key-index"/>
+                        <parameter name="field3" value='`$key-index`'/>
+                    </record>
+                    <block>
+                        <switch test="`$tmp.resource-resolution-data.resource-key[$key-index].name == 'vnf-name'`">
+                            <outcome value='true'>
+                                <block>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                        <parameter name="logger" value="message-log"/>
+                                        <parameter name="field1" value="__TIMESTAMP__"/>
+                                        <parameter name="field2" value="self-serve-mac-address-assign: Found resource-resolution-data.name = vnf-name"/>
+                                    </record>
+                                    <set>
+                                        <parameter name='tmp.hostname' value='`$tmp.resource-resolution-data.resource-key[$key-index].value`'  />
+                                    </set>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                        <parameter name="logger" value="message-log"/>
+                                        <parameter name="field1" value="__TIMESTAMP__"/>
+                                        <parameter name="field2" value="self-serve-mac-address-assign: resolved hostname: "/>
+                                        <parameter name="field3" value='`$tmp.hostname`'/>
+                                    </record>
+                                </block>
+                            </outcome>
+                            <outcome value='false'></outcome>
+                        </switch>
+                    </block>
+                </for>
+                <switch test="`$tmp.hostname`">
+                    <outcome value='null'>
+                        <block>
+                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                <parameter name="logger" value="message-log"/>
+                                <parameter name="field1" value="__TIMESTAMP__"/>
+                                <parameter name="field2" value="self-serve-mac-address-assign: hostname is not set"/>
+                            </record>
+                            <set>
+                                <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                            </set>
+                            <return status='failure'>
+                                <parameter name='error-code' value='403' />
+                                <parameter name='error-message' value='hostname is not set' />
+                            </return>
+                        </block>
+                    </outcome>
+                    <outcome value=''>
+                        <block>
+                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                <parameter name="logger" value="message-log"/>
+                                <parameter name="field1" value="__TIMESTAMP__"/>
+                                <parameter name="field2" value="self-serve-mac-address-assign: hostname is not set"/>
+                            </record>
+                            <set>
+                                <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                            </set>
+                            <return status='failure'>
+                                <parameter name='error-code' value='403' />
+                                <parameter name='error-message' value='hostname is not set' />
+                            </return>
+                        </block>
+                    </outcome>
+                </switch>
+            </block>
+            <switch test='`$ss.capability-action`'>
+                <outcome value='ASSIGN'>
+                    <block atomic="true">
+                        <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' 
+key="select * FROM VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING WHERE HOSTNAME= $tmp.hostname" pfx='tmp.map'>
+                            <outcome value='failure'>
+                                <block>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                        <parameter name="logger" value="message-log"/>
+                                        <parameter name="field1" value="__TIMESTAMP__"/>
+                                        <parameter name="field2" value="self-serve-mac-address-assign: Unable to access VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING"/>
+                                    </record>
+                                    <set>
+                                        <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                                    </set>
+                                    <return status='failure'>
+                                        <parameter name='error-code' value='405' />
+                                        <parameter name='error-message' value='Unable to access VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING' />
+                                    </return>
+                                </block>
+                            </outcome>
+                        </get-resource>
+                        <switch test="`$tmp.map.hostname`">
+                            <outcome value='failure'>
+                                <block>
+                                    <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' 
+key="SELECT MIN(pool.id) as pool_id, pool.mac_address FROM VPE_MAC_ADDRESS_POOL pool WHERE NOT EXISTS(SELECT ID FROM VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING map where pool.ID = map.ID)" pfx='tmp.availid'>
+                                        <!--
+tmp.availid.mac_address is the mac_address we need to have finally.
+-->
+                                        <outcome value='failure'>
+                                            <block>
+                                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                    <parameter name="logger" value="message-log"/>
+                                                    <parameter name="field1" value="__TIMESTAMP__"/>
+                                                    <parameter name="field2" value="self-serve-mac-address-assign: reseouce-resolution-data.status is not PENDING"/>
+                                                </record>
+                                                <set>
+                                                    <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                                                </set>
+                                                <return status='failure'>
+                                                    <parameter name='error-code' value='406' />
+                                                    <parameter name='error-message' value='Failed to insert into VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING' />
+                                                </return>
+                                            </block>
+                                        </outcome>
+                                    </get-resource>
+                                    <save plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" 
+resource="SQL" 
+key="INSERT INTO VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING ( id , hostname , assigned_user, assigned_date ) VALUES ( $tmp.availid.pool-id , $tmp.hostname , 'SDNC' , NOW())" 
+force='true' pfx='save_val'>
+                                        <outcome value='failure'>
+                                            <block>
+                                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                    <parameter name="logger" value="message-log"/>
+                                                    <parameter name="field1" value="__TIMESTAMP__"/>
+                                                    <parameter name="field2" value="self-serve-mac-address-assign: reseouce-resolution-data.status is not PENDING"/>
+                                                </record>
+                                                <set>
+                                                    <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                                                </set>
+                                                <return status='failure'>
+                                                    <parameter name='error-code' value='406' />
+                                                    <parameter name='error-message' value='Failed to insert into VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING' />
+                                                </return>
+                                            </block>
+                                        </outcome>
+                                    </save>
+                                    <set>
+                                        <parameter name="tmp.mac-address.mac-address" value="`$tmp.availid.mac-address`" />
+                                    </set>
+                                </block>
+                            </outcome>
+                            <outcome value=''>
+                                <block>
+                                    <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' 
+key="SELECT MIN(pool.id) as pool_id, pool.mac_address FROM VPE_MAC_ADDRESS_POOL pool WHERE NOT EXISTS(SELECT ID FROM VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING map where pool.ID = map.ID)" pfx='tmp.availid'>
+                                        <!--
+tmp.availid.mac_address is the mac_address we need to have finally.
+-->
+                                        <outcome value='failure'>
+                                            <block>
+                                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                    <parameter name="logger" value="message-log"/>
+                                                    <parameter name="field1" value="__TIMESTAMP__"/>
+                                                    <parameter name="field2" value="self-serve-mac-address-assign: reseouce-resolution-data.status is not PENDING"/>
+                                                </record>
+                                                <set>
+                                                    <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                                                </set>
+                                                <return status='failure'>
+                                                    <parameter name='error-code' value='406' />
+                                                    <parameter name='error-message' value='Failed to insert into VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING' />
+                                                </return>
+                                            </block>
+                                        </outcome>
+                                    </get-resource>
+                                    <save plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" 
+resource="SQL" 
+key="INSERT INTO VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING ( id , hostname , assigned_user, assigned_date ) VALUES ( $tmp.availid.pool-id , $tmp.hostname , 'SDNC' , NOW())" 
+force='true' pfx='save_val'>
+                                        <outcome value='failure'>
+                                            <block>
+                                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                    <parameter name="logger" value="message-log"/>
+                                                    <parameter name="field1" value="__TIMESTAMP__"/>
+                                                    <parameter name="field2" value="self-serve-mac-address-assign: reseouce-resolution-data.status is not PENDING"/>
+                                                </record>
+                                                <set>
+                                                    <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                                                </set>
+                                                <return status='failure'>
+                                                    <parameter name='error-code' value='406' />
+                                                    <parameter name='error-message' value='Failed to insert into VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING' />
+                                                </return>
+                                            </block>
+                                        </outcome>
+                                    </save>
+                                    <set>
+                                        <parameter name="tmp.mac-address.mac-address" value="`$tmp.availid.mac-address`" />
+                                    </set>
+                                </block>
+                            </outcome>
+                            <outcome value='null'>
+                                <block>
+                                    <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' 
+key="SELECT MIN(pool.id) as pool_id, pool.mac_address FROM VPE_MAC_ADDRESS_POOL pool WHERE NOT EXISTS(SELECT ID FROM VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING map where pool.ID = map.ID)" pfx='tmp.availid'>
+                                        <!--
+tmp.availid.mac_address is the mac_address we need to have finally.
+-->
+                                        <outcome value='failure'>
+                                            <block>
+                                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                    <parameter name="logger" value="message-log"/>
+                                                    <parameter name="field1" value="__TIMESTAMP__"/>
+                                                    <parameter name="field2" value="self-serve-mac-address-assign: reseouce-resolution-data.status is not PENDING"/>
+                                                </record>
+                                                <set>
+                                                    <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                                                </set>
+                                                <return status='failure'>
+                                                    <parameter name='error-code' value='406' />
+                                                    <parameter name='error-message' value='Failed to insert into VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING' />
+                                                </return>
+                                            </block>
+                                        </outcome>
+                                    </get-resource>
+                                    <save plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" 
+resource="SQL" 
+key="INSERT INTO VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING ( id , hostname , assigned_user, assigned_date ) VALUES ( $tmp.availid.pool-id , $tmp.hostname , 'SDNC' , NOW())" 
+force='true' pfx='save_val'>
+                                        <outcome value='failure'>
+                                            <block>
+                                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                    <parameter name="logger" value="message-log"/>
+                                                    <parameter name="field1" value="__TIMESTAMP__"/>
+                                                    <parameter name="field2" value="self-serve-mac-address-assign: reseouce-resolution-data.status is not PENDING"/>
+                                                </record>
+                                                <set>
+                                                    <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                                                </set>
+                                                <return status='failure'>
+                                                    <parameter name='error-code' value='406' />
+                                                    <parameter name='error-message' value='Failed to insert into VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING' />
+                                                </return>
+                                            </block>
+                                        </outcome>
+                                    </save>
+                                    <set>
+                                        <parameter name="tmp.mac-address.mac-address" value="`$tmp.availid.mac-address`" />
+                                    </set>
+                                </block>
+                            </outcome>
+                            <outcome value='Other'>
+                                <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' 
+key="SELECT pool.mac_address FROM VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING map, VPE_MAC_ADDRESS_POOL pool WHERE pool.ID = map.ID AND map.HOSTNAME = $tmp.hostname" pfx="tmp.mac-address">
+                                    <outcome value='failure'>
+                                        <block>
+                                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                <parameter name="logger" value="message-log"/>
+                                                <parameter name="field1" value="__TIMESTAMP__"/>
+                                                <parameter name="field2" value="self-serve-mac-address-assign: reseouce-resolution-data.status is not PENDING"/>
+                                            </record>
+                                            <set>
+                                                <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                                            </set>
+                                            <return status='failure'>
+                                                <parameter name='error-code' value='406' />
+                                                <parameter name='error-message' value='Failed to insert into VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING' />
+                                            </return>
+                                        </block>
+                                    </outcome>
+                                </get-resource>
+                            </outcome>
+                        </switch>
+                        <switch test="`$tmp.mac-address.mac-address`">
+                            <outcome value=''>
+                                <block>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                        <parameter name="logger" value="message-log"/>
+                                        <parameter name="field1" value="__TIMESTAMP__"/>
+                                        <parameter name="field2" value="self-serve-mac-address-assign: tmp.mac_address not set"/>
+                                    </record>
+                                    <set>
+                                        <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                                    </set>
+                                    <return status='failure'>
+                                        <parameter name='error-code' value='405' />
+                                        <parameter name='error-message' value='tmp.mac_address not set' />
+                                    </return>
+                                </block>
+                            </outcome>
+                            <outcome value='null'>
+                                <block>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                        <parameter name="logger" value="message-log"/>
+                                        <parameter name="field1" value="__TIMESTAMP__"/>
+                                        <parameter name="field2" value="self-serve-mac-address-assign: tmp.mac_address not set"/>
+                                    </record>
+                                    <set>
+                                        <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                                    </set>
+                                    <return status='failure'>
+                                        <parameter name='error-code' value='405' />
+                                        <parameter name='error-message' value='tmp.mac_address not set' />
+                                    </return>
+                                </block>
+                            </outcome>
+                            <outcome value='Other'>
+                                <block>
+                                    <for index='vf-module-param-index' start='0' end='`$tmp.vf-module-parameters-length`' >
+                                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                            <parameter name="logger" value="message-log"/>
+                                            <parameter name="field1" value="__TIMESTAMP__"/>
+                                            <parameter name="field2" value="self-serve-mac-address-assign: vf-module-param-index"/>
+                                            <parameter name="field3" value='`$vf-module-param-index`'/>
+                                        </record>
+                                        <block>
+                                            <switch test="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].name`">
+                                                <outcome value='vmxvpfe_sriov41_0_port_mac'>
+                                                    <set>
+                                                        <parameter name="`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].value`" value="`$tmp.mac-address.mac-address`"  />
+                                                    </set>
+                                                </outcome>
+                                                <outcome value='vmxvpfe_sriov41_1_port_mac'>
+                                                    <set>
+                                                        <parameter name="`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].value`" value="`$tmp.mac-address.mac-address`"  />
+                                                    </set>
+                                                </outcome>
+                                                <outcome value='vmxvpfe_sriov41_3_port_mac'>
+                                                    <set>
+                                                        <parameter name="`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].value`" value="`$tmp.mac-address.mac-address`"  />
+                                                    </set>
+                                                </outcome>
+                                                <outcome value='vmxvpfe_sriov41_4_port_mac'>
+                                                    <set>
+                                                        <parameter name="`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].value`" value="`$tmp.mac-address.mac-address`"  />
+                                                    </set>
+                                                </outcome>
+                                            </switch>
+                                        </block>
+                                    </for>
+                                    <set>
+                                        <parameter name="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-parameters-index].resource-resolution-data.status`" value='SUCCESS'  />
+                                    </set>
+                                </block>
+                            </outcome>
+                        </switch>
+                    </block>
+                </outcome>
+                <outcome value='UNASSIGN'>
+                    <block atomic="true">
+                        <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' 
+key="select * FROM VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING WHERE HOSTNAME= $tmp.hostname" pfx='tmp.map'>
+                            <outcome value='failure'>
+                                <block>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                        <parameter name="logger" value="message-log"/>
+                                        <parameter name="field1" value="__TIMESTAMP__"/>
+                                        <parameter name="field2" value="self-serve-mac-address-assign: Hostname not found in VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING on UNASSIGN operation"/>
+                                    </record>
+                                    <set>
+                                        <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                                    </set>
+                                    <return status='failure'>
+                                        <parameter name='error-code' value='405' />
+                                        <parameter name='error-message' value='Hostname not found in VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING on UNASSIGN operation' />
+                                    </return>
+                                </block>
+                            </outcome>
+                        </get-resource>
+                        <switch test="`$tmp.map.hostname`">
+                            <outcome value='failure'>
+                                <block>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                        <parameter name="logger" value="message-log"/>
+                                        <parameter name="field1" value="__TIMESTAMP__"/>
+                                        <parameter name="field2" value="self-serve-mac-address-assign: Hostname not found in VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING on UNASSIGN operation"/>
+                                    </record>
+                                    <set>
+                                        <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                                    </set>
+                                    <return status='failure'>
+                                        <parameter name='error-code' value='405' />
+                                        <parameter name='error-message' value='Hostname not found in VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING on UNASSIGN operation' />
+                                    </return>
+                                </block>
+                            </outcome>
+                            <outcome value=''>
+                                <block>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                        <parameter name="logger" value="message-log"/>
+                                        <parameter name="field1" value="__TIMESTAMP__"/>
+                                        <parameter name="field2" value="self-serve-mac-address-assign: Hostname not found in VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING on UNASSIGN operation"/>
+                                    </record>
+                                    <set>
+                                        <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                                    </set>
+                                    <return status='failure'>
+                                        <parameter name='error-code' value='405' />
+                                        <parameter name='error-message' value='Hostname not found in VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING on UNASSIGN operation' />
+                                    </return>
+                                </block>
+                            </outcome>
+                            <outcome value='null'>
+                                <block>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                        <parameter name="logger" value="message-log"/>
+                                        <parameter name="field1" value="__TIMESTAMP__"/>
+                                        <parameter name="field2" value="self-serve-mac-address-assign: Hostname not found in VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING on UNASSIGN operation"/>
+                                    </record>
+                                    <set>
+                                        <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                                    </set>
+                                    <return status='failure'>
+                                        <parameter name='error-code' value='405' />
+                                        <parameter name='error-message' value='Hostname not found in VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING on UNASSIGN operation' />
+                                    </return>
+                                </block>
+                            </outcome>
+                            <outcome value='Other'>
+                                <delete plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' 
+key='DELETE from VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING WHERE hostname = $tmp.hostname'>
+                                    <outcome value='failure'>
+                                        <block>
+                                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                <parameter name="logger" value="message-log"/>
+                                                <parameter name="field1" value="__TIMESTAMP__"/>
+                                                <parameter name="field2" value="self-serve-mac-address-assign: Failure deleting from VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING on UNASSIGN operation"/>
+                                            </record>
+                                            <set>
+                                                <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                                            </set>
+                                            <return status='failure'>
+                                                <parameter name='error-code' value='405' />
+                                                <parameter name='error-message' value='Failure deleting from VPE_MAC_ADDRESS_TO_HOSTNAME_MAPPING on UNASSIGN operation' />
+                                            </return>
+                                        </block>
+                                    </outcome>
+                                    <outcome value='success'>
+                                        <block>
+                                            <for index='key-index' start='0' end='`$tmp.resource-resolution-data.resource-key_length`' >
+                                                <set>
+                                                    <parameter name="`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-parameters-index].resource-resolution-data.status`" value="DELETED"  />
+                                                </set>
+                                            </for>
+                                        </block>
+                                    </outcome>
+                                </delete>
+                            </outcome>
+                        </switch>
+                    </block>
+                </outcome>
+            </switch>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
+                <parameter name='filename' value='/var/tmp/self-serv-mac-address-assign.log' />
+            </execute>
+            <return status='success'>
+                <parameter name="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-parameters-index].resource-resolution-data.status`" value='SUCCESS'  />
+            </return>
+        </block>
+    </method>
+</service-logic>

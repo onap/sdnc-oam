@@ -1,64 +1,126 @@
-<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'><method rpc='vnf-topology-operation-unassign' mode='sync'>
-<block atomic="true"><switch test='`$vnf-topology-operation-input.request-information.request-action`'>
-<outcome value='DeleteVnfInstance'>
-<block>
-</block></outcome><outcome value='Other'>
-<return status='failure'>
-	<parameter name='ack-final' value='Y'/>
-	<parameter name="error-code" value="500" />
-    <parameter name="error-message" value="If svc-action is 'deactivate' then request-action must be 'DeleteVnfInstance'" />
-</return></outcome></switch><switch test='`$service-data.vnfs.vnf_length`'>
-<outcome value=''>
-<return status='failure'>
-	<parameter name='ack-final' value='Y'/>
-	<parameter name="error-code" value="404" />
-    <parameter name="error-message" value="There are no VNFs in MD-SAL" />
-</return></outcome></switch><for index='idx' start='0' end='`$service-data.vnfs.vnf_length`' >
-<switch test='`$service-data.vnfs.vnf[$idx].vnf-id == $vnf-topology-operation-input.vnf-information.vnf-id`' >
-<outcome value='true'>
-<set>
-<parameter name='vnf-index' value='`$idx`' />
-</set></outcome></switch></for><switch test='`$vnf-index`'>
-<outcome value=''>
-<return status='failure'>
-	<parameter name='ack-final' value='Y'/>
-	<parameter name="error-code" value="404" />
-    <parameter name="error-message" value="'Could not find VNF ' + $vnf-topology-operation-input.vnf-information.vnf-id + ' in MD-SAL'" />
-</return></outcome></switch><switch test="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-level-oper-status.order-status == 'Created'`">
-<outcome value='true'>
-<return status='failure'>
-	<parameter name='ack-final' value='Y'/>
-	<parameter name="error-code" value="500" />
-    <parameter name="error-message" value="Cannot delete a VNF in a Created state" />
-</return></outcome></switch><switch test="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`">
-<outcome value='0'>
-<block>
-</block></outcome><outcome value=''><block>
-</block></outcome><outcome value='Other'>
-<return status='failure'>
-	<parameter name='ack-final' value='Y'/>
-	<parameter name="error-code" value="500" />
-    <parameter name="error-message" value="Cannot delete the VNF because there are VFs defined" />
-</return></outcome></switch><switch test='`$service-data.vnfs.vnf_length`'>
-<outcome value='1'>
-<set>
-	<parameter name="service-data.vnfs." value=""/>
-
-</set></outcome><outcome value='Other'>
-<block atomic="true"><for index='idx' start='`$vnf-index + 1`' end='`$service-data.vnfs.vnf_length`' >
-<set>
-	<parameter name="$tmpidx" value="`$idx - 1`"/>
-	<parameter name="service-data.vnfs.vnf[$tmpidx]." value="$service-data.vnfs.vnf[$idx]." />
-	
-</set></for><set>
-	<parameter name="service-data.vnfs.vnf[$service-data.vnfs.vnf_length-1]." value=""/>
-
-</set><set>
-	<parameter name="service-data.vnfs.vnf_length" value="`$service-data.vnfs.vnf_length - 1`"/>
-
-	
-</set></block></outcome></switch><return status='success'>
-<parameter name="ack-final-indicator" value="Y" />
-<parameter name="error-code" value="200" />
-<parameter name="error-message" value="`$error-message`" />
-</return></block></method></service-logic>
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    <method rpc='vnf-topology-operation-unassign' mode='sync'>
+        <block atomic="true">
+            <switch test='`$vnf-topology-operation-input.request-information.request-action`'>
+                <outcome value='DeleteVnfInstance'>
+                    <block></block>
+                </outcome>
+                <outcome value='Other'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="If svc-action is 'deactivate' then request-action must be 'DeleteVnfInstance'" />
+                    </return>
+                </outcome>
+            </switch>
+            <switch test='`$service-data.vnfs.vnf_length`'>
+                <outcome value=''>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="404" />
+                        <parameter name="error-message" value="There are no VNFs in MD-SAL" />
+                    </return>
+                </outcome>
+            </switch>
+            <for index='idx' start='0' end='`$service-data.vnfs.vnf_length`' >
+                <switch test='`$service-data.vnfs.vnf[$idx].vnf-id == $vnf-topology-operation-input.vnf-information.vnf-id`' >
+                    <outcome value='true'>
+                        <set>
+                            <parameter name='vnf-index' value='`$idx`' />
+                        </set>
+                    </outcome>
+                </switch>
+            </for>
+            <switch test='`$vnf-index`'>
+                <outcome value=''>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="404" />
+                        <parameter name="error-message" value="'Could not find VNF ' + $vnf-topology-operation-input.vnf-information.vnf-id + ' in MD-SAL'" />
+                    </return>
+                </outcome>
+            </switch>
+            <switch test="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`">
+                <outcome value='0'>
+                    <block></block>
+                </outcome>
+                <outcome value=''>
+                    <block></block>
+                </outcome>
+                <outcome value='Other'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="Cannot delete the VNF because there are VFs defined" />
+                    </return>
+                </outcome>
+            </switch>
+            <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.sdnc-generated-cloud-resources`'>
+                <outcome value='true'>
+                    <block atomic="true">
+                        <call module='GENERIC-RESOURCE-API' rpc='self-serve-vnf-unassign' mode='sync' >
+                            <outcome value='failure'>
+                                <return status='failure'>
+                                    <parameter name='error-code' value='500' />
+                                    <parameter name='error-message' value="`'Encountered error while unassigning self-serve resources with error: '+ $error-message`" />
+                                </return>
+                            </outcome>
+                        </call>
+                    </block>
+                </outcome>
+            </switch>
+            <switch test='`$service-data.vnfs.vnf_length`'>
+                <outcome value='1'>
+                    <set>
+                        <parameter name="service-data.vnfs." value=""/>
+                    </set>
+                </outcome>
+                <outcome value='Other'>
+                    <block atomic="true">
+                        <for index='idx' start='`$vnf-index + 1`' end='`$service-data.vnfs.vnf_length`' >
+                            <set>
+                                <parameter name="$tmpidx" value="`$idx - 1`"/>
+                                <parameter name="service-data.vnfs.vnf[$tmpidx]." value="$service-data.vnfs.vnf[$idx]." />
+                            </set>
+                        </for>
+                        <set>
+                            <parameter name="service-data.vnfs.vnf[$service-data.vnfs.vnf_length-1]." value=""/>
+                        </set>
+                        <set>
+                            <parameter name="service-data.vnfs.vnf_length" value="`$service-data.vnfs.vnf_length - 1`"/>
+                        </set>
+                    </block>
+                </outcome>
+            </switch>
+            <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.sdnc-generated-cloud-resources`'>
+                <outcome value='false'>
+                    <block atomic="true">
+                        <set>
+                            <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
+                            <parameter name='naming-policy-generate-name-input.context-id' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />
+                            <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
+                        </set>
+                        <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
+                    </block>
+                </outcome>
+                <outcome value=''>
+                    <block atomic="true">
+                        <set>
+                            <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
+                            <parameter name='naming-policy-generate-name-input.context-id' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />
+                            <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
+                        </set>
+                        <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
+                    </block>
+                </outcome>
+            </switch>
+            <return status='success'>
+                <parameter name="ack-final-indicator" value="Y" />
+                <parameter name="error-code" value="200" />
+                <parameter name="error-message" value="`$error-message`" />
+            </return>
+        </block>
+    </method>
+</service-logic>

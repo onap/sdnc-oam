@@ -1,0 +1,486 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    <method rpc='self-serve-create-vpe-pool' mode='sync'>
+        <block atomic='true'>
+            <switch test="`$ss.capability-name`">
+                <outcome value='Other'></outcome>
+                <outcome value=''>
+                    <block>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                            <parameter name="logger" value="message-log"/>
+                            <parameter name="field1" value="__TIMESTAMP__"/>
+                            <parameter name="field2" value="self-serve-create-vpe-pool: ss.capability-name is not set"/>
+                        </record>
+                        <return status='failure'>
+                            <parameter name='error-code' value='401' />
+                            <parameter name='error-message' value='ss.capability-name is not set' />
+                        </return>
+                    </block>
+                </outcome>
+                <outcome value='null'></outcome>
+                <outcome value='create-vpe-pool'>
+                    <record plugin="com.att.sdnctl.sli.recording.Slf4jRecorder">
+                        <parameter name="logger" value="message-log"/>
+                        <parameter name="field1" value="__TIMESTAMP__"/>
+                        <parameter name="field2" value="self-serve-create-vpe-pool: ss.capability-name is create-vpe-pool"/>
+                    </record>
+                </outcome>
+            </switch>
+            <switch test="`$ss.capability-action`">
+                <outcome value='Other'></outcome>
+                <outcome value=''>
+                    <block>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                            <parameter name="logger" value="message-log"/>
+                            <parameter name="field1" value="__TIMESTAMP__"/>
+                            <parameter name="field2" value="self-serve-create-vpe-pool: ss.capability-action is not set"/>
+                        </record>
+                        <return status='failure'>
+                            <parameter name='error-code' value='401' />
+                            <parameter name='error-message' value='ss.capability-action is not set' />
+                        </return>
+                    </block>
+                </outcome>
+                <outcome value='null'></outcome>
+                <outcome value='ASSIGN'>
+                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                        <parameter name="logger" value="message-log"/>
+                        <parameter name="field1" value="__TIMESTAMP__"/>
+                        <parameter name="field2" value="self-serve-create-vpe-pool: ss.capability-action is ASSIGN"/>
+                    </record>
+                </outcome>
+                <outcome value='UNASSIGN'>
+                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                        <parameter name="logger" value="message-log"/>
+                        <parameter name="field1" value="__TIMESTAMP__"/>
+                        <parameter name="field2" value="self-serve-create-vpe-pool: ss.capability-action is UNASSIGN"/>
+                    </record>
+                </outcome>
+            </switch>
+            <block atomic='true'>
+                <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                    <parameter name="logger" value="message-log"/>
+                    <parameter name="field1" value="__TIMESTAMP__"/>
+                    <parameter name="field2" value="self-serve-create-vpe-pool: call self-service-capability-param-resolution DG"/>
+                </record>
+                <set>
+                    <!--<parameter name='generate-unique-name-input.index-table-name' value='VM_NAME_INDEX' />-->
+                </set>
+                <call module='GENERIC-RESOURCE-API' rpc='self-serve-capability-param-resolution' mode='sync' >
+                    <outcome value='failure'>
+                        <block>
+                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                <parameter name="logger" value="message-log"/>
+                                <parameter name="field1" value="__TIMESTAMP__"/>
+                                <parameter name="field2" value="self-serve-create-vpe-pool: Failure calling self-service-capability-param-resolution"/>
+                            </record>
+                            <return status='failure'>
+                                <parameter name='error-code' value='402' />
+                                <parameter name='error-message' value='Failure calling self-service-capability-param-resolution' />
+                            </return>
+                        </block>
+                    </outcome>
+                    <outcome value='success'></outcome>
+                </call>
+            </block>
+            <block atomic='true'>
+                <set>
+                    <parameter name='tmp.vf-module-parameters-length' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`' />
+                </set>
+                <for index='vf-module-param-index' start='0' end='`$tmp.vf-module-parameters-length`' >
+                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                        <parameter name="logger" value="message-log"/>
+                        <parameter name="field1" value="__TIMESTAMP__"/>
+                        <parameter name="field2" value="self-serve-create-vpe-pool: vf-module-param-index"/>
+                        <parameter name="field3" value='`$vf-module-param-index`'/>
+                    </record>
+                    <block>
+                        <set>
+                            <parameter name='vfModuleParamsCapabilityName' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.capability-name`'  />
+                        </set>
+                        <switch test="`$ss.capability-name == $vfModuleParamsCapabilityName`">
+                            <outcome value='true'>
+                                <block>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                        <parameter name="logger" value="message-log"/>
+                                        <parameter name="field1" value="__TIMESTAMP__"/>
+                                        <parameter name="field2" value="self-serve-create-vpe-pool: Found ss.capability-name MATCH"/>
+                                    </record>
+                                    <set>
+                                        <parameter name='tmp.resource-resolution-data.' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.`'  />
+                                    </set>
+                                    <break/>
+                                </block>
+                            </outcome>
+                            <outcome value='false'></outcome>
+                        </switch>
+                    </block>
+                </for>
+            </block>
+            <switch test="`$tmp.resource-resolution-data.status == 'PENDING'`">
+                <outcome value='false'>
+                    <block>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                            <parameter name="logger" value="message-log"/>
+                            <parameter name="field1" value="__TIMESTAMP__"/>
+                            <parameter name="field2" value="self-serve-create-vpe-pool: reseouce-resolution-data.status is not PENDING"/>
+                        </record>
+                        <set>
+                            <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                        </set>
+                        <return status='failure'>
+                            <parameter name='error-code' value='401' />
+                            <parameter name='error-message' value='reseouce-resolution-data.status is not PENDING' />
+                        </return>
+                    </block>
+                </outcome>
+            </switch>
+            <block atomic='true'>
+                <set>
+                    <parameter name='tmp.resource-key-length' value='`$tmp.resource-resolution-data.resource-key_length`' />
+                </set>
+                <for index='key-index' start='0' end='`$tmp.resource-resolution-data.resource-key_length`' >
+                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                        <parameter name="logger" value="message-log"/>
+                        <parameter name="field1" value="__TIMESTAMP__"/>
+                        <parameter name="field2" value="self-serve-create-vpe-pool: key-index"/>
+                        <parameter name="field3" value='`$key-index`'/>
+                    </record>
+                    <block>
+                        <switch test="`$tmp.resource-resolution-data.resource-key[$key-index].name == 'vpe_name'`">
+                            <outcome value='true'>
+                                <block>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                        <parameter name="logger" value="message-log"/>
+                                        <parameter name="field1" value="__TIMESTAMP__"/>
+                                        <parameter name="field2" value="self-serve-create-vpe-pool: Found resource-resolution-data.name = vpe_name"/>
+                                    </record>
+                                    <set>
+                                        <parameter name='tmp.vpe_name' value='`$tmp.resource-resolution-data.resource-key[$key-index].value`'  />
+                                    </set>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                        <parameter name="logger" value="message-log"/>
+                                        <parameter name="field1" value="__TIMESTAMP__"/>
+                                        <parameter name="field2" value="self-serve-mac-address-assign: resolved vpe_name: "/>
+                                        <parameter name="field3" value='`$tmp.vpe_name`'/>
+                                    </record>
+                                    <break/>
+                                </block>
+                            </outcome>
+                            <outcome value='false'></outcome>
+                        </switch>
+                    </block>
+                </for>
+                <switch test="`$tmp.vpe_name`">
+                    <outcome value='null'>
+                        <block>
+                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                <parameter name="logger" value="message-log"/>
+                                <parameter name="field1" value="__TIMESTAMP__"/>
+                                <parameter name="field2" value="self-serve-mac-address-assign: hostname is not set"/>
+                            </record>
+                            <set>
+                                <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                            </set>
+                            <return status='failure'>
+                                <parameter name='error-code' value='403' />
+                                <parameter name='error-message' value='vpe_name is not valid' />
+                            </return>
+                        </block>
+                    </outcome>
+                    <outcome value=''>
+                        <block>
+                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                <parameter name="logger" value="message-log"/>
+                                <parameter name="field1" value="__TIMESTAMP__"/>
+                                <parameter name="field2" value="self-serve-mac-address-assign: hostname is not set"/>
+                            </record>
+                            <set>
+                                <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                            </set>
+                            <return status='failure'>
+                                <parameter name='error-code' value='403' />
+                                <parameter name='error-message' value='vpe_name is not valid' />
+                            </return>
+                        </block>
+                    </outcome>
+                </switch>
+            </block>
+            <block atomic='true'>
+                <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' 
+key="select * FROM VPE_POOL WHERE vpe_name= $tmp.vpe_name" pfx='tmp.vpe_pool_data'>
+                    <outcome value='failure'>
+                        <block>
+                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                <parameter name="logger" value="message-log"/>
+                                <parameter name="field1" value="__TIMESTAMP__"/>
+                                <parameter name="field2" value="self-serve-mac-address-assign: Unable to access VPE_POOL"/>
+                            </record>
+                            <set>
+                                <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                            </set>
+                            <return status='failure'>
+                                <parameter name='error-code' value='405' />
+                                <parameter name='error-message' value='Unable to access VPE_POOL' />
+                            </return>
+                        </block>
+                    </outcome>
+                </get-resource>
+                <switch test="`$tmp.vpe_pool_data.vpe-name`">
+                    <outcome value=''>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                            <parameter name="logger" value="message-log"/>
+                            <parameter name="field1" value="__TIMESTAMP__"/>
+                            <parameter name="field2" value="self-serve-mac-address-assign: data not found in VPE_POOL for vpe_name: "/>
+                            <parameter name="field3" value='`$tmp.vpe_name`'/>
+                        </record>
+                    </outcome>
+                    <outcome value='null'>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                            <parameter name="logger" value="message-log"/>
+                            <parameter name="field1" value="__TIMESTAMP__"/>
+                            <parameter name="field2" value="self-serve-mac-address-assign: data not found in VPE_POOL for vpe_name: "/>
+                            <parameter name="field3" value='`$tmp.vpe_name`'/>
+                        </record>
+                    </outcome>
+                    <outcome value='Other'>
+                        <block>
+                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                <parameter name="logger" value="message-log"/>
+                                <parameter name="field1" value="__TIMESTAMP__"/>
+                                <parameter name="field2" value="self-serve-mac-address-assign: data already found in VPE_POOL for vpe_name: "/>
+                                <parameter name="field3" value='`$tmp.vpe_name`'/>
+                            </record>
+                            <switch test="`$ss.capability-action == 'ASSIGN'`">
+                                <outcome value='true'>
+                                    <block>
+                                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                            <parameter name="logger" value="message-log"/>
+                                            <parameter name="field1" value="__TIMESTAMP__"/>
+                                            <parameter name="field2" value="self-serve-mac-address-assign: Unable to create vpe-pool, data already exists in VPE_POOL for vpe_name"/>
+                                        </record>
+                                        <set>
+                                            <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                                        </set>
+                                        <return status='failure'>
+                                            <parameter name='error-code' value='405' />
+                                            <parameter name='error-message' value='Unable to create vpe-pool, data already exists in VPE_POOL for vpe_name' />
+                                        </return>
+                                    </block>
+                                </outcome>
+                            </switch>
+                        </block>
+                    </outcome>
+                </switch>
+            </block>
+            <switch test='`$ss.capability-action`'>
+                <outcome value='ASSIGN'>
+                    <block atomic='true'>
+                        <set>
+                            <parameter name='tmp.resource-key-length' value='`$tmp.resource-resolution-data.resource-key_length`' />
+                            <!-- String to build VPE_POOL table SQL insert statement -->
+                            <parameter name='tmp.resource-insert-columns' value='' />
+                            <parameter name='tmp.resource-insert-values' value='' />
+                            <!-- These are the resources to insert into VPE_POOL -->
+                            <parameter name='tmp.resource-names-length' value='19' />
+                            <parameter name='tmp.resource-names[0]' value='vpe_name' />
+                            <parameter name='tmp.resource-names[1]' value='ipv4_oam_address' />
+                            <parameter name='tmp.resource-names[2]' value='loopback0' />
+                            <parameter name='tmp.resource-names[3]' value='provisioning_status' />
+                            <parameter name='tmp.resource-names[4]' value='aic_site_id' />
+                            <parameter name='tmp.resource-names[5]' value='avaiablity_zone' />
+                            <parameter name='tmp.resource-names[6]' value='vlan_id_outer' />
+                            <parameter name='tmp.resource-names[7]' value='vendor' />
+                            <parameter name='tmp.resource-names[8]' value='physical_intf_name' />
+                            <parameter name='tmp.resource-names[9]' value='phyiscal_intf_speed' />
+                            <parameter name='tmp.resource-names[10]' value='phyiscal_intf_units' />
+                            <parameter name='tmp.resource-names[11]' value='vpe_uuid' />
+                            <parameter name='tmp.resource-names[12]' value='vpe_id' />
+                            <parameter name='tmp.resource-names[13]' value='image_filename' />
+                            <parameter name='tmp.resource-names[14]' value='as_number' />
+                            <parameter name='tmp.resource-names[15]' value='loopback5000' />
+                            <parameter name='tmp.resource-names[16]' value='loopback10' />
+                            <parameter name='tmp.resource-names[17]' value='aic_version' />
+                            <parameter name='tmp.resource-names[18]' value='vpe_capacity' />
+                        </set>
+                        <for index='names-index' start='0' end='`$tmp.resource-names-length`' >
+                            <for index='key-index' start='0' end='`$tmp.resource-resolution-data.resource-key_length`' >
+                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                    <parameter name="logger" value="message-log"/>
+                                    <parameter name="field1" value="__TIMESTAMP__"/>
+                                    <parameter name="field2" value="self-serve-create-vpe-pool: key-index, resource-key.name, resource-names"/>
+                                    <parameter name="field3" value='`$key-index`'/>
+                                    <parameter name="field4" value='`$tmp.resource-resolution-data.resource-key[$key-index].name`'/>
+                                    <parameter name="field5" value='`$tmp.resource-names[$names-index]`'/>
+                                </record>
+                                <switch test="`$tmp.resource-resolution-data.resource-key[$key-index].name == $tmp.resource-names[$names-index]`">
+                                    <outcome value='true'>
+                                        <block>
+                                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                <parameter name="logger" value="message-log"/>
+                                                <parameter name="field1" value="__TIMESTAMP__"/>
+                                                <parameter name="field2" value="self-serve-create-vpe-pool: resource-name MATCH: "/>
+                                                <parameter name="field3" value='`$tmp.resource-names[$names-index]`'/>
+                                                <parameter name="field4" value='`$tmp.resource-resolution-data.resource-key[$key-index].value`'/>
+                                            </record>
+                                            <switch test="`$tmp.insert-columns`">
+                                                <outcome value=''>
+                                                    <set>
+                                                        <parameter name='tmp.insert-columns' value="`$tmp.resource-resolution-data.resource-key[$key-index].name`"  />
+                                                        <parameter name='tmp.insert-values' value="$tmp.resource-resolution-data.resource-key[$key-index].value`"  />
+                                                    </set>
+                                                </outcome>
+                                                <outcome value='Other'>
+                                                    <set>
+                                                        <parameter name='tmp.insert-columns' value="`$tmp.insert-columns + ', ' + $tmp.resource-resolution-data.resource-key[$key-index].name`"  />
+                                                        <parameter name='tmp.insert-values' value="`$tmp.insert-values + ', ' + $tmp.resource-resolution-data.resource-key[$key-index].value`"  />
+                                                    </set>
+                                                </outcome>
+                                            </switch>
+                                            <set>
+                                                <parameter name="`'tmp.forInsert.' + $tmp.resource-resolution-data.resource-key[$key-index].name`" value="`$tmp.resource-resolution-data.resource-key[$key-index].value`"  />
+                                            </set>
+                                            <break/>
+                                        </block>
+                                    </outcome>
+                                </switch>
+                            </for>
+                        </for>
+                        <save plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" 
+resource="SQL" 
+key="INSERT INTO VPE_POOL ( vpe_name, ipv4_oam_address, loopback0_ipv4_address, provisioning_status, aic_site_id, availability_zone, vlan_id_outer, vendor, physical_intf_name, physical_intf_speed, physical_intf_units, vpe_uuid, vpe_id, image_filename, as_number, loopback5000, loopback10, aic_version, vpe_capacity ) 
+VALUES ( $tmp.forInsert.vpe_name , $tmp.forInsert.ipv4_oam_address , $tmp.forInsert.loopback0_ipv4_address , $tmp.forInsert.provisioning_status , $tmp.forInsert.aic_site_id , $tmp.forInsert.availability_zone , $tmp.forInsert.vlan_id_outer , $tmp.forInsert.vendor , $tmp.forInsert.physical_intf_name , $tmp.forInsert.physical_intf_speed , $tmp.forInsert.physical_intf_units , $tmp.forInsert.vpe_uuid , $tmp.forInsert.vpe_id , $tmp.forInsert.image_filename , $tmp.forInsert.as_number , $tmp.forInsert.loopback5000 , $tmp.forInsert.loopback10 , $tmp.forInsert.aic_version , $tmp.forInsert.vpe_capacity )" 
+force='true' pfx='save_val'>
+                            <outcome value='failure'>
+                                <block>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                        <parameter name="logger" value="message-log"/>
+                                        <parameter name="field1" value="__TIMESTAMP__"/>
+                                        <parameter name="field2" value="self-serve-mac-address-assign: Unable to create VPE Pool in VPE_POOL"/>
+                                    </record>
+                                    <set>
+                                        <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                                    </set>
+                                    <return status='failure'>
+                                        <parameter name='error-code' value='406' />
+                                        <parameter name='error-message' value='Unable to create VPE Pool in VPE_POOL' />
+                                    </return>
+                                </block>
+                            </outcome>
+                        </save>
+                    </block>
+                </outcome>
+                <outcome value='UNASSIGN'>
+                    <block atomic="true">
+                        <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' 
+key="select * FROM VPE_POOL WHERE vpe_name= $tmp.vpe_name" pfx='tmp.pool'>
+                            <outcome value='failure'>
+                                <block>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                        <parameter name="logger" value="message-log"/>
+                                        <parameter name="field1" value="__TIMESTAMP__"/>
+                                        <parameter name="field2" value="self-serve-mac-address-assign: vpe_name not found in VPE_POOL on UNASSIGN operation"/>
+                                    </record>
+                                    <set>
+                                        <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                                    </set>
+                                    <return status='failure'>
+                                        <parameter name='error-code' value='405' />
+                                        <parameter name='error-message' value='vpe_name not found in VPE_POOL on UNASSIGN operation' />
+                                    </return>
+                                </block>
+                            </outcome>
+                        </get-resource>
+                        <switch test="`$tmp.pool.vpe-name`">
+                            <outcome value='failure'>
+                                <block>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                        <parameter name="logger" value="message-log"/>
+                                        <parameter name="field1" value="__TIMESTAMP__"/>
+                                        <parameter name="field2" value="self-serve-mac-address-assign: vpe_name not found in VPE_POOL on UNASSIGN operation"/>
+                                    </record>
+                                    <set>
+                                        <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                                    </set>
+                                    <return status='failure'>
+                                        <parameter name='error-code' value='405' />
+                                        <parameter name='error-message' value='vpe_name not found in VPE_POOL on UNASSIGN operation' />
+                                    </return>
+                                </block>
+                            </outcome>
+                            <outcome value=''>
+                                <block>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                        <parameter name="logger" value="message-log"/>
+                                        <parameter name="field1" value="__TIMESTAMP__"/>
+                                        <parameter name="field2" value="self-serve-mac-address-assign: vpe_name not found in VPE_POOL on UNASSIGN operation"/>
+                                    </record>
+                                    <set>
+                                        <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                                    </set>
+                                    <return status='failure'>
+                                        <parameter name='error-code' value='405' />
+                                        <parameter name='error-message' value='vpe_name not found in VPE_POOL on UNASSIGN operation' />
+                                    </return>
+                                </block>
+                            </outcome>
+                            <outcome value='null'>
+                                <block>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                        <parameter name="logger" value="message-log"/>
+                                        <parameter name="field1" value="__TIMESTAMP__"/>
+                                        <parameter name="field2" value="self-serve-mac-address-assign: vpe_name not found in VPE_POOL on UNASSIGN operation"/>
+                                    </record>
+                                    <set>
+                                        <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                                    </set>
+                                    <return status='failure'>
+                                        <parameter name='error-code' value='405' />
+                                        <parameter name='error-message' value='vpe_name not found in VPE_POOL on UNASSIGN operation' />
+                                    </return>
+                                </block>
+                            </outcome>
+                            <outcome value='Other'>
+                                <delete plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' 
+key='DELETE from VPE_POOL WHERE vpe_name = $tmp.vpe_name'>
+                                    <outcome value='failure'>
+                                        <block>
+                                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                <parameter name="logger" value="message-log"/>
+                                                <parameter name="field1" value="__TIMESTAMP__"/>
+                                                <parameter name="field2" value="self-serve-mac-address-assign: Failure deleting from VPE_POOL on UNASSIGN operation"/>
+                                            </record>
+                                            <set>
+                                                <parameter name='$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-param-index].resource-resolution-data.status' value='FAILED'  />
+                                            </set>
+                                            <return status='failure'>
+                                                <parameter name='error-code' value='405' />
+                                                <parameter name='error-message' value='Failure deleting from VPE_POOL on UNASSIGN operation' />
+                                            </return>
+                                        </block>
+                                    </outcome>
+                                    <outcome value='success'>
+                                        <block>
+                                            <for index='key-index' start='0' end='`$tmp.resource-resolution-data.resource-key_length`' >
+                                                <set>
+                                                    <parameter name="`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-parameters-index].resource-resolution-data.status`" value="DELETED"  />
+                                                </set>
+                                            </for>
+                                        </block>
+                                    </outcome>
+                                </delete>
+                            </outcome>
+                        </switch>
+                    </block>
+                </outcome>
+            </switch>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
+                <parameter name='filename' value='/var/tmp/self-serve-create-vpe-pool.log' />
+            </execute>
+            <return status='success'>
+                <parameter name="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$vf-module-parameters-index].resource-resolution-data.status`" value='SUCCESS'  />
+            </return>
+        </block>
+    </method>
+</service-logic>
