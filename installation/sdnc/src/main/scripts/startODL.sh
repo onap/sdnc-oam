@@ -28,7 +28,8 @@ function enable_odl_cluster(){
   fi
 
   echo "Installing Opendaylight cluster features"
-  cat $ODL_HOME/etc/org.apache.karaf.features.cfg | sed -e "\|featuresBoot=config|s|$|,odl-mdsal-clustering,odl-jolokia|" > $ODL_HOME/etc/org.apache.karaf.features.cfg
+  mv $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.karaf.features.cfg.orig
+  cat $ODL_HOME/etc/org.apache.karaf.features.cfg.orig | sed -e "\|featuresBoot=config|s|$|,odl-mdsal-clustering,odl-jolokia|" > $ODL_HOME/etc/org.apache.karaf.features.cfg
   #${ODL_HOME}/bin/client feature:install odl-mdsal-clustering
   #${ODL_HOME}/bin/client feature:install odl-jolokia
 
