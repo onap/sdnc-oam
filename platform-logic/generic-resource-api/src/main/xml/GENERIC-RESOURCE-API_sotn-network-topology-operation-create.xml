@@ -172,33 +172,38 @@
                 <parameter name='service-data.networks.network[$nidx].network-data.network-level-oper-status.last-rpc-action' value='`$network-topology-operation-input.sdnc-request-header.svc-action`' />
                 <parameter name='service-data.networks.network[$nidx].network-data.network-level-oper-status.last-action' value='`$network-topology-operation-input.request-information.request-action`' />
             </set>
-            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='configuration' 
-      key='configuration.configuration-id = $prop.sotn.network-id' >
-                <parameter name='configuration-id' value='`$prop.sotn.network-id`' />
-                <parameter name='configuration-name' value='`$prop.sotn.client-svc-name`' />
-                <parameter name='configuration-type' value='`$prop.sotn.client-svc-descr`' />
-                <parameter name='configuration-sub-type' value='`$prop.sotn.tenantId`' />
-                <parameter name='orchestration-status' value='`$prop.sotn.vpnType`' />
-                <parameter name='management-option' value='`$prop.sotn.cir`' />
+            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity' 
+      key='connectivity.connectivity-id = $prop.sotn.network-id' >
+                <parameter name='connectivity-id' value='`$prop.sotn.network-id`' />
+                <parameter name='etht-svc-name' value='`$prop.sotn.etht-svc-name`' />
+                <parameter name='CIR' value='`$prop.sotn.cir`' />
+                <parameter name='EIR' value='`$prop.sotn.eir`' />
+                <parameter name='CBS' value='`$prop.sotn.cbs`' />
+                <parameter name='EBS' value='`$prop.sotn.ebs`' />
+                <parameter name='color-aware' value='`$prop.sotn.colorAware`' />
+                <parameter name='coupling-flag' value='`$prop.sotn.couplingFlag`' />
+                <parameter name='access-provider-id' value='`$prop.sotn.access-provider-id`' />
+                <parameter name='access-client-id' value='`$prop.sotn.access-client-id`' />
+                <parameter name='access-topology-id' value='`$prop.sotn.access-topology-id`' />
+                <parameter name='access-node-id' value='`$prop.sotn.access-node-id`' />
+                <parameter name='access-ltp-id' value='`$prop.sotn.access-ltp-id`' />
+                <parameter name='cvlan-tag-entry' value='`$prop.sotn.cVLAN`' />
                 <parameter name='operational-status' value='Created' />
                 <parameter name='model-customization-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-customization-uuid`' />
                 <parameter name='model-invariant-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-invariant-uuid`' />
                 <parameter name='model-version-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-uuid`' />
-                <parameter name='configuration-selflink' value="`'restconf/config/GENERIC-RESOURCE-API:services/service/'  + $network-topology-operation-input.service-information.service-instance-id  + '/service-data/networks/network/'  + $prop.sotn.network-id  + '/network-data/'` " />
+                <parameter name='connectivity-selflink' value="`'restconf/config/GENERIC-RESOURCE-API:services/service/'  + $network-topology-operation-input.service-information.service-instance-id  + '/service-data/networks/network/'  + $prop.sotn.network-id  + '/network-data/'` " />
             </save>
             <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list' 
       key='service-instance.service-instance-id = $service-data.service-information.service-instance-id 
          AND customer.global-customer-id = $service-data.networks.network[$nidx].network-data.service-information.global-customer-id 
          AND service-subscription.service-type = $service-data.networks.network[$nidx].network-data.service-information.subscription-service-type' 
       force="true" pfx="tmp.AnAI-data">
-                <parameter name="relationship-list.relationship[0].related-to" value="configuration" />
-                <parameter name="relationship-list.relationship[0].related-link" value="`'/network/configurations/configuration/' + $prop.sotn.network-id`" />
-                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="configuration.configuration-id" />
+                <parameter name="relationship-list.relationship[0].related-to" value="connectivity" />
+                <parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $prop.sotn.network-id`" />
+                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />
                 <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$prop.sotn.network-id`" />
             </save>
-            <set>
-                <parameter name='unique-src-ltpId' value="`'nodeId-' + $prop.sotn.src-access-node-id + '-ltpId-' + $prop.sotn.src-access-ltp-id`" />
-            </set>
             <return status='success'>
                 <parameter name="ack-final-indicator" value="Y" />
                 <parameter name="error-code" value="200" />
