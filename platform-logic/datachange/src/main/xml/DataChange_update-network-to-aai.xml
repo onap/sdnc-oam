@@ -9,35 +9,38 @@
                 <parameter name="target" value="/"/>
                 <parameter name="replacement" value="-"/>
             </execute>
-            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='zone' 
-      key='zone.zone-id = $tmp.network-id' >
-                <parameter name='zone-id' value='`$tmp.network-id`' />
-                <parameter name='zone-name' value='`$network.client-id`' />
-                <parameter name='design-type' value='`$network.te-topology-id`' />
-                <parameter name='zone-context' value='`$network.provider-id`' />
+            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='network-resource'  
+     key='network-resource.network-id = $tmp.network-id' >
+                <parameter name='network-id' value='`$tmp.network-id`' />
+                <parameter name='client-id' value='`$network.client-id`' />
+                <parameter name='te-topo-id' value='`$network.te-topology-id`' />
+                <parameter name='provider-id' value='`$network.provider-id`' />
             </save>
             <for index='pidx' start='0' end='`$network.node_length`' >
                 <set>
                     <parameter name='node.' value='`$network.node[$pidx].`' />
                 </set>
                 <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf' 
-      key='pnf.pnf-name = $node.node-id' >
+      key='network-resource.network-id = $tmp.network-id
+      AND pnf.pnf-name = $node.node-id' >
                     <parameter name='pnf-name' value='`$node.node-id`' />
                     <parameter name='pnf-id' value='`$node.node-id`' />
+                    <parameter name='operational-status' value='`$node.te.oper-status`' />
+                    <parameter name='admin-status' value='`$node.te.te-node-attributes.admin-status`' />
                     <parameter name='in-maint' value='true' />
                 </save>
                 <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf:relationship-list' 
       key='pnf.pnf-name = $node.node-id' force="true" pfx="tmp.AnAI-data">
-                    <parameter name="relationship-list.relationship[0].related-to" value="zone" />
-                    <parameter name="relationship-list.relationship[0].related-link" value="`'/network/zones/zone/' + $tmp.network-id`" />
-                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="zone.zone-id" />
+                    <parameter name="relationship-list.relationship[0].related-to" value="network-resource" />
+                    <parameter name="relationship-list.relationship[0].related-link" value="`'/network/network-resources/network-resource/' + $tmp.network-id`" />
+                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="network-resource.network-id" />
                     <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$tmp.network-id`" />
                 </save>
                 <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='esr-thirdparty-sdnc:relationship-list' 
       key='esr-thirdparty-sdnc.thirdparty-sdnc-id = $prop.sdncRestApi.thirdpartySdnc.id' 
       force="true" pfx="tmp.AnAI-data">
                     <parameter name="relationship-list.relationship[0].related-to" value="pnf" />
-                    <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $node.node-id`" />
+                    <parameter name="relationship-list.relationship[0].related-link" value="`'/network/network-resources/network-resource/' + $tmp.network-id + '/pnfs/pnf/' + $node.node-id`" />
                     <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="pnf.pnf-name" />
                     <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$node.node-id`" />
                 </save>
@@ -48,18 +51,21 @@
                     <set>
                         <parameter name='unique-ltpId' value="`'nodeId-' + $node.node-id + '-ltpId-' + $tp.te-tp-id`" />
                     </set>
-                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='logical-link' 
-      key='logical-link.link-name = $unique-ltpId' >
-                        <parameter name='link-name' value='`$unique-ltpId`' />
-                        <parameter name='link-type' value='VL' />
+                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface' 
+      key='network-resource.network-id = $tmp.network-id
+      AND pnf.pnf-name = $node.node-id
+      AND p-interface.interface-name = $unique-ltpId' >
+                        <parameter name='network-ref' value='`$tp.supporting-termination-point[0].network-ref`' />
+                        <parameter name='transparent' value='`$tp.svc.supported-classification.transparent`' />
                         <parameter name='speed-value' value='`$tp.te.interface-switching-capability[0].max-lsp-bandwidth[0].te-bandwidth.eth-bandwidth`' />
-                        <parameter name='in-maint' value='`$tp.svc.supported-classification.transparent`' />
+                        <parameter name='operational-status' value='`$tp.te.oper-status`' />
+                        <parameter name='in-maint' value="true" />
                     </save>
                     <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf:relationship-list' 
       key='pnf.pnf-name = $node.node-id' force="true" pfx="tmp.AnAI-data">
-                        <parameter name="relationship-list.relationship[0].related-to" value="logical-link" />
-                        <parameter name="relationship-list.relationship[0].related-link" value="`'/network/logical-links/logical-link/' + $unique-ltpId`" />
-                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="logical-link.link-name" />
+                        <parameter name="relationship-list.relationship[0].related-to" value="p-interface" />
+                        <parameter name="relationship-list.relationship[0].related-link" value="`'/network/network-resources/network-resource/' + $tmp.network-id + '/pnfs/pnf/' + $node.node-id '/p-interfaces/p-interface/' + $unique-ltpId`" />
+                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="p-interface.interface-name" />
                         <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$unique-ltpId`" />
                     </save>
                 </for>
