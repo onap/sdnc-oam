@@ -1,239 +1,239 @@
 [
-    {
-        "id": "8623b35d.0cf2f",
-        "type": "dgstart",
-        "name": "DGSTART",
-        "outputs": 1,
-        "x": 125.00390625,
-        "y": 106.00650644302368,
-        "z": "1ef7a393.52dc1c",
-        "wires": [
-            [
-                "e714b902.20b798"
-            ]
-        ]
-    },
-    {
-        "id": "e714b902.20b798",
-        "type": "service-logic",
-        "name": "DataChange ${project.version}",
-        "module": "DataChange",
-        "version": "${project.version}",
-        "comments": "",
-        "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>",
-        "outputs": 1,
-        "x": 327.0039291381836,
-        "y": 106.89541959762573,
-        "z": "1ef7a393.52dc1c",
-        "wires": [
-            [
-                "fb9820f4.4f92d"
-            ]
-        ]
-    },
-    {
-        "id": "fb9820f4.4f92d",
-        "type": "method",
-        "name": "method update-network-to-aai",
-        "xml": "<method rpc='update-network-to-aai' mode='sync'>\n",
-        "comments": "",
-        "outputs": 1,
-        "x": 336.1151580810547,
-        "y": 178.22874116897583,
-        "z": "1ef7a393.52dc1c",
-        "wires": [
-            [
-                "b1c5fee.fa526"
-            ]
-        ]
-    },
-    {
-        "id": "b1c5fee.fa526",
-        "type": "block",
-        "name": "block : atomic",
-        "xml": "<block atomic=\"true\">\n",
-        "atomic": "false",
-        "comments": "",
-        "outputs": 1,
-        "x": 583.3373489379883,
-        "y": 176.78443002700806,
-        "z": "1ef7a393.52dc1c",
-        "wires": [
-            [
-                "d5568e89.0fd49",
-                "65e1e67.b95e318",
-                "fcfec7b9.699088"
-            ]
-        ]
-    },
-    {
-        "id": "d5568e89.0fd49",
-        "type": "update",
-        "name": "save Zone",
-        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='zone' \n      key='zone.zone-id = $tmp.network-id' >\n<parameter name='zone-id' value='`$tmp.network-id`' />\n<parameter name='zone-name' value='`$network.client-id`' />\n<parameter name='design-type' value='`$network.te-topology-id`' />\n<parameter name='zone-context' value='`$network.provider-id`' />\n\n",
-        "comments": "",
-        "outputs": 1,
-        "x": 808.3371810913086,
-        "y": 176.00651788711548,
-        "z": "1ef7a393.52dc1c",
-        "wires": [
-            []
-        ]
-    },
-    {
-        "id": "af980bc1.1f72b8",
-        "type": "update",
-        "name": "save pnf",
-        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf' \n      key='pnf.pnf-name = $node.node-id' >\n<parameter name='pnf-name' value='`$node.node-id`' />\n<parameter name='pnf-id' value='`$node.node-id`' />\n<parameter name='in-maint' value='true' />\n\n",
-        "comments": "",
-        "outputs": 1,
-        "x": 1052.1150245666504,
-        "y": 271.11759901046753,
-        "z": "1ef7a393.52dc1c",
-        "wires": [
-            []
-        ]
-    },
-    {
-        "id": "65e1e67.b95e318",
-        "type": "for",
-        "name": "for each node",
-        "xml": "<for index='pidx' start='0' end='`$network.node_length`' >\n",
-        "comments": "",
-        "outputs": 1,
-        "x": 823.8927383422852,
-        "y": 339.33982038497925,
-        "z": "1ef7a393.52dc1c",
-        "wires": [
-            [
-                "af980bc1.1f72b8",
-                "476a4fdb.dc5f5",
-                "96688ca0.6a9f6",
-                "9b63a4a9.acd508",
-                "8140ea7f.0a90f8"
-            ]
-        ]
-    },
-    {
-        "id": "476a4fdb.dc5f5",
-        "type": "set",
-        "name": "set network",
-        "xml": "<set>\n<parameter name='node.' value='`$network.node[$pidx].`' />\n",
-        "comments": "",
-        "x": 1062.114990234375,
-        "y": 202.22872114181519,
-        "z": "1ef7a393.52dc1c",
-        "wires": []
-    },
-    {
-        "id": "96688ca0.6a9f6",
-        "type": "save",
-        "name": "save pnf relationship to zone in AAI",
-        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf:relationship-list' \n      key='pnf.pnf-name = $node.node-id' force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"zone\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/zones/zone/' + $tmp.network-id`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"zone.zone-id\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$tmp.network-id`\" />",
-        "comments": "",
-        "outputs": 1,
-        "x": 1138.7819213867188,
-        "y": 344.4509873390198,
-        "z": "1ef7a393.52dc1c",
-        "wires": [
-            []
-        ]
-    },
-    {
-        "id": "9b63a4a9.acd508",
-        "type": "for",
-        "name": "for each termination point",
-        "xml": "<for index='tidx' start='0' end='`$node.termination-point_length`' >\n",
-        "comments": "",
-        "outputs": 1,
-        "x": 1099.448387145996,
-        "y": 497.11759424209595,
-        "z": "1ef7a393.52dc1c",
-        "wires": [
-            [
-                "b34b1b54.abd288",
-                "66fee673.3f4e78",
-                "6031db9d.646964",
-                "3a479676.ca94ea"
-            ]
-        ]
-    },
-    {
-        "id": "b34b1b54.abd288",
-        "type": "set",
-        "name": "set termination point",
-        "xml": "<set>\n<parameter name='tp.' value='`$node.termination-point[$tidx].`' />\n",
-        "comments": "",
-        "x": 1480.1151962280273,
-        "y": 384.00655603408813,
-        "z": "1ef7a393.52dc1c",
-        "wires": []
-    },
-    {
-        "id": "66fee673.3f4e78",
-        "type": "update",
-        "name": "save logical-link",
-        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='logical-link' \n      key='logical-link.link-name = $unique-ltpId' >\n<parameter name='link-name' value='`$unique-ltpId`' />\n<parameter name='link-type' value='VL' />\n<parameter name='speed-value' value='`$tp.te.interface-switching-capability[0].max-lsp-bandwidth[0].te-bandwidth.eth-bandwidth`' />\n<parameter name='in-maint' value='`$tp.svc.supported-classification.transparent`' />\n\n",
-        "comments": "",
-        "outputs": 1,
-        "x": 1463.8188934326172,
-        "y": 509.5621018409729,
-        "z": "1ef7a393.52dc1c",
-        "wires": [
-            []
-        ]
-    },
-    {
-        "id": "6031db9d.646964",
-        "type": "save",
-        "name": "save pnf relationship to logical-link in AAI",
-        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf:relationship-list' \n      key='pnf.pnf-name = $node.node-id' force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"logical-link\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/logical-links/logical-link/' + $unique-ltpId`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"logical-link.link-name\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$unique-ltpId`\" />",
-        "comments": "",
-        "outputs": 1,
-        "x": 1542.7077331542969,
-        "y": 577.3398509025574,
-        "z": "1ef7a393.52dc1c",
-        "wires": [
-            []
-        ]
-    },
-    {
-        "id": "3a479676.ca94ea",
-        "type": "set",
-        "name": "set unique-ltpId",
-        "xml": "<set>\n<parameter name='unique-ltpId' value=\"`'nodeId-' + $node.node-id + '-ltpId-' + $tp.te-tp-id`\" />\n",
-        "comments": "",
-        "x": 1459.0040893554688,
-        "y": 445.1176323890686,
-        "z": "1ef7a393.52dc1c",
-        "wires": []
-    },
-    {
-        "id": "fcfec7b9.699088",
-        "type": "execute",
-        "name": "execute",
-        "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >\n    <parameter name=\"source\" value=\"`$network.network-id`\"/>\n    <parameter name=\"outputPath\" value=\"tmp.network-id\"/>\n    <parameter name=\"target\" value=\"/\"/>\n    <parameter name=\"replacement\" value=\"-\"/>\n    ",
-        "comments": "",
-        "outputs": 1,
-        "x": 796.9974060058594,
-        "y": 79.99999856948853,
-        "z": "1ef7a393.52dc1c",
-        "wires": [
-            []
-        ]
-    },
-    {
-        "id": "8140ea7f.0a90f8",
-        "type": "save",
-        "name": "save pnf relation with esr-thirdparty-sdnc",
-        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='esr-thirdparty-sdnc:relationship-list' \n      key='esr-thirdparty-sdnc.thirdparty-sdnc-id = $prop.sdncRestApi.thirdpartySdnc.id' \n      force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"pnf\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/pnfs/pnf/' + $node.node-id`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"pnf.pnf-name\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$node.node-id`\" />\n",
-        "comments": "",
-        "outputs": 1,
-        "x": 1119.00390625,
-        "y": 414.9999985694885,
-        "z": "1ef7a393.52dc1c",
-        "wires": [
-            []
-        ]
-    }
+  {
+    "id": "ead186d2.0f6828",
+    "type": "dgstart",
+    "name": "DGSTART",
+    "outputs": 1,
+    "x": 110,
+    "y": 82,
+    "z": "2ad194c2.78b59c",
+    "wires": [
+      [
+        "e5bcd36f.164ae"
+      ]
+    ]
+  },
+  {
+    "id": "e5bcd36f.164ae",
+    "type": "service-logic",
+    "name": "DataChange ${project.version}",
+    "module": "DataChange",
+    "version": "${project.version}",
+    "comments": "",
+    "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>",
+    "outputs": 1,
+    "x": 199.00003051757812,
+    "y": 172.88891220092773,
+    "z": "2ad194c2.78b59c",
+    "wires": [
+      [
+        "f6ea89fc.625028"
+      ]
+    ]
+  },
+  {
+    "id": "f6ea89fc.625028",
+    "type": "method",
+    "name": "method update-network-to-aai",
+    "xml": "<method rpc='update-network-to-aai' mode='sync'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 235.1112518310547,
+    "y": 243.22223663330078,
+    "z": "2ad194c2.78b59c",
+    "wires": [
+      [
+        "863e8ceb.57c48"
+      ]
+    ]
+  },
+  {
+    "id": "863e8ceb.57c48",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">\n",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 460.33343505859375,
+    "y": 242.77792358398438,
+    "z": "2ad194c2.78b59c",
+    "wires": [
+      [
+        "8e74b421.191e98",
+        "803b39dd.386858",
+        "d43f1da5.dc4b6"
+      ]
+    ]
+  },
+  {
+    "id": "803b39dd.386858",
+    "type": "update",
+    "name": "save network-resource",
+    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='network-resource'  \n     key='network-resource.network-id = $tmp.network-id' >\n<parameter name='network-id' value='`$tmp.network-id`' />\n<parameter name='client-id' value='`$network.client-id`' />\n<parameter name='te-topo-id' value='`$network.te-topology-id`' />\n<parameter name='provider-id' value='`$network.provider-id`' />\n\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 690.333251953125,
+    "y": 148.00001525878906,
+    "z": "2ad194c2.78b59c",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "e439623b.4f315",
+    "type": "update",
+    "name": "save pnf",
+    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf' \n      key='network-resource.network-id = $tmp.network-id\n      AND pnf.pnf-name = $node.node-id' >\n<parameter name='pnf-name' value='`$node.node-id`' />\n<parameter name='pnf-id' value='`$node.node-id`' />\n<parameter name='oper-status' value='`$node.te.oper-status`' />\n<parameter name='admin-status' value='`$node.te.te-node-attributes.admin-status`' />\n<parameter name='in-maint' value='true' />\n\n\n\n\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 880.1111450195312,
+    "y": 200.11109924316406,
+    "z": "2ad194c2.78b59c",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "d43f1da5.dc4b6",
+    "type": "for",
+    "name": "for each node",
+    "xml": "<for index='pidx' start='0' end='`$network.node_length`' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 666.8888549804688,
+    "y": 192.33331298828125,
+    "z": "2ad194c2.78b59c",
+    "wires": [
+      [
+        "e439623b.4f315",
+        "ef8e69fa.97b018",
+        "499bb267.5b465c",
+        "be8edd04.63c4d",
+        "940d7de9.6e0f8"
+      ]
+    ]
+  },
+  {
+    "id": "ef8e69fa.97b018",
+    "type": "set",
+    "name": "set network",
+    "xml": "<set>\n<parameter name='node.' value='`$network.node[$pidx].`' />\n",
+    "comments": "",
+    "x": 887.111083984375,
+    "y": 166.2222137451172,
+    "z": "2ad194c2.78b59c",
+    "wires": []
+  },
+  {
+    "id": "499bb267.5b465c",
+    "type": "save",
+    "name": "save pnf relationship to network-resource in AAI",
+    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf:relationship-list' \n      key='pnf.pnf-name = $node.node-id' force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"network-resource\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/network-resources/network-resource/' + $tmp.network-id`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"network-resource.network-id\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$tmp.network-id`\" />",
+    "comments": "",
+    "outputs": 1,
+    "x": 998.7780151367188,
+    "y": 233.44448852539062,
+    "z": "2ad194c2.78b59c",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "940d7de9.6e0f8",
+    "type": "for",
+    "name": "for each termination point",
+    "xml": "<for index='tidx' start='0' end='`$node.termination-point_length`' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 931.4444580078125,
+    "y": 349.111083984375,
+    "z": "2ad194c2.78b59c",
+    "wires": [
+      [
+        "c76492f9.50394",
+        "539a2a78.e58064",
+        "4ef53491.96368c",
+        "5adb74b7.4f324c"
+      ]
+    ]
+  },
+  {
+    "id": "c76492f9.50394",
+    "type": "set",
+    "name": "set termination point",
+    "xml": "<set>\n<parameter name='tp.' value='`$node.termination-point[$tidx].`' />\n",
+    "comments": "",
+    "x": 1198.111328125,
+    "y": 310.0000457763672,
+    "z": "2ad194c2.78b59c",
+    "wires": []
+  },
+  {
+    "id": "5adb74b7.4f324c",
+    "type": "update",
+    "name": "save p-interface",
+    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface' \n      key='network-resource.network-id = $tmp.network-id\n      AND pnf.pnf-name = $node.node-id\n      AND p-interface.interface-name = $unique-ltpId' >\n<parameter name='network-ref' value='`$tp.supporting-termination-point[0].network-ref`' />\n<parameter name='transparent' value='`$tp.svc.supported-classification.transparent`' />\n<parameter name='speed-value' value='`$tp.te.interface-switching-capability[0].max-lsp-bandwidth[0].te-bandwidth.eth-bandwidth`' />\n<parameter name='oper-status' value='`$tp.te.oper-status`' />\n<parameter name='in-maint' value=\"true\" />\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1181.8150634765625,
+    "y": 378.55560302734375,
+    "z": "2ad194c2.78b59c",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "539a2a78.e58064",
+    "type": "save",
+    "name": "save pnf relationship to p-interface in AAI",
+    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf:relationship-list' \n      key='pnf.pnf-name = $node.node-id' force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"p-interface\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/network-resources/network-resource/' + $tmp.network-id + '/pnfs/pnf/' + $node.node-id '/p-interfaces/p-interface/' + $unique-ltpId`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"p-interface.interface-name\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$unique-ltpId`\" />",
+    "comments": "",
+    "outputs": 1,
+    "x": 1259.703857421875,
+    "y": 416.3333435058594,
+    "z": "2ad194c2.78b59c",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "4ef53491.96368c",
+    "type": "set",
+    "name": "set unique-ltpId",
+    "xml": "<set>\n<parameter name='unique-ltpId' value=\"`'nodeId-' + $node.node-id + '-ltpId-' + $tp.te-tp-id`\" />\n",
+    "comments": "",
+    "x": 1182.000244140625,
+    "y": 344.1111145019531,
+    "z": "2ad194c2.78b59c",
+    "wires": []
+  },
+  {
+    "id": "8e74b421.191e98",
+    "type": "execute",
+    "name": "execute",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >\n    <parameter name=\"source\" value=\"`$network.network-id`\"/>\n    <parameter name=\"outputPath\" value=\"tmp.network-id\"/>\n    <parameter name=\"target\" value=\"/\"/>\n    <parameter name=\"replacement\" value=\"-\"/>\n    ",
+    "comments": "",
+    "outputs": 1,
+    "x": 639.9935302734375,
+    "y": 108.99349212646484,
+    "z": "2ad194c2.78b59c",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "be8edd04.63c4d",
+    "type": "save",
+    "name": "save pnf relation with esr-thirdparty-sdnc",
+    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='esr-thirdparty-sdnc:relationship-list' \n      key='esr-thirdparty-sdnc.thirdparty-sdnc-id = $prop.sdncRestApi.thirdpartySdnc.id' \n      force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"pnf\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/network-resources/network-resource/' + $tmp.network-id + '/pnfs/pnf/' + $node.node-id`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"pnf.pnf-name\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$node.node-id`\" />\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 980,
+    "y": 269.9934997558594,
+    "z": "2ad194c2.78b59c",
+    "wires": [
+      []
+    ]
+  }
 ]
