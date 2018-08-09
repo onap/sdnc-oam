@@ -4,7 +4,7 @@
     <method rpc='sotn-attachment-topology-operation-delete' mode='sync'>
         <block atomic="true">
             <set>
-                <parameter name='tmp.ar.allotted-resource-id' value='`connection-attachment-topology-operation-input.allotted-resource-information.allotted-resource-id`' />
+                <parameter name='tmp.ar.allotted-resource-id' value='`$connection-attachment-topology-operation-input.allotted-resource-information.allotted-resource-id`' />
                 <parameter name='tmp.ar.parent-service-instance-id' value='`$connection-attachment-topology-operation-input.allotted-resource-information.parent-service-instance-id`' />
             </set>
             <set>
@@ -64,7 +64,6 @@
                                         <set>
                                             <parameter name='tmp.cidx' value='`$cidx`' />
                                         </set>
-                                        <break></break>
                                     </block>
                                 </outcome>
                             </switch>
@@ -88,7 +87,19 @@
             <set>
                 <parameter name='tmp.ar.parent-service-instance-id' value="`$connection-attachment-topology-operation-input.allotted-resource-information.parent-service-instance-id` " />
             </set>
-            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.mdsal.ConfigResource' resource='GENERIC-RESOURCE-API' key='services/service/$tmp.ar.parent-service-instance-id/service-data' pfx='mdsal-psd' >
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                <parameter name="source" value="/restconf/config/GENERIC-RESOURCE-API:services/service/{service-instance-id}/service-data"/>
+                <parameter name="outputPath" value="tmp.ar-url-psd"/>
+                <parameter name="target" value="{service-instance-id}"/>
+                <parameter name="replacement" value="`$tmp.ar.parent-service-instance-id`"/>
+            </execute>
+            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.ar-url-psd`' />
+                <parameter name='restapiUser' value='`$prop.controller.user`' />
+                <parameter name='restapiPassword' value='`$prop.controller.pwd`' />
+                <parameter name='format' value='json' />
+                <parameter name='httpMethod' value='GET' />
+                <parameter name="responsePrefix" value="mdsal-psd" />
                 <outcome value='success'>
                     <block></block>
                 </outcome>
@@ -99,8 +110,8 @@
                         <parameter name="error-message" value="Error: SOTN resource not found" />
                     </return>
                 </outcome>
-            </get-resource>
-            <switch test='`$mdsal-psd.provided-allotted-resources.provided-allotted-resource_length`'>
+            </execute>
+            <switch test='`$mdsal-psd.service-data.provided-allotted-resources.provided-allotted-resource_length`'>
                 <outcome value=''>
                     <return status='failure'>
                         <parameter name='ack-final' value='Y'/>
@@ -110,14 +121,13 @@
                 </outcome>
                 <outcome value='Other'>
                     <block atomic="true">
-                        <for index='pidx' start='0' end='`$mdsal-psd.provided-allotted-resources.provided-allotted-resource_length`' >
-                            <switch test="`$mdsal-psd.provided-allotted-resources.provided-allotted-resource[$cidx].allotted-resource-id == $tmp.ar.allotted-resource-id`">
+                        <for index='pidx' start='0' end='`$mdsal-psd.service-data.provided-allotted-resources.provided-allotted-resource_length`' >
+                            <switch test="`$mdsal-psd.service-data.provided-allotted-resources.provided-allotted-resource[$pidx].allotted-resource-id == $tmp.ar.allotted-resource-id`">
                                 <outcome value='true'>
                                     <block atomic="true">
                                         <set>
                                             <parameter name='tmp.pidx' value='`$pidx`' />
                                         </set>
-                                        <break></break>
                                     </block>
                                 </outcome>
                             </switch>
@@ -136,7 +146,7 @@
             </switch>
             <set>
                 <parameter name="service-data.provided-allotted-resources.consumed-allotted-resource[$pidx]." value="" />
-                <parameter name='service-data.provided-allotted-resources.consumed-allotted-resource_length' value='`$service-data.provided-allotted-resources.consumed-allotted-resource_length - 1`' />
+                <parameter name="service-data.provided-allotted-resources.consumed-allotted-resource_length" value='`$service-data.provided-allotted-resources.consumed-allotted-resource_length - 1`' />
             </set>
             <set>
                 <parameter name='allotted-resource-id' value='`$tmp.ar.allotted-resource-id`' />
@@ -145,8 +155,8 @@
  + $connection-attachment-topology-operation-input.service-information.service-instance-id
  + '/service-data/service-topology/'`"/>
             </set>
-            <delete plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource='allotted-resource'
-                key="customer.global-customer-id = $connection-attachment-topology-operation-input.service-information.global-customer-id AND
+            <delete plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource='allotted-resource'  
+		key="customer.global-customer-id = $connection-attachment-topology-operation-input.service-information.global-customer-id AND
 			service-subscription.service-type = $connection-attachment-topology-operation-input.service-information.subscription-service-type AND
 			service-instance.service-instance-id = $connection-attachment-topology-operation-input.allotted-resource-information.parent-service-instance-id AND
 			allotted-resource.id = $tmp.ar.allotted-resource-id">
