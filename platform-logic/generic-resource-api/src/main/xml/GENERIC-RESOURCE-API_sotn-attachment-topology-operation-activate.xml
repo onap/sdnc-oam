@@ -4,7 +4,7 @@
     <method rpc='sotn-attachment-topology-operation-activate' mode='sync'>
         <block atomic="true">
             <set>
-                <parameter name='tmp.ar.allotted-resource-id' value='`connection-attachment-topology-operation-input.allotted-resource-information.allotted-resource-id`' />
+                <parameter name='tmp.ar.allotted-resource-id' value='`$connection-attachment-topology-operation-input.allotted-resource-information.allotted-resource-id`' />
                 <parameter name='tmp.ar.parent-service-instance-id' value='`$connection-attachment-topology-operation-input.allotted-resource-information.parent-service-instance-id`' />
             </set>
             <set>
@@ -22,7 +22,19 @@
                 <parameter name="target" value="{allotted-resource-id}"/>
                 <parameter name="replacement" value="`$tmp.ar.allotted-resource-id`"/>
             </execute>
-            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.mdsal.ConfigResource' resource='GENERIC-RESOURCE-API' key='connection-attachment-allotted-resources/connection-attachment-allotted-resource/$connection-attachment-topology-operation-input.allotted-resource-information.allotted-resource-id/' pfx='mdsal-ar' >
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                <parameter name="source" value="`$prop.restapi.connection-attachment-allottedresource`"/>
+                <parameter name="outputPath" value="tmp.ar-url-connection"/>
+                <parameter name="target" value="{allotted-resource-id}"/>
+                <parameter name="replacement" value="`$connection-attachment-topology-operation-input.allotted-resource-information.allotted-resource-id`"/>
+            </execute>
+            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.ar-url-connection`' />
+                <parameter name='restapiUser' value='`$prop.controller.user`' />
+                <parameter name='restapiPassword' value='`$prop.controller.pwd`' />
+                <parameter name='format' value='json' />
+                <parameter name='httpMethod' value='GET' />
+                <parameter name="responsePrefix" value="mdsal-ar" />
                 <outcome value='success'>
                     <block atomic="true">
                         <switch test='`$mdsal-ar.connection-attachment-allotted-resource_length`'>
@@ -55,7 +67,7 @@
                                 <return status='failure'>
                                     <parameter name='ack-final' value='Y'/>
                                     <parameter name="error-code" value="404" />
-                                    <parameter name="error-message" value="Error: SOTN resource not found" />
+                                    <parameter name="error-message" value="Error: Connection attachment resource not exist" />
                                 </return>
                             </outcome>
                         </switch>
@@ -66,18 +78,30 @@
                         <return status='failure'>
                             <parameter name='ack-final' value='Y'/>
                             <parameter name="error-code" value="404" />
-                            <parameter name="error-message" value="Error: SOTN resource not found" />
+                            <parameter name="error-message" value="Error: Connection attachment resource not exist" />
                         </return>
                     </block>
                 </outcome>
-            </get-resource>
+            </execute>
             <block atomic="true">
-                <call module='GENERIC-RESOURCE-API' rpc='connection-attachment-get-request-input-param' mode='sync' ></call>
+                <call module='GENERIC-RESOURCE-API' rpc='sotn-get-saved-ar-param' mode='sync' ></call>
             </block>
             <set>
                 <parameter name='tmp.ar.parent-service-instance-id' value="`$connection-attachment-topology-operation-input.allotted-resource-information.parent-service-instance-id` " />
             </set>
-            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.mdsal.ConfigResource' resource='GENERIC-RESOURCE-API' key='services/service/$tmp.ar.parent-service-instance-id/service-data' pfx='mdsal-psd' >
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                <parameter name="source" value="/restconf/config/GENERIC-RESOURCE-API:services/service/{service-instance-id}/service-data"/>
+                <parameter name="outputPath" value="tmp.ar-url-psd"/>
+                <parameter name="target" value="{service-instance-id}"/>
+                <parameter name="replacement" value="`$tmp.ar.parent-service-instance-id`"/>
+            </execute>
+            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.ar-url-psd`' />
+                <parameter name='restapiUser' value='`$prop.controller.user`' />
+                <parameter name='restapiPassword' value='`$prop.controller.pwd`' />
+                <parameter name='format' value='json' />
+                <parameter name='httpMethod' value='GET' />
+                <parameter name="responsePrefix" value="mdsal-psd" />
                 <outcome value='success'>
                     <block></block>
                 </outcome>
@@ -85,20 +109,20 @@
                     <return status='failure'>
                         <parameter name='ack-final' value='Y'/>
                         <parameter name="error-code" value="404" />
-                        <parameter name="error-message" value="Error: SOTN resource not found" />
+                        <parameter name="error-message" value="Error: Parent service data not available" />
                     </return>
                 </outcome>
-            </get-resource>
+            </execute>
             <set>
                 <parameter name='tmp.found-in-ar' value='false' />
                 <parameter name='tmp.found-in-network' value='false' />
                 <parameter name='tmp.ep-available' value='false' />
             </set>
-            <switch test='`$mdsal-psd.provided-allotted-resources.provided-allotted-resource_length`'>
+            <switch test='`$mdsal-psd.service-data.provided-allotted-resources.provided-allotted-resource_length`'>
                 <outcome value='2'>
                     <block atomic="true">
-                        <for index='pidx' start='0' end='`$mdsal-psd.provided-allotted-resources.provided-allotted-resource_length`' >
-                            <switch test="`$mdsal-psd.provided-allotted-resources.provided-allotted-resource[$cidx].allotted-resource-id == $tmp.ar.allotted-resource-id`">
+                        <for index='pidx' start='0' end='`$mdsal-psd.service-data.provided-allotted-resources.provided-allotted-resource_length`' >
+                            <switch test="`$mdsal-psd.service-data.provided-allotted-resources.provided-allotted-resource[$pidx].allotted-resource-id == $tmp.ar.allotted-resource-id`">
                                 <outcome value='true'>
                                     <block></block>
                                 </outcome>
@@ -106,11 +130,10 @@
                                     <block atomic="true">
                                         <set>
                                             <parameter name='tmp.pidx' value='`$pidx`' />
-                                            <parameter name='tmp.provided-ar.' value='`$mdsal-psd.provided-allotted-resources.provided-allotted-resource[$pidx].`' />
+                                            <parameter name='tmp.provided-ar.' value='`$mdsal-psd.service-data.provided-allotted-resources.provided-allotted-resource[$pidx].`' />
                                             <parameter name='tmp.found-in-ar' value='true' />
                                             <parameter name='tmp.ep-available' value='true' />
                                         </set>
-                                        <break></break>
                                     </block>
                                 </outcome>
                             </switch>
@@ -118,7 +141,19 @@
                         <switch test='`$tmp.found-in-ar`'>
                             <outcome value='true'>
                                 <block atomic="true">
-                                    <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.mdsal.ConfigResource' resource='GENERIC-RESOURCE-API' key='connection-attachment-allotted-resources/connection-attachment-allotted-resource/$tmp.provided-ar.allotted-resource-id/' pfx='mdsal-other-ar' >
+                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                                        <parameter name="source" value="`$prop.restapi.connection-attachment-allottedresource`"/>
+                                        <parameter name="outputPath" value="tmp.ar-other-url-connection"/>
+                                        <parameter name="target" value="{allotted-resource-id}"/>
+                                        <parameter name="replacement" value="`$tmp.provided-ar.allotted-resource-id`"/>
+                                    </execute>
+                                    <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                        <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.ar-other-url-connection`' />
+                                        <parameter name='restapiUser' value='`$prop.controller.user`' />
+                                        <parameter name='restapiPassword' value='`$prop.controller.pwd`' />
+                                        <parameter name='format' value='json' />
+                                        <parameter name='httpMethod' value='GET' />
+                                        <parameter name="responsePrefix" value="mdsal-other-ar" />
                                         <outcome value='success'>
                                             <block></block>
                                         </outcome>
@@ -129,7 +164,7 @@
                                                 <parameter name="error-message" value="Error: SOTN provided attachment resource not found" />
                                             </return>
                                         </outcome>
-                                    </get-resource>
+                                    </execute>
                                 </block>
                             </outcome>
                         </switch>
@@ -137,11 +172,11 @@
                 </outcome>
                 <outcome value='1'>
                     <block atomic="true">
-                        <switch test='`$mdsal-psd.networks.network_length`'>
+                        <switch test='`$mdsal-psd.service-data.networks.network_length`'>
                             <outcome value='1'>
                                 <block atomic="true">
                                     <set>
-                                        <parameter name='tmp.network.' value='`$mdsal-psd.networks.network[0].`' />
+                                        <parameter name='tmp.network.' value='`$mdsal-psd.service-data.networks.network[0].`' />
                                     </set>
                                     <for index='nidx' start='0' end='`$tmp.network.network-data.network-request-input.network-input-parameters.param_length`' >
                                         <block>
@@ -153,60 +188,60 @@
                                                     </set>
                                                 </outcome>
                                             </switch>
-                                            <switch test="`$tmp.network.network-data.network-request-input.network-input-parameters.param[$idx].name == 'name'`">
+                                            <switch test="`$tmp.network.network-data.network-request-input.network-input-parameters.param[$nidx].name == 'name'`">
                                                 <outcome value='true'>
                                                     <set>
-                                                        <parameter name='prop.global.sotn.etht-svc-name' value='`$tmp.network.network-data.network-request-input.network-input-parameters.param[$idx].value`' />
-                                                        <parameter name='prop.global.sotn.bandwidth-profile-name' value='`$tmp.network.network-data.network-request-input.network-input-parameters.param[$idx].value`' />
+                                                        <parameter name='prop.global.sotn.etht-svc-name' value='`$tmp.network.network-data.network-request-input.network-input-parameters.param[$nidx].value`' />
+                                                        <parameter name='prop.global.sotn.bandwidth-profile-name' value='`$tmp.network.network-data.network-request-input.network-input-parameters.param[$nidx].value`' />
                                                     </set>
                                                 </outcome>
                                             </switch>
-                                            <switch test="`$tmp.network.network-data.network-request-input.network-input-parameters.param[$idx].name == 'description'`">
+                                            <switch test="`$tmp.network.network-data.network-request-input.network-input-parameters.param[$nidx].name == 'description'`">
                                                 <outcome value='true'>
                                                     <set>
-                                                        <parameter name='prop.global.sotn.etht-svc-descr' value='`$tmp.network.network-data.network-request-input.network-input-parameters.param[$idx].value`' />
+                                                        <parameter name='prop.global.sotn.etht-svc-descr' value='`$tmp.network.network-data.network-request-input.network-input-parameters.param[$nidx].value`' />
                                                     </set>
                                                 </outcome>
                                             </switch>
-                                            <switch test="`$tmp.network.network-data.network-request-input.network-input-parameters.param[$idx].name == 'tenantId'`">
+                                            <switch test="`$tmp.network.network-data.network-request-input.network-input-parameters.param[$nidx].name == 'tenantId'`">
                                                 <outcome value='true'>
                                                     <set>
-                                                        <parameter name='prop.global.sotn.tenantId' value='`$tmp.network.network-data.network-request-input.network-input-parameters.param[$idx].value`' />
+                                                        <parameter name='prop.global.sotn.tenantId' value='`$tmp.network.network-data.network-request-input.network-input-parameters.param[$nidx].value`' />
                                                     </set>
                                                 </outcome>
                                             </switch>
-                                            <switch test="`$tmp.network.network-data.network-request-input.network-input-parameters.param[$idx].name == 'vpnType'`">
+                                            <switch test="`$tmp.network.network-data.network-request-input.network-input-parameters.param[$nidx].name == 'vpnType'`">
                                                 <outcome value='true'>
                                                     <set>
-                                                        <parameter name='prop.global.sotn.vpnType' value='`$tmp.network.network-data.network-request-input.network-input-parameters.param[$idx].value`' />
+                                                        <parameter name='prop.global.sotn.vpnType' value='`$tmp.network.network-data.network-request-input.network-input-parameters.param[$nidx].value`' />
                                                     </set>
                                                 </outcome>
                                             </switch>
-                                            <switch test="`$tmp.network.network-data.network-request-input.network-input-parameters.param[$idx].name == 'CIR'`">
+                                            <switch test="`$tmp.network.network-data.network-request-input.network-input-parameters.param[$nidx].name == 'CIR'`">
                                                 <outcome value='true'>
                                                     <set>
-                                                        <parameter name='prop.sotn.cir' value='`$tmp.network.network-data.network-request-input.network-input-parameters.param[$idx].value`' />
+                                                        <parameter name='prop.sotn.cir' value='`$tmp.network.network-data.network-request-input.network-input-parameters.param[$nidx].value`' />
                                                     </set>
                                                 </outcome>
                                             </switch>
-                                            <switch test="`$tmp.network.network-data.network-request-input.network-input-parameters.param[$idx].name == 'EIR'`">
+                                            <switch test="`$tmp.network.network-data.network-request-input.network-input-parameters.param[$nidx].name == 'EIR'`">
                                                 <outcome value='true'>
                                                     <set>
-                                                        <parameter name='prop.global.sotn.eir' value='`$tmp.network.network-data.network-request-input.network-input-parameters.param[$idx].value`' />
+                                                        <parameter name='prop.global.sotn.eir' value='`$tmp.network.network-data.network-request-input.network-input-parameters.param[$nidx].value`' />
                                                     </set>
                                                 </outcome>
                                             </switch>
-                                            <switch test="`$tmp.network.network-data.network-request-input.network-input-parameters.param[$idx].name == 'color-aware'`">
+                                            <switch test="`$tmp.network.network-data.network-request-input.network-input-parameters.param[$nidx].name == 'color-aware'`">
                                                 <outcome value='true'>
                                                     <set>
-                                                        <parameter name='prop.global.sotn.colorAware' value='`$tmp.network.network-data.network-request-input.network-input-parameters.param[$idx].value`' />
+                                                        <parameter name='prop.global.sotn.colorAware' value='`$tmp.network.network-data.network-request-input.network-input-parameters.param[$nidx].value`' />
                                                     </set>
                                                 </outcome>
                                             </switch>
-                                            <switch test="`$tmp.network.network-data.network-request-input.network-input-parameters.param[$idx].name == 'coupling-flag'`">
+                                            <switch test="`$tmp.network.network-data.network-request-input.network-input-parameters.param[$nidx].name == 'coupling-flag'`">
                                                 <outcome value='true'>
                                                     <set>
-                                                        <parameter name='prop.global.sotn.couplingFlag' value='`$tmp.network.network-data.network-request-input.network-input-parameters.param[$idx].value`' />
+                                                        <parameter name='prop.global.sotn.couplingFlag' value='`$tmp.network.network-data.network-request-input.network-input-parameters.param[$nidx].value`' />
                                                     </set>
                                                 </outcome>
                                             </switch>
@@ -233,7 +268,7 @@
                     <return status='failure'>
                         <parameter name='ack-final' value='Y'/>
                         <parameter name="error-code" value="404" />
-                        <parameter name="error-message" value="Error: SOTN resource not found" />
+                        <parameter name="error-message" value="Error: End points not available" />
                     </return>
                 </outcome>
             </switch>
@@ -247,19 +282,19 @@
                             <outcome value='true'>
                                 <block atomic="true">
                                     <set>
-                                        <parameter name='tmp.ep.parameters' value='`$mdsal-other-ar.allotted-resource-data.connection-attachment-topology.connection-attachment-parameters`' />
+                                        <parameter name='tmp.ep.parameters.' value='`$mdsal-other-ar.connection-attachment-allotted-resource[0].allotted-resource-data.allotted-resource-operation-information.connection-attachment-request-input.`' />
                                     </set>
                                 </block>
                             </outcome>
                             <outcome value='false'>
                                 <block atomic="true">
                                     <set>
-                                        <parameter name='tmp.ep.parameters' value='`$tmp.network.network-data.network-request-input.network-input-parameters`' />
+                                        <parameter name='tmp.ep.parameters.' value='`$tmp.network.network-data.network-request-input.network-input-parameters.`' />
                                     </set>
                                 </block>
                             </outcome>
                         </switch>
-                        <for index='idx' start='0' end='`$tmp.ep.parameters.param_length`' >
+                        <for index='idx' start='0' end='`$tmp.ep.parameters.param_length`'>
                             <block>
                                 <switch test="`$tmp.ep.parameters.param[$idx].name == 'access-node-id'`">
                                     <outcome value='true'>
@@ -320,7 +355,7 @@
                         <block atomic="true">
                             <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                                 <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/' + $prop.restapi.oof-getpath.templatefile`" />
-                                <parameter name="restapiUrl" value="`$prop.restapi.connection-oof-url'`" />
+                                <parameter name="restapiUrl" value="`$prop.restapi.connection-oof-url`" />
                                 <parameter name="restapiUser" value="`$prop.oof.user`" />
                                 <parameter name="restapiPassword" value="`$prop.oof.password`" />
                                 <parameter name="format" value="json"/>
@@ -335,11 +370,11 @@
                                     <return status='failure'>
                                         <parameter name='ack-final' value='Y'/>
                                         <parameter name="error-code" value="500" />
-                                        <parameter name="error-message" value="Error executing Create vpn rest api" />
+                                        <parameter name="error-message" value="Error executing OOF api" />
                                     </return>
                                 </outcome>
                                 <outcome value='success'>
-                                    <block atomic="true"></block>
+                                    <block></block>
                                 </outcome>
                             </execute>
                             <for index='vidx' start='0' end='`$oof.vpns_length`' >
@@ -424,7 +459,7 @@
                                         </outcome>
                                     </execute>
                                     <set>
-                                        <parameter name='tmp.vpnName' value='`$oof.vpn.access-node-id + '-' + $prop.global.sotn.etht-svc-name`' />
+                                        <parameter name='tmp.vpnName' value="`$oof.vpn.access-node-id + '-' + $prop.global.sotn.etht-svc-name`" />
                                     </set>
                                     <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding' 
       key='vpn-binding.vpn-id = $tmp.vpnName' >
@@ -445,7 +480,7 @@
                                         <parameter name='configuration-selflink' value="`'restconf/config/GENERIC-RESOURCE-API:services/service/'  + $network-topology-operation-input.service-information.service-instance-id  + '/service-data/networks/network/'  + $prop.sotn.network-id  + '/network-data/'` " />
                                     </save>
                                     <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding:relationship-list' 
-      key='vpn-binding.vpn-id = $tmp.vpnName 
+      key='vpn-binding.vpn-id = $tmp.vpnName' 
       force="true" pfx="tmp.AnAI-data">
                                         <parameter name="relationship-list.relationship[0].related-to" value="connectivity" />
                                         <parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $mdsal-psd.networks.network[0].network-id`" />
@@ -457,18 +492,18 @@
                                         <parameter name='dst-ltpId' value="`'nodeId-' + $oof.vpn.access-node-id + '-ltpId-' + $oof.vpn.dst-access-ltp-id`" />
                                     </set>
                                     <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding:relationship-list' 
-      key='vpn-binding.vpn-id = $tmp.vpnName 
+      key='vpn-binding.vpn-id = $tmp.vpnName' 
       force="true" pfx="tmp.AnAI-data">
                                         <parameter name="relationship-list.relationship[0].related-to" value="p-interface" />
-                                        <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/p-interfaces/p-interface/' + $src-ltpId`" />
+                                        <parameter name="relationship-list.relationship[0].related-link" value="`'/network/network-resources/network-resource/' + $mdsal-psd.service-data.networks.network[0].network-id + '/pnfs/pnf/' + $oof.vpn.access-node-id '/p-interfaces/p-interface/' + $src-ltpId`" />
                                         <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="p-interface.interface-name" />
                                         <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$src-ltpId`" />
                                     </save>
                                     <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding:relationship-list' 
-      key='vpn-binding.vpn-id = $tmp.vpnName 
+      key='vpn-binding.vpn-id = $tmp.vpnName' 
       force="true" pfx="tmp.AnAI-data">
                                         <parameter name="relationship-list.relationship[0].related-to" value="p-interface" />
-                                        <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/p-interfaces/p-interface/' + $dst-ltpId`" />
+                                        <parameter name="relationship-list.relationship[0].related-link" value="`'/network/network-resources/network-resource/' + $mdsal-psd.service-data.networks.network[0].network-id + '/pnfs/pnf/' + $oof.vpn.access-node-id '/p-interfaces/p-interface/' + $dst-ltpId`" />
                                         <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="p-interface.interface-name" />
                                         <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$dst-ltpId`" />
                                     </save>

@@ -48,7 +48,16 @@
                 <parameter name="target" value="{allotted-resource-id}"/>
                 <parameter name="replacement" value="`$tmp.ar.allotted-resource-id`"/>
             </execute>
-            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.mdsal.ConfigResource' resource='GENERIC-RESOURCE-API' key='connection-attachment-allotted-resources/connection-attachment-allotted-resource/$tmp.ar.allotted-resource-id/' pfx='mdsal-ar' >
+            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.ar-url`' />
+                <parameter name='restapiUser' value='`$prop.controller.user`' />
+                <parameter name='restapiPassword' value='`$prop.controller.pwd`' />
+                <parameter name='format' value='json' />
+                <parameter name='httpMethod' value='GET' />
+                <parameter name="responsePrefix" value="mdsal-ar" />
+                <outcome value='failure'>
+                    <block></block>
+                </outcome>
                 <outcome value='success'>
                     <block atomic="true">
                         <switch test='`$mdsal-ar.connection-attachment-allotted-resource_length`'>
@@ -62,7 +71,7 @@
                         </switch>
                     </block>
                 </outcome>
-            </get-resource>
+            </execute>
             <switch test='`$service-data.consumed-allotted-resources.consumed-allotted-resource_length`'>
                 <outcome value=''>
                     <set>
@@ -179,7 +188,7 @@ value="`$connection-attachment-ar-identifiers.`" />
                 <parameter name='connection-attachment-ar.allotted-resource-data.allotted-resource-oper-status.last-svc-request-id' value='`$connection-attachment-topology-operation-input.sdnc-request-header.svc-request-id`' />
                 <parameter name='connection-attachment-ar.allotted-resource-data.allotted-resource-oper-status.create-timestamp' value='`$tmp.current-time`' />
             </set>
-            <call module='GENERIC-RESOURCE-API' rpc='connection-attachment-get-request-input-param' mode='sync' ></call>
+            <call module='GENERIC-RESOURCE-API' rpc='sotn-get-saved-ar-param' mode='sync' ></call>
             <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                 <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/' + $prop.restapi.sotn-attachment.templatefile`" />
                 <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.ar-url`' />
@@ -220,13 +229,15 @@ value="`$connection-attachment-ar-identifiers.`" />
 			service-instance.service-instance-id = $connection-attachment-topology-operation-input.allotted-resource-information.parent-service-instance-id AND
 			allotted-resource.id = $tmp.ar.allotted-resource-id"
         pfx='pfx' local-only='false' force='false'>
+                <parameter name="id" value="`$tmp.ar.allotted-resource-id`" />
                 <parameter name="name" value="`$prop.connection-attachment.sotnVpnName`" />
                 <parameter name="access-provider-id" value="`$prop.connection-attachment.access-provider-id`" />
                 <parameter name="access-client-id" value="`$prop.connection-attachment.access-client-id`" />
                 <parameter name="access-topology-id" value="`$prop.connection-attachment.access-topology-id`" />
                 <parameter name="access-node-id" value="`$prop.connection-attachment.access-node-id`" />
                 <parameter name="access-ltp-id" value="`$prop.connection-attachment.access-ltp-id`" />
-                <parameter name="cvlan-tag-entry" value="`$prop.connection-attachment.cVLAN`" />
+                <parameter name="cvlan" value="`$prop.connection-attachment.cVLAN`" />
+                <parameter name="vpn-name" value="`$prop.connection-attachment.sotnVpnName`" />
                 <parameter name="selflink" value="`$tmp.ar.self-link`" />
                 <parameter name="model-invariant-id" value="`$connection-attachment-topology-operation-input.allotted-resource-information.onap-model-information.model-invariant-uuid`" />
                 <parameter name="model-version-id" value="`$connection-attachment-topology-operation-input.allotted-resource-information.onap-model-information.model-uuid`" />
