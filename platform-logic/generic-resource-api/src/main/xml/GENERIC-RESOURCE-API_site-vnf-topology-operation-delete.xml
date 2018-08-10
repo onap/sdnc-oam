@@ -3,14 +3,19 @@
     xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
     <method rpc='site-vnf-topology-operation-delete' mode='sync'>
         <block atomic="true">
-            <switch test='`$service-data.vnfs.vnf_length`'>
-                <outcome value='0'>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='requiredParameters' >
+                <parameter name="vnf-topology-operation-input.vnf-information.vnf-id" value="$vnf-topology-operation-input.vnf-information.vnf-id"/>
+            </execute>
+            <switch test="`$vnf-topology-operation-input.vnf-information.vnf-id`">
+                <outcome value=''>
                     <return status='failure'>
                         <parameter name='ack-final' value='Y'/>
                         <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="vnf-topology-operation-input.vnf-request-input.vnf-id not found in service-data" />
+                        <parameter name="error-message" value="vnf-request-input.vnf-input-parameters.name is a required input" />
                     </return>
                 </outcome>
+            </switch>
+            <switch test='`$service-data.vnfs.vnf_length`'>
                 <outcome value=''>
                     <return status='failure'>
                         <parameter name='ack-final' value='Y'/>
@@ -20,17 +25,17 @@
                 </outcome>
                 <outcome value='Other'>
                     <block atomic="true">
-                        <for index='vidx' start='0' end='`$service-data.vnfs.vnf_length`' >
-                            <switch test="`$service-data.vnfs.vnf[$vidx].vnf-id == $vnf-topology-operation-input.vnf-information.vnf-id`">
+                        <for index='nidx' start='0' end='`$service-data.vnfs.vnf_length`' >
+                            <switch test="`$service-data.vnfs.vnf[$nidx].vnf-id == $vnf-topology-operation-input.vnf-information.vnf-id`">
                                 <outcome value='true'>
                                     <set>
-                                        <parameter name='tmp.vidx' value='`$vidx`' />
-                                        <parameter name='ctx.vnf-data.' value='`$service-data.vnfs.vnf[$vidx].`' />
+                                        <parameter name='tmp.nidx' value='`$nidx`' />
+                                        <parameter name='ctx.vnf-data.' value='`$service-data.vnfs.vnf[$nidx].vnf-data.`' />
                                     </set>
                                 </outcome>
                             </switch>
                         </for>
-                        <switch test="`$tmp.vidx`">
+                        <switch test="`$tmp.nidx`">
                             <outcome value=''>
                                 <return status='failure'>
                                     <parameter name='ack-final' value='Y'/>
@@ -42,55 +47,32 @@
                     </block>
                 </outcome>
             </switch>
-            <switch test="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-level-oper-status.order-status == 'PendingDelete'`">
-                <outcome value='false'>
-                    <return status='failure'>
-                        <parameter name='ack-final' value='Y'/>
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="Cannot delete a VNF in a Created state" />
-                    </return>
-                </outcome>
-            </switch>
-            <switch test="`$ctx.vnf-data.vf-modules.vf-module_length`">
-                <outcome value='0'>
-                    <block></block>
-                </outcome>
-                <outcome value=''>
-                    <block></block>
+            <switch test='`$service-data.vnfs.vnf[$tmp.nidx].vnf-data.vnf-level-oper-status.order-status`'>
+                <outcome value='PendingDelete'>
+                    <block atomic="true"></block>
                 </outcome>
                 <outcome value='Other'>
                     <return status='failure'>
                         <parameter name='ack-final' value='Y'/>
                         <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="Cannot delete the VNF because there are VFs defined" />
+                        <parameter name="error-message" value="`'VNF is not in appropriate state for activate. Current state is ' + $service-data.vnfs.vnf[$tmp.nidx].vnf-data.vnf-level-oper-status.order-status`" />
                     </return>
                 </outcome>
             </switch>
-            <switch test='`$service-data.vnfs.vnf_length`'>
-                <outcome value='1'>
-                    <set>
-                        <parameter name="service-data.vnfs." value=""/>
-                    </set>
-                </outcome>
-                <outcome value='Other'>
-                    <block atomic="true">
-                        <for index='idx' start='`$vnf-index + 1`' end='`$service-data.vnfs.vnf_length`' >
-                            <set>
-                                <parameter name="$tmpidx" value="`$idx - 1`"/>
-                                <parameter name="service-data.vnfs.vnf[$tmpidx]." value="$service-data.vnfs.vnf[$idx]." />
-                            </set>
-                        </for>
-                        <set>
-                            <parameter name="service-data.vnfs.vnf[$service-data.vnfs.vnf_length-1]." value=""/>
-                        </set>
-                        <set>
-                            <parameter name="service-data.vnfs.vnf_length" value="`$service-data.vnfs.vnf_length - 1`"/>
-                        </set>
-                    </block>
-                </outcome>
-            </switch>
-            <delete plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='generic-vnf' 
-      key='generic-vnf.vnf-id = $prop.vnf-index' ></delete>
+            <set>
+                <parameter name="service-data.vnfs.vnf_length" value="`$service-data.vnfs.vnf_length - 1`"/>
+            </set>
+            <set>
+                <parameter name="service-data.vnfs.vnf[$tmp.nidx]." value=""/>
+            </set>
+            <set>
+                <parameter name='vnfId' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />
+                <parameter name='vnf-object-path' value="`'restconf/config/GENERIC-RESOURCE-API:services/service/'
+ + $vnf-topology-operation-input.service-information.service-instance-id
+ + '/service-data/service-topology/'` " />
+            </set>
+            <delete plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource='site-resource' 
+        key='site-resource.id = $vnf-topology-operation-input.vnf-information.vnf-id'></delete>
             <return status='success'>
                 <parameter name="ack-final-indicator" value="Y" />
                 <parameter name="error-code" value="200" />
