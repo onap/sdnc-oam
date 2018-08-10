@@ -188,7 +188,21 @@ value="`$connection-attachment-ar-identifiers.`" />
                 <parameter name='connection-attachment-ar.allotted-resource-data.allotted-resource-oper-status.last-svc-request-id' value='`$connection-attachment-topology-operation-input.sdnc-request-header.svc-request-id`' />
                 <parameter name='connection-attachment-ar.allotted-resource-data.allotted-resource-oper-status.create-timestamp' value='`$tmp.current-time`' />
             </set>
-            <call module='GENERIC-RESOURCE-API' rpc='sotn-get-saved-ar-param' mode='sync' ></call>
+            <block atomic="true">
+                <for index='i' start='0' end='`$connection-attachment-ar.allotted-resource-data.allotted-resource-operation-information.connection-attachment-request-input.param_length`' >
+                    <block atomic="true">
+                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                            <parameter name="original_string" value='`$connection-attachment-ar.allotted-resource-data.allotted-resource-operation-information.connection-attachment-request-input.param[$i].name`'/>
+                            <parameter name="regex" value="_"/>
+                            <parameter name="ctx_memory_result_key" value="param-prefix"/>
+                        </execute>
+                        <set>
+                            <parameter name="`connection-attachment-ar.allotted-resource-data.allotted-resource-operation-information.connection-attachment-request-input.param[$idx].name`" value='`$param-prefix[$param-prefix_length -1]`'/>
+                        </set>
+                    </block>
+                </for>
+                <call module='GENERIC-RESOURCE-API' rpc='sotn-get-saved-ar-param' mode='sync' ></call>
+            </block>
             <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                 <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/' + $prop.restapi.sotn-attachment.templatefile`" />
                 <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.ar-url`' />
