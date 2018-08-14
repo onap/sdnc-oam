@@ -1,0 +1,627 @@
+[
+  {
+    "id": "9c3e9355.a9b98",
+    "type": "dgstart",
+    "name": "DGSTART",
+    "outputs": 1,
+    "x": 211,
+    "y": 76,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      [
+        "ce33d12b.fedca"
+      ]
+    ]
+  },
+  {
+    "id": "ce33d12b.fedca",
+    "type": "service-logic",
+    "name": "GENERIC-RESOURCE-API ${project.version}",
+    "module": "GENERIC-RESOURCE-API",
+    "version": "${project.version}",
+    "comments": "",
+    "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>",
+    "outputs": 1,
+    "x": 286.28570556640625,
+    "y": 116.23811149597168,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      [
+        "5efe4e61.39e9f"
+      ]
+    ]
+  },
+  {
+    "id": "5efe4e61.39e9f",
+    "type": "method",
+    "name": "method sdwan-vnf-topology-operation-device-deactivate",
+    "xml": "<method rpc='sdwan-vnf-topology-operation-device-deactivate' mode='sync'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 279.42862701416016,
+    "y": 155.9999942779541,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      [
+        "dd73ee5c.ac516"
+      ]
+    ]
+  },
+  {
+    "id": "dd73ee5c.ac516",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">",
+    "atomic": "true",
+    "outputs": 1,
+    "x": 304.1667289733887,
+    "y": 346.69354248046875,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      [
+        "e4601a05.8a4688",
+        "9a1b232.90c38e",
+        "73fbd09e.9edc3",
+        "3e61d24c.5cc44e",
+        "1587e9e4.574f16",
+        "3781959e.04703a",
+        "2a98908a.1304b",
+        "7025602.36919a",
+        "f4083614.bed898",
+        "f8b84934.c5f1e8",
+        "e2ef718b.f3132",
+        "274a3fd3.76447",
+        "5ee6b514.0ecf0c"
+      ]
+    ]
+  },
+  {
+    "id": "e4601a05.8a4688",
+    "type": "set",
+    "name": "set vnf in service-data",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-id' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />\n<parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.sdnc-request-header.' value='`$vnf-topology-operation-input.sdnc-request-header.`' />\n<parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.request-information.' value='`$vnf-topology-operation-input.request-information.`' />\n<parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.service-information.' value='`$vnf-topology-operation-input.service-information.`' />\n<parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-information.' value='`$vnf-topology-operation-input.vnf-information.`' />",
+    "comments": "",
+    "x": 560.0000762939453,
+    "y": 769.0002317428589,
+    "z": "73283ddb.ad1024",
+    "wires": []
+  },
+  {
+    "id": "9a1b232.90c38e",
+    "type": "set",
+    "name": "set vnfId and vnf-object-path",
+    "xml": "<set>\n<parameter name='vnfId' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />\n<parameter name=\"vnf-object-path\" value=\"`'restconf/config/GENERIC-RESOURCE-API:services/service/'  + $vnf-topology-operation-input.service-information.service-instance-id  + '/service-data/vnfs/vnf/'  + $vnf-topology-operation-input.vnf-information.vnf-id  + '/vnf-data/'` \" />",
+    "comments": "",
+    "x": 581.5556182861328,
+    "y": 811.2224426269531,
+    "z": "73283ddb.ad1024",
+    "wires": []
+  },
+  {
+    "id": "1587e9e4.574f16",
+    "type": "returnSuccess",
+    "name": "return success",
+    "xml": "<return status='success'>\n<parameter name=\"ack-final-indicator\" value=\"Y\" />\n<parameter name=\"error-code\" value=\"200\" />\n<parameter name=\"error-message\" value=\"`$error-message`\" />\n",
+    "comments": "",
+    "x": 540.3334503173828,
+    "y": 973.7777910232544,
+    "z": "73283ddb.ad1024",
+    "wires": []
+  },
+  {
+    "id": "73fbd09e.9edc3",
+    "type": "update",
+    "name": "update SDWAN DeviceInstance status to AAI",
+    "xml": "<update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='device' \n      key='device.id = $vnf-topology-operation-input.vnf-information.vnf-id' >\n<parameter name='id' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />\n<parameter name='operational-status' value='PendingDelete' />",
+    "comments": "",
+    "outputs": 1,
+    "x": 630.6630401611328,
+    "y": 914.1478223800659,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "3e61d24c.5cc44e",
+    "type": "set",
+    "name": "set vnf-level-oper-status to PendingDelete",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-level-oper-status.order-status' value='PendingDelete' />\n<parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-level-oper-status.last-rpc-action' value='`$vnf-topology-operation-input.sdnc-request-header.svc-action`' />\n<parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-level-oper-status.last-action' value='`$vnf-topology-operation-input.request-information.request-action`' />\n",
+    "comments": "",
+    "x": 620.0001068115234,
+    "y": 868.0001993179321,
+    "z": "73283ddb.ad1024",
+    "wires": []
+  },
+  {
+    "id": "e2ef718b.f3132",
+    "type": "get-resource",
+    "name": "get-resource esr-thirdparty-sdnc",
+    "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"esr-thirdparty-sdnc\" \n\t\tkey=\"esr-thirdparty-sdnc.thirdparty-sdnc-id = SDWAN-Controller AND \n\t\t     depth = '1'\"\n        pfx='tmp.aai.esr-thirdparty-sdnc' local-only='false' >\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 586.5555725097656,
+    "y": 395.99996280670166,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      [
+        "5f923fb2.e6dac",
+        "d9f1fd79.ec60b",
+        "917e23b.f000ae"
+      ]
+    ]
+  },
+  {
+    "id": "5f923fb2.e6dac",
+    "type": "success",
+    "name": "success",
+    "xml": "<outcome value='success'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 813.5555801391602,
+    "y": 323.99996185302734,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      [
+        "fec9d567.919a68"
+      ]
+    ]
+  },
+  {
+    "id": "fec9d567.919a68",
+    "type": "set",
+    "name": "set controller data",
+    "xml": "<set>\n<parameter name='prop.sdncRestApi.thirdpartySdnc.url' value=\"`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].service-url`\" />\n<parameter name='prop.sdncRestApi.thirdpartySdnc.user' value=\"`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].user-name`\" />\n<parameter name='prop.sdncRestApi.thirdpartySdnc.password' value=\"`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].password`\" />\n",
+    "comments": "",
+    "x": 1012.0556945800781,
+    "y": 314.999960899353,
+    "z": "73283ddb.ad1024",
+    "wires": []
+  },
+  {
+    "id": "d9f1fd79.ec60b",
+    "type": "not-found",
+    "name": "not-found",
+    "xml": "<outcome value='not-found'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 816.0465087890625,
+    "y": 356.573974609375,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      [
+        "8773c32.44abd4"
+      ]
+    ]
+  },
+  {
+    "id": "8773c32.44abd4",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'An error occurred while querying esr-thirdparty-sdnc from AnAI with thirdparty-sdnc-id = ' + $tmp.thirdparty-sdnc-id`\" />\n\n",
+    "comments": "",
+    "x": 992.617977142334,
+    "y": 353.85972690582275,
+    "z": "73283ddb.ad1024",
+    "wires": []
+  },
+  {
+    "id": "917e23b.f000ae",
+    "type": "other",
+    "name": "other",
+    "xml": "<outcome value='Other'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 808.3795166015625,
+    "y": 397.90728759765625,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      [
+        "639cc54c.25461c"
+      ]
+    ]
+  },
+  {
+    "id": "639cc54c.25461c",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'Unexpected error occurred while querying esr-thirdparty-sdnc from AnAI with thirdparty-sdnc-id = ' + $tmp.thirdparty-sdnc-id`\" />\n\n",
+    "comments": "",
+    "x": 996.1520729064941,
+    "y": 393.34648036956787,
+    "z": "73283ddb.ad1024",
+    "wires": []
+  },
+  {
+    "id": "274a3fd3.76447",
+    "type": "execute",
+    "name": "execute RestApiCallNode Get token",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n<parameter name=\"templateFileName\" value=\"`$prop.restapi.templateDir + '/sdwan-device.json'`\" />\n<parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/v2/tokens'`\" />\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"post\"/>\n<parameter name=\"responsePrefix\" value=\"token-result\"/>\n<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.openecomp.client.jks\"/>\n<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>\n<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>\n<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>",
+    "comments": "",
+    "outputs": 1,
+    "x": 609.4442253112793,
+    "y": 462.1111717224121,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      [
+        "8dc1f56a.c9edd8",
+        "2d6a0c7e.fec4b4"
+      ]
+    ]
+  },
+  {
+    "id": "8dc1f56a.c9edd8",
+    "type": "success",
+    "name": "success",
+    "xml": "<outcome value='success'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 844.4442253112793,
+    "y": 440.1111717224121,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      [
+        "cafcbbb3.279d28"
+      ]
+    ]
+  },
+  {
+    "id": "2d6a0c7e.fec4b4",
+    "type": "failure",
+    "name": "failure",
+    "xml": "<outcome value='failure'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 836.6942253112793,
+    "y": 493.75405502319336,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      [
+        "2bb735a3.ef2caa"
+      ]
+    ]
+  },
+  {
+    "id": "cafcbbb3.279d28",
+    "type": "set",
+    "name": "set token-id",
+    "xml": "<set>\n<parameter name='prop.sdncRestApi.token_id' value='`$token-result.data.token_id`' />\n",
+    "comments": "",
+    "x": 998.4442253112793,
+    "y": 441.1111717224121,
+    "z": "73283ddb.ad1024",
+    "wires": []
+  },
+  {
+    "id": "11e446ee.b59549",
+    "type": "success",
+    "name": "success",
+    "xml": "<outcome value='success'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 945.5554428100586,
+    "y": 677.1112051010132,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      [
+        "edc154b6.909958"
+      ]
+    ]
+  },
+  {
+    "id": "edc154b6.909958",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">",
+    "atomic": "true",
+    "comments": "",
+    "outputs": 1,
+    "x": 1116.6664581298828,
+    "y": 675.8890256881714,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "2bb735a3.ef2caa",
+    "type": "block",
+    "name": "block",
+    "xml": "<block>\n",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 984.5552673339844,
+    "y": 490.00000381469727,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "d5f90150.5efad",
+    "type": "comment",
+    "name": "Do Nothing",
+    "info": "",
+    "comments": "",
+    "x": 1120.1108411153155,
+    "y": 488.88887956407336,
+    "z": "73283ddb.ad1024",
+    "wires": []
+  },
+  {
+    "id": "9375b3d1.4ccfc",
+    "type": "failure",
+    "name": "failure",
+    "xml": "<outcome value='failure'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 942.1109962463379,
+    "y": 730.4444913864136,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      [
+        "4a4ccb7.2656134"
+      ]
+    ]
+  },
+  {
+    "id": "4a4ccb7.2656134",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error executing Create vpn rest api\" />\n",
+    "comments": "",
+    "x": 1087.110996246338,
+    "y": 733.4444913864136,
+    "z": "73283ddb.ad1024",
+    "wires": []
+  },
+  {
+    "id": "4f2b12fc.8ccc3c",
+    "type": "comment",
+    "name": "deviceId need to provide here?",
+    "info": "",
+    "comments": "",
+    "x": 581.3333320617676,
+    "y": 528,
+    "z": "73283ddb.ad1024",
+    "wires": []
+  },
+  {
+    "id": "f5a0eb00.de7588",
+    "type": "comment",
+    "name": "tmp.thirdparty-sdnc-id to be hardcoded here?",
+    "info": "",
+    "comments": "",
+    "x": 635.333366394043,
+    "y": 315.0000591278076,
+    "z": "73283ddb.ad1024",
+    "wires": []
+  },
+  {
+    "id": "a4f6705d.1d73",
+    "type": "returnSuccess",
+    "name": "return success",
+    "xml": "<return status='success'>\n<parameter name=\"ack-final-indicator\" value=\"Y\" />\n<parameter name=\"error-code\" value=\"200\" />\n<parameter name=\"error-message\" value=\"`$error-message`\" />\n",
+    "comments": "",
+    "x": 875.3332824707031,
+    "y": 1718.3333358764648,
+    "z": "73283ddb.ad1024",
+    "wires": []
+  },
+  {
+    "id": "3781959e.04703a",
+    "type": "for",
+    "name": "for vidx..service-data.vnfs.vnf_length[]",
+    "xml": "<for index='vidx' start='0' end='`$service-data.vnfs.vnf_length`' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 619.03125,
+    "y": 244.03125,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      [
+        "a8d53377.9812d"
+      ]
+    ]
+  },
+  {
+    "id": "a8d53377.9812d",
+    "type": "block",
+    "name": "block",
+    "xml": "<block>\n",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 867.3808441162109,
+    "y": 244.5713176727295,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      [
+        "80a46b1e.d041d8"
+      ]
+    ]
+  },
+  {
+    "id": "80a46b1e.d041d8",
+    "type": "switchNode",
+    "name": "switch vnfid found",
+    "xml": "<switch test=\"`$service-data.vnfs.vnf[$vidx].vnf-id == $vnf-topology-operation-input.vnf-information.vnf-id`\">\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1021.4604415893555,
+    "y": 244.28139972686768,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      [
+        "42dc4574.ff70ac"
+      ]
+    ]
+  },
+  {
+    "id": "89ce8e98.fff87",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">",
+    "atomic": "true",
+    "outputs": 1,
+    "x": 1315.0579528808594,
+    "y": 245.58171272277832,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      [
+        "68c86c18.1fc774",
+        "3e5b1306.9b698c",
+        "50ffba36.d6fac4"
+      ]
+    ]
+  },
+  {
+    "id": "42dc4574.ff70ac",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1176.4124336242676,
+    "y": 245.17407894134521,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      [
+        "89ce8e98.fff87"
+      ]
+    ]
+  },
+  {
+    "id": "3e5b1306.9b698c",
+    "type": "set",
+    "name": "set vnf-request-input.",
+    "xml": "<set>\n<parameter name='vnf-request-input.' value='`$ctx.vnf-data.vnf-data.vnf-request-input.`' />\n\n",
+    "comments": "",
+    "x": 1556.3908081054688,
+    "y": 201.58177280426025,
+    "z": "73283ddb.ad1024",
+    "wires": []
+  },
+  {
+    "id": "68c86c18.1fc774",
+    "type": "set",
+    "name": "set tmp.vidx and ctx.vnf-data",
+    "xml": "<set>\n<parameter name='tmp.vidx' value='`$vidx`' />\n<parameter name='ctx.vnf-data.' value='`$service-data.vnfs.vnf[$vidx].`' />\n",
+    "comments": "",
+    "x": 1583.9445190429688,
+    "y": 154.92413711547852,
+    "z": "73283ddb.ad1024",
+    "wires": []
+  },
+  {
+    "id": "50ffba36.d6fac4",
+    "type": "call",
+    "name": "call sdwan-get-device-param",
+    "xml": "<call module='GENERIC-RESOURCE-API' rpc='sdwan-get-device-param' mode='sync' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1561.0312576293945,
+    "y": 264.0312433242798,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "2a98908a.1304b",
+    "type": "switchNode",
+    "name": "switch tmp.vidx ",
+    "xml": "<switch test=\"`$tmp.vidx`\">\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 536.03125,
+    "y": 286.03125,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      [
+        "ebb7bd09.45a41"
+      ]
+    ]
+  },
+  {
+    "id": "ebb7bd09.45a41",
+    "type": "outcome",
+    "name": "NULL",
+    "xml": "<outcome value=''>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 683.4598922729492,
+    "y": 285.6026601791382,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      [
+        "94eadd89.567a"
+      ]
+    ]
+  },
+  {
+    "id": "94eadd89.567a",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"vnf-topology-operation-input.vnf-request-input.vnf-id not found in service-data\" />\n",
+    "comments": "",
+    "x": 832.8886184692383,
+    "y": 286.7455778121948,
+    "z": "73283ddb.ad1024",
+    "wires": []
+  },
+  {
+    "id": "5ee6b514.0ecf0c",
+    "type": "execute",
+    "name": "execute RestApiCallNode delete Devcie Instance",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n<parameter name=\"templateFileName\" value=\"`$prop.restapi.templateDir + '/sdwan-device-del.json'`\" />\n<parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v3/devices'`\" />\n<parameter name=\"restapiUser\" value=\"`$prop.sdncRestApi.thirdpartySdnc.user`\" />\n<parameter name=\"restapiPassword\" value=\"`$prop.sdncRestApi.thirdpartySdnc.password`\" />\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"delete\"/>\n<parameter name=\"responsePrefix\" value=\"deviceResp\"/>\n<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.openecomp.client.jks\"/>\n<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>\n<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>\n<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>\n<parameter name='customHttpHeaders' value=\"`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`\" />",
+    "comments": "",
+    "outputs": 1,
+    "x": 652.0313262939453,
+    "y": 700.0313568115234,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      [
+        "11e446ee.b59549",
+        "9375b3d1.4ccfc"
+      ]
+    ]
+  },
+  {
+    "id": "7025602.36919a",
+    "type": "execute",
+    "name": "execute Properties",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >\n    <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />\n    <parameter name='contextPrefix' value='prop' />\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 560.03125,
+    "y": 350.03125,
+    "z": "73283ddb.ad1024",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "f4083614.bed898",
+    "type": "set",
+    "name": "set device Id length and deviceId",
+    "xml": "<set>\n<parameter name='prop.devices[0]' value='`$prop.device.deviceId`' />\n\n\n",
+    "comments": "",
+    "x": 602.0312652587891,
+    "y": 645.0312666893005,
+    "z": "73283ddb.ad1024",
+    "wires": []
+  },
+  {
+    "id": "f8b84934.c5f1e8",
+    "type": "set",
+    "name": "set device Id length and deviceId",
+    "xml": "<set>\n<parameter name='prop.devices_length' value='1' />\n\n\n",
+    "comments": "",
+    "x": 596.03125,
+    "y": 595.03125,
+    "z": "73283ddb.ad1024",
+    "wires": []
+  }
+]
