@@ -39,101 +39,12 @@
                     <set>
                         <parameter name="`vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].name`" value='`$param-prefix[$param-prefix_length -1]`'/>
                     </set>
-                    <switch test="`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].name == 'name'`">
-                        <outcome value='true'>
-                            <set>
-                                <parameter name='prop.site.name' value='`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].value`' />
-                            </set>
-                        </outcome>
-                    </switch>
-                    <switch test="`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].name == 'location-name'`">
-                        <outcome value='true'>
-                            <set>
-                                <parameter name='prop.site.location-name' value='`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].value`' />
-                            </set>
-                        </outcome>
-                    </switch>
-                    <switch test="`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].name == 'address'`">
-                        <outcome value='true'>
-                            <set>
-                                <parameter name='prop.site.location-address' value='`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].value`' />
-                            </set>
-                        </outcome>
-                    </switch>
-                    <switch test="`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].name == 'postcode'`">
-                        <outcome value='true'>
-                            <set>
-                                <parameter name='prop.site.location-postcode' value='`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].value`' />
-                            </set>
-                        </outcome>
-                    </switch>
-                    <switch test="`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].name == 'latitude'`">
-                        <outcome value='true'>
-                            <set>
-                                <parameter name='prop.site.location-latitude' value='`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].value`' />
-                            </set>
-                        </outcome>
-                    </switch>
-                    <switch test="`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].name == 'longitude'`">
-                        <outcome value='true'>
-                            <set>
-                                <parameter name='prop.site.location-latitude' value='`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].value`' />
-                            </set>
-                        </outcome>
-                    </switch>
-                    <switch test="`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].name == 'emails'`">
-                        <outcome value='true'>
-                            <block atomic="true">
-                                <set>
-                                    <parameter name='prop.site.emails' value='`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].value`' />
-                                </set>
-                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
-                                    <parameter name="original_string" value='`$prop.site.emails`'/>
-                                    <parameter name="regex" value=","/>
-                                    <parameter name="ctx_memory_result_key" value="prop.site.email"/>
-                                </execute>
-                            </block>
-                        </outcome>
-                    </switch>
-                    <switch test="`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].name == 'type'`">
-                        <outcome value='true'>
-                            <set>
-                                <parameter name='prop.site.type' value='`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].value`' />
-                                <parameter name='prop.site.sdwan' value="true" />
-                            </set>
-                        </outcome>
-                    </switch>
-                    <switch test="`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].name == 'role'`">
-                        <outcome value='true'>
-                            <block atomic="true">
-                                <set>
-                                    <parameter name='prop.site.role' value='`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].value`' />
-                                    <parameter name='prop.site.sdwan' value="true" />
-                                </set>
-                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
-                                    <parameter name="original_string" value='`$prop.site.role`'/>
-                                    <parameter name="regex" value=","/>
-                                    <parameter name="ctx_memory_result_key" value="prop.site.roles"/>
-                                </execute>
-                            </block>
-                        </outcome>
-                    </switch>
-                    <switch test="`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].name == 'controlPoints'`">
-                        <outcome value='true'>
-                            <block atomic="true">
-                                <set>
-                                    <parameter name='prop.site.controlPoint' value='`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].value`' />
-                                </set>
-                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
-                                    <parameter name="original_string" value='`$prop.site.controlPoint`'/>
-                                    <parameter name="regex" value=","/>
-                                    <parameter name="ctx_memory_result_key" value="prop.site.controlpoints"/>
-                                </execute>
-                            </block>
-                        </outcome>
-                    </switch>
                 </block>
             </for>
+            <set>
+                <parameter name='vnf-request-input.' value='`$vnf-topology-operation-input.vnf-request-input.`' />
+            </set>
+            <call module='GENERIC-RESOURCE-API' rpc='sdwan-get-site-param' mode='sync' ></call>
             <set>
                 <parameter name='service-data.vnfs.vnf_length' value='`$vnf-index + 1`' />
             </set>
