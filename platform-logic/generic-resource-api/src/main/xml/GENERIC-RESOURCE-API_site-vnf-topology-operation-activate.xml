@@ -3,6 +3,9 @@
     xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
     <method rpc='site-vnf-topology-operation-activate' mode='sync'>
         <block atomic="true">
+            <set>
+                <parameter name='prop.site.sdwan' value="false" />
+            </set>
             <switch test='`$service-data.vnfs.vnf_length`'>
                 <outcome value='0'>
                     <return status='failure'>
@@ -27,10 +30,22 @@
                             <block>
                                 <switch test="`$service-data.vnfs.vnf[$vidx].vnf-id == $vnf-topology-operation-input.vnf-information.vnf-id`">
                                     <outcome value='true'>
-                                        <set>
-                                            <parameter name='tmp.vidx' value='`$vidx`' />
-                                            <parameter name='ctx.vnf-data.' value='`$service-data.vnfs.vnf[$vidx].`' />
-                                        </set>
+                                        <block atomic="true">
+                                            <set>
+                                                <parameter name='tmp.vidx' value='`$vidx`' />
+                                                <parameter name='ctx.vnf-data.' value='`$service-data.vnfs.vnf[$vidx].`' />
+                                            </set>
+                                            <set>
+                                                <parameter name='vnf-request-input.' value='`$ctx.vnf-data.vnf-data.vnf-request-input.`' />
+                                            </set>
+                                            <call module='GENERIC-RESOURCE-API' rpc='sdwan-get-site-param' mode='sync' ></call>
+                                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                                <parameter name="file" value="/opt/opendaylight/current/data/log/svclogic.log"/>
+                                                <parameter name="field1" value="__TIMESTAMP__"/>
+                                                <parameter name="field2" value="sdwan-site-activateeeee-delete"/>
+                                                <parameter name="field3" value='`$prop.site.sdwan`'/>
+                                            </record>
+                                        </block>
                                     </outcome>
                                 </switch>
                                 <switch test="`$service-data.vnfs.vnf[$vidx].vnf-data.request-information.request-action == 'ActivateSDWANDeviceInstance'`">
@@ -65,119 +80,60 @@
                     </block>
                 </outcome>
             </switch>
-            <set>
-                <parameter name='prop.site.sdwan' value="false" />
-            </set>
             <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
                 <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />
                 <parameter name='contextPrefix' value='prop' />
             </execute>
-            <for index='idx' start='0' end='`$service-data.vnfs.vnf[$vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length`' >
-                <block>
-                    <switch test="`$service-data.vnfs.vnf[$vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].name == 'name'`">
-                        <outcome value='true'>
-                            <set>
-                                <parameter name='prop.site.name' value='`$service-data.vnfs.vnf[$vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].value`' />
-                            </set>
-                        </outcome>
-                    </switch>
-                    <switch test="`$service-data.vnfs.vnf[$vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].name == 'location-name'`">
-                        <outcome value='true'>
-                            <set>
-                                <parameter name='prop.site.location-name' value='`$service-data.vnfs.vnf[$vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].value`' />
-                            </set>
-                        </outcome>
-                    </switch>
-                    <switch test="`$service-data.vnfs.vnf[$vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].name == 'address'`">
-                        <outcome value='true'>
-                            <set>
-                                <parameter name='prop.site.location-address' value='`$service-data.vnfs.vnf[$vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].value`' />
-                            </set>
-                        </outcome>
-                    </switch>
-                    <switch test="`$service-data.vnfs.vnf[$vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].name == 'postcode'`">
-                        <outcome value='true'>
-                            <set>
-                                <parameter name='prop.site.location-postcode' value='`$service-data.vnfs.vnf[$vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].value`' />
-                            </set>
-                        </outcome>
-                    </switch>
-                    <switch test="`$service-data.vnfs.vnf[$vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].name == 'latitude'`">
-                        <outcome value='true'>
-                            <set>
-                                <parameter name='prop.site.location-latitude' value='`$service-data.vnfs.vnf[$vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].value`' />
-                            </set>
-                        </outcome>
-                    </switch>
-                    <switch test="`$service-data.vnfs.vnf[$vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].name == 'longitude'`">
-                        <outcome value='true'>
-                            <set>
-                                <parameter name='prop.site.location-latitude' value='`$service-data.vnfs.vnf[$vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].value`' />
-                            </set>
-                        </outcome>
-                    </switch>
-                    <switch test="`$service-data.vnfs.vnf[$vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].name == 'emails'`">
-                        <outcome value='true'>
-                            <block atomic="true">
-                                <set>
-                                    <parameter name='prop.site.emails' value='`$service-data.vnfs.vnf[$vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].value`' />
-                                </set>
-                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
-                                    <parameter name="original_string" value='`$prop.site.emails`'/>
-                                    <parameter name="regex" value=","/>
-                                    <parameter name="ctx_memory_result_key" value="prop.site.email"/>
-                                </execute>
-                            </block>
-                        </outcome>
-                    </switch>
-                    <switch test="`$service-data.vnfs.vnf[$vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].name == 'type'`">
-                        <outcome value='true'>
-                            <set>
-                                <parameter name='prop.site.type' value='`$service-data.vnfs.vnf[$vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].value`' />
-                                <parameter name='prop.site.sdwan' value="true" />
-                            </set>
-                        </outcome>
-                    </switch>
-                    <switch test="`$service-data.vnfs.vnf[$vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].name == 'role'`">
-                        <outcome value='true'>
-                            <block atomic="true">
-                                <set>
-                                    <parameter name='prop.site.role' value='`$service-data.vnfs.vnf[$vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].value`' />
-                                    <parameter name='prop.site.sdwan' value="true" />
-                                </set>
-                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
-                                    <parameter name="original_string" value='`$prop.site.role`'/>
-                                    <parameter name="regex" value=","/>
-                                    <parameter name="ctx_memory_result_key" value="prop.site.roles"/>
-                                </execute>
-                            </block>
-                        </outcome>
-                    </switch>
-                    <switch test="`$service-data.vnfs.vnf[$vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].name == 'controlPoints'`">
-                        <outcome value='true'>
-                            <block atomic="true">
-                                <set>
-                                    <parameter name='prop.site.controlPoint' value='`$service-data.vnfs.vnf[$vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].value`' />
-                                </set>
-                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
-                                    <parameter name="original_string" value='`$prop.site.controlPoint`'/>
-                                    <parameter name="regex" value=","/>
-                                    <parameter name="ctx_memory_result_key" value="prop.site.controlpoints"/>
-                                </execute>
-                            </block>
-                        </outcome>
-                    </switch>
-                </block>
-            </for>
             <switch test="`$prop.site.sdwan`">
                 <outcome value='true'>
                     <block atomic="true">
+                        <for index='cpidx' start='0' end='`$prop.site.controlpoints_length`' >
+                            <block atomic="true">
+                                <for index='cpvidx' start='0' end='`$service-data.vnfs.vnf_length`' >
+                                    <block>
+                                        <switch test="`$service-data.vnfs.vnf[$vidx].vnf-data.request-information.request-action == 'ActivateSiteInstance'`">
+                                            <outcome value='true'>
+                                                <block atomic="true">
+                                                    <for index="sidx" start="0" end="`$service-data.vnfs.vnf[$cpvidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length`">
+                                                        <block>
+                                                            <switch test="`$service-data.vnfs.vnf[$cpvidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$sidx].name == 'name'`">
+                                                                <outcome value='true'>
+                                                                    <block atomic="true">
+                                                                        <switch test="`$service-data.vnfs.vnf[$cpvidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$sidx].value == $prop.site.controlpoints[$cpidx]`">
+                                                                            <outcome value='true'>
+                                                                                <block atomic="true">
+                                                                                    <for index="lidx" start="0" end="`$service-data.vnfs.vnf[$cpvidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length`">
+                                                                                        <block>
+                                                                                            <switch test="`$service-data.vnfs.vnf[$cpvidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$lidx].name == 'siteId'`">
+                                                                                                <outcome value='true'>
+                                                                                                    <set>
+                                                                                                        <parameter name='prop.site.controlpoints[$cpidx]' value='`$service-data.vnfs.vnf[$cpvidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$lidx].value`' />
+                                                                                                    </set>
+                                                                                                </outcome>
+                                                                                            </switch>
+                                                                                        </block>
+                                                                                    </for>
+                                                                                </block>
+                                                                            </outcome>
+                                                                        </switch>
+                                                                    </block>
+                                                                </outcome>
+                                                            </switch>
+                                                        </block>
+                                                    </for>
+                                                </block>
+                                            </outcome>
+                                        </switch>
+                                    </block>
+                                </for>
+                            </block>
+                        </for>
                         <set>
                             <parameter name='prop.site.siteId' value="" />
                         </set>
                         <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="esr-thirdparty-sdnc" 
-		key="esr-thirdparty-sdnc.thirdparty-sdnc-id = $tmp.thirdparty-sdnc-id AND 
+		key="esr-thirdparty-sdnc.thirdparty-sdnc-id = SDWAN-Controller AND 
 		     depth = '1'"
         pfx='tmp.aai.esr-thirdparty-sdnc' local-only='false' >
                             <outcome value='success'>
@@ -243,8 +199,9 @@
             </switch>
             <set>
                 <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-id' value='`$service-data.vnfs.vnf[$tmp.vidx].vnf-id`' />
-                <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length + 1].name' value='siteId' />
-                <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length + 1].value' value='`$site-result[0].id`' />
+                <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length].name' value='siteId' />
+                <!--parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length].value' value='`$site-result[0].id`' /-->
+                <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length].value' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />
                 <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length' value='`$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length + 1`' />
             </set>
             <set>
