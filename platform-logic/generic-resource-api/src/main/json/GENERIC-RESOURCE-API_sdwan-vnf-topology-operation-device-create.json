@@ -1,0 +1,652 @@
+[
+  {
+    "id": "5e3d5340.60ff6c",
+    "type": "comment",
+    "name": "sdwan-vnf-topology-operation-device-activate",
+    "info": "",
+    "comments": "",
+    "x": 508.3447952270508,
+    "y": 51,
+    "z": "68e83c1d.51ded4",
+    "wires": []
+  },
+  {
+    "id": "98a7b4d5.abb6c8",
+    "type": "service-logic",
+    "name": "GENERIC-RESOURCE-API 1.2.1-SNAPSHOT",
+    "module": "GENERIC-RESOURCE-API",
+    "version": "1.2.1-SNAPSHOT",
+    "comments": "",
+    "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='1.2.1-SNAPSHOT'>",
+    "outputs": 1,
+    "x": 188.28570556640625,
+    "y": 122.0002670288086,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      [
+        "6e6cf252.6d76ac"
+      ]
+    ]
+  },
+  {
+    "id": "b122f38a.d6d66",
+    "type": "dgstart",
+    "name": "DGSTART",
+    "outputs": 1,
+    "x": 109,
+    "y": 59.76215744018555,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      [
+        "98a7b4d5.abb6c8"
+      ]
+    ]
+  },
+  {
+    "id": "acf9046.9fdadf8",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">",
+    "atomic": "true",
+    "outputs": 1,
+    "x": 189.66666412353516,
+    "y": 383.4288272857666,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      [
+        "fadd626.2db7aa",
+        "3d1725f.b682bda",
+        "973ba2fa.09281",
+        "a8ec1f34.2d716",
+        "1a8342ca.6c718d",
+        "2f458da.dde6872",
+        "5b27914d.aaeea",
+        "14b0db80.805625",
+        "60a129a0.bbdd58",
+        "b0ca4039.10bf1",
+        "48942c51.646f94",
+        "f06f6e0f.f753c"
+      ]
+    ]
+  },
+  {
+    "id": "3d1725f.b682bda",
+    "type": "returnSuccess",
+    "name": "return success",
+    "xml": "<return status='success'>\n<parameter name=\"ack-final-indicator\" value=\"Y\" />\n<parameter name=\"error-code\" value=\"200\" />\n<parameter name=\"error-message\" value=\"`$error-message`\" />\n",
+    "comments": "",
+    "x": 570.3336067199707,
+    "y": 1005.0958871841431,
+    "z": "68e83c1d.51ded4",
+    "wires": []
+  },
+  {
+    "id": "fadd626.2db7aa",
+    "type": "set",
+    "name": "set vnf-level-oper-status to Created",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-level-oper-status.order-status' value='Created' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-level-oper-status.last-rpc-action' value='`$vnf-topology-operation-input.sdnc-request-header.svc-action`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-level-oper-status.last-action' value='`$vnf-topology-operation-input.request-information.request-action`' />\n",
+    "comments": "",
+    "x": 659.8136177062988,
+    "y": 737.4329919815063,
+    "z": "68e83c1d.51ded4",
+    "wires": []
+  },
+  {
+    "id": "a8ec1f34.2d716",
+    "type": "set",
+    "name": "copy input data to service data",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-id' value='`$prop.vnf-id`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.sdnc-request-header.' value='`$vnf-topology-operation-input.sdnc-request-header.`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.request-information.' value='`$vnf-topology-operation-input.request-information.`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.service-information.' value='`$vnf-topology-operation-input.service-information.`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-information.' value='`$vnf-topology-operation-input.vnf-information.`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-request-input.' value='`$vnf-topology-operation-input.vnf-request-input.`' />",
+    "comments": "",
+    "x": 637.6668090820312,
+    "y": 793.4291677474976,
+    "z": "68e83c1d.51ded4",
+    "wires": []
+  },
+  {
+    "id": "3cb5e097.323b3",
+    "type": "save",
+    "name": "save deviceInstance configuration in AAI",
+    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='device' \n      key='device.id = $prop.vnf-id' >\n<parameter name='id' value='`$prop.vnf-id`' />\n<parameter name='esn' value='`$prop.device.name`' />\n<parameter name='name' value=\"true\" />\n<parameter name='description' value='`$prop.device.description`' />\n<parameter name='vendor' value='`$prop.device.vendor`' />\n<parameter name='class' value='`$prop.device.class`' />\n<parameter name='type' value='`$prop.device.deviceModel`' />\n<parameter name='version' value='`$prop.device.version`' />\n<parameter name='system-ip' value='`$prop.device.systemIp`' />\n<parameter name='operational-status' value='Created' />\n<parameter name='model-customization-id' value='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-customization-uuid`' />\n<parameter name='model-invariant-id' value='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-invariant-uuid`' />\n<parameter name='model-version-id' value='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-uuid`' />\n<parameter name='selflink' value=\"`'restconf/config/GENERIC-RESOURCE-API:services/service/'  + $vnf-topology-operation-input.service-information.service-instance-id  + '/service-data/vnfs/vnf/'  + $prop.vnf-id  + '/vnf-data/'` \" />\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1116.0007019042969,
+    "y": 810.3184747695923,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "6e6cf252.6d76ac",
+    "type": "method",
+    "name": "method sdwan-vnf-topology-operation-device-create",
+    "xml": "<method rpc='sdwan-vnf-topology-operation-device-create' mode='sync'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 200,
+    "y": 216.3484992980957,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      [
+        "acf9046.9fdadf8"
+      ]
+    ]
+  },
+  {
+    "id": "973ba2fa.09281",
+    "type": "set",
+    "name": "set vnfId and vnf-object-path",
+    "xml": "<set>\n<parameter name='vnfId' value='`$prop.vnf-id`' />\n<parameter name=\"vnf-object-path\" value=\"`'restconf/config/GENERIC-RESOURCE-API:services/service/'  + $vnf-topology-operation-input.service-information.service-instance-id  + '/service-data/vnfs/vnf/'  + $prop.vnf-id  + '/vnf-data/'` \" />",
+    "comments": "",
+    "x": 641.0002593994141,
+    "y": 686.348804473877,
+    "z": "68e83c1d.51ded4",
+    "wires": []
+  },
+  {
+    "id": "1a8342ca.6c718d",
+    "type": "set",
+    "name": "set deviceId to service data",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-id' value='`$prop.vnf-id`' />\n",
+    "comments": "",
+    "x": 647.0004119873047,
+    "y": 638.3490514755249,
+    "z": "68e83c1d.51ded4",
+    "wires": []
+  },
+  {
+    "id": "11b9f4bc.54a6db",
+    "type": "comment",
+    "name": "AAI resource need to update",
+    "info": "",
+    "comments": "",
+    "x": 962.0003051757812,
+    "y": 764.3489141464233,
+    "z": "68e83c1d.51ded4",
+    "wires": []
+  },
+  {
+    "id": "57ec6080.aef67",
+    "type": "execute",
+    "name": "execute generate-vnf-id",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >\n<parameter name=\"ctx-destination\" value=\"prop.vnf-id\"/>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1146.0006866455078,
+    "y": 151.3486099243164,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "f5373c70.1c094",
+    "type": "save",
+    "name": "save service relationship in AAI",
+    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list' \n      key='service-instance.service-instance-id = $service-data.service-information.service-instance-id \n         AND customer.global-customer-id = $service-data.vnfs.vnf[$vnf-index].vnf-data.service-information.global-customer-id \n         AND service-subscription.service-type = $service-data.vnfs.vnf[$vnf-index].vnf-data.service-information.subscription-service-type' \n      force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"device\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/devices/device/' + $prop.vnf-id`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"device.id\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$prop.vnf-id`\" />",
+    "comments": "",
+    "outputs": 1,
+    "x": 628.000560760498,
+    "y": 960.0957889556885,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "2f458da.dde6872",
+    "type": "switchNode",
+    "name": "switch vnf-id",
+    "xml": "<switch test=\"`$vnf-topology-operation-input.vnf-information.vnf-id`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 610.0001068115234,
+    "y": 255.0000286102295,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      [
+        "96bd2791.9be248",
+        "67087b1d.5c3fb4"
+      ]
+    ]
+  },
+  {
+    "id": "96bd2791.9be248",
+    "type": "outcome",
+    "name": "NULL",
+    "xml": "<outcome value=''>",
+    "comments": "",
+    "outputs": 1,
+    "x": 751.0001106262207,
+    "y": 230.00002002716064,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      [
+        "17f3f6fd.04e999"
+      ]
+    ]
+  },
+  {
+    "id": "17f3f6fd.04e999",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">",
+    "atomic": "true",
+    "outputs": 1,
+    "x": 899.0002136230469,
+    "y": 166.0000123977661,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      [
+        "57ec6080.aef67",
+        "3fbf12e1.7d984e",
+        "1f9131ce.7814de"
+      ]
+    ]
+  },
+  {
+    "id": "67087b1d.5c3fb4",
+    "type": "other",
+    "name": "other",
+    "xml": "<outcome value='Other'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 747.5312881469727,
+    "y": 290.03125762939453,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      [
+        "36044171.bb341e"
+      ]
+    ]
+  },
+  {
+    "id": "71433e4d.c21fc",
+    "type": "set",
+    "name": "set prop.vnf-id",
+    "xml": "<set>\n<parameter name='prop.vnf-id' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />\n",
+    "comments": "",
+    "x": 1062.531982421875,
+    "y": 359.03163146972656,
+    "z": "68e83c1d.51ded4",
+    "wires": []
+  },
+  {
+    "id": "36044171.bb341e",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">",
+    "atomic": "true",
+    "outputs": 1,
+    "x": 898.5317077636719,
+    "y": 322.03137969970703,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      [
+        "71433e4d.c21fc",
+        "1f9131ce.7814de",
+        "ded55567.2a8678"
+      ]
+    ]
+  },
+  {
+    "id": "5b27914d.aaeea",
+    "type": "set",
+    "name": "set prop.sdncCreate=false",
+    "xml": "<set>\n<parameter name='prop.sdncCreate' value='false' />\n",
+    "comments": "",
+    "x": 684.5313568115234,
+    "y": 146.03125190734863,
+    "z": "68e83c1d.51ded4",
+    "wires": []
+  },
+  {
+    "id": "14b0db80.805625",
+    "type": "switchNode",
+    "name": "switch prop.sdncCreate",
+    "xml": "<switch test='`$prop.sdncCreate`'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 607.0316925048828,
+    "y": 840.0316715240479,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      [
+        "f49b5933.b5d218",
+        "b6ead02e.a5302"
+      ]
+    ]
+  },
+  {
+    "id": "f49b5933.b5d218",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 853.0314636230469,
+    "y": 810.5314083099365,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      [
+        "3cb5e097.323b3"
+      ]
+    ]
+  },
+  {
+    "id": "b6ead02e.a5302",
+    "type": "outcomeTrue",
+    "name": "false",
+    "xml": "<outcome value='false'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 854.5314483642578,
+    "y": 865.5314226150513,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      [
+        "689dbbbf.19b784"
+      ]
+    ]
+  },
+  {
+    "id": "3fbf12e1.7d984e",
+    "type": "set",
+    "name": "set prop.updateAAIsdncCreate",
+    "xml": "<set>\n<parameter name='prop.sdncCreate' value='true' />\n",
+    "comments": "",
+    "x": 1163.5317764282227,
+    "y": 111.03133583068848,
+    "z": "68e83c1d.51ded4",
+    "wires": []
+  },
+  {
+    "id": "60a129a0.bbdd58",
+    "type": "for",
+    "name": "for loop idx - VNF input parameters",
+    "xml": "<for index=\"idx\" start=\"0\" end=\"`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param_length`\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 672.5314331054688,
+    "y": 440.031286239624,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      [
+        "ea444b8d.2a7e58"
+      ]
+    ]
+  },
+  {
+    "id": "ea444b8d.2a7e58",
+    "type": "block",
+    "name": "block",
+    "xml": "<block>\n",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 887.3097763061523,
+    "y": 437.58687019348145,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      [
+        "5cf3f0ff.4ce19",
+        "c56fa091.a24ed"
+      ]
+    ]
+  },
+  {
+    "id": "c56fa091.a24ed",
+    "type": "set",
+    "name": "set parameterName",
+    "xml": "<set>\n<parameter name=\"`vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].name`\" value='`$param-prefix[$param-prefix_length -1]`'/>\n",
+    "comments": "",
+    "x": 1053.0104064941406,
+    "y": 452.3351249694824,
+    "z": "68e83c1d.51ded4",
+    "wires": []
+  },
+  {
+    "id": "5cf3f0ff.4ce19",
+    "type": "execute",
+    "name": "execute split parameterName",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >\n<parameter name=\"original_string\" value='`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].name`'/>\n<parameter name=\"regex\" value=\"_\"/>\n<parameter name=\"ctx_memory_result_key\" value=\"param-prefix\"/>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1083.5659790039062,
+    "y": 415.3350086212158,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "b0ca4039.10bf1",
+    "type": "set",
+    "name": "set vnf-request-input.",
+    "xml": "<set>\n<parameter name='vnf-request-input.' value='`$vnf-topology-operation-input.vnf-request-input.`' />\n",
+    "comments": "",
+    "x": 634.5310516357422,
+    "y": 514.3560009002686,
+    "z": "68e83c1d.51ded4",
+    "wires": []
+  },
+  {
+    "id": "48942c51.646f94",
+    "type": "call",
+    "name": "call sdwan-get-device-param",
+    "xml": "<call module='GENERIC-RESOURCE-API' rpc='sdwan-get-device-param' mode='sync' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 659.5314331054688,
+    "y": 546.3561611175537,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "76da7c24.a3ef74",
+    "type": "comment",
+    "name": "if SO provide vnf-id use that else create new",
+    "info": "",
+    "comments": "",
+    "x": 701.5312805175781,
+    "y": 200.0312614440918,
+    "z": "68e83c1d.51ded4",
+    "wires": []
+  },
+  {
+    "id": "1f9131ce.7814de",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">",
+    "atomic": "true",
+    "outputs": 1,
+    "x": 1107.0317840576172,
+    "y": 248.0313549041748,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      [
+        "3b0d82e1.8f158e",
+        "2e1a03e.c5a90fc"
+      ]
+    ]
+  },
+  {
+    "id": "3b0d82e1.8f158e",
+    "type": "switchNode",
+    "name": "switch service-data.vnfs.vnf_length",
+    "xml": "<switch test='`$service-data.vnfs.vnf_length`'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1351.0316734313965,
+    "y": 205.0313482284546,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      [
+        "975a1f09.2f8c8",
+        "a0a50419.1fe858"
+      ]
+    ]
+  },
+  {
+    "id": "975a1f09.2f8c8",
+    "type": "other",
+    "name": "NULL",
+    "xml": "<outcome value=''>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1564.7460556030273,
+    "y": 188.1741189956665,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      [
+        "3e9891d0.1834fe"
+      ]
+    ]
+  },
+  {
+    "id": "3e9891d0.1834fe",
+    "type": "set",
+    "name": "set vnf-index=0",
+    "xml": "<set>\n<parameter name='vnf-index' value='0' />\n",
+    "comments": "",
+    "x": 1713.0317039489746,
+    "y": 185.17417335510254,
+    "z": "68e83c1d.51ded4",
+    "wires": []
+  },
+  {
+    "id": "a0a50419.1fe858",
+    "type": "other",
+    "name": "other",
+    "xml": "<outcome value='Other'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1568.1745529174805,
+    "y": 233.45991039276123,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      [
+        "bfe1f8cb.5f4108"
+      ]
+    ]
+  },
+  {
+    "id": "bfe1f8cb.5f4108",
+    "type": "set",
+    "name": "set vnf-index = vnf_length",
+    "xml": "<set>\n<parameter name='vnf-index' value='`$service-data.vnfs.vnf_length`' />\n",
+    "comments": "",
+    "x": 1752.0322952270508,
+    "y": 233.74567890167236,
+    "z": "68e83c1d.51ded4",
+    "wires": []
+  },
+  {
+    "id": "2e1a03e.c5a90fc",
+    "type": "set",
+    "name": "set new vnf_length",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf_length' value='`$vnf-index + 1`' />\n",
+    "comments": "",
+    "x": 1303.0317344665527,
+    "y": 240.031343460083,
+    "z": "68e83c1d.51ded4",
+    "wires": []
+  },
+  {
+    "id": "689dbbbf.19b784",
+    "type": "save",
+    "name": "update deviceInstance configuration in AAI",
+    "xml": "<update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='device' \n      key='device.id = $prop.vnf-id' >\n<parameter name='id' value='`$prop.vnf-id`' />\n<parameter name='esn' value='`$prop.device.name`' />\n<parameter name='name' value=\"true\" />\n<parameter name='description' value='`$prop.device.description`' />\n<parameter name='vendor' value='`$prop.device.vendor`' />\n<parameter name='class' value='`$prop.device.class`' />\n<parameter name='type' value='`$prop.device.deviceModel`' />\n<parameter name='version' value='`$prop.device.version`' />\n<parameter name='system-ip' value='`$prop.device.systemIp`' />\n<parameter name='operational-status' value='Created' />\n<parameter name='model-customization-id' value='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-customization-uuid`' />\n<parameter name='model-invariant-id' value='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-invariant-uuid`' />\n<parameter name='model-version-id' value='`$vnf-topology-operation-input.vnf-information.onap-model-information.model-uuid`' />\n<parameter name='selflink' value=\"`'restconf/config/GENERIC-RESOURCE-API:services/service/'  + $vnf-topology-operation-input.service-information.service-instance-id  + '/service-data/vnfs/vnf/'  + $prop.vnf-id  + '/vnf-data/'` \" />\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1108.0312805175781,
+    "y": 868.0312757492065,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "ded55567.2a8678",
+    "type": "for",
+    "name": "for each existing VNF",
+    "xml": "<for index='idx' start='0' end='`$service-data.vnfs.vnf_length`' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1114.0313186645508,
+    "y": 320.03128814697266,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      [
+        "5b9cdd8f.43fa54"
+      ]
+    ]
+  },
+  {
+    "id": "e638f4a.543e508",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1650.6031284332275,
+    "y": 368.17424297332764,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      [
+        "584781cc.b608c"
+      ]
+    ]
+  },
+  {
+    "id": "584781cc.b608c",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'VNF id ' + $service-data.vnfs.vnf[$idx].vnf-id\n      + ' already exists, and has order status ' + $service-data.vnfs.vnf[$idx].vnf-data.vnf-level-oper-status.order-status`\" />\n",
+    "comments": "",
+    "x": 1789.1744861602783,
+    "y": 368.17420387268066,
+    "z": "68e83c1d.51ded4",
+    "wires": []
+  },
+  {
+    "id": "e89efb32.eef4a8",
+    "type": "comment",
+    "name": "make sure this vnf-id doesn't exist already",
+    "info": "",
+    "comments": "",
+    "x": 1744.459602355957,
+    "y": 497.1741261482239,
+    "z": "68e83c1d.51ded4",
+    "wires": []
+  },
+  {
+    "id": "5b9cdd8f.43fa54",
+    "type": "switchNode",
+    "name": "switch vnf-information.vnf-id == service-data.vnfs.vnf[].vnf-id",
+    "xml": "<switch test='`$vnf-topology-operation-input.vnf-information.vnf-id == $service-data.vnfs.vnf[$idx].vnf-id`'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1453.0313262939453,
+    "y": 321.0312910079956,
+    "z": "68e83c1d.51ded4",
+    "wires": [
+      [
+        "e638f4a.543e508"
+      ]
+    ]
+  },
+  {
+    "id": "f06f6e0f.f753c",
+    "type": "set",
+    "name": "set deviceId to service data",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-request-input.vnf-input-parameters.param[$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-request-input.vnf-input-parameters.param_length].name' value=\"sdncCreate\" />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-request-input.vnf-input-parameters.param[$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-request-input.vnf-input-parameters.param_length].value' value='`$prop.sdncCreate`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-request-input.vnf-input-parameters.param_length' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-request-input.vnf-input-parameters.param_length + 1`' />\n",
+    "comments": "",
+    "x": 621.0313682556152,
+    "y": 901.0312786102295,
+    "z": "68e83c1d.51ded4",
+    "wires": []
+  }
+]
