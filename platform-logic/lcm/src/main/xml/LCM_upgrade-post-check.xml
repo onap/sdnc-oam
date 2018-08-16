@@ -10,14 +10,33 @@
             <set>
                 <parameter name='status.code' value='200' />
                 <parameter name='status.message' value='unexpected return from DG' />
+                <parameter name='nodelist' value="`$prop.ansible.nodelist`"/>
             </set>
+            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+	resource="generic-vnf" 
+		key="generic-vnf.vnf-id = $upgrade-post-check-input.action-identifiers.vnf-id" 
+		local-only="false" 
+		pfx='aai.generic-vnf'>
+                <outcome value='success'>
+                    <set>
+                        <parameter name='quote' value="'" />
+                        <parameter name='nodelist' value="`'[' + $quote + $aai.ipv4-oam-address +  $quote + ']'`"/>
+                    </set>
+                </outcome>
+                <outcome value='Other'>
+                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                        <parameter name="logger" value="message-log"/>
+                        <parameter name="field1" value='VNF not found in AAI. Nodelist retrieved from config'/>
+                    </record>
+                </outcome>
+            </get-resource>
             <execute plugin='org.onap.ccsdk.sli.adaptors.ansible.AnsibleAdapter' method='reqExec' >
                 <parameter name='AgentUrl' value='`$prop.ansible.agenturl`'/>
                 <parameter name='User' value='`$prop.ansible.user`'/>
-                <parameter name='Password' value='`prop.ansible.password`'/>
+                <parameter name='Password' value='`$prop.ansible.password`'/>
                 <parameter name='LocalParameters' value='`$prop.ansible.lcm.localparameters`'/>
                 <parameter name='EnvParameters' value='`$upgrade-post-check-input.payload`'/>
-                <parameter name='NodeList' value='`$prop.ansible.nodelist`'/>
+                <parameter name='NodeList' value="`$nodelist`"/>
                 <parameter name='Timeout' value='`$prop.ansible.timeout`'/>
                 <parameter name='Version' value='`$prop.ansible.version`'/>
                 <parameter name='Id' value='`$upgrade-post-check-input.common-header.request-id`'/>
@@ -25,7 +44,7 @@
                 <outcome value='not-found'>
                     <block>
                         <set>
-                            <parameter name='$org.onap.appc.adapter.ansible.result.code' value='401'/>
+                            <parameter name='org.onap.appc.adapter.ansible.result.code' value='401'/>
                             <parameter name='org.onap.appc.adapter.ansible.message' value='Ansible Adapter was not found'/>
                         </set>
                         <block>
