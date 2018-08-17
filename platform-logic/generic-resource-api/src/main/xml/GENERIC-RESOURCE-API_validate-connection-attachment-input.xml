@@ -126,6 +126,53 @@
                                     </for>
                                 </block>
                             </outcome>
+                            <outcome value='CreateSDWANAttachmentInstance'>
+                                <block atomic="true">
+                                    <for index="i" start="0" end="`$connection-attachment-topology-operation-input.connection-attachment-request-input.param_length`">
+                                        <block>
+                                            <set>
+                                                <parameter name='tmp.name' value='' />
+                                                <parameter name='tmp.value' value='' />
+                                            </set>
+                                            <set>
+                                                <parameter name='tmp.name' value="`$connection-attachment-topology-operation-input.connection-attachment-request-input.param[$i].name`"/>
+                                                <parameter name='tmp.value' value="`$connection-attachment-topology-operation-input.connection-attachment-request-input.param[$i].value`"/>
+                                            </set>
+                                            <switch test="`$tmp.name`">
+                                                <outcome value='sdwanVpnName'>
+                                                    <switch test="`$tmp.value`">
+                                                        <outcome value=''>
+                                                            <return status='failure'>
+                                                                <parameter name='ack-final' value='Y'/>
+                                                                <parameter name="error-code" value="500" />
+                                                                <parameter name="error-message" value="`'$tmp.name +' is a required input'`" />
+                                                            </return>
+                                                        </outcome>
+                                                    </switch>
+                                                </outcome>
+                                                <outcome value='role'>
+                                                    <switch test="`$tmp.value`">
+                                                        <outcome value=''>
+                                                            <return status='failure'>
+                                                                <parameter name='ack-final' value='Y'/>
+                                                                <parameter name="error-code" value="500" />
+                                                                <parameter name="error-message" value="`'$tmp.name +' is a required input'`" />
+                                                            </return>
+                                                        </outcome>
+                                                    </switch>
+                                                </outcome>
+                                                <outcome value=''>
+                                                    <return status='failure'>
+                                                        <parameter name='ack-final' value='Y'/>
+                                                        <parameter name="error-code" value="500" />
+                                                        <parameter name="error-message" value="`'network-topology-operation-input.network-request-input.network-input-parameters.param[' + $i + ']' + '.name is a required input'`" />
+                                                    </return>
+                                                </outcome>
+                                            </switch>
+                                        </block>
+                                    </for>
+                                </block>
+                            </outcome>
                             <outcome value='other'>
                                 <return status='failure'>
                                     <parameter name='ack-final' value='Y'/>
@@ -155,6 +202,22 @@
                                     </switch>
                                 </block>
                             </outcome>
+                            <outcome value='ActivateSDWANAttachmentInstance'>
+                                <block atomic="true">
+                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='requiredParameters' >
+                                        <parameter name="connection-attachment-topology-operation-input.allotted-resource-information.allotted-resource-id" value="$connection-attachment-topology-operation-input.allotted-resource-information.allotted-resource-id"/>
+                                    </execute>
+                                    <switch test='`$connection-attachment-topology-operation-input.allotted-resource-information.allotted-resource-id`'>
+                                        <outcome value=''>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="network-request-input.network-input-parameters.name is a required input" />
+                                            </return>
+                                        </outcome>
+                                    </switch>
+                                </block>
+                            </outcome>
                             <outcome value='other'>
                                 <return status='failure'>
                                     <parameter name='ack-final' value='Y'/>
@@ -168,6 +231,22 @@
                 <outcome value='deactivate'>
                     <block atomic="true">
                         <switch test='`$connection-attachment-topology-operation-input.request-information.request-action`'>
+                            <outcome value='DeactivateSDWANAttachmentInstance'>
+                                <block atomic="true">
+                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='requiredParameters' >
+                                        <parameter name="connection-attachment-topology-operation-input.allotted-resource-information.allotted-resource-id" value="$connection-attachment-topology-operation-input.allotted-resource-information.allotted-resource-id"/>
+                                    </execute>
+                                    <switch test='`$connection-attachment-topology-operation-input.allotted-resource-information.allotted-resource-id`'>
+                                        <outcome value=''>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="network-request-input.network-input-parameters.name is a required input" />
+                                            </return>
+                                        </outcome>
+                                    </switch>
+                                </block>
+                            </outcome>
                             <outcome value='DeactivateSOTNAttachmentInstance'>
                                 <block atomic="true">
                                     <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='requiredParameters' >
@@ -198,6 +277,22 @@
                     <block atomic="true">
                         <switch test='`$connection-attachment-topology-operation-input.request-information.request-action`'>
                             <outcome value='DeleteSOTNAttachmentInstance'>
+                                <block atomic="true">
+                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='requiredParameters' >
+                                        <parameter name="connection-attachment-topology-operation-input.allotted-resource-information.allotted-resource-id" value="$connection-attachment-topology-operation-input.allotted-resource-information.allotted-resource-id"/>
+                                    </execute>
+                                    <switch test='`$connection-attachment-topology-operation-input.allotted-resource-information.allotted-resource-id`'>
+                                        <outcome value=''>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="network-request-input.network-input-parameters.name is a required input" />
+                                            </return>
+                                        </outcome>
+                                    </switch>
+                                </block>
+                            </outcome>
+                            <outcome value='DeleteSDWANAttachmentInstance'>
                                 <block atomic="true">
                                     <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='requiredParameters' >
                                         <parameter name="connection-attachment-topology-operation-input.allotted-resource-information.allotted-resource-id" value="$connection-attachment-topology-operation-input.allotted-resource-information.allotted-resource-id"/>

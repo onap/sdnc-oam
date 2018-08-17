@@ -1,0 +1,938 @@
+[
+  {
+    "id": "df4555dd.a3e848",
+    "type": "dgstart",
+    "name": "DGSTART",
+    "outputs": 1,
+    "x": 104,
+    "y": 41,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "92ceb461.e9ae38"
+      ]
+    ]
+  },
+  {
+    "id": "92ceb461.e9ae38",
+    "type": "service-logic",
+    "name": "GENERIC-RESOURCE-API ${project.version}",
+    "module": "GENERIC-RESOURCE-API",
+    "version": "${project.version}",
+    "comments": "",
+    "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>",
+    "outputs": 1,
+    "x": 316.00000381469727,
+    "y": 113.0000171661377,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "d3022041.62ba5"
+      ]
+    ]
+  },
+  {
+    "id": "d3022041.62ba5",
+    "type": "method",
+    "name": "sdwan-attachment-topology-operation-delete",
+    "xml": "<method rpc='sdwan-attachment-topology-operation-delete' mode='sync'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 304.0001220703125,
+    "y": 201,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "28bf3b94.47a4c4"
+      ]
+    ]
+  },
+  {
+    "id": "28bf3b94.47a4c4",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">\n",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 320.0001220703125,
+    "y": 756.0002446174622,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "807be759.b5e538",
+        "3103f64.d6db90a",
+        "6956382b.b9da98",
+        "fe793d2b.5a34a",
+        "967f6552.ee9a38",
+        "a1a9abde.ea9de8",
+        "d08c66c4.7c2608",
+        "661b7087.2c2c2",
+        "9281bde8.0db15",
+        "a05764a0.242458",
+        "51c0b7ea.3f9dc8",
+        "3ad79f2e.53c8c",
+        "82dc876b.abfd98",
+        "55f05cd1.c7cc44",
+        "12de84a1.b1a80b"
+      ]
+    ]
+  },
+  {
+    "id": "807be759.b5e538",
+    "type": "set",
+    "name": "set tmp.ar.allotted-resource-id,etc",
+    "xml": "<set>\n<parameter name='tmp.ar.allotted-resource-id' value='`$connection-attachment-topology-operation-input.allotted-resource-information.allotted-resource-id`' />\n<parameter name='tmp.ar.parent-service-instance-id' value='`$connection-attachment-topology-operation-input.allotted-resource-information.parent-service-instance-id`' />\n\n\n",
+    "comments": "",
+    "x": 716.9935607910156,
+    "y": 154.9934868812561,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "d198c8fb.642db8",
+    "type": "comment",
+    "name": "set tmp ar-id to fetch resource from MDSAL",
+    "info": "",
+    "comments": "",
+    "x": 745.9538726806641,
+    "y": 119.02528285980225,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "3103f64.d6db90a",
+    "type": "set",
+    "name": "set tmp.ar.self-link",
+    "xml": "<set>\n<parameter name='tmp.ar.self-link' value=\"`'restconf/config/GENERIC-RESOURCE-API:connection-attachment-allotted-resources/connection-attachment-allotted-resource/'\n + $tmp.ar.allotted-resource-id\n + '/allotted-resource-data/connection-attachment-topology/'` \" />\n\n",
+    "comments": "",
+    "x": 670.9934997558594,
+    "y": 247.99349212646484,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "967f6552.ee9a38",
+    "type": "execute",
+    "name": "execute Properties",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >\n    <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />\n    <parameter name='contextPrefix' value='prop' />\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 677.2553901672363,
+    "y": 335.6602210998535,
+    "z": "5775f861.275e28",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "6956382b.b9da98",
+    "type": "execute",
+    "name": "generate allotted-resource url",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >\n    <parameter name=\"source\" value=\"`$prop.restapi.connection-attachment-allottedresource`\"/>\n    <parameter name=\"outputPath\" value=\"tmp.ar-url\"/>\n    <parameter name=\"target\" value=\"{allotted-resource-id}\"/>\n    <parameter name=\"replacement\" value=\"`$tmp.ar.allotted-resource-id`\"/>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 709.2554168701172,
+    "y": 423.66020250320435,
+    "z": "5775f861.275e28",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "3672b3c8.5060cc",
+    "type": "comment",
+    "name": "Used for setting output to API Handler",
+    "info": "",
+    "comments": "",
+    "x": 724.9935302734375,
+    "y": 214.993501663208,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "e2c9f631.cf0b18",
+    "type": "comment",
+    "name": "Obtain different URL, template location etc",
+    "info": "For saving resource information to MDSAL & for AAI",
+    "comments": "",
+    "x": 742.9934959411621,
+    "y": 300.8823823928833,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "c3b16670.191818",
+    "type": "comment",
+    "name": "Used to Get AR by id to MDSAL, same as self-link",
+    "info": "",
+    "comments": "",
+    "x": 768.9935150146484,
+    "y": 387.8823413848877,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "bae16026.94177",
+    "type": "comment",
+    "name": "GET parent-service-data from mdsal to check existence of other End point",
+    "info": "",
+    "comments": "",
+    "x": 836.0003280639648,
+    "y": 842.5316228866577,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "d310ec7e.ce8c1",
+    "type": "for",
+    "name": "for pidx..mdsal-psd.service-data.provided-allotted-resources.provided-allotted-resource[]",
+    "xml": "<for index='pidx' start='0' end='`$mdsal-psd.service-data.provided-allotted-resources.provided-allotted-resource_length`' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1664.1849365234375,
+    "y": 1076.00425863266,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "ec3e44a4.ec0718"
+      ]
+    ]
+  },
+  {
+    "id": "fe793d2b.5a34a",
+    "type": "switchNode",
+    "name": "switch mdsal-psd.service-data.provided-allotted-resources_length",
+    "xml": "<switch test='`$mdsal-psd.service-data.provided-allotted-resources.provided-allotted-resource_length`'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 815.1842956542969,
+    "y": 1082.718041419983,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "7a0bf533.2fea3c",
+        "7505397d.8aabc8"
+      ]
+    ]
+  },
+  {
+    "id": "1ad39230.0014ce",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">",
+    "atomic": "true",
+    "outputs": 1,
+    "x": 1265.4544582366943,
+    "y": 1122.7015271186829,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "d310ec7e.ce8c1",
+        "757e6827.467698"
+      ]
+    ]
+  },
+  {
+    "id": "ec3e44a4.ec0718",
+    "type": "switchNode",
+    "name": "switch allotted-resource-id",
+    "xml": "<switch test=\"`$mdsal-psd.service-data.provided-allotted-resources.provided-allotted-resource[$pidx].allotted-resource-id == $tmp.ar.allotted-resource-id`\">\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2114.296142578125,
+    "y": 1074.0041165351868,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "f9268a01.5183a8"
+      ]
+    ]
+  },
+  {
+    "id": "a1a9abde.ea9de8",
+    "type": "set",
+    "name": "set tmp.ar.parent-service-instance-id",
+    "xml": "<set>\n<parameter name='tmp.ar.parent-service-instance-id' value=\"`$connection-attachment-topology-operation-input.allotted-resource-information.parent-service-instance-id` \" />\n\n",
+    "comments": "",
+    "x": 726.9687118530273,
+    "y": 878.0000677108765,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "23d329ac.3b7e66",
+    "type": "success",
+    "name": "success",
+    "xml": "<outcome value='success'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1106.968994140625,
+    "y": 956.0001826286316,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "5bb8e723.a51448"
+      ]
+    ]
+  },
+  {
+    "id": "e13f07b8.3067a8",
+    "type": "other",
+    "name": "other",
+    "xml": "<outcome value='Other'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1098.8207969665527,
+    "y": 991.066267490387,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "ad43541b.ecf6c8"
+      ]
+    ]
+  },
+  {
+    "id": "ad43541b.ecf6c8",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"404\" />\n    <parameter name=\"error-message\" value=\"Error: SOTN resource not found\" />\n    \n",
+    "comments": "",
+    "x": 1273.969482421875,
+    "y": 987.3336176872253,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "5bb8e723.a51448",
+    "type": "block",
+    "name": "block",
+    "xml": "<block>\n",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 1257.968994140625,
+    "y": 954.0001826286316,
+    "z": "5775f861.275e28",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "9e10ac1a.8f491",
+    "type": "failure",
+    "name": "failure",
+    "xml": "<outcome value='failure'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 960.7307624816895,
+    "y": 1271.952815413475,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "37086a0f.d393c6"
+      ]
+    ]
+  },
+  {
+    "id": "37086a0f.d393c6",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"AAI failed\" />\n",
+    "comments": "",
+    "x": 1127.2546424865723,
+    "y": 1283.57188642025,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "824c305f.f99dc",
+    "type": "failure",
+    "name": "not-found",
+    "xml": "<outcome value='not-found'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 967.8260498046875,
+    "y": 1304.7147830724716,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "37086a0f.d393c6"
+      ]
+    ]
+  },
+  {
+    "id": "bf221914.603808",
+    "type": "comment",
+    "name": "TODO: Rework after confirmation from AAI",
+    "info": "",
+    "comments": "",
+    "x": 1092.1374282836914,
+    "y": 1222.8732151985168,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "d08c66c4.7c2608",
+    "type": "set",
+    "name": "set output to api handler",
+    "xml": "<set>\n<parameter name='allotted-resource-id' value='`$tmp.ar.allotted-resource-id`' />\n<parameter name='connection-attachment-object-path' value=\"`$tmp.ar.self-link`\"/>\n<parameter name='service-object-path' value=\"`'restconf/config/GENERIC-RESOURCE-API:services/service/'\n + $connection-attachment-topology-operation-input.service-information.service-instance-id\n + '/service-data/service-topology/'`\"/>\n \n",
+    "comments": "",
+    "x": 693.5461502075195,
+    "y": 1235.8276824951172,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "661b7087.2c2c2",
+    "type": "returnSuccess",
+    "name": "return success",
+    "xml": "<return status='success'>\n<parameter name=\"ack-final-indicator\" value=\"Y\" />\n<parameter name=\"error-code\" value=\"200\" />\n<parameter name=\"error-message\" value=\"`$error-message`\" />\n",
+    "comments": "",
+    "x": 662.9592552185059,
+    "y": 1336.4434370994568,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "9281bde8.0db15",
+    "type": "execute",
+    "name": "execute RestApiCallNode - PUT AR by id",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n    <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.ar-url`' />\n    <parameter name='restapiUser' value='`$prop.controller.user`' />\n    <parameter name='restapiPassword' value='`$prop.controller.pwd`' />\n    <parameter name='format' value='json' />\n    <parameter name='httpMethod' value='Delete' />\n    <parameter name=\"responsePrefix\" value=\"mdsal-ar\" />\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 742.6666641235352,
+    "y": 512.3333625793457,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "3bcdf792.ce5568",
+        "75f51d5f.311a14",
+        "aab69d22.7b384"
+      ]
+    ]
+  },
+  {
+    "id": "3bcdf792.ce5568",
+    "type": "not-found",
+    "name": "not-found",
+    "xml": "<outcome value='not-found'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 982.3081665039062,
+    "y": 552.6649107933044,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "a17e8ce5.2802d"
+      ]
+    ]
+  },
+  {
+    "id": "75f51d5f.311a14",
+    "type": "failure",
+    "name": "failure",
+    "xml": "<outcome value='failure'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 979.3081665039062,
+    "y": 509.16490840911865,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "a17e8ce5.2802d"
+      ]
+    ]
+  },
+  {
+    "id": "aab69d22.7b384",
+    "type": "success",
+    "name": "success",
+    "xml": "<outcome value='success'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 986.0582466125488,
+    "y": 468.5220036506653,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "e5460f9f.21ecb"
+      ]
+    ]
+  },
+  {
+    "id": "a17e8ce5.2802d",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error updating md-sal for connection-attachment-allotted-resource\" />\n",
+    "comments": "",
+    "x": 1138.058334350586,
+    "y": 530.9149088859558,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "e5460f9f.21ecb",
+    "type": "block",
+    "name": "block",
+    "xml": "<block>\n",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 1123.7141780853271,
+    "y": 468.7141833305359,
+    "z": "5775f861.275e28",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "cb30deee.bf09a",
+    "type": "comment",
+    "name": "Delete Allotted Resource",
+    "info": "",
+    "comments": "",
+    "x": 690.0000457763672,
+    "y": 481.0000286102295,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "950f3191.ae2ba",
+    "type": "for",
+    "name": "for cidx..service-data.consumed-allotted-resources.consumed-allotted-resource[]",
+    "xml": "<for index='cidx' start='0' end='`$service-data.consumed-allotted-resources.consumed-allotted-resource_length`' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1640.00390625,
+    "y": 718.00390625,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "763d401a.4c2ab"
+      ]
+    ]
+  },
+  {
+    "id": "a05764a0.242458",
+    "type": "switchNode",
+    "name": "switch service-data.consumed-allotted-resources_length",
+    "xml": "<switch test='`$service-data.consumed-allotted-resources.consumed-allotted-resource_length`'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 793.0032920837402,
+    "y": 678.71790766716,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "70bab1b2.6f71f",
+        "ab0947c0.c09f58"
+      ]
+    ]
+  },
+  {
+    "id": "70bab1b2.6f71f",
+    "type": "other",
+    "name": "outcome Null",
+    "xml": "<outcome value=''>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1117.1461563110352,
+    "y": 661.5753421783447,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "b260d54b.5e5f58"
+      ]
+    ]
+  },
+  {
+    "id": "ab0947c0.c09f58",
+    "type": "other",
+    "name": "other",
+    "xml": "<outcome value='Other'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1103.1461791992188,
+    "y": 724.5753309726715,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "d2367329.94565"
+      ]
+    ]
+  },
+  {
+    "id": "d2367329.94565",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">",
+    "atomic": "true",
+    "outputs": 1,
+    "x": 1263.2732696533203,
+    "y": 722.7013075351715,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "950f3191.ae2ba",
+        "51c9f5a5.4315fc"
+      ]
+    ]
+  },
+  {
+    "id": "51c0b7ea.3f9dc8",
+    "type": "set",
+    "name": "set consumed allotted resources for deletion",
+    "xml": "<set>\n<parameter name=\"service-data.consumed-allotted-resources.consumed-allotted-resource[$cidx].\" value=\"\" />\n<parameter name='service-data.consumed-allotted-resources.consumed-allotted-resource_length' value='`$service-data.consumed-allotted-resources.consumed-allotted-resource_length - 1`' />\n\n",
+    "comments": "",
+    "x": 749.8606262207031,
+    "y": 749.28955078125,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "763d401a.4c2ab",
+    "type": "switchNode",
+    "name": "switch allotted-resource-id",
+    "xml": "<switch test=\"`$service-data.consumed-allotted-resources.consumed-allotted-resource[$cidx].allotted-resource-id == $tmp.ar.allotted-resource-id`\">\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2078.1155166625977,
+    "y": 714.0040283203125,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "8699c549.34eb68"
+      ]
+    ]
+  },
+  {
+    "id": "8699c549.34eb68",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2273.925338745117,
+    "y": 713.4683527946472,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "a387ae74.594b6"
+      ]
+    ]
+  },
+  {
+    "id": "365e6c51.6f6434",
+    "type": "set",
+    "name": "set tmp.cidx",
+    "xml": "<set>\n<parameter name='tmp.cidx' value='`$cidx`' />\n",
+    "comments": "",
+    "x": 2589.2618713378906,
+    "y": 714.2246108055115,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "dda8dc98.e31b",
+    "type": "comment",
+    "name": "Delete consumed service consumed-allotted-resources in mdsal",
+    "info": "",
+    "comments": "",
+    "x": 804.0045623779297,
+    "y": 611.0038724095793,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "f55bb2df.f0b",
+    "type": "comment",
+    "name": "This set resource will be deleted in MDSAL by provider code",
+    "info": "",
+    "comments": "",
+    "x": 794.337345123291,
+    "y": 715.781964302063,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "c48ea2e0.f31db",
+    "type": "comment",
+    "name": "Obtain the index of conusumed AR",
+    "info": "",
+    "comments": "",
+    "x": 716.7817535400391,
+    "y": 642.8927326202393,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "b260d54b.5e5f58",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Resource to be deleted doesn't exist in MDSAL.\" />\n",
+    "comments": "",
+    "x": 1279.00390625,
+    "y": 662.00390625,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "a387ae74.594b6",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">",
+    "atomic": "true",
+    "outputs": 1,
+    "x": 2423.003936767578,
+    "y": 714.2539558410645,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "365e6c51.6f6434"
+      ]
+    ]
+  },
+  {
+    "id": "9d4dfb29.6b9ee8",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"resource to be deleted is not available in mdsal\" />\n",
+    "comments": "",
+    "x": 1733.25390625,
+    "y": 771.25390625,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "42d75f79.805d2",
+    "type": "outcome",
+    "name": "NULL",
+    "xml": "<outcome value=''>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1595.75390625,
+    "y": 771.25390625,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "9d4dfb29.6b9ee8"
+      ]
+    ]
+  },
+  {
+    "id": "51c9f5a5.4315fc",
+    "type": "switchNode",
+    "name": "switch tmp.cidx ",
+    "xml": "<switch test=\"`$tmp.cidx`\">\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1441.75390625,
+    "y": 771.25390625,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "42d75f79.805d2"
+      ]
+    ]
+  },
+  {
+    "id": "7f854ddc.974234",
+    "type": "comment",
+    "name": "Delete provided service provided-allotted-resources in mdsal",
+    "info": "",
+    "comments": "",
+    "x": 790.5039215087891,
+    "y": 807.00390625,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "7505397d.8aabc8",
+    "type": "other",
+    "name": "other",
+    "xml": "<outcome value='Other'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1118.5041770935059,
+    "y": 1121.7540984153748,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "1ad39230.0014ce"
+      ]
+    ]
+  },
+  {
+    "id": "7a0bf533.2fea3c",
+    "type": "other",
+    "name": "outcome Null",
+    "xml": "<outcome value=''>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1135.5040969848633,
+    "y": 1033.7539324760437,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "7c243332.a34bdc"
+      ]
+    ]
+  },
+  {
+    "id": "7c243332.a34bdc",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Resource to be deleted doesn't exist in MDSAL.\" />\n",
+    "comments": "",
+    "x": 1299.3616943359375,
+    "y": 1034.1824774742126,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "eb1cae26.e29d4",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"resource to be deleted is not available in mdsal\" />\n",
+    "comments": "",
+    "x": 1730.7539501190186,
+    "y": 1151.753936290741,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "7690b02b.7872f",
+    "type": "outcome",
+    "name": "NULL",
+    "xml": "<outcome value=''>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1593.2539501190186,
+    "y": 1151.753936290741,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "eb1cae26.e29d4"
+      ]
+    ]
+  },
+  {
+    "id": "757e6827.467698",
+    "type": "switchNode",
+    "name": "switch tmp.pidx ",
+    "xml": "<switch test=\"`$tmp.pidx`\">\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1439.2539501190186,
+    "y": 1151.753936290741,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "7690b02b.7872f"
+      ]
+    ]
+  },
+  {
+    "id": "f9268a01.5183a8",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2303.504367828369,
+    "y": 1071.7540946006775,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "86a5d9a6.a11a58"
+      ]
+    ]
+  },
+  {
+    "id": "b544cb9e.217168",
+    "type": "set",
+    "name": "set tmp.pidx",
+    "xml": "<set>\n<parameter name='tmp.pidx' value='`$pidx`' />\n",
+    "comments": "",
+    "x": 2371.8404846191406,
+    "y": 1206.5101914405823,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "86a5d9a6.a11a58",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">",
+    "atomic": "true",
+    "outputs": 1,
+    "x": 2363.582820892334,
+    "y": 1142.539580821991,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "b544cb9e.217168"
+      ]
+    ]
+  },
+  {
+    "id": "3ad79f2e.53c8c",
+    "type": "set",
+    "name": "set provided allotted resources for deletion",
+    "xml": "<set>\n<parameter name=\"service-data.provided-allotted-resources.consumed-allotted-resource[$pidx].\" value=\"\" />\n<parameter name=\"service-data.provided-allotted-resources.consumed-allotted-resource_length\" value='`$service-data.provided-allotted-resources.consumed-allotted-resource_length - 1`' />\n\n",
+    "comments": "",
+    "x": 749.0039978027344,
+    "y": 1137.0039768218994,
+    "z": "5775f861.275e28",
+    "wires": []
+  },
+  {
+    "id": "82dc876b.abfd98",
+    "type": "update",
+    "name": "update AAI allotted-resource",
+    "xml": "<delete plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" resource='allotted-resource'  \n\t\tkey=\"customer.global-customer-id = $connection-attachment-topology-operation-input.service-information.global-customer-id AND\n\t\t\tservice-subscription.service-type = $connection-attachment-topology-operation-input.service-information.subscription-service-type AND\n\t\t\tservice-instance.service-instance-id = $connection-attachment-topology-operation-input.allotted-resource-information.parent-service-instance-id AND\n\t\t\tallotted-resource.id = $tmp.ar.allotted-resource-id\">\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 706.2227554321289,
+    "y": 1291.754346370697,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "9e10ac1a.8f491",
+        "824c305f.f99dc"
+      ]
+    ]
+  },
+  {
+    "id": "12de84a1.b1a80b",
+    "type": "execute",
+    "name": "execute RestApiCallNode - get-resource parent service data",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n    <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.ar-url-psd`' />\n    <parameter name='restapiUser' value='`$prop.controller.user`' />\n    <parameter name='restapiPassword' value='`$prop.controller.pwd`' />\n    <parameter name='format' value='json' />\n    <parameter name='httpMethod' value='GET' />\n    <parameter name=\"responsePrefix\" value=\"mdsal-psd\" />\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 796.3334197998047,
+    "y": 977.333366394043,
+    "z": "5775f861.275e28",
+    "wires": [
+      [
+        "23d329ac.3b7e66",
+        "e13f07b8.3067a8"
+      ]
+    ]
+  },
+  {
+    "id": "55f05cd1.c7cc44",
+    "type": "execute",
+    "name": "get parent-service-data tmp.ar-url-psd",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >\n    <parameter name=\"source\" value=\"/restconf/config/GENERIC-RESOURCE-API:services/service/{service-instance-id}/service-data\"/>\n    <parameter name=\"outputPath\" value=\"tmp.ar-url-psd\"/>\n    <parameter name=\"target\" value=\"{service-instance-id}\"/>\n    <parameter name=\"replacement\" value=\"`$tmp.ar.parent-service-instance-id`\"/>",
+    "comments": "",
+    "outputs": 1,
+    "x": 730.3333587646484,
+    "y": 935.3332056999207,
+    "z": "5775f861.275e28",
+    "wires": [
+      []
+    ]
+  }
+]
