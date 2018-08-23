@@ -1,6 +1,6 @@
 <service-logic
     xmlns='http://www.onap.org/sdnc/svclogic'
-    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='1.2.1-SNAPSHOT'>
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
     <method rpc='sdwan-vnf-topology-operation-device-create' mode='sync'>
         <block atomic="true">
             <set>
@@ -152,6 +152,16 @@
                 <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-request-input.vnf-input-parameters.param[$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-request-input.vnf-input-parameters.param_length].value' value='`$prop.sdncCreate`' />
                 <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-request-input.vnf-input-parameters.param_length' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-request-input.vnf-input-parameters.param_length + 1`' />
             </set>
+            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list' 
+      key='service-instance.service-instance-id = $service-data.service-information.service-instance-id 
+         AND customer.global-customer-id = $service-data.vnfs.vnf[$vnf-index].vnf-data.service-information.global-customer-id 
+         AND service-subscription.service-type = $service-data.vnfs.vnf[$vnf-index].vnf-data.service-information.subscription-service-type' 
+      force="true" pfx="tmp.AnAI-data">
+                <parameter name="relationship-list.relationship[0].related-to" value="device" />
+                <parameter name="relationship-list.relationship[0].related-link" value="`'/network/devices/device/' + $prop.vnf-id`" />
+                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="device.id" />
+                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$prop.vnf-id`" />
+            </save>
             <return status='success'>
                 <parameter name="ack-final-indicator" value="Y" />
                 <parameter name="error-code" value="200" />
