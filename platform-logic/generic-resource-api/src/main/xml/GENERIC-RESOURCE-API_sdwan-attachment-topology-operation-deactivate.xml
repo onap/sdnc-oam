@@ -190,7 +190,7 @@
                                                                                             </set>
                                                                                         </outcome>
                                                                                     </switch>
-                                                                                    <switch test="`$mdsal-psd.service-data.networks.network[$pnidx].network-data.network-request-input.network-input-parameters.param[$paramidx].name == 'vpnId'`">
+                                                                                    <switch test="`$mdsal-psd.service-data.networks.network[$pnidx].network-data.network-request-input.network-input-parameters.param[$paramidx].name == 'vpn-id'`">
                                                                                         <outcome value='true'>
                                                                                             <set>
                                                                                                 <parameter name='prop.vpn1Id' value='`$mdsal-parentsd.service-data.networks.network[$pnidx].network-data.network-request-input.network-input-parameters.param[$paramidx].value`' />
@@ -304,7 +304,7 @@
             </get-resource>
             <call module='GENERIC-RESOURCE-API' rpc='sdwan-wanport-vnf-topology-operation-underlay' mode='sync' ></call>
             <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-vpn-tolopogy.json'`" />
+                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-vpn-topology.json'`" />
                 <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/sdwan/overlay-network/' + $prop.vpn1Id + '/topology'`" />
                 <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
                 <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
@@ -405,6 +405,32 @@
  + $connection-attachment-topology-operation-input.service-information.service-instance-id
  + '/service-data/service-topology/'`"/>
             </set>
+            <update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+		resource="allotted-resource" 
+		key="customer.global-customer-id = $connection-attachment-topology-operation-input.service-information.global-customer-id AND
+			service-subscription.service-type = $connection-attachment-topology-operation-input.service-information.subscription-service-type AND
+			service-instance.service-instance-id = $connection-attachment-topology-operation-input.allotted-resource-information.parent-service-instance-id AND
+			allotted-resource.id = $tmp.ar.allotted-resource-id"
+        pfx='pfx' local-only='false' force='false'>
+                <parameter name="selflink" value="`$tmp.ar.self-link`" />
+                <parameter name="model-invariant-id" value="`$connection-attachment-topology-operation-input.allotted-resource-information.onap-model-information.model-invariant-uuid`" />
+                <parameter name="model-version-id" value="`$connection-attachment-topology-operation-input.allotted-resource-information.onap-model-information.model-uuid`" />
+                <parameter name="operational-status" value="PendingDelete" />
+                <outcome value='failure'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="AAI failed" />
+                    </return>
+                </outcome>
+                <outcome value='not-found'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="AAI failed" />
+                    </return>
+                </outcome>
+            </update>
             <return status='success'>
                 <parameter name="ack-final-indicator" value="Y" />
                 <parameter name="error-code" value="200" />
