@@ -144,7 +144,7 @@
             </for>
             <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="esr-thirdparty-sdnc" 
-		key="esr-thirdparty-sdnc.thirdparty-sdnc-id = SDWAN-Controller AND 
+		key="esr-thirdparty-sdnc.thirdparty-sdnc-id = SDWANController AND 
 		     depth = '1'"
         pfx='tmp.aai.esr-thirdparty-sdnc' local-only='false' >
                 <outcome value='success'>
@@ -198,7 +198,7 @@
                 <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
                 <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
                 <parameter name="format" value="json"/>
-                <parameter name="httpMethod" value="post"/>
+                <parameter name="httpMethod" value="put"/>
                 <parameter name="responsePrefix" value="portResp"/>
                 <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.openecomp.client.jks"/>
                 <parameter name="trustStorePassword" value="adminadmin"/>
@@ -216,19 +216,10 @@
                     <block atomic="true"></block>
                 </outcome>
             </execute>
-            <for index="portidx" start="0" end="`$portResp_length`">
-                <block>
-                    <switch test="`$portResp[$portidx].deviceId == $prop.deviceId`">
-                        <outcome value='true'>
-                            <set>
-                                <parameter name='prop.wan.devicePortId' value='`$portResp[$portidx].id`' />
-                            </set>
-                        </outcome>
-                    </switch>
-                </block>
-            </for>
+            <set>
+                <parameter name='prop.wan.devicePortId' value='`$portResp.success[0].id`' />
+            </set>
             <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-network-orchestration.json'`" />
                 <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/sdwan/net/network-orchestration-resources'`" />
                 <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
                 <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
@@ -251,12 +242,12 @@
                     <block atomic="true"></block>
                 </outcome>
             </execute>
-            <for index="tidx" start="0" end="`$transportNetworksResp.transportNetworks_length`">
+            <for index="tidx" start="0" end="`$transportNetworksResp.data.transportNetworks_length`">
                 <block>
-                    <switch test="`$transportNetworksResp.transportNetworks[$tidx].name == $prop.wan.transportNetworkName`">
+                    <switch test="`$transportNetworksResp.data.transportNetworks[$tidx].name == $prop.wan.transportNetworkName`">
                         <outcome value='true'>
                             <set>
-                                <parameter name='prop.wan.transportNetworkId' value='`$transportNetworksResp[$tidx].id`' />
+                                <parameter name='prop.wan.transportNetworkId' value='`$transportNetworksResp.data.transportNetworks[$tidx].id`' />
                             </set>
                         </outcome>
                     </switch>
@@ -303,23 +294,18 @@
                     <block atomic="true"></block>
                 </outcome>
             </execute>
-            <for index="wanPortidx" start="0" end="`$wanPortResp_length`">
-                <block>
-                    <switch test="`$wanPortResp[$wanPortidx].deviceId == $prop.deviceId`">
-                        <outcome value='true'>
-                            <set>
-                                <parameter name='prop.wan.wanPortId' value='`$wanPortResp[$wanPortidx].id`' />
-                            </set>
-                        </outcome>
-                    </switch>
-                </block>
-            </for>
+            <set>
+                <parameter name='prop.wan.wanPortId' value='`$wanPortResp.success[0].id`' />
+            </set>
             <set>
                 <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length].name' value='devicePortId' />
                 <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length].value' value='`$prop.wan.devicePortId`' />
-                <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length + 1].name' value='wanPortId' />
-                <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length + 1].value' value='`$prop.wan.wanPortId`' />
-                <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length' value='`$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length + 2`' />
+                <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length' value='`$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length + 1`' />
+            </set>
+            <set>
+                <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length].name' value='wanPortId' />
+                <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length].value' value='`$prop.wan.wanPortId`' />
+                <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length' value='`$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length + 1`' />
             </set>
             <set>
                 <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-id' value='`$service-data.vnfs.vnf[$tmp.vidx].vnf-id`' />

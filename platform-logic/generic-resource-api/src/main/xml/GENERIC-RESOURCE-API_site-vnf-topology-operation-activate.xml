@@ -27,7 +27,7 @@
                             <parameter name='prop.site.deviceId_length' value='0' />
                         </set>
                         <for index='vidx' start='0' end='`$service-data.vnfs.vnf_length`' >
-                            <block>
+                            <block atomic="true">
                                 <switch test="`$service-data.vnfs.vnf[$vidx].vnf-id == $vnf-topology-operation-input.vnf-information.vnf-id`">
                                     <outcome value='true'>
                                         <block atomic="true">
@@ -133,7 +133,7 @@
                         </set>
                         <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="esr-thirdparty-sdnc" 
-		key="esr-thirdparty-sdnc.thirdparty-sdnc-id = SDWAN-Controller AND 
+		key="esr-thirdparty-sdnc.thirdparty-sdnc-id = SDWANController AND 
 		     depth = '1'"
         pfx='tmp.aai.esr-thirdparty-sdnc' local-only='false' >
                             <outcome value='success'>
@@ -193,6 +193,13 @@
                             <outcome value='success'>
                                 <block atomic="true"></block>
                             </outcome>
+                            <outcome value='failure'>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="Error executing Create vpn rest api" />
+                                </return>
+                            </outcome>
                         </execute>
                     </block>
                 </outcome>
@@ -200,8 +207,7 @@
             <set>
                 <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-id' value='`$service-data.vnfs.vnf[$tmp.vidx].vnf-id`' />
                 <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length].name' value='siteId' />
-                <!--parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length].value' value='`$site-result[0].id`' /-->
-                <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length].value' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />
+                <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length].value' value='`$site-result.success[0].id`' />
                 <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length' value='`$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length + 1`' />
             </set>
             <set>

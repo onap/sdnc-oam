@@ -184,17 +184,17 @@
                                                 </set>
                                             </outcome>
                                         </switch>
-                                        <switch test="`$tmp.pnidx`">
-                                            <outcome value=''>
-                                                <return status='failure'>
-                                                    <parameter name='ack-final' value='Y'/>
-                                                    <parameter name="error-code" value="500" />
-                                                    <parameter name="error-message" value="vnf-topology-operation-input.vnf-request-input.vnf-id not found in service-data" />
-                                                </return>
-                                            </outcome>
-                                        </switch>
                                     </block>
                                 </for>
+                                <switch test="`$tmp.pnidx`">
+                                    <outcome value=''>
+                                        <return status='failure'>
+                                            <parameter name='ack-final' value='Y'/>
+                                            <parameter name="error-code" value="500" />
+                                            <parameter name="error-message" value="vnf-topology-operation-input.vnf-request-input.vnf-id not found in service-data" />
+                                        </return>
+                                    </outcome>
+                                </switch>
                                 <for index="paramidx" start="0" end="`$mdsal-psd.service-data.networks.network[$tmp.pnidx].network-data.network-request-input.network-input-parameters.param_length`">
                                     <block atomic="true">
                                         <switch test="`$mdsal-psd.service-data.networks.network[$tmp.pnidx].network-data.network-request-input.network-input-parameters.param[$paramidx].name == 'topology'`">
@@ -438,7 +438,7 @@
                                                                                             <parameter name='prop.route.siteId' value='`$prop.hub.siteId`' />
                                                                                             <parameter name='prop.route.deviceId' value='`$prop.hub.deviceId`' />
                                                                                             <parameter name='prop.route.providerIpAddress' value='`$prop.hub.providerIpAddress`' />
-                                                                                            <parameter name='prop.route.wanportId' value='`$prop.spoke.wanportId`' />
+                                                                                            <parameter name='prop.route.wanportId' value='`$prop.spoke.wanPortId`' />
                                                                                             <parameter name='prop.route.ipAddress' value='`$prop.hub.ipAddress`' />
                                                                                         </set>
                                                                                         <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
@@ -468,7 +468,7 @@
                                                                                             <parameter name='prop.route.siteId' value='`$prop.spoke.siteId`' />
                                                                                             <parameter name='prop.route.deviceId' value='`$prop.spoke.deviceId`' />
                                                                                             <parameter name='prop.route.providerIpAddress' value='`$prop.spoke.providerIpAddress`' />
-                                                                                            <parameter name='prop.route.wanportId' value='`$prop.hub.wanportId`' />
+                                                                                            <parameter name='prop.route.wanportId' value='`$prop.hub.wanPortId`' />
                                                                                             <parameter name='prop.route.ipAddress' value='`$prop.spoke.ipAddress`' />
                                                                                         </set>
                                                                                         <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
@@ -495,10 +495,22 @@
                                                                                         </execute>
                                                                                         <set>
                                                                                             <parameter name='mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length].name' value='hubRouteId' />
-                                                                                            <parameter name='mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length].value' value='`$underlayHubResp[0].id`' />
-                                                                                            <parameter name='mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length + 1].name' value='spokeRouteId' />
-                                                                                            <parameter name='mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length + 1].value' value='`$underlayspokeResp[0].id`' />
-                                                                                            <parameter name='mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length' value='`$mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length + 2`' />
+                                                                                            <parameter name='mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length].value' value='`$underlayHubResp.success[0].id`' />
+                                                                                            <parameter name='mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length' value='`$mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length + 1`' />
+                                                                                        </set>
+                                                                                        <set>
+                                                                                            <parameter name='mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length].name' value='spokeRouteId' />
+                                                                                            <parameter name='mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length].value' value='`$underlayspokeResp.success[0].id`' />
+                                                                                            <parameter name='mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length' value='`$mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length + 1`' />
+                                                                                        </set>
+                                                                                        <set>
+                                                                                            <parameter name='prop.provision.siteIds[$prop.provision.siteIds_length].hubSiteName' value='`$prop.hub.siteName`' />
+                                                                                            <parameter name='prop.provision.siteIds[$prop.provision.siteIds_length].hubSiteId' value='`$prop.hub.siteId`' />
+                                                                                            <parameter name='prop.provision.siteIds[$prop.provision.siteIds_length].spokeSiteName' value='`$prop.spoke.siteName`' />
+                                                                                            <parameter name='prop.provision.siteIds[$prop.provision.siteIds_length].spokeSiteId' value='`$prop.spoke.siteId`' />
+                                                                                        </set>
+                                                                                        <set>
+                                                                                            <parameter name='prop.provision.siteIds_length' value='`$prop.provision.siteIds_length + 1`' />
                                                                                         </set>
                                                                                     </block>
                                                                                 </outcome>
@@ -569,13 +581,6 @@
                                                                                     </block>
                                                                                 </outcome>
                                                                             </switch>
-                                                                            <set>
-                                                                                <parameter name='prop.provision.siteIds[$prop.provision.siteIds_length].hubSiteName' value='`$prop.hub.siteName`' />
-                                                                                <parameter name='prop.provision.siteIds[$prop.provision.siteIds_length].hubSiteId' value='`$prop.hub.siteId`' />
-                                                                                <parameter name='prop.provision.siteIds[$prop.provision.siteIds_length].spokeSiteName' value='`$prop.spoke.siteName`' />
-                                                                                <parameter name='prop.provision.siteIds[$prop.provision.siteIds_length].spokeSiteId' value='`$prop.spoke.siteId`' />
-                                                                                <parameter name='prop.provision.siteIds_length' value='`$prop.provision.siteIds_length + 1`' />
-                                                                            </set>
                                                                         </block>
                                                                     </outcome>
                                                                 </switch>
@@ -626,7 +631,7 @@
                     <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
                         <parameter name="file" value="`'/opt/opendaylight/current/data/log/' + 'HUB-' + $prop.provision.hubSitename + '-SPOKE-' + $prop.provision.spokeSitename + '-provisionUrl'`"/>
                         <parameter name="field1" value="__TIMESTAMP__"/>
-                        <parameter name="field2" value='`$provisionUrlRsp`'/>
+                        <parameter name="field2" value='`$provisionUrlRsp.success[0].url`'/>
                     </record>
                 </block>
             </for>

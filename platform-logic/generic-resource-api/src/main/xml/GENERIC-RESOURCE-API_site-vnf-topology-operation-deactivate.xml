@@ -84,16 +84,12 @@
                     </switch>
                 </block>
             </for>
-            <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
-                <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />
-                <parameter name='contextPrefix' value='prop' />
-            </execute>
             <switch test="`$prop.site.sdwan`">
                 <outcome value='true'>
                     <block atomic="true">
                         <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="esr-thirdparty-sdnc" 
-		key="esr-thirdparty-sdnc.thirdparty-sdnc-id = SDWAN-Controller AND 
+		key="esr-thirdparty-sdnc.thirdparty-sdnc-id = SDWANController AND 
 		     depth = '1'"
         pfx='tmp.aai.esr-thirdparty-sdnc' local-only='false' >
                             <outcome value='success'>
@@ -133,9 +129,12 @@
                                     <parameter name='prop.sdncRestApi.token_id' value='`$token-result.data.token_id`' />
                                 </set>
                             </outcome>
+                            <outcome value='failure'>
+                                <block></block>
+                            </outcome>
                         </execute>
                         <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                            <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-site-del.json'`" />
+                            <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-site.json'`" />
                             <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/sdwan/net/sites/action/batch-delete'`" />
                             <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
                             <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
