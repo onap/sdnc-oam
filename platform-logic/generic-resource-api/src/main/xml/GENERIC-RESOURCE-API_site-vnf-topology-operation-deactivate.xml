@@ -61,6 +61,10 @@
                     </outcome>
                 </switch>
             </block>
+            <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
+                <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />
+                <parameter name='contextPrefix' value='prop' />
+            </execute>
             <for index='idx' start='0' end='`$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length`' >
                 <block>
                     <switch test="`$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].name == 'role'`">
@@ -84,16 +88,12 @@
                     </switch>
                 </block>
             </for>
-            <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
-                <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />
-                <parameter name='contextPrefix' value='prop' />
-            </execute>
             <switch test="`$prop.site.sdwan`">
                 <outcome value='true'>
                     <block atomic="true">
                         <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="esr-thirdparty-sdnc" 
-		key="esr-thirdparty-sdnc.thirdparty-sdnc-id = SDWAN-Controller AND 
+		key="esr-thirdparty-sdnc.thirdparty-sdnc-id = SDWANController AND 
 		     depth = '1'"
         pfx='tmp.aai.esr-thirdparty-sdnc' local-only='false' >
                             <outcome value='success'>
@@ -133,6 +133,9 @@
                                     <parameter name='prop.sdncRestApi.token_id' value='`$token-result.data.token_id`' />
                                 </set>
                             </outcome>
+                            <outcome value='failure'>
+                                <block></block>
+                            </outcome>
                         </execute>
                         <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                             <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-site-del.json'`" />
@@ -168,7 +171,7 @@
             </set>
             <set>
                 <parameter name='vnfId' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />
-                <parameter name="vnf-object-path" value="`'restconf/config/GENERIC-RESOURCE-API:services/service/'  + $vnf-topology-operation-input.service-information.service-instance-id  + '/service-data/vnfs/vnf/'  + $vnf-topology-operation-input.vnf-request-input.vnf-id  + '/vnf-data/'` " />
+                <parameter name="vnf-object-path" value="`'restconf/config/GENERIC-RESOURCE-API:services/service/'  + $vnf-topology-operation-input.service-information.service-instance-id  + '/service-data/vnfs/vnf/'  + $vnf-topology-operation-input.vnf-information.vnf-id  + '/vnf-data/'` " />
             </set>
             <set>
                 <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-level-oper-status.order-status' value='PendingDelete' />
@@ -176,8 +179,8 @@
                 <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-level-oper-status.last-action' value='`$vnf-topology-operation-input.request-information.request-action`' />
             </set>
             <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='site-resource' 
-      key='site-resource.id = $service-data.vnfs.vnf[$tmp.vidx].vnf-id' >
-                <parameter name='id' value='`$service-data.vnfs.vnf[$tmp.vidx].vnf-id`' />
+      key='site-resource.id = $vnf-topology-operation-input.vnf-information.vnf-id' >
+                <parameter name='id' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />
                 <parameter name='operational-status' value='PendingDelete' />
             </save>
             <return status='success'>
