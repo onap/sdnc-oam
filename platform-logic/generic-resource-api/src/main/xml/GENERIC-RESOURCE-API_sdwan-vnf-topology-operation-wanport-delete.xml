@@ -44,12 +44,6 @@
                                 </return>
                             </outcome>
                         </switch>
-                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
-                            <parameter name="file" value="/opt/opendaylight/current/data/log/svclogic.log"/>
-                            <parameter name="field1" value="__TIMESTAMP__"/>
-                            <parameter name="field2" value="tmp.vidx1234555"/>
-                            <parameter name="field3" value='`$tmp.vidx`'/>
-                        </record>
                     </block>
                 </outcome>
             </switch>
@@ -66,10 +60,30 @@
                 </outcome>
             </switch>
             <set>
-                <parameter name="service-data.vnfs.vnf_length" value="`$service-data.vnfs.vnf_length - 1`"/>
+                <parameter name='prop.vnfidxLen' value='`0`' />
+            </set>
+            <for index='lidx' start='0' end='`$service-data.vnfs.vnf_length`' >
+                <block atomic="true">
+                    <switch test="`$service-data.vnfs.vnf[$lidx].vnf-id == $vnf-topology-operation-input.vnf-information.vnf-id`">
+                        <outcome value='false'>
+                            <block atomic="true">
+                                <set>
+                                    <parameter name='service-data.vnfs.vnf[$prop.vnfidxLen].vnf-id' value='`$service-data.vnfs.vnf[$lidx].vnf-id`' />
+                                    <parameter name='service-data.vnfs.vnf[$prop.vnfidxLen].vnf-data.' value='`$service-data.vnfs.vnf[$lidx].vnf-data.`' />
+                                </set>
+                                <set>
+                                    <parameter name='prop.vnfidxLen' value='`$prop.vnfidxLen + 1`' />
+                                </set>
+                            </block>
+                        </outcome>
+                    </switch>
+                </block>
+            </for>
+            <set>
+                <parameter name="service-data.vnfs.vnf_length" value='`$prop.vnfidxLen`'/>
             </set>
             <set>
-                <parameter name="service-data.vnfs.vnf[$tmp.vidx]." value=""/>
+                <parameter name="service-data.vnfs.vnf[$prop.vnfidxLen]." value=""/>
             </set>
             <set>
                 <parameter name='vnfId' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />

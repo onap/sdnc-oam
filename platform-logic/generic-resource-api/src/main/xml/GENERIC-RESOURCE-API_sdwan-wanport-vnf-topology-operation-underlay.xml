@@ -4,6 +4,9 @@
     <method rpc='sdwan-wanport-vnf-topology-operation-underlay' mode='sync'>
         <block atomic="true">
             <set>
+                <parameter name='prop.underlay.routeIds_length' value='0' />
+            </set>
+            <set>
                 <parameter name='prop.provision.siteIds_length' value='0' />
             </set>
             <for index='cidx' start='0' end='`$service-data.consumed-allotted-resources.consumed-allotted-resource_length`' >
@@ -34,10 +37,10 @@
                                             </set>
                                             <for index="roleidx" start="0" end="`$mdsal-ar.connection-attachment-allotted-resource[0].allotted-resource-data.allotted-resource-operation-information.connection-attachment-request-input.param_length`">
                                                 <block>
-                                                    <switch test="`$mdsal-providedAr.connection-attachment-allotted-resource[0].allotted-resource-data.allotted-resource-operation-information.connection-attachment-request-input.param[$roleidx].name == 'role'`">
+                                                    <switch test="`$mdsal-ar.connection-attachment-allotted-resource[0].allotted-resource-data.allotted-resource-operation-information.connection-attachment-request-input.param[$roleidx].name == 'role'`">
                                                         <outcome value='true'>
                                                             <set>
-                                                                <parameter name='prop.spoke.role' value='`$mdsal-providedAr.connection-attachment-allotted-resource[0].allotted-resource-data.allotted-resource-operation-information.connection-attachment-request-input.param[$roleidx].value`' />
+                                                                <parameter name='prop.spoke.role' value='`$mdsal-ar.connection-attachment-allotted-resource[0].allotted-resource-data.allotted-resource-operation-information.connection-attachment-request-input.param[$roleidx].value`' />
                                                             </set>
                                                         </outcome>
                                                     </switch>
@@ -128,6 +131,9 @@
                                         <switch test="`$service-data.vnfs.vnf[$i].vnf-data.request-information.request-action == 'ActivateSiteInstance'`">
                                             <outcome value='true'>
                                                 <block atomic="true">
+                                                    <set>
+                                                        <parameter name='prop.spoke.siteidx' value='`$i`' />
+                                                    </set>
                                                     <for index="sidx" start="0" end="`$service-data.vnfs.vnf[$i].vnf-data.vnf-request-input.vnf-input-parameters.param_length`">
                                                         <block atomic="true">
                                                             <switch test="`$service-data.vnfs.vnf[$i].vnf-data.vnf-request-input.vnf-input-parameters.param[$sidx].name == 'name'`">
@@ -142,6 +148,56 @@
                                                                     <set>
                                                                         <parameter name='prop.spoke.siteId' value='`$service-data.vnfs.vnf[$i].vnf-data.vnf-request-input.vnf-input-parameters.param[$sidx].value`' />
                                                                     </set>
+                                                                </outcome>
+                                                            </switch>
+                                                            <switch test="`$service-data.vnfs.vnf[$i].vnf-data.vnf-request-input.vnf-input-parameters.param[$sidx].name == 'underlayRouteIds'`">
+                                                                <outcome value='true'>
+                                                                    <block atomic="true">
+                                                                        <set>
+                                                                            <parameter name='prop.underlay.routeIdsString' value='`$service-data.vnfs.vnf[$i].vnf-data.vnf-request-input.vnf-input-parameters.param[$sidx].value`' />
+                                                                        </set>
+                                                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                                                                            <parameter name="original_string" value='`$prop.underlay.routeIdsString`'/>
+                                                                            <parameter name="regex" value=" | "/>
+                                                                            <parameter name="ctx_memory_result_key" value="prop.underlay.routeIdsValue"/>
+                                                                            <outcome value='success'>
+                                                                                <for index="ridx" start="0" end="`$prop.underlay.routeIdsValue_length`">
+                                                                                    <block atomic="true">
+                                                                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                                                                                            <parameter name="original_string" value='`$prop.underlay.routeIdsValue[$ridx]`'/>
+                                                                                            <parameter name="regex" value=","/>
+                                                                                            <parameter name="ctx_memory_result_key" value="prop.underlay.routeIdsValues"/>
+                                                                                            <outcome value='success'>
+                                                                                                <switch test='`$prop.underlay.routeIdsValues_length`'>
+                                                                                                    <outcome value='Other'>
+                                                                                                        <block></block>
+                                                                                                    </outcome>
+                                                                                                    <outcome value='3'>
+                                                                                                        <block atomic="true">
+                                                                                                            <set>
+                                                                                                                <parameter name='prop.underlay.routeIds[$prop.underlay.routeIds_length].hubSiteId' value='`$prop.underlay.routeIdsValues[0]`' />
+                                                                                                                <parameter name='prop.underlay.routeIds[$prop.underlay.routeIds_length].hubRouteId' value='`$prop.underlay.routeIdsValues[1]`' />
+                                                                                                                <parameter name='prop.underlay.routeIds[$prop.underlay.routeIds_length].spokeRouteId' value='`$prop.underlay.routeIdsValues[2]`' />
+                                                                                                            </set>
+                                                                                                            <set>
+                                                                                                                <parameter name='prop.underlay.routeIds_length' value='`$prop.underlay.routeIds_length + 1`' />
+                                                                                                            </set>
+                                                                                                        </block>
+                                                                                                    </outcome>
+                                                                                                </switch>
+                                                                                            </outcome>
+                                                                                            <outcome value='failure'>
+                                                                                                <block></block>
+                                                                                            </outcome>
+                                                                                        </execute>
+                                                                                    </block>
+                                                                                </for>
+                                                                            </outcome>
+                                                                            <outcome value='failure'>
+                                                                                <block></block>
+                                                                            </outcome>
+                                                                        </execute>
+                                                                    </block>
                                                                 </outcome>
                                                             </switch>
                                                         </block>
@@ -184,17 +240,17 @@
                                                 </set>
                                             </outcome>
                                         </switch>
-                                        <switch test="`$tmp.pnidx`">
-                                            <outcome value=''>
-                                                <return status='failure'>
-                                                    <parameter name='ack-final' value='Y'/>
-                                                    <parameter name="error-code" value="500" />
-                                                    <parameter name="error-message" value="vnf-topology-operation-input.vnf-request-input.vnf-id not found in service-data" />
-                                                </return>
-                                            </outcome>
-                                        </switch>
                                     </block>
                                 </for>
+                                <switch test="`$tmp.pnidx`">
+                                    <outcome value=''>
+                                        <return status='failure'>
+                                            <parameter name='ack-final' value='Y'/>
+                                            <parameter name="error-code" value="500" />
+                                            <parameter name="error-message" value="vnf-topology-operation-input.vnf-request-input.vnf-id not found in service-data" />
+                                        </return>
+                                    </outcome>
+                                </switch>
                                 <for index="paramidx" start="0" end="`$mdsal-psd.service-data.networks.network[$tmp.pnidx].network-data.network-request-input.network-input-parameters.param_length`">
                                     <block atomic="true">
                                         <switch test="`$mdsal-psd.service-data.networks.network[$tmp.pnidx].network-data.network-request-input.network-input-parameters.param[$paramidx].name == 'topology'`">
@@ -414,20 +470,6 @@
                                                                                             </set>
                                                                                         </outcome>
                                                                                     </switch>
-                                                                                    <switch test="`$mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$siteidx].name == 'hubRouteId'`">
-                                                                                        <outcome value='true'>
-                                                                                            <set>
-                                                                                                <parameter name='prop.hubRouteId' value='`$mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$siteidx].value`' />
-                                                                                            </set>
-                                                                                        </outcome>
-                                                                                    </switch>
-                                                                                    <switch test="`$mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$siteidx].name == 'spokeRouteId'`">
-                                                                                        <outcome value='true'>
-                                                                                            <set>
-                                                                                                <parameter name='prop.spokeRouteId' value='`$mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$siteidx].value`' />
-                                                                                            </set>
-                                                                                        </outcome>
-                                                                                    </switch>
                                                                                 </block>
                                                                             </for>
                                                                             <switch test='`$connection-attachment-topology-operation-input.request-information.request-action`'>
@@ -438,7 +480,7 @@
                                                                                             <parameter name='prop.route.siteId' value='`$prop.hub.siteId`' />
                                                                                             <parameter name='prop.route.deviceId' value='`$prop.hub.deviceId`' />
                                                                                             <parameter name='prop.route.providerIpAddress' value='`$prop.hub.providerIpAddress`' />
-                                                                                            <parameter name='prop.route.wanportId' value='`$prop.spoke.wanportId`' />
+                                                                                            <parameter name='prop.route.wanportId' value='`$prop.spoke.wanPortId`' />
                                                                                             <parameter name='prop.route.ipAddress' value='`$prop.hub.ipAddress`' />
                                                                                         </set>
                                                                                         <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
@@ -468,7 +510,7 @@
                                                                                             <parameter name='prop.route.siteId' value='`$prop.spoke.siteId`' />
                                                                                             <parameter name='prop.route.deviceId' value='`$prop.spoke.deviceId`' />
                                                                                             <parameter name='prop.route.providerIpAddress' value='`$prop.spoke.providerIpAddress`' />
-                                                                                            <parameter name='prop.route.wanportId' value='`$prop.hub.wanportId`' />
+                                                                                            <parameter name='prop.route.wanportId' value='`$prop.hub.wanPortId`' />
                                                                                             <parameter name='prop.route.ipAddress' value='`$prop.spoke.ipAddress`' />
                                                                                         </set>
                                                                                         <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
@@ -494,23 +536,48 @@
                                                                                             <outcome value='success'></outcome>
                                                                                         </execute>
                                                                                         <set>
-                                                                                            <parameter name='mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length].name' value='hubRouteId' />
-                                                                                            <parameter name='mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length].value' value='`$underlayHubResp[0].id`' />
-                                                                                            <parameter name='mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length + 1].name' value='spokeRouteId' />
-                                                                                            <parameter name='mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length + 1].value' value='`$underlayspokeResp[0].id`' />
-                                                                                            <parameter name='mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length' value='`$mdsal-arsd.service-data.vnfs.vnf[$tmp.sitevidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length + 2`' />
+                                                                                            <parameter name='prop.underlay.routeIds[$prop.underlay.routeIds_length].hubSiteId' value='`$prop.hub.siteId`' />
+                                                                                            <!--parameter name='prop.underlay.routeIds[$prop.underlay.routeIds_length].spokeSiteId' value='`$prop.spoke.siteId`' /-->
+                                                                                            <parameter name='prop.underlay.routeIds[$prop.underlay.routeIds_length].hubRouteId' value='`$underlayHubResp.success[0].id`' />
+                                                                                            <parameter name='prop.underlay.routeIds[$prop.underlay.routeIds_length].spokeRouteId' value='`$underlayspokeResp.success[0].id`' />
+                                                                                        </set>
+                                                                                        <set>
+                                                                                            <parameter name='prop.underlay.routeIds_length' value='`$prop.underlay.routeIds_length + 1`' />
+                                                                                        </set>
+                                                                                        <set>
+                                                                                            <parameter name='prop.provision.siteIds[$prop.provision.siteIds_length].hubSiteName' value='`$prop.hub.siteName`' />
+                                                                                            <parameter name='prop.provision.siteIds[$prop.provision.siteIds_length].hubSiteId' value='`$prop.hub.siteId`' />
+                                                                                            <parameter name='prop.provision.siteIds[$prop.provision.siteIds_length].spokeSiteName' value='`$prop.spoke.siteName`' />
+                                                                                            <parameter name='prop.provision.siteIds[$prop.provision.siteIds_length].spokeSiteId' value='`$prop.spoke.siteId`' />
+                                                                                        </set>
+                                                                                        <set>
+                                                                                            <parameter name='prop.provision.siteIds_length' value='`$prop.provision.siteIds_length + 1`' />
                                                                                         </set>
                                                                                     </block>
                                                                                 </outcome>
                                                                                 <outcome value='DeactivateSDWANAttachmentInstance'>
                                                                                     <block atomic="true">
+                                                                                        <for index="uidx" start="0" end="`$prop.underlay.routeIds_length`">
+                                                                                            <block atomic="true">
+                                                                                                <switch test="`$prop.underlay.routeIds[$uidx].hubSiteId == $prop.hub.siteId`">
+                                                                                                    <outcome value='true'>
+                                                                                                        <block atomic="true">
+                                                                                                            <set>
+                                                                                                                <parameter name='prop.hubRouteId' value='`$prop.underlay.routeIds[$uidx].hubRouteId`' />
+                                                                                                                <parameter name='prop.spokeRouteId' value='`$prop.underlay.routeIds[$uidx].spokeRouteId`' />
+                                                                                                            </set>
+                                                                                                        </block>
+                                                                                                    </outcome>
+                                                                                                </switch>
+                                                                                            </block>
+                                                                                        </for>
                                                                                         <set>
                                                                                             <parameter name='prop.route.id' value='`$prop.hubRouteId`' />
                                                                                             <parameter name='prop.route.vpnId' value='`$prop.vpnId`' />
                                                                                             <parameter name='prop.route.siteId' value='`$prop.hub.siteId`' />
                                                                                             <parameter name='prop.route.deviceId' value='`$prop.hub.deviceId`' />
                                                                                             <parameter name='prop.route.providerIpAddress' value='`$prop.hub.providerIpAddress`' />
-                                                                                            <parameter name='prop.route.wanportId' value='`$prop.spoke.wanportId`' />
+                                                                                            <parameter name='prop.route.wanportId' value='`$prop.spoke.wanPortId`' />
                                                                                             <parameter name='prop.route.ipAddress' value='`$prop.hub.ipAddress`' />
                                                                                         </set>
                                                                                         <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
@@ -541,7 +608,7 @@
                                                                                             <parameter name='prop.route.siteId' value='`$prop.spoke.siteId`' />
                                                                                             <parameter name='prop.route.deviceId' value='`$prop.spoke.deviceId`' />
                                                                                             <parameter name='prop.route.providerIpAddress' value='`$prop.spoke.providerIpAddress`' />
-                                                                                            <parameter name='prop.route.wanportId' value='`$prop.hub.wanportId`' />
+                                                                                            <parameter name='prop.route.wanportId' value='`$prop.hub.wanPortId`' />
                                                                                             <parameter name='prop.route.ipAddress' value='`$prop.spoke.ipAddress`' />
                                                                                         </set>
                                                                                         <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
@@ -569,13 +636,6 @@
                                                                                     </block>
                                                                                 </outcome>
                                                                             </switch>
-                                                                            <set>
-                                                                                <parameter name='prop.provision.siteIds[$prop.provision.siteIds_length].hubSiteName' value='`$prop.hub.siteName`' />
-                                                                                <parameter name='prop.provision.siteIds[$prop.provision.siteIds_length].hubSiteId' value='`$prop.hub.siteId`' />
-                                                                                <parameter name='prop.provision.siteIds[$prop.provision.siteIds_length].spokeSiteName' value='`$prop.spoke.siteName`' />
-                                                                                <parameter name='prop.provision.siteIds[$prop.provision.siteIds_length].spokeSiteId' value='`$prop.spoke.siteId`' />
-                                                                                <parameter name='prop.provision.siteIds_length' value='`$prop.provision.siteIds_length + 1`' />
-                                                                            </set>
                                                                         </block>
                                                                     </outcome>
                                                                 </switch>
@@ -584,6 +644,63 @@
                                                     </switch>
                                                 </block>
                                             </for>
+                                        </block>
+                                    </outcome>
+                                </switch>
+                                <switch test='`$connection-attachment-topology-operation-input.request-information.request-action`'>
+                                    <outcome value='ActivateSDWANAttachmentInstance'>
+                                        <block atomic="true">
+                                            <set>
+                                                <parameter name='tmp.routeString' value="" />
+                                            </set>
+                                            <for index="jidx" start="0" end="`$prop.underlay.routeIds_length`">
+                                                <block atomic="true">
+                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='concat' >
+                                                        <parameter name="source" value='`$prop.underlay.routeIds[$jidx].hubSiteId`'/>
+                                                        <parameter name="outputPath" value="tmp.concat"/>
+                                                        <parameter name="target" value=","/>
+                                                    </execute>
+                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='concat' >
+                                                        <parameter name="source" value='`$tmp.concat`'/>
+                                                        <parameter name="outputPath" value="tmp.concat1"/>
+                                                        <parameter name="target" value='`$prop.underlay.routeIds[$jidx].hubRouteId`'/>
+                                                    </execute>
+                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='concat' >
+                                                        <parameter name="source" value='`$tmp.concat1`'/>
+                                                        <parameter name="outputPath" value="tmp.concat2"/>
+                                                        <parameter name="target" value=","/>
+                                                    </execute>
+                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='concat' >
+                                                        <parameter name="source" value='`$tmp.concat2`'/>
+                                                        <parameter name="outputPath" value="tmp.concat3"/>
+                                                        <parameter name="target" value='`$prop.underlay.routeIds[$jidx].spokeRouteId`'/>
+                                                    </execute>
+                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='concat' >
+                                                        <parameter name="source" value='`$tmp.concat3`'/>
+                                                        <parameter name="outputPath" value="tmp.concat4"/>
+                                                        <parameter name="target" value=" | "/>
+                                                    </execute>
+                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='concat' >
+                                                        <parameter name="source" value='`$tmp.routeString`'/>
+                                                        <parameter name="outputPath" value="tmp.routeString"/>
+                                                        <parameter name="target" value='`$tmp.concat4`'/>
+                                                    </execute>
+                                                </block>
+                                            </for>
+                                            <set>
+                                                <parameter name='service-data.vnfs.vnf[$prop.spoke.siteidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$service-data.vnfs.vnf[$prop.spoke.siteidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length].name' value="underlayRouteIds" />
+                                                <parameter name='service-data.vnfs.vnf[$prop.spoke.siteidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$service-data.vnfs.vnf[$prop.spoke.siteidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length].value' value='`$tmp.routeString`' />
+                                            </set>
+                                            <set>
+                                                <parameter name='service-data.vnfs.vnf[$prop.spoke.siteidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length' value='`$service-data.vnfs.vnf[$prop.spoke.siteidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length + 1`' />
+                                            </set>
+                                        </block>
+                                    </outcome>
+                                    <outcome value='DeactivateSDWANAttachmentInstance'>
+                                        <block atomic="true">
+                                            <set>
+                                                <parameter name='service-data.vnfs.vnf[$prop.spoke.siteidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length' value='`$service-data.vnfs.vnf[$prop.spoke.siteidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length - 1`' />
+                                            </set>
                                         </block>
                                     </outcome>
                                 </switch>
@@ -626,7 +743,7 @@
                     <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
                         <parameter name="file" value="`'/opt/opendaylight/current/data/log/' + 'HUB-' + $prop.provision.hubSitename + '-SPOKE-' + $prop.provision.spokeSitename + '-provisionUrl'`"/>
                         <parameter name="field1" value="__TIMESTAMP__"/>
-                        <parameter name="field2" value='`$provisionUrlRsp`'/>
+                        <parameter name="field2" value='`$provisionUrlRsp.success[0].url`'/>
                     </record>
                 </block>
             </for>
