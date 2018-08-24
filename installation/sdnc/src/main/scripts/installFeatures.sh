@@ -30,7 +30,8 @@ SDNC_FEATURE_DIR=${SDNC_FEATURE_DIR:-${SDNC_HOME}/features}
 
 CCSDK_EXTRAS=" \
    ansible-adapter \
-   lcm"
+   lcm \
+   netbox-client"
 
 
 
