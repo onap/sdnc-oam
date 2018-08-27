@@ -34,7 +34,7 @@
             </for>
             <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="esr-thirdparty-sdnc" 
-		key="esr-thirdparty-sdnc.thirdparty-sdnc-id = 'SDWAN-Controller' AND 
+		key="esr-thirdparty-sdnc.thirdparty-sdnc-id = 'SDWANController' AND 
 		     depth = '1'"
         pfx='tmp.aai.esr-thirdparty-sdnc' local-only='false' >
                 <outcome value='success'>
@@ -179,9 +179,8 @@
                     <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
                 </execute>
                 <set>
-                    <!--parameter name='prop.vpn-id' value='`$vpn-result.id`' /><parameter name='prop.vpn1Id' value='`$vpn-result.id`' /-->
-                    <parameter name='prop.vpn-id' value='10' />
-                    <parameter name='prop.vpn1Id' value='10' />
+                    <parameter name='prop.vpn-id' value='`$vpn-result.success[0].id`' />
+                    <parameter name='prop.vpn1Id' value='`$vpn-result.success[0].id`' />
                 </set>
                 <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                     <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-vpn-topology.json'`" />
@@ -201,9 +200,12 @@
             <set>
                 <parameter name='service-data.networks.network[$tmp.nidx].network-data.network-request-input.network-input-parameters.param[$network-topology-operation-input.network-request-input.network-input-parameters.param_length].name' value='tenant-id' />
                 <parameter name='service-data.networks.network[$tmp.nidx].network-data.network-request-input.network-input-parameters.param[$network-topology-operation-input.network-request-input.network-input-parameters.param_length].value' value='`$prop.tenant-id`' />
-                <parameter name='service-data.networks.network[$tmp.nidx].network-data.network-request-input.network-input-parameters.param[$network-topology-operation-input.network-request-input.network-input-parameters.param_length + 1].name' value='vpn-id' />
-                <parameter name='service-data.networks.network[$tmp.nidx].network-data.network-request-input.network-input-parameters.param[$network-topology-operation-input.network-request-input.network-input-parameters.param_length + 1].value' value='`$prop.vpn-id`' />
-                <parameter name='service-data.networks.network[$tmp.nidx].network-data.network-request-input.network-input-parameters.param_length' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param_length + 2`' />
+                <parameter name='service-data.networks.network[$tmp.nidx].network-data.network-request-input.network-input-parameters.param_length' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param_length + 1`' />
+            </set>
+            <set>
+                <parameter name='service-data.networks.network[$tmp.nidx].network-data.network-request-input.network-input-parameters.param[$network-topology-operation-input.network-request-input.network-input-parameters.param_length].name' value='vpn-id' />
+                <parameter name='service-data.networks.network[$tmp.nidx].network-data.network-request-input.network-input-parameters.param[$network-topology-operation-input.network-request-input.network-input-parameters.param_length].value' value='`$prop.vpn-id`' />
+                <parameter name='service-data.networks.network[$tmp.nidx].network-data.network-request-input.network-input-parameters.param_length' value='`$network-topology-operation-input.network-request-input.network-input-parameters.param_length + 1`' />
             </set>
             <set>
                 <parameter name='service-data.networks.network[$tmp.nidx].network-data.sdnc-request-header.' value='`$network-topology-operation-input.sdnc-request-header.`' />
@@ -221,10 +223,10 @@
                 <parameter name='service-data.networks.network[$tmp.nidx].network-data.network-level-oper-status.last-action' value='`$network-topology-operation-input.request-information.request-action`' />
             </set>
             <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='sdwan-vpn' 
-      key='sdwan-vpn.id = $network-topology-operation-input.network-information.network-id' >
-                <parameter name='id' value='`$network-topology-operation-input.network-information.network-id`' />
+      key='sdwan-vpn.sdwan-vpn-id = $network-topology-operation-input.network-information.network-id' >
+                <parameter name='sdwan-vpn-id' value='`$network-topology-operation-input.network-information.network-id`' />
                 <parameter name='operational-status' value='Active' />
-                <parameter name='tenanatId' value='`$prop.tenant-id`' />
+                <parameter name='tenanat-id' value='`$prop.tenant-id`' />
                 <parameter name='vpn-id' value='`$prop.vpn-id`' />
             </update>
             <return status='success'>
