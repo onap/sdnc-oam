@@ -1,0 +1,311 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    <method rpc='self-serve-netbox-ip-assignment' mode='sync'>
+        <block atomic="true">
+            <switch test='`$ss.capability-name`'>
+                <outcome value=''>
+                    <return status="failure">
+                        <parameter name="ack-final" value="Y" />
+                        <parameter name="error-code" value="500"/>
+                        <parameter name="error-message" value="ss.capability-name is null" />
+                    </return>
+                </outcome>
+            </switch>
+            <switch test='`$ss.capability-action`'>
+                <outcome value=''>
+                    <return status="failure">
+                        <parameter name="ack-final" value="Y" />
+                        <parameter name="error-code" value="500"/>
+                        <parameter name="error-message" value="ss.capability-action is null" />
+                    </return>
+                </outcome>
+            </switch>
+            <call module='GENERIC-RESOURCE-API' rpc='self-service-capability-param-resolution' mode='sync' >
+                <outcome value='failure'>
+                    <return status="failure">
+                        <parameter name="ack-final" value="Y" />
+                        <parameter name="error-code" value="500"/>
+                        <parameter name="error-message" value="`'Not all assignments are resolved' + $error-message`" />
+                    </return>
+                </outcome>
+            </call>
+            <block>
+                <for index="pidx" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`">
+                    <set>
+                        <parameter name='tmp.ss.param.capability-name' 
+	value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.capability-name`' />
+                    </set>
+                    <set>
+                        <parameter name='tmp.ss.param.name' 
+	value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].name`' />
+                    </set>
+                    <switch test='`$tmp.ss.param.capability-name == $ss.capability-name`'>
+                        <outcome value='true'>
+                            <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.status`'>
+                                <outcome value='FAILED'>
+                                    <block>
+                                        <for index="kidx" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.resource-key_length`">
+                                            <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.resource-key[$kidx].name`'>
+                                                <outcome value='service-instance-id'>
+                                                    <set>
+                                                        <parameter name='tmp.ss.service-instance-id' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.resource-key[$kidx].value`' />
+                                                    </set>
+                                                </outcome>
+                                                <outcome value='vf-module-id'>
+                                                    <set>
+                                                        <parameter name='tmp.ss.vf-module-id' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.resource-key[$kidx].value`' />
+                                                    </set>
+                                                </outcome>
+                                                <outcome value='prefix-id'>
+                                                    <set>
+                                                        <parameter name='tmp.ss.prefix-id' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.resource-key[$kidx].value`' />
+                                                    </set>
+                                                </outcome>
+                                                <outcome value='ip-address-id'>
+                                                    <set>
+                                                        <parameter name='tmp.ss.ip-address-id' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.resource-key[$kidx].value`' />
+                                                    </set>
+                                                </outcome>
+                                                <outcome value='external_key'>
+                                                    <set>
+                                                        <parameter name='tmp.ss.external-key' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.resource-key[$kidx].value`' />
+                                                    </set>
+                                                </outcome>
+                                            </switch>
+                                        </for>
+                                        <switch test='`$ss.capability-action`'>
+                                            <outcome value='assign'>
+                                                <block atomic='true'>
+                                                    <execute plugin="org.onap.ccsdk.sli.adaptors.netbox.api.NetboxClient" method="assignIpAddress">
+                                                        <parameter name="service_instance_id" value="`$tmp.ss.service-instance-id`" />
+                                                        <parameter name="vf_module_id" value="`$tmp.ss.vf-module-id`" />
+                                                        <parameter name="prefix_id" value="`$tmp.ss.prefix-id`" />
+                                                        <parameter name="resource_name" value="`$tmp.ss.param.name`" />
+                                                        <parameter name="external_key" value="`$tmp.ss.external_key`" />
+                                                        <outcome value='failure'>
+                                                            <block atomic='true'>
+                                                                <set>
+                                                                    <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.status' value='FAILED' />
+                                                                </set>
+                                                                <return status='failure'>
+                                                                    <parameter name='error-code' value='' />
+                                                                    <parameter name='error-message' value='' />
+                                                                </return>
+                                                            </block>
+                                                        </outcome>
+                                                    </execute>
+                                                    <for index="pidx" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`">
+                                                        <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].name`'>
+                                                            <outcome value='`$tmp.ss.param.name`'>
+                                                                <block>
+                                                                    <set>
+                                                                        <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].value' 
+	value='`$self_serve_netbox_ip_assignement.ip-address`' />
+                                                                    </set>
+                                                                    <set>
+                                                                        <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.status' 
+	value='SUCCESS' />
+                                                                    </set>
+                                                                </block>
+                                                            </outcome>
+                                                        </switch>
+                                                    </for>
+                                                </block>
+                                            </outcome>
+                                            <outcome value='unassign'>
+                                                <block atomic="true">
+                                                    <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+	key='SELECT * from NETBOX_IP_ASSIGNMENTS 
+		WHERE external_key = $tmp.ss.external-key
+		AND service_instance_id = $tmp.ss.service-instance-id' >
+                                                        <outcome value='not-found'>
+                                                            <block></block>
+                                                        </outcome>
+                                                        <outcome value='success'>
+                                                            <block atomic="true">
+                                                                <set>
+                                                                    <parameter name='tmp.status' value="PENDING_DELETE" />
+                                                                </set>
+                                                                <update plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL"
+	key="UPDATE NETBOX_IP_ASSIGNMENTS set ip_status = $tmp.status 
+		WHERE external_key = $tmp.ss.external-key
+		AND service_instance_id = $tmp.ss.service-instance-id" >
+                                                                    <outcome value='failure'>
+                                                                        <return status='failure'>
+                                                                            <parameter name='ack-final' value='Y'/>
+                                                                            <parameter name="error-code" value="500" />
+                                                                            <parameter name="error-message" value="`'Error updating NETBOX_IP_ASSIGNMENTS table to unassign ip with external_key=' + $tmp.ss.external-key + ' and service_instance_id=' + $tmp.ss.service-instance-id`" />
+                                                                        </return>
+                                                                    </outcome>
+                                                                </update>
+                                                                <execute plugin="org.onap.ccsdk.sli.adaptors.netbox.api.NetboxClient" method="unassignIpAddress">
+                                                                    <parameter name="service_instance_id" value="`$tmp.ss.service-instance-id`" />
+                                                                    <parameter name="external_key" value="`$tmp.ss.external_key`" />
+                                                                    <outcome value='failure'>
+                                                                        <return status='failure'>
+                                                                            <parameter name='ack-final' value='Y'/>
+                                                                            <parameter name="error-code" value="500" />
+                                                                            <parameter name="error-message" value="`'Error in NetboxClient#unassignIPAddress with external-key='+ $tmp.ss.external-key`" />
+                                                                        </return>
+                                                                    </outcome>
+                                                                </execute>
+                                                            </block>
+                                                        </outcome>
+                                                    </get-resource>
+                                                    <for index="pidx" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`">
+                                                        <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].name`'>
+                                                            <outcome value='ip-address'>
+                                                                <set>
+                                                                    <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.status' 
+	value='DELETED' />
+                                                                </set>
+                                                            </outcome>
+                                                        </switch>
+                                                    </for>
+                                                </block>
+                                            </outcome>
+                                        </switch>
+                                    </block>
+                                </outcome>
+                                <outcome value='PENDING'>
+                                    <block>
+                                        <for index="kidx" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.resource-key_length`">
+                                            <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.resource-key[$kidx].name`'>
+                                                <outcome value='service-instance-id'>
+                                                    <set>
+                                                        <parameter name='tmp.ss.service-instance-id' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.resource-key[$kidx].value`' />
+                                                    </set>
+                                                </outcome>
+                                                <outcome value='vf-module-id'>
+                                                    <set>
+                                                        <parameter name='tmp.ss.vf-module-id' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.resource-key[$kidx].value`' />
+                                                    </set>
+                                                </outcome>
+                                                <outcome value='prefix-id'>
+                                                    <set>
+                                                        <parameter name='tmp.ss.prefix-id' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.resource-key[$kidx].value`' />
+                                                    </set>
+                                                </outcome>
+                                                <outcome value='ip-address-id'>
+                                                    <set>
+                                                        <parameter name='tmp.ss.ip-address-id' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.resource-key[$kidx].value`' />
+                                                    </set>
+                                                </outcome>
+                                                <outcome value='external_key'>
+                                                    <set>
+                                                        <parameter name='tmp.ss.external-key' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.resource-key[$kidx].value`' />
+                                                    </set>
+                                                </outcome>
+                                            </switch>
+                                        </for>
+                                        <switch test='`$ss.capability-action`'>
+                                            <outcome value='assign'>
+                                                <block atomic='true'>
+                                                    <execute plugin="org.onap.ccsdk.sli.adaptors.netbox.api.NetboxClient" method="assignIpAddress">
+                                                        <parameter name="service_instance_id" value="`$tmp.ss.service-instance-id`" />
+                                                        <parameter name="vf_module_id" value="`$tmp.ss.vf-module-id`" />
+                                                        <parameter name="prefix_id" value="`$tmp.ss.prefix-id`" />
+                                                        <parameter name="resource_name" value="`$tmp.ss.param.name`" />
+                                                        <parameter name="external_key" value="`$tmp.ss.external_key`" />
+                                                        <outcome value='failure'>
+                                                            <block atomic='true'>
+                                                                <set>
+                                                                    <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.status' value='FAILED' />
+                                                                </set>
+                                                                <return status='failure'>
+                                                                    <parameter name='error-code' value='' />
+                                                                    <parameter name='error-message' value='' />
+                                                                </return>
+                                                            </block>
+                                                        </outcome>
+                                                    </execute>
+                                                    <for index="pidx" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`">
+                                                        <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].name`'>
+                                                            <outcome value='`$tmp.ss.param.name`'>
+                                                                <block>
+                                                                    <set>
+                                                                        <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].value' 
+	value='`$self_serve_netbox_ip_assignement.ip-address`' />
+                                                                    </set>
+                                                                    <set>
+                                                                        <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.status' 
+	value='SUCCESS' />
+                                                                    </set>
+                                                                </block>
+                                                            </outcome>
+                                                        </switch>
+                                                    </for>
+                                                </block>
+                                            </outcome>
+                                            <outcome value='unassign'>
+                                                <block atomic="true">
+                                                    <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+	key='SELECT * from NETBOX_IP_ASSIGNMENTS 
+		WHERE external_key = $tmp.ss.external-key
+		AND service_instance_id = $tmp.ss.service-instance-id' >
+                                                        <outcome value='not-found'>
+                                                            <block></block>
+                                                        </outcome>
+                                                        <outcome value='success'>
+                                                            <block atomic="true">
+                                                                <set>
+                                                                    <parameter name='tmp.status' value="PENDING_DELETE" />
+                                                                </set>
+                                                                <update plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL"
+	key="UPDATE NETBOX_IP_ASSIGNMENTS set ip_status = $tmp.status 
+		WHERE external_key = $tmp.ss.external-key
+		AND service_instance_id = $tmp.ss.service-instance-id" >
+                                                                    <outcome value='failure'>
+                                                                        <return status='failure'>
+                                                                            <parameter name='ack-final' value='Y'/>
+                                                                            <parameter name="error-code" value="500" />
+                                                                            <parameter name="error-message" value="`'Error updating NETBOX_IP_ASSIGNMENTS table to unassign ip with external_key=' + $tmp.ss.external-key + ' and service_instance_id=' + $tmp.ss.service-instance-id`" />
+                                                                        </return>
+                                                                    </outcome>
+                                                                </update>
+                                                                <execute plugin="org.onap.ccsdk.sli.adaptors.netbox.api.NetboxClient" method="unassignIpAddress">
+                                                                    <parameter name="service_instance_id" value="`$tmp.ss.service-instance-id`" />
+                                                                    <parameter name="external_key" value="`$tmp.ss.external_key`" />
+                                                                    <outcome value='failure'>
+                                                                        <return status='failure'>
+                                                                            <parameter name='ack-final' value='Y'/>
+                                                                            <parameter name="error-code" value="500" />
+                                                                            <parameter name="error-message" value="`'Error in NetboxClient#unassignIPAddress with external-key='+ $tmp.ss.external-key`" />
+                                                                        </return>
+                                                                    </outcome>
+                                                                </execute>
+                                                            </block>
+                                                        </outcome>
+                                                    </get-resource>
+                                                    <for index="pidx" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`">
+                                                        <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].name`'>
+                                                            <outcome value='ip-address'>
+                                                                <set>
+                                                                    <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.status' 
+	value='DELETED' />
+                                                                </set>
+                                                            </outcome>
+                                                        </switch>
+                                                    </for>
+                                                </block>
+                                            </outcome>
+                                        </switch>
+                                    </block>
+                                </outcome>
+                            </switch>
+                        </outcome>
+                    </switch>
+                </for>
+                <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                    <parameter name="logger" value="message-log"/>
+                    <parameter name="field1" value="__TIMESTAMP__"/>
+                    <parameter name="field2" value="`'SS: pidx: ' + $pidx`"/>
+                </record>
+            </block>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
+                <parameter name='filename' value='/var/tmp/ss.eipam.log' />
+            </execute>
+        </block>
+    </method>
+</service-logic>
