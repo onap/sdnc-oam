@@ -353,9 +353,6 @@
                                             </set>
                                         </outcome>
                                     </switch>
-                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
-                                        <parameter name='filename' value='/var/tmp/bgb-vnf.log' />
-                                    </execute>
                                     <set>
                                         <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-id'
    value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />
@@ -609,6 +606,18 @@
                                                                         <for silentFailure='true' index='db-rel-index' start='0' end='`$aai.l3-network.l3-network[$db-network-index].relationship-list.relationship_length`' >
                                                                             <block atomic="true">
                                                                                 <switch test='`$aai.l3-network.l3-network[$db-network-index].relationship-list.relationship[$db-rel-index].related-to`'>
+                                                                                    <outcome value='service-instance'>
+                                                                                        <for silentFailure='true' index='db-data-index' start='0' end='`$aai.l3-network.l3-network[$db-network-index].relationship-list.relationship[$db-rel-index].relationship-data_length`' >
+                                                                                            <switch test='`$aai.l3-network.l3-network[$db-network-index].relationship-list.relationship[$db-rel-index].relationship-data[$db-data-index].relationship-key`'>
+                                                                                                <outcome value='service-instance.service-instance-id'>
+                                                                                                    <set>
+                                                                                                        <parameter name='network-service-instance-id'
+  value='`$aai.l3-network.l3-network[$db-network-index].relationship-list.relationship[$db-rel-index].relationship-data[$db-data-index].relationship-value`' />
+                                                                                                    </set>
+                                                                                                </outcome>
+                                                                                            </switch>
+                                                                                        </for>
+                                                                                    </outcome>
                                                                                     <outcome value='cloud-region'>
                                                                                         <for silentFailure='true' index='db-data-index' start='0' end='`$aai.l3-network.l3-network[$db-network-index].relationship-list.relationship[$db-rel-index].relationship-data_length`' >
                                                                                             <switch test='`$aai.l3-network.l3-network[$db-network-index].relationship-list.relationship[$db-rel-index].relationship-data[$db-data-index].relationship-key`'>
@@ -726,6 +735,12 @@
    value='`$aai.l3-network.l3-network[$db-network-index].subnets.subnet[$subnet-index].subnet-role`' />
                                                                             <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].subnets-data.subnet-data[$subnet-index].subnet-name'
    value='`$aai.l3-network.l3-network[$db-network-index].subnets.subnet[$subnet-index].subnet-name`' />
+                                                                            <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].subnets-data.subnet-data[$subnet-index].network-start-address'
+   value='`$aai.l3-network.l3-network[$db-network-index].subnets.subnet[$subnet-index].network-start-address`' />
+                                                                            <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].subnets-data.subnet-data[$subnet-index].gateway-address'
+   value='`$aai.l3-network.l3-network[$db-network-index].subnets.subnet[$subnet-index].gateway-address`' />
+                                                                            <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].subnets-data.subnet-data[$subnet-index].cidr-mask'
+   value='`$aai.l3-network.l3-network[$db-network-index].subnets.subnet[$subnet-index].cidr-mask`' />
                                                                         </set>
                                                                         <switch test='`$aai.l3-network.l3-network[$db-network-index].subnets.subnet[$subnet-index].dhcp-enabled`'>
                                                                             <outcome value='true'>
@@ -750,6 +765,240 @@
                                                             </block>
                                                         </outcome>
                                                     </switch>
+                                                    <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+  key='SELECT * from VNF_RELATED_NETWORK_ROLE where vnf_customization_uuid = $vnf-topology-operation-input.vnf-information.onap-model-information.model-customization-uuid
+    and network_role = $db.vf-network-role-mapping[$role-index].network-role'
+  pfx='db.vnf-related-network-role[]'>
+                                                        <outcome value='failure'>
+                                                            <block>
+                                                                <block atomic="true">
+                                                                    <set>
+                                                                        <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
+                                                                        <parameter name='naming-policy-generate-name-input.context-id' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />
+                                                                        <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
+                                                                    </set>
+                                                                    <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
+                                                                </block>
+                                                                <return status='failure'>
+                                                                    <parameter name='ack-final' value='Y'/>
+                                                                    <parameter name="error-code" value="500" />
+                                                                    <parameter name="error-message" value="Error reading VNF_RELATED_NETWORK_ROLE table" />
+                                                                </return>
+                                                            </block>
+                                                        </outcome>
+                                                        <outcome value='success'>
+                                                            <block atomic="true">
+                                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                                                                    <parameter name="source" value="`$prop.restapi.network-topology-identifier-structure`"/>
+                                                                    <parameter name="outputPath" value="tmp.part"/>
+                                                                    <parameter name="target" value="{service-instance-id}"/>
+                                                                    <parameter name="replacement" value="`$network-service-instance-id`"/>
+                                                                </execute>
+                                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                                                                    <parameter name="source" value="`$tmp.part`"/>
+                                                                    <parameter name="outputPath" value="tmp.ntis-url"/>
+                                                                    <parameter name="target" value="{network-id}"/>
+                                                                    <parameter name="replacement" value="`$l3-network-id`"/>
+                                                                </execute>
+                                                                <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                                                    <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.ntis-url`' />
+                                                                    <parameter name='restapiUser' value='`$prop.controller.user`' />
+                                                                    <parameter name='restapiPassword' value='`$prop.controller.pwd`' />
+                                                                    <parameter name='format' value='json' />
+                                                                    <parameter name='httpMethod' value='GET' />
+                                                                    <parameter name="responsePrefix" value="mdsal-ntis" />
+                                                                    <outcome value='failure'>
+                                                                        <block>
+                                                                            <block atomic="true">
+                                                                                <set>
+                                                                                    <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
+                                                                                    <parameter name='naming-policy-generate-name-input.context-id' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />
+                                                                                    <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
+                                                                                </set>
+                                                                                <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
+                                                                            </block>
+                                                                            <return status='failure'>
+                                                                                <parameter name='ack-final' value='Y'/>
+                                                                                <parameter name="error-code" value="500" />
+                                                                                <parameter name="error-message" value="`
+    'Error retrieving network-topology-identifier-structure for service instance '
+    + $network-service-instance-id
+    + ' and network-id '
+    + $l3-network-id`" />
+                                                                            </return>
+                                                                        </block>
+                                                                    </outcome>
+                                                                </execute>
+                                                                <set>
+                                                                    <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].is-trunked'
+    value='`$mdsal-ntis.network-topology-identifier-structure.is-trunked`' />
+                                                                    <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].segmentation-id'
+    value='`$mdsal-ntis.network-topology-identifier-structure.segmentation-id`' />
+                                                                </set>
+                                                                <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+      resource="custom-query"
+      key="format = 'resource'"
+      force="true"
+      local-only="false"
+      pfx="tmp.AnAI-data.oe">
+                                                                    <parameter name="start[0]" value="`'nodes/service-instances/service-instance?service-instance-id=' + $network-service-instance-id `" />
+                                                                    <parameter name="start_length" value="1" />
+                                                                    <parameter name="query" value="/query/owning-entity-fromService-instance" />
+                                                                    <outcome value='failure'>
+                                                                        <block>
+                                                                            <block atomic="true">
+                                                                                <set>
+                                                                                    <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
+                                                                                    <parameter name='naming-policy-generate-name-input.context-id' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />
+                                                                                    <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
+                                                                                </set>
+                                                                                <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
+                                                                            </block>
+                                                                            <return status='failure'>
+                                                                                <parameter name='ack-final' value='Y'/>
+                                                                                <parameter name="error-code" value="500" />
+                                                                                <parameter name="error-message" value="Error getting owning entity from service instance" />
+                                                                            </return>
+                                                                        </block>
+                                                                    </outcome>
+                                                                    <outcome value='not-found'>
+                                                                        <block>
+                                                                            <block atomic="true">
+                                                                                <set>
+                                                                                    <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
+                                                                                    <parameter name='naming-policy-generate-name-input.context-id' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />
+                                                                                    <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
+                                                                                </set>
+                                                                                <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
+                                                                            </block>
+                                                                            <return status='failure'>
+                                                                                <parameter name='ack-final' value='Y'/>
+                                                                                <parameter name="error-code" value="500" />
+                                                                                <parameter name="error-message" value="Unable to find owning entity from service instance" />
+                                                                            </return>
+                                                                        </block>
+                                                                    </outcome>
+                                                                </save>
+                                                                <set>
+                                                                    <parameter name='rn-index' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].related-networks.related-network_length`' />
+                                                                </set>
+                                                                <switch test='`$rn-index`'>
+                                                                    <outcome value=''>
+                                                                        <set>
+                                                                            <parameter name='rn-index' value='0' />
+                                                                        </set>
+                                                                    </outcome>
+                                                                </switch>
+                                                                <for index='rel-network-role-index' start='0' end='`$db.vnf-related-network-role_length`' >
+                                                                    <block atomic="true">
+                                                                        <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+      resource="custom-query"
+      key="format = 'resource'"
+      force="true"
+      local-only="false"
+      pfx="tmp.AnAI-data.get-networks">
+                                                                            <parameter name="start[0]" value="`'/business/owning-entities/owning-entity/' + $tmp.AnAI-data.oe.results[0].owning-entity.owning-entity-id `" />
+                                                                            <parameter name="start_length" value="1" />
+                                                                            <parameter name="query" value="`'/query/getNetworks?networkRole=' + $db.vnf-related-network-role[$rel-network-role-index].related-network-role
+  + '&amp;cloudRegionId=' + $vnf-topology-operation-input.vnf-request-input.aic-cloud-region`" />
+                                                                            <outcome value='failure'>
+                                                                                <block>
+                                                                                    <block atomic="true">
+                                                                                        <set>
+                                                                                            <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
+                                                                                            <parameter name='naming-policy-generate-name-input.context-id' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />
+                                                                                            <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
+                                                                                        </set>
+                                                                                        <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
+                                                                                    </block>
+                                                                                    <return status='failure'>
+                                                                                        <parameter name='ack-final' value='Y'/>
+                                                                                        <parameter name="error-code" value="500" />
+                                                                                        <parameter name="error-message" value="Error calling getNetworks custom query in AAI" />
+                                                                                    </return>
+                                                                                </block>
+                                                                            </outcome>
+                                                                            <outcome value='not-found'>
+                                                                                <block>
+                                                                                    <block atomic="true">
+                                                                                        <set>
+                                                                                            <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
+                                                                                            <parameter name='naming-policy-generate-name-input.context-id' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />
+                                                                                            <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
+                                                                                        </set>
+                                                                                        <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
+                                                                                    </block>
+                                                                                    <return status='failure'>
+                                                                                        <parameter name='ack-final' value='Y'/>
+                                                                                        <parameter name="error-code" value="500" />
+                                                                                        <parameter name="error-message" value="`'No l3-network returned from getNetworks custom query for related network role '
+      + $db.vnf-related-network-role[0].related-network-role`" />
+                                                                                    </return>
+                                                                                </block>
+                                                                            </outcome>
+                                                                        </save>
+                                                                        <set>
+                                                                            <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].related-networks.related-network[$rn-index].network-id'
+  value='`$tmp.AnAI-data.get-networks.results[0].l3-network.network-id`' />
+                                                                            <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].related-networks.related-network[$rn-index].network-role'
+  value='`$tmp.AnAI-data.get-networks.results[0].l3-network.network-role`' />
+                                                                        </set>
+                                                                        <for index='rel-index' start='0' end='`$tmp.AnAI-data.get-networks.results[0].l3-network.relationship-list.relationship_length`' >
+                                                                            <switch test='`$tmp.AnAI-data.get-networks.results[0].l3-network.relationship-list.relationship[$rel-index].related-to`'>
+                                                                                <outcome value='vlan-tag'>
+                                                                                    <block atomic="true">
+                                                                                        <set>
+                                                                                            <parameter name='vlan-tag-id' value='`$tmp.AnAI-data.get-networks.results[0].l3-network.relationship-list.relationship[$rel-index].relationship-data[0].relationship-value`' />
+                                                                                        </set>
+                                                                                        <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+		resource="vlan-tag" 
+		key="vlan-tag.vlan-tag-id = $vlan-tag-id"
+        pfx='aai.vlan-tag' local-only='false'
+>
+                                                                                            <outcome value='failure'>
+                                                                                                <block>
+                                                                                                    <block atomic="true">
+                                                                                                        <set>
+                                                                                                            <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
+                                                                                                            <parameter name='naming-policy-generate-name-input.context-id' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />
+                                                                                                            <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
+                                                                                                        </set>
+                                                                                                        <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
+                                                                                                    </block>
+                                                                                                    <return status='failure'>
+                                                                                                        <parameter name='ack-final' value='Y'/>
+                                                                                                        <parameter name="error-code" value="500" />
+                                                                                                        <parameter name="error-message" value="Error getting vlan-tag object from AAI" />
+                                                                                                    </return>
+                                                                                                </block>
+                                                                                            </outcome>
+                                                                                            <outcome value='success'>
+                                                                                                <set>
+                                                                                                    <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].related-networks.related-network[$rn-index].vlan-tags.vlan-interface'
+  value='`$aai.vlan-tag.vlan-tag-id`' />
+                                                                                                    <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].related-networks.related-network[$rn-index].vlan-tags.upper-tag-id'
+  value='`$aai.vlan-tag.vlan-id-outer`' />
+                                                                                                    <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].related-networks.related-network[$rn-index].vlan-tags.lower-tag-id'
+  value='`$aai.vlan-tag.vlan-id-inner`' />
+                                                                                                    <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].related-networks.related-network[$rn-index].vlan-tags.is-private'
+  value='`$aai.vlan-tag.is-private`' />
+                                                                                                </set>
+                                                                                            </outcome>
+                                                                                        </get-resource>
+                                                                                        <break/>
+                                                                                    </block>
+                                                                                </outcome>
+                                                                            </switch>
+                                                                        </for>
+                                                                    </block>
+                                                                </for>
+                                                                <set>
+                                                                    <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$network-index].related-networks.related-network_length'
+  value='`$rn-index + 1`' />
+                                                                </set>
+                                                            </block>
+                                                        </outcome>
+                                                    </get-resource>
                                                     <set>
                                                         <parameter name='network-index' value='`$network-index + 1`' />
                                                     </set>
@@ -757,6 +1006,9 @@
                                             </outcome>
                                         </switch>
                                     </for>
+                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
+                                        <parameter name='filename' value='/var/tmp/bgb-vnfa.log' />
+                                    </execute>
                                     <set>
                                         <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network_length'
   value='`$network-index`' />
@@ -906,7 +1158,11 @@
  + $vnf-topology-operation-input.service-information.service-instance-id
  + '/service-data/vnfs/vnf/'
  + $service-data.vnfs.vnf[$vnf-index].vnf-id
- + '/vnf-data/vnf-topology'`"/>
+ + '/vnf-data/vnf-topology/'`"/>
+                                        <parameter name='service-object-path'
+ value="`'restconf/config/GENERIC-RESOURCE-API:services/service/'
+ + $vnf-topology-operation-input.service-information.service-instance-id
+ + '/service-data/service-topology/'`"/>
                                     </set>
                                     <update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
    resource="generic-vnf"
@@ -919,6 +1175,7 @@
                                         <parameter name="model-invariant-id" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-invariant-uuid`" />
                                         <parameter name="model-version-id" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-uuid`" />
                                         <parameter name="model-customization-id" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-customization-uuid`" />
+                                        <parameter name="in-maint" value="true" />
                                         <parameter name="selflink" value="`$vnf-object-path`" />
                                         <outcome value='failure'>
                                             <block>
@@ -1015,7 +1272,7 @@
                                         <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-level-oper-status.last-action' value='`$vnf-topology-operation-input.request-information.request-action`' />
                                     </set>
                                     <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
-                                        <parameter name='filename' value='/var/tmp/bgb-viprend.log' />
+                                        <parameter name='filename' value='/var/tmp/bgb-vnf.log' />
                                     </execute>
                                     <return status='success'>
                                         <parameter name="ack-final-indicator" value="Y" />

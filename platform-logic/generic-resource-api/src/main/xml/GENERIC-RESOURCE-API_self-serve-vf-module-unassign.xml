@@ -5,12 +5,14 @@
         <block atomic='true'>
             <set>
                 <parameter name='ss.capability.execution-order[0]' value='mac-address-assign' />
-                <parameter name='ss.capability.execution-order[1]' value='eipam-ip-assign' />
-                <parameter name='ss.capability.execution-order[2]' value='vlan-tag-assign' />
-                <parameter name='ss.capability.execution-order[3]' value='alts-license-assign' />
-                <parameter name='ss.capability.execution-order[4]' value='alts-entitlement-assign' />
-                <parameter name='ss.capability.execution-order[5]' value='generate-name' />
-                <parameter name='ss.capability.execution-order_length' value='6' />
+                <parameter name='ss.capability.execution-order[1]' value='mS-mac-address-assign' />
+                <parameter name='ss.capability.execution-order[2]' value='eipam-ip-assign' />
+                <parameter name='ss.capability.execution-order[3]' value='vlan-tag-assign' />
+                <parameter name='ss.capability.execution-order[4]' value='mS-vlan-tag-assign' />
+                <parameter name='ss.capability.execution-order[5]' value='alts-license-assign' />
+                <parameter name='ss.capability.execution-order[6]' value='alts-entitlement-assign' />
+                <parameter name='ss.capability.execution-order[7]' value='generate-name' />
+                <parameter name='ss.capability.execution-order_length' value='8' />
             </set>
             <set>
                 <parameter name='ss.capability-type' value='vf-module' />
@@ -25,23 +27,9 @@ ss.capability.execution-order
                 <set>
                     <parameter name='ss.capability-action' value='unassign' />
                 </set>
-                <switch test='`$ss.capability-name`'>
-                    <outcome value='alts-entitlement-assign'>
-                        <set>
-                            <parameter name='ss.capability-dg' value='self-serve-alts-assignment' />
-                        </set>
-                    </outcome>
-                    <outcome value='alts-license-assign'>
-                        <set>
-                            <parameter name='ss.capability-dg' value='self-serve-alts-assignment' />
-                        </set>
-                    </outcome>
-                    <outcome value='Other'>
-                        <set>
-                            <parameter name='ss.capability-dg' value="`'self-serve-' + $ss.capability.execution-order[$cidx]`" />
-                        </set>
-                    </outcome>
-                </switch>
+                <set>
+                    <parameter name='ss.capability-dg' value="`'self-serve-' + $ss.capability.execution-order[$cidx]`" />
+                </set>
                 <for index='pidx' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`' >
                     <set>
                         <parameter name='tmp.param.capability-name' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.capability-name`' />
@@ -51,11 +39,6 @@ ss.capability.execution-order
                             <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.status`'>
                                 <outcome value='SUCCESS'>
                                     <call module='GENERIC-RESOURCE-API' rpc='`$ss.capability-dg`' mode='sync' >
-                                        <outcome value='success'>
-                                            <set>
-                                                <parameter name='`$ss.capability-dg`' value='UNASSIGNED' />
-                                            </set>
-                                        </outcome>
                                         <outcome value='failure'>
                                             <block atomic='true'>
                                                 <set>
@@ -114,9 +97,6 @@ ss.capability.execution-order
                                                     <parameter name='format' value='json' />
                                                     <parameter name='httpMethod' value='PUT' />
                                                     <parameter name="responsePrefix" value="mdsal-ss-vfmodule" />
-                                                    <outcome value='success'>
-                                                        <block></block>
-                                                    </outcome>
                                                     <outcome value='failure'>
                                                         <block atomic="true">
                                                             <set>
@@ -141,16 +121,7 @@ ss.capability.execution-order
                                     </call>
                                 </outcome>
                                 <outcome value='DELETED'>
-                                    <block>
-                                        <set>
-                                            <parameter name='`$ss.capability-dg`' value='UNASSIGNED' />
-                                        </set>
-                                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
-                                            <parameter name="logger" value="message-log"/>
-                                            <parameter name="field1" value="`'SS: resource-resolution-data.status: ' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.status`"/>
-                                            <parameter name="field2" value="`'SS: ss.capability-name: ' + $ss.capability-name`"/>
-                                        </record>
-                                    </block>
+                                    <block></block>
                                 </outcome>
                                 <outcome value='Other'>
                                     <block atomic='true'>
@@ -170,49 +141,30 @@ ss.capability.execution-order
                     </switch>
                 </for>
             </for>
-            <switch test="`$self-serve-generate-name == 'UNASSIGNED'`">
-                <outcome value='false'>
-                    <block atomic='true'>
-                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
-                            <parameter name="logger" value="message-log"/>
-                            <parameter name="field1" value="`'SS: self-serve-generate-name status: ' + $self-serve-generate-name`"/>
-                            <parameter name="field2" value="`'SS: self-serve-unresolved-composite-data: ' + $self-serve-unresolved-composite-data`"/>
-                        </record>
-                        <return status='failure'>
-                            <parameter name='error-code' value='500' />
-                            <parameter name='error-message' value="`'AAI Put is being skipped because NOT all capability components have SUCCESS status; '+ $error-message`" />
-                        </return>
-                    </block>
+            <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`'>
+                <outcome value='1'>
+                    <set>
+                        <parameter name="service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules." value=""/>
+                    </set>
                 </outcome>
-                <outcome value='true'>
-                    <block atomic='true'>
-                        <for index='i' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param_length`' >
-                            <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].name`'>
-                                <outcome value='vnfc-name'>
-                                    <!--
-<outcome value='vmxvre_name_0'>
--->
-                                    <block>
-                                        <set>
-                                            <parameter name='tmp.ss.vnfc-name' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].value`' />
-                                        </set>
-                                        <delete plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
-	resource="vnfc" 
-		key="vnfc.vnfc-name = $tmp.ss.vnfc-name" >
-                                            <outcome value='failure'>
-                                                <set>
-                                                    <parameter name='error-message' value='Failed to delete vnfc object in AnAI' />
-                                                </set>
-                                            </outcome>
-                                            <outcome value='not-found'>
-                                                <block></block>
-                                            </outcome>
-                                        </delete>
-                                        <break/>
-                                    </block>
-                                </outcome>
-                            </switch>
+                <outcome value='Other'>
+                    <block atomic="true">
+                        <for index='idx' start='`$vf-module-index + 1`' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`' >
+                            <set>
+                                <parameter name="tmpidx" value="`$idx - 1`"/>
+                                <parameter name="service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$tmpidx]." value="$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$idx]." />
+                            </set>
                         </for>
+                        <!--EIPAM plug-in needs this attribute set with this name-->
+                        <set>
+                            <parameter name='lastidx' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length - 1`' />
+                        </set>
+                        <set>
+                            <parameter name="service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$lastidx]." value=""/>
+                        </set>
+                        <set>
+                            <parameter name="service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length" value="`$lastidx`"/>
+                        </set>
                     </block>
                 </outcome>
             </switch>

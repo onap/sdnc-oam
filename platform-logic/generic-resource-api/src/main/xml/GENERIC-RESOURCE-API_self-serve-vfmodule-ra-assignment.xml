@@ -71,6 +71,13 @@
                                     <parameter name="error-message" value="Error reading VF_MODEL table" />
                                 </return>
                             </outcome>
+                            <outcome value='not-found'>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="`'No VF_MODEL found with customization_uuid = ' + $vf-module-topology-operation-input.vnf-information.onap-model-information.model-customization-uuid`" />
+                                </return>
+                            </outcome>
                             <outcome value='success'>
                                 <set>
                                     <parameter name='tmp.sdnc-model-name' value='`$db1.vf-model.sdnc-model-name`' />
@@ -79,13 +86,21 @@
                             </outcome>
                         </get-resource>
                         <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
-  key='SELECT vf_module_label from VF_MODULE_MODEL WHERE vf_customization_uuid = $vf-module-topology-operation-input.vnf-information.onap-model-information.model-customization-uuid'
+  key='SELECT vf_module_label from VF_MODULE_MODEL WHERE customization_uuid = $vf-module-topology-operation-input.vf-module-information.onap-model-information.model-customization-uuid 
+  	AND vf_module_label is not null'
   pfx='db1.vf-module-model'>
                             <outcome value='failure'>
                                 <return status='failure'>
                                     <parameter name='ack-final' value='Y'/>
                                     <parameter name="error-code" value="500" />
                                     <parameter name="error-message" value="Error reading VF_MODULE_MODEL table" />
+                                </return>
+                            </outcome>
+                            <outcome value='not-found'>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="`'vf_module_label not found in VF_MODULE_MODEL WHERE customization_uuid = ' + $vf-module-topology-operation-input.vf-module-information.onap-model-information.model-customization-uuid`" />
                                 </return>
                             </outcome>
                             <outcome value='success'>
@@ -106,7 +121,7 @@
                 <parameter name="tmp.config-name-value-payload9" value="`$tmp.config-name-value-payload8 + '&quot;aic-cloud-region&quot;:&quot;' + $vf-module-topology-operation-input.vf-module-request-input.aic-cloud-region + '&quot;'`"/>
                 <parameter name="tmp.config-name-value-payload91" value="`'{' + $tmp.config-name-value-payload9 + '}'`" />
             </set>
-            <execute plugin='org.openecomp.sdnc.config.assignment.service.ConfigAssignmentNode' method='process'>
+            <execute plugin='org.onap.ccsdk.config.assignment.service.ConfigAssignmentNode' method='process'>
                 <parameter name="request-id" value='`$request-id`' />
                 <parameter name="resource-id" value='`$resource-id`' />
                 <parameter name="resource-type" value='`$resource-type`' />

@@ -96,7 +96,7 @@
                 <parameter name="tmp.config-name-value-payload7" value="`$tmp.config-name-value-payload6 + '&quot;aic-cloud-region&quot;:&quot;' + $vnf-topology-operation-input.vnf-request-input.aic-cloud-region + '&quot;'`"/>
                 <parameter name="tmp.json-payload" value="`'{' + $tmp.config-name-value-payload7 + '}'`" />
             </set>
-            <execute plugin='org.openecomp.sdnc.config.assignment.service.ConfigAssignmentNode' method='process'>
+            <execute plugin='org.onap.ccsdk.config.assignment.service.ConfigAssignmentNode' method='process'>
                 <parameter name="request-id" value='`$request-id`' />
                 <parameter name="resource-id" value='`$resource-id`' />
                 <parameter name="resource-type" value='`$resource-type`' />
@@ -147,11 +147,15 @@
                     </switch>
                     <switch test='`$tmp.mso.param.found`'>
                         <outcome value='false'>
-                            <set>
-                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$highnum].name`' value='`$jsonContextPrefix.resource-accumulator-resolved-data[$i].param-name`'/>
-                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$highnum].value`' value='`$jsonContextPrefix.resource-accumulator-resolved-data[$i].param-value`'/>
-                                <parameter name='highnum' value='`$highnum + 1`' />
-                            </set>
+                            <block atomic='true'>
+                                <set>
+                                    <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$highnum].name`' value='`$jsonContextPrefix.resource-accumulator-resolved-data[$i].param-name`'/>
+                                    <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$highnum].value`' value='`$jsonContextPrefix.resource-accumulator-resolved-data[$i].param-value`'/>
+                                </set>
+                                <set>
+                                    <parameter name='highnum' value='`$highnum + 1`' />
+                                </set>
+                            </block>
                         </outcome>
                     </switch>
                 </block>
@@ -181,11 +185,19 @@
                                                     <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$highnum].resource-resolution-data.resource-key_length`' value='`$num + 1`'/>
                                                     <parameter name='num' value='`$num + 1`' />
                                                 </set>
+                                                <set>
+                                                    <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$highnum].resource-resolution-data.resource-key_length`' value='`$num + 1`'/>
+                                                </set>
+                                                <set>
+                                                    <parameter name='num' value='`$num + 1`' />
+                                                </set>
                                             </for>
                                         </outcome>
                                     </switch>
                                     <set>
                                         <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param_length`' value='`$highnum + 1`'/>
+                                    </set>
+                                    <set>
                                         <parameter name='highnum' value='`$highnum + 1`' />
                                     </set>
                                 </block>
