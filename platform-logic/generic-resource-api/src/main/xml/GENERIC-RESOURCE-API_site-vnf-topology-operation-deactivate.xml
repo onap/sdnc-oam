@@ -56,7 +56,7 @@
                         <return status='failure'>
                             <parameter name='ack-final' value='Y'/>
                             <parameter name="error-code" value="500" />
-                            <parameter name="error-message" value="`'VNF is not in appropriate state for activate. Current state is ' + $service-data.vnfs.vnf[$tmp.nidx].vnf-data.vnf-level-oper-status.order-status`" />
+                            <parameter name="error-message" value="`'VNF is not in appropriate state for deactivate. Current state is ' + $service-data.vnfs.vnf[$tmp.nidx].vnf-data.vnf-level-oper-status.order-status`" />
                         </return>
                     </outcome>
                 </switch>
@@ -67,11 +67,11 @@
             </execute>
             <for index='idx' start='0' end='`$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length`' >
                 <block>
-                    <switch test="`$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].name == 'role'`">
+                    <switch test="`$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].name == 'type'`">
                         <outcome value='true'>
                             <block atomic="true">
                                 <set>
-                                    <parameter name='prop.site.role' value='`$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].value`' />
+                                    <parameter name='prop.site.type' value='`$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$idx].value`' />
                                     <parameter name='prop.site.sdwan' value="true" />
                                 </set>
                             </block>
@@ -137,6 +137,7 @@
                                 <block></block>
                             </outcome>
                         </execute>
+                        <call module='GENERIC-RESOURCE-API' rpc='sdwan-get-tenant-auth' mode='sync' ></call>
                         <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                             <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-site-del.json'`" />
                             <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/sdwan/net/sites/action/batch-delete'`" />
@@ -150,15 +151,11 @@
                             <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
                             <parameter name="keyStorePassword" value="adminadmin"/>
                             <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
-                            <outcome value='success'>
+                            <outcome value='failure'>
                                 <block atomic="true"></block>
                             </outcome>
-                            <outcome value='failure'>
-                                <return status='failure'>
-                                    <parameter name='ack-final' value='Y'/>
-                                    <parameter name="error-code" value="500" />
-                                    <parameter name="error-message" value="Error executing Create vpn rest api" />
-                                </return>
+                            <outcome value='Other'>
+                                <block atomic="true"></block>
                             </outcome>
                         </execute>
                     </block>
@@ -178,11 +175,11 @@
                 <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-level-oper-status.last-rpc-action' value='`$vnf-topology-operation-input.sdnc-request-header.svc-action`' />
                 <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-level-oper-status.last-action' value='`$vnf-topology-operation-input.request-information.request-action`' />
             </set>
-            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='site-resource' 
+            <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='site-resource' 
       key='site-resource.site-resource-id = $vnf-topology-operation-input.vnf-information.vnf-id' >
                 <parameter name='site-resource-id' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />
                 <parameter name='operational-status' value='PendingDelete' />
-            </save>
+            </update>
             <return status='success'>
                 <parameter name="ack-final-indicator" value="Y" />
                 <parameter name="error-code" value="200" />

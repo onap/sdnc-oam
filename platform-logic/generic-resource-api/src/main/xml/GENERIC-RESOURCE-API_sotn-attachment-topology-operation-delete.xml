@@ -144,10 +144,14 @@
                     </block>
                 </outcome>
             </switch>
-            <set>
-                <parameter name="service-data.provided-allotted-resources.consumed-allotted-resource[$pidx]." value="" />
-                <parameter name="service-data.provided-allotted-resources.consumed-allotted-resource_length" value='`$service-data.provided-allotted-resources.consumed-allotted-resource_length - 1`' />
-            </set>
+            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                <parameter name='restapiUrl' value="`$prop.controller.url + $tmp.ar-url-psd + '/provided-allotted-resources/provided-allotted-resource/' + $tmp.ar.allotted-resource-id`" />
+                <parameter name='restapiUser' value='`$prop.controller.user`' />
+                <parameter name='restapiPassword' value='`$prop.controller.pwd`' />
+                <parameter name='format' value='json' />
+                <parameter name='httpMethod' value='DELETE' />
+                <parameter name="responsePrefix" value="mdsal-psd-delete" />
+            </execute>
             <set>
                 <parameter name='allotted-resource-id' value='`$tmp.ar.allotted-resource-id`' />
                 <parameter name='connection-attachment-object-path' value="`$tmp.ar.self-link`"/>

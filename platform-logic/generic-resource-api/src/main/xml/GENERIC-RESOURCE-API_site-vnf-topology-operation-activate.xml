@@ -81,27 +81,43 @@
             <switch test="`$prop.site.sdwan`">
                 <outcome value='true'>
                     <block atomic="true">
-                        <for index='cpidx' start='0' end='`$prop.site.controlpoints_length`' >
-                            <block atomic="true">
-                                <set>
-                                    <parameter name='prop.controlPtId' value='`$prop.site.controlpoints[$cpidx]`' />
-                                </set>
-                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+                        <switch test="`$prop.site.controlPoint`">
+                            <outcome value=''>
+                                <block>
+                                    <set>
+                                        <parameter name='template.site.role' value="hub" />
+                                    </set>
+                                </block>
+                            </outcome>
+                            <outcome value='Other'>
+                                <block atomic="true">
+                                    <set>
+                                        <parameter name='template.site.role' value="spoke" />
+                                    </set>
+                                    <for index='cpidx' start='0' end='`$prop.site.controlpoints_length`' >
+                                        <block atomic="true">
+                                            <set>
+                                                <parameter name='prop.controlPtId' value='`$prop.site.controlpoints[$cpidx]`' />
+                                            </set>
+                                            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="site-resource" 
 		key="site-resource.site-resource-name = $prop.controlPtId AND 
 		     depth = '1'"
         pfx='tmp.aai.controlPoints' local-only='false' >
-                                    <outcome value='success'>
-                                        <set>
-                                            <parameter name='prop.site.controlpoints[$cpidx]' value='`$tmp.aai.controlPoints.generated-site-id`' />
-                                        </set>
-                                    </outcome>
-                                    <outcome value='failure'>
-                                        <block></block>
-                                    </outcome>
-                                </get-resource>
-                            </block>
-                        </for>
+                                                <outcome value='success'>
+                                                    <set>
+                                                        <parameter name='prop.site.controlpoints[$cpidx]' value='`$tmp.aai.controlPoints.generated-site-id`' />
+                                                    </set>
+                                                </outcome>
+                                                <outcome value='failure'>
+                                                    <block></block>
+                                                </outcome>
+                                            </get-resource>
+                                        </block>
+                                    </for>
+                                </block>
+                            </outcome>
+                        </switch>
                         <set>
                             <parameter name='prop.site.siteId' value="" />
                         </set>
@@ -151,8 +167,9 @@
                                 <block></block>
                             </outcome>
                         </execute>
+                        <call module='GENERIC-RESOURCE-API' rpc='sdwan-get-tenant-auth' mode='sync' ></call>
                         <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                            <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-site.json'`" />
+                            <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-site-' + $template.site.role + '.json'`" />
                             <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/sdwan/net/sites'`" />
                             <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
                             <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
@@ -199,12 +216,12 @@
                 <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.request-information.' value='$vnf-topology-operation-input.request-information.' />
                 <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.service-information.' value='$vnf-topology-operation-input.service-information.' />
             </set>
-            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='site-resource' 
+            <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='site-resource' 
       key='site-resource.site-resource-id = $vnf-topology-operation-input.vnf-information.vnf-id' >
                 <parameter name='site-resource-id' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />
                 <parameter name='generated-site-id' value='`$site-result.success[0].id`' />
                 <parameter name='operational-status' value='Active' />
-            </save>
+            </update>
             <return status='success'>
                 <parameter name="ack-final-indicator" value="Y" />
                 <parameter name="error-code" value="200" />
