@@ -87,13 +87,14 @@
                     <block></block>
                 </outcome>
             </execute>
+            <call module='GENERIC-RESOURCE-API' rpc='sdwan-get-tenant-auth' mode='sync' ></call>
             <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                 <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-device.json'`" />
                 <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v3/devices'`" />
                 <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
                 <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
                 <parameter name="format" value="json"/>
-                <parameter name="httpMethod" value="put"/>
+                <parameter name="httpMethod" value="post"/>
                 <parameter name="responsePrefix" value="deviceResp"/>
                 <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.openecomp.client.jks"/>
                 <parameter name="trustStorePassword" value="adminadmin"/>
@@ -132,22 +133,12 @@
                 <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.service-information.' value='`$vnf-topology-operation-input.service-information.`' />
                 <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-information.' value='`$vnf-topology-operation-input.vnf-information.`' />
             </set>
-            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='device' 
+            <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='device' 
       key='device.device-id = $vnf-topology-operation-input.vnf-information.vnf-id' >
                 <parameter name='device-id' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />
                 <!--parameter name='device-id' value='`$deviceResp.success[0].id`' /-->
                 <parameter name='operational-status' value='Active' />
-            </save>
-            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list' 
-      key='service-instance.service-instance-id = $service-data.service-information.service-instance-id 
-         AND customer.global-customer-id = $service-data.vnfs.vnf[$vnf-index].vnf-data.service-information.global-customer-id 
-         AND service-subscription.service-type = $service-data.vnfs.vnf[$vnf-index].vnf-data.service-information.subscription-service-type' 
-      force="true" pfx="tmp.AnAI-data">
-                <parameter name="relationship-list.relationship[0].related-to" value="device" />
-                <parameter name="relationship-list.relationship[0].related-link" value="`'/network/devices/device/' + $vnf-topology-operation-input.vnf-information.vnf-id`" />
-                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="device.id" />
-                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$vnf-topology-operation-input.vnf-information.vnf-id`" />
-            </save>
+            </update>
             <return status='success'>
                 <parameter name="ack-final-indicator" value="Y" />
                 <parameter name="error-code" value="200" />

@@ -94,19 +94,22 @@
                                 <set>
                                     <parameter name='prop.customer-id' value='`$ctx.network-data.service-information.global-customer-id`' />
                                 </set>
-                                <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
-		resource="service-subscription" 
-        key= 'service-subscription.service-type = $service-data.networks.network[$tmp.nidx].network-data.service-information.subscription-service-type 
-        AND customer.global-customer-id = $service-data.networks.network[$tmp.nidx].network-data.service-information.global-customer-id'>
-                                    <parameter name='temp-ub-sub-account-id' value='`$prop.customer-id`' />
-                                </save>
+                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='concat' >
+                                    <parameter name="source" value='`$prop.customer-id`'/>
+                                    <parameter name="outputPath" value="tmp.userAccountEmail"/>
+                                    <parameter name="target" value="@test.com"/>
+                                </execute>
+                                <set>
+                                    <parameter name='prop.userAccount' value='`$tmp.userAccountEmail`' />
+                                    <parameter name='prop.userEmail' value='`$tmp.userAccountEmail`' />
+                                </set>
                                 <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                                     <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-tenant.json'`" />
-                                    <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/baseservice/tenanats'`" />
+                                    <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/baseservice/tenants'`" />
                                     <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
                                     <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
                                     <parameter name="format" value="json"/>
-                                    <parameter name="httpMethod" value="put"/>
+                                    <parameter name="httpMethod" value="post"/>
                                     <parameter name="responsePrefix" value="tenant-result"/>
                                     <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.openecomp.client.jks"/>
                                     <parameter name="trustStorePassword" value="adminadmin"/>
@@ -114,11 +117,18 @@
                                     <parameter name="keyStorePassword" value="adminadmin"/>
                                     <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
                                 </execute>
+                                <update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+		resource="service-subscription" 
+        key= 'service-subscription.service-type = $service-data.networks.network[$tmp.nidx].network-data.service-information.subscription-service-type 
+        AND customer.global-customer-id = $service-data.networks.network[$tmp.nidx].network-data.service-information.global-customer-id'>
+                                    <parameter name='temp-ub-sub-account-id' value='`$tenant-result.data.tenantId`' />
+                                    <!--parameter name='temp-ub-sub-account-id' value='`$prop.customer-id`' /-->
+                                </update>
                                 <set>
                                     <parameter name='prop.tenant-id' value='`$tenant-result.data.tenantId`' />
                                 </set>
                                 <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                                    <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/baseservice/tenanats/authorization/' + $prop.tenant-id`" />
+                                    <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/baseservice/tenants/authorization/' + $prop.tenant-id`" />
                                     <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
                                     <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
                                     <parameter name="format" value="json"/>
@@ -133,9 +143,24 @@
                             </block>
                         </outcome>
                         <outcome value='Other'>
-                            <set>
-                                <parameter name='prop.tenant-id' value='`$tmp.AnAI-data.temp-ub-sub-account-id`' />
-                            </set>
+                            <block atomic="true">
+                                <set>
+                                    <parameter name='prop.tenant-id' value='`$tmp.AnAI-data.temp-ub-sub-account-id`' />
+                                </set>
+                                <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                    <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/baseservice/tenants/authorization/' + $prop.tenant-id`" />
+                                    <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
+                                    <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
+                                    <parameter name="format" value="json"/>
+                                    <parameter name="httpMethod" value="put"/>
+                                    <parameter name="responsePrefix" value="tenant-result"/>
+                                    <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.openecomp.client.jks"/>
+                                    <parameter name="trustStorePassword" value="adminadmin"/>
+                                    <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                                    <parameter name="keyStorePassword" value="adminadmin"/>
+                                    <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
+                                </execute>
+                            </block>
                         </outcome>
                     </switch>
                 </outcome>
@@ -165,7 +190,7 @@
             </block>
             <block atomic="true">
                 <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                    <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-vpn.json'`" />
+                    <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-vpn-create.json'`" />
                     <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/sdwan/overlay-network/vpn'`" />
                     <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
                     <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
@@ -183,7 +208,7 @@
                     <parameter name='prop.vpn1Id' value='`$vpn-result.success[0].id`' />
                 </set>
                 <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                    <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-vpn-topology.json'`" />
+                    <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-vpn-topology-create.json'`" />
                     <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/sdwan/overlay-network/' + $prop.vpn-id + '/topology'`" />
                     <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
                     <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
