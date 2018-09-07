@@ -197,7 +197,7 @@ value="`$connection-attachment-ar-identifiers.`" />
                             <parameter name="ctx_memory_result_key" value="param-prefix"/>
                         </execute>
                         <set>
-                            <parameter name="`connection-attachment-ar.allotted-resource-data.allotted-resource-operation-information.connection-attachment-request-input.param[$idx].name`" value='`$param-prefix[$param-prefix_length -1]`'/>
+                            <parameter name="`connection-attachment-ar.allotted-resource-data.allotted-resource-operation-information.connection-attachment-request-input.param[$i].name`" value='`$param-prefix[$param-prefix_length -1]`'/>
                         </set>
                     </block>
                 </for>
@@ -236,7 +236,7 @@ value="`$connection-attachment-ar-identifiers.`" />
  + $connection-attachment-topology-operation-input.service-information.service-instance-id
  + '/service-data/service-topology/'`"/>
             </set>
-            <update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+            <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="allotted-resource" 
 		key="customer.global-customer-id = $connection-attachment-topology-operation-input.service-information.global-customer-id AND
 			service-subscription.service-type = $connection-attachment-topology-operation-input.service-information.subscription-service-type AND
@@ -253,8 +253,7 @@ value="`$connection-attachment-ar-identifiers.`" />
                 <parameter name="cvlan" value="`$prop.connection-attachment.cVLAN`" />
                 <parameter name="vpn-name" value="`$prop.connection-attachment.sotnVpnName`" />
                 <parameter name="selflink" value="`$tmp.ar.self-link`" />
-                <parameter name="model-invariant-id" value="`$connection-attachment-topology-operation-input.allotted-resource-information.onap-model-information.model-invariant-uuid`" />
-                <parameter name="model-version-id" value="`$connection-attachment-topology-operation-input.allotted-resource-information.onap-model-information.model-uuid`" />
+                <!--parameter name="model-invariant-id" value="`$connection-attachment-topology-operation-input.allotted-resource-information.onap-model-information.model-invariant-uuid`" /><parameter name="model-version-id" value="`$connection-attachment-topology-operation-input.allotted-resource-information.onap-model-information.model-uuid`" /-->
                 <parameter name="operational-status" value="Created" />
                 <outcome value='failure'>
                     <return status='failure'>
@@ -270,7 +269,19 @@ value="`$connection-attachment-ar-identifiers.`" />
                         <parameter name="error-message" value="AAI failed" />
                     </return>
                 </outcome>
-            </update>
+            </save>
+            <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+		resource="allotted-resource" 
+		key="customer.global-customer-id = $connection-attachment-topology-operation-input.service-information.global-customer-id AND
+			service-subscription.service-type = $connection-attachment-topology-operation-input.service-information.subscription-service-type AND
+			service-instance.service-instance-id = $connection-attachment-topology-operation-input.allotted-resource-information.parent-service-instance-id AND
+			allotted-resource.id = $tmp.ar.allotted-resource-id" 
+      force="true" pfx="tmp.AnAI-data">
+                <parameter name="relationship-list.relationship[0].related-to" value="p-interface" />
+                <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $prop.connection-attachment.access-node-id + '/p-interfaces/p-interface/' + $prop.connection-attachment.access-ltp-id`" />
+                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="p-interface.interface-name" />
+                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$src-ltpId`" />
+            </save>
             <return status='success'>
                 <parameter name="ack-final-indicator" value="Y" />
                 <parameter name="error-code" value="200" />
