@@ -59,68 +59,61 @@
             </switch>
             <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.sdnc-generated-cloud-resources`'>
                 <outcome value='true'>
-                    <block atomic="true">
-                        <call module='GENERIC-RESOURCE-API' rpc='self-serve-vnf-unassign' mode='sync' >
-                            <outcome value='failure'>
-                                <return status='failure'>
-                                    <parameter name='error-code' value='500' />
-                                    <parameter name='error-message' value="`'Encountered error while unassigning self-serve resources with error: '+ $error-message`" />
-                                </return>
-                            </outcome>
-                        </call>
-                    </block>
-                </outcome>
-            </switch>
-            <switch test='`$service-data.vnfs.vnf_length`'>
-                <outcome value='1'>
-                    <set>
-                        <parameter name="service-data.vnfs." value=""/>
-                    </set>
+                    <call module='GENERIC-RESOURCE-API' rpc='self-serve-vnf-unassign' mode='sync' >
+                        <outcome value='failure'>
+                            <return status='failure'>
+                                <parameter name='error-code' value='500' />
+                                <parameter name='error-message' value="`'Encountered error while unassigning self-serve resources with error: '+ $error-message`" />
+                            </return>
+                        </outcome>
+                        <outcome value='success'>
+                            <return status='success'>
+                                <parameter name="ack-final-indicator" value="Y" />
+                                <parameter name="error-code" value="200" />
+                                <parameter name="error-message" value="`$error-message`" />
+                            </return>
+                        </outcome>
+                    </call>
                 </outcome>
                 <outcome value='Other'>
                     <block atomic="true">
-                        <for index='idx' start='`$vnf-index + 1`' end='`$service-data.vnfs.vnf_length`' >
-                            <set>
-                                <parameter name="$tmpidx" value="`$idx - 1`"/>
-                                <parameter name="service-data.vnfs.vnf[$tmpidx]." value="$service-data.vnfs.vnf[$idx]." />
-                            </set>
-                        </for>
-                        <set>
-                            <parameter name="service-data.vnfs.vnf[$service-data.vnfs.vnf_length-1]." value=""/>
-                        </set>
-                        <set>
-                            <parameter name="service-data.vnfs.vnf_length" value="`$service-data.vnfs.vnf_length - 1`"/>
-                        </set>
-                    </block>
-                </outcome>
-            </switch>
-            <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.sdnc-generated-cloud-resources`'>
-                <outcome value='false'>
-                    <block atomic="true">
-                        <set>
-                            <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
-                            <parameter name='naming-policy-generate-name-input.context-id' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />
-                            <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
-                        </set>
-                        <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                    </block>
-                </outcome>
-                <outcome value=''>
-                    <block atomic="true">
+                        <switch test='`$service-data.vnfs.vnf_length`'>
+                            <outcome value='1'>
+                                <set>
+                                    <parameter name="service-data.vnfs." value=""/>
+                                </set>
+                            </outcome>
+                            <outcome value='Other'>
+                                <block atomic="true">
+                                    <for index='idx' start='`$vnf-index + 1`' end='`$service-data.vnfs.vnf_length`' >
+                                        <set>
+                                            <parameter name="$tmpidx" value="`$idx - 1`"/>
+                                            <parameter name="service-data.vnfs.vnf[$tmpidx]." value="$service-data.vnfs.vnf[$idx]." />
+                                        </set>
+                                    </for>
+                                    <set>
+                                        <parameter name="service-data.vnfs.vnf[$service-data.vnfs.vnf_length-1]." value=""/>
+                                    </set>
+                                    <set>
+                                        <parameter name="service-data.vnfs.vnf_length" value="`$service-data.vnfs.vnf_length - 1`"/>
+                                    </set>
+                                </block>
+                            </outcome>
+                        </switch>
                         <set>
                             <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
                             <parameter name='naming-policy-generate-name-input.context-id' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />
                             <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                         </set>
                         <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
+                        <return status='success'>
+                            <parameter name="ack-final-indicator" value="Y" />
+                            <parameter name="error-code" value="200" />
+                            <parameter name="error-message" value="`$error-message`" />
+                        </return>
                     </block>
                 </outcome>
             </switch>
-            <return status='success'>
-                <parameter name="ack-final-indicator" value="Y" />
-                <parameter name="error-code" value="200" />
-                <parameter name="error-message" value="`$error-message`" />
-            </return>
         </block>
     </method>
 </service-logic>

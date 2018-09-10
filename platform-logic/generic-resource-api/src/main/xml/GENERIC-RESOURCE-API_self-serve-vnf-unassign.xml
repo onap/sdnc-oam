@@ -5,12 +5,14 @@
         <block atomic='true'>
             <set>
                 <parameter name='ss.capability.execution-order[0]' value='mac-address-assign' />
-                <parameter name='ss.capability.execution-order[1]' value='eipam-ip-assign' />
-                <parameter name='ss.capability.execution-order[2]' value='vlan-tag-assign' />
-                <parameter name='ss.capability.execution-order[3]' value='alts-license-assign' />
-                <parameter name='ss.capability.execution-order[4]' value='alts-entitlement-assign' />
-                <parameter name='ss.capability.execution-order[5]' value='generate-name' />
-                <parameter name='ss.capability.execution-order_length' value='6' />
+                <parameter name='ss.capability.execution-order[1]' value='mS-mac-address-assign' />
+                <parameter name='ss.capability.execution-order[2]' value='eipam-ip-assign' />
+                <parameter name='ss.capability.execution-order[3]' value='vlan-tag-assign' />
+                <parameter name='ss.capability.execution-order[4]' value='mS-vlan-tag-assign' />
+                <parameter name='ss.capability.execution-order[5]' value='alts-license-assign' />
+                <parameter name='ss.capability.execution-order[6]' value='alts-entitlement-assign' />
+                <parameter name='ss.capability.execution-order[7]' value='generate-name' />
+                <parameter name='ss.capability.execution-order_length' value='8' />
             </set>
             <set>
                 <parameter name='ss.capability-type' value='vnf' />
@@ -25,23 +27,9 @@ ss.capability.execution-order[]
                 <set>
                     <parameter name='ss.capability-action' value='unassign' />
                 </set>
-                <switch test='`$ss.capability-name`'>
-                    <outcome value='alts-entitlement-assign'>
-                        <set>
-                            <parameter name='ss.capability-dg' value='self-serve-alts-assignment' />
-                        </set>
-                    </outcome>
-                    <outcome value='alts-license-assign'>
-                        <set>
-                            <parameter name='ss.capability-dg' value='self-serve-alts-assignment' />
-                        </set>
-                    </outcome>
-                    <outcome value='Other'>
-                        <set>
-                            <parameter name='ss.capability-dg' value="`'self-serve-' + $ss.capability.execution-order[$cidx]`" />
-                        </set>
-                    </outcome>
-                </switch>
+                <set>
+                    <parameter name='ss.capability-dg' value="`'self-serve-' + $ss.capability.execution-order[$cidx]`" />
+                </set>
                 <for index='pidx' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param_length`' >
                     <set>
                         <parameter name='tmp.param.capability-name' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$pidx].resource-resolution-data.capability-name`' />
@@ -51,11 +39,6 @@ ss.capability.execution-order[]
                             <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$pidx].resource-resolution-data.status`'>
                                 <outcome value='SUCCESS'>
                                     <call module='GENERIC-RESOURCE-API' rpc='`$ss.capability-dg`' mode='sync' >
-                                        <outcome value='success'>
-                                            <set>
-                                                <parameter name='`$ss.capability-dg`' value='UNASSIGNED' />
-                                            </set>
-                                        </outcome>
                                         <outcome value='failure'>
                                             <block atomic='true'>
                                                 <set>
@@ -98,9 +81,6 @@ ss.capability.execution-order[]
                                                     <parameter name='format' value='json' />
                                                     <parameter name='httpMethod' value='PUT' />
                                                     <parameter name="responsePrefix" value="mdsal-ss-vnf" />
-                                                    <outcome value='success'>
-                                                        <block></block>
-                                                    </outcome>
                                                     <outcome value='failure'>
                                                         <block atomic="true">
                                                             <set>
@@ -145,6 +125,29 @@ ss.capability.execution-order[]
                     </switch>
                 </for>
             </for>
+            <switch test='`$service-data.vnfs.vnf_length`'>
+                <outcome value='1'>
+                    <set>
+                        <parameter name="service-data.vnfs." value=""/>
+                    </set>
+                </outcome>
+                <outcome value='Other'>
+                    <block atomic="true">
+                        <for index='idx' start='`$vnf-index + 1`' end='`$service-data.vnfs.vnf_length`' >
+                            <set>
+                                <parameter name="$tmpidx" value="`$idx - 1`"/>
+                                <parameter name="service-data.vnfs.vnf[$tmpidx]." value="$service-data.vnfs.vnf[$idx]." />
+                            </set>
+                        </for>
+                        <set>
+                            <parameter name="service-data.vnfs.vnf[$service-data.vnfs.vnf_length-1]." value=""/>
+                        </set>
+                        <set>
+                            <parameter name="service-data.vnfs.vnf_length" value="`$service-data.vnfs.vnf_length - 1`"/>
+                        </set>
+                    </block>
+                </outcome>
+            </switch>
             <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
                 <parameter name='filename' value='/var/tmp/ss-vnf-assign.log' />
             </execute>
