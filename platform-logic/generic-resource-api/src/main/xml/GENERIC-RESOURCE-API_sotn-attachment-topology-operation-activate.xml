@@ -41,6 +41,9 @@
                                         <outcome value='Created'>
                                             <block></block>
                                         </outcome>
+                                        <outcome value='PendingDelete'>
+                                            <block></block>
+                                        </outcome>
                                         <outcome value='Other'>
                                             <return status='failure'>
                                                 <parameter name='ack-final' value='Y'/>
@@ -378,8 +381,7 @@
                                     </set>
                                     <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="pnf" 
-		key="network-resource.network-id = $mdsal-psd.service-data.networks.network[0].network-id 
-		AND pnf.pnf-name = $oof.vpn.access-node-id 
+		key="pnf.pnf-name = $oof.vpn.access-node-id 
 		AND depth = '0'"
         pfx='tmp.aai.pnf' local-only='false' >
                                         <outcome value='success'>
@@ -431,7 +433,7 @@
                                     </get-resource>
                                     <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                                         <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sotn-ethernet-service.json'`" />
-                                        <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + 'restconf/data/ietf-eth-tran-service:etht-svc'`" />
+                                        <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-eth-tran-service:etht-svc'`" />
                                         <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
                                         <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
                                         <parameter name="format" value="json"/>
@@ -489,7 +491,7 @@
       key='vpn-binding.vpn-id = $tmp.vpnName' 
       force="true" pfx="tmp.AnAI-data">
                                         <parameter name="relationship-list.relationship[0].related-to" value="p-interface" />
-                                        <parameter name="relationship-list.relationship[0].related-link" value="`'/network/network-resources/network-resource/' + $mdsal-psd.service-data.networks.network[0].network-id + '/pnfs/pnf/' + $oof.vpn.access-node-id '/p-interfaces/p-interface/' + $src-ltpId`" />
+                                        <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $oof.vpn.access-node-id + '/p-interfaces/p-interface/' + $src-ltpId`" />
                                         <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="p-interface.interface-name" />
                                         <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$src-ltpId`" />
                                     </save>
@@ -497,7 +499,7 @@
       key='vpn-binding.vpn-id = $tmp.vpnName' 
       force="true" pfx="tmp.AnAI-data">
                                         <parameter name="relationship-list.relationship[0].related-to" value="p-interface" />
-                                        <parameter name="relationship-list.relationship[0].related-link" value="`'/network/network-resources/network-resource/' + $mdsal-psd.service-data.networks.network[0].network-id + '/pnfs/pnf/' + $oof.vpn.access-node-id '/p-interfaces/p-interface/' + $dst-ltpId`" />
+                                        <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $oof.vpn.access-node-id + '/p-interfaces/p-interface/' + $dst-ltpId`" />
                                         <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="p-interface.interface-name" />
                                         <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$dst-ltpId`" />
                                     </save>
@@ -571,8 +573,7 @@
         pfx='pfx' local-only='false' force='false'>
                 <parameter name="description" value="`$connection-attachment-topology-operation-input.allotted-resource-information.allotted-resource-type`" />
                 <parameter name="selflink" value="`$tmp.ar.self-link`" />
-                <parameter name="model-invariant-id" value="`$connection-attachment-topology-operation-input.allotted-resource-information.onap-model-information.model-invariant-uuid`" />
-                <parameter name="model-version-id" value="`$connection-attachment-topology-operation-input.allotted-resource-information.onap-model-information.model-uuid`" />
+                <!--parameter name="model-invariant-id" value="`$connection-attachment-topology-operation-input.allotted-resource-information.onap-model-information.model-invariant-uuid`" /><parameter name="model-version-id" value="`$connection-attachment-topology-operation-input.allotted-resource-information.onap-model-information.model-uuid`" /-->
                 <parameter name="operational-status" value="Active" />
                 <outcome value='failure'>
                     <return status='failure'>
