@@ -6,6 +6,10 @@
             <set>
                 <parameter name='tmp.naming-data-payload' value='{&quot;elements&quot;:[' />
             </set>
+            <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
+                <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />
+                <parameter name='contextPrefix' value='prop' />
+            </execute>
             <call module='GENERIC-RESOURCE-API' rpc='self-serve-capability-param-resolution' mode='sync' >
                 <outcome value='failure'>
                     <return status='failure'>
@@ -33,12 +37,16 @@
                                             <block atomic='true'>
                                                 <set>
                                                     <parameter name='tmp.naming-data-payload' value="`$tmp.naming-data-payload + '{'`" />
+                                                    <parameter name='tmp.gen-name_length' value='1' />
                                                 </set>
                                                 <for index='j' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.resource-key_length`' >
                                                     <switch test="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.resource-key[$j].name == 'external-key'`">
                                                         <outcome value='true'>
                                                             <set>
                                                                 <parameter name="tmp.naming-data-payload" value="`$tmp.naming-data-payload + '&quot;' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.resource-key[$j].name + '&quot;:' + '&quot;' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.resource-key[$j].value + '&quot;,'`"/>
+                                                                <parameter name="`tmp.gen-name[0].element[$j].name`" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.resource-key[$j].name`"/>
+                                                                <parameter name="`tmp.gen-name[0].element[$j].value`" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.resource-key[$j].value`"/>
+                                                                <parameter name="`tmp.gen-name[0].element_length`" value='`$j + 1`' />
                                                             </set>
                                                         </outcome>
                                                     </switch>
@@ -61,9 +69,14 @@
                                                     <parameter name='target' value=',]' />
                                                     <parameter name='replacement' value=']' />
                                                 </execute>
-                                                <execute plugin='org.openecomp.sdnc.prov.namegeneration.node.UnAssignNameNode' method='process'>
-                                                    <parameter name='payload' value='`$tmp.naming-data-payload`' />
-                                                    <parameter name="prifix" value="nameGenResponse" />
+                                                <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                                    <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/' + $prop.restapi.naming.gen-name.templatefile`" />
+                                                    <parameter name='restapiUrl' value='`$prop.naming.gen-name.url + $prop.restapi.naming.gen-name.service`' />
+                                                    <parameter name='restapiUser' value='`$prop.naming.gen-name.user`' />
+                                                    <parameter name='restapiPassword' value='`$prop.naming.gen-name.pwd`' />
+                                                    <parameter name='format' value='json' />
+                                                    <parameter name='httpMethod' value='DELETE' />
+                                                    <parameter name="responsePrefix" value="nameGenResponse" />
                                                     <outcome value='failure'>
                                                         <block>
                                                             <set>
@@ -90,7 +103,7 @@
                                                     </outcome>
                                                 </execute>
                                                 <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils" method="jsonStringToCtx">
-                                                    <parameter name="source" value="nameGenResponse.response-payload" />
+                                                    <parameter name="source" value="nameGenResponse.httpResponse" />
                                                     <parameter name="outputPath" value="jsonContextPrefix" />
                                                     <parameter name="isEscaped" value="false" />
                                                 </execute>
@@ -136,7 +149,8 @@
                             <outcome value='true'>
                                 <block atomic='true'>
                                     <set>
-                                        <parameter name='tmp.naming-data-payload' value='' />
+                                        <parameter name='tmp.naming-data-payload' value='{&quot;elements&quot;:[' />
+                                        <parameter name='tmp.gen-name_length' value='0' />
                                     </set>
                                     <for index='i' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param_length`' >
                                         <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.capability-name == $ss.capability-name`'>
@@ -148,10 +162,14 @@
                                                     <for index='j' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.resource-key_length`' >
                                                         <set>
                                                             <parameter name="tmp.naming-data-payload" value="`$tmp.naming-data-payload + '&quot;' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.resource-key[$j].name + '&quot;:' + '&quot;' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.resource-key[$j].value + '&quot;,'`"/>
+                                                            <parameter name="`tmp.gen-name[$tmp.gen-name_length].element[$j].name`" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.resource-key[$j].name`"/>
+                                                            <parameter name="`tmp.gen-name[$tmp.gen-name_length].element[$j].value`" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].resource-resolution-data.resource-key[$j].value`"/>
+                                                            <parameter name="`tmp.gen-name[$tmp.gen-name_length].element_length`" value='`$j + 1`' />
                                                         </set>
                                                     </for>
                                                     <set>
                                                         <parameter name='tmp.naming-data-payload' value="`$tmp.naming-data-payload + '},'`" />
+                                                        <parameter name='tmp.gen-name_length' value='`$tmp.gen-name_length + 1`' />
                                                     </set>
                                                 </block>
                                             </outcome>
@@ -175,9 +193,14 @@
                                                     <parameter name='target' value=',]' />
                                                     <parameter name='replacement' value=']' />
                                                 </execute>
-                                                <execute plugin='org.openecomp.sdnc.prov.namegeneration.node.AssignNameNode' method='process'>
-                                                    <parameter name='payload' value='`$tmp.naming-data-payload`' />
-                                                    <parameter name="prifix" value="nameGenResponse" />
+                                                <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                                    <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/' + $prop.restapi.naming.gen-name.templatefile`" />
+                                                    <parameter name='restapiUrl' value='`$prop.naming.gen-name.url + $prop.restapi.naming.gen-name.service`' />
+                                                    <parameter name='restapiUser' value='`$prop.naming.gen-name.user`' />
+                                                    <parameter name='restapiPassword' value='`$prop.naming.gen-name.pwd`' />
+                                                    <parameter name='format' value='json' />
+                                                    <parameter name='httpMethod' value='POST' />
+                                                    <parameter name="responsePrefix" value="nameGenResponse" />
                                                     <outcome value='failure'>
                                                         <block>
                                                             <set>
@@ -204,7 +227,7 @@
                                                     </outcome>
                                                 </execute>
                                                 <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils" method="jsonStringToCtx">
-                                                    <parameter name="source" value="nameGenResponse.response-payload" />
+                                                    <parameter name="source" value="nameGenResponse.httpResponse" />
                                                     <parameter name="outputPath" value="jsonContextPrefix" />
                                                     <parameter name="isEscaped" value="false" />
                                                 </execute>
@@ -276,12 +299,16 @@
                                             <block atomic='true'>
                                                 <set>
                                                     <parameter name='tmp.naming-data-payload' value="`$tmp.naming-data-payload + '{'`" />
+                                                    <parameter name='tmp.gen-name_length' value='1' />
                                                 </set>
                                                 <for index='j' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.resource-key_length`' >
                                                     <switch test="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.resource-key[$j].name == 'external-key'`">
                                                         <outcome value='true'>
                                                             <set>
                                                                 <parameter name="tmp.naming-data-payload" value="`$tmp.naming-data-payload + '&quot;' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.resource-key[$j].name + '&quot;:' + '&quot;' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.resource-key[$j].value + '&quot;,'`"/>
+                                                                <parameter name="`tmp.gen-name[0].element[$j].name`" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.resource-key[$j].name`"/>
+                                                                <parameter name="`tmp.gen-name[0].element[$j].value`" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.resource-key[$j].value`"/>
+                                                                <parameter name="`tmp.gen-name[0].element_length`" value='`$j + 1`' />
                                                             </set>
                                                         </outcome>
                                                     </switch>
@@ -304,9 +331,14 @@
                                                     <parameter name='target' value=',]' />
                                                     <parameter name='replacement' value=']' />
                                                 </execute>
-                                                <execute plugin='org.openecomp.sdnc.prov.namegeneration.node.UnAssignNameNode' method='process'>
-                                                    <parameter name='payload' value='`$tmp.naming-data-payload`' />
-                                                    <parameter name="prifix" value="nameGenResponse" />
+                                                <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                                    <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/' + $prop.restapi.naming.gen-name.templatefile`" />
+                                                    <parameter name='restapiUrl' value='`$prop.naming.gen-name.url + $prop.restapi.naming.gen-name.service`' />
+                                                    <parameter name='restapiUser' value='`$prop.naming.gen-name.user`' />
+                                                    <parameter name='restapiPassword' value='`$prop.naming.gen-name.pwd`' />
+                                                    <parameter name='format' value='json' />
+                                                    <parameter name='httpMethod' value='DELETE' />
+                                                    <parameter name="responsePrefix" value="nameGenResponse" />
                                                     <outcome value='failure'>
                                                         <block>
                                                             <set>
@@ -333,7 +365,7 @@
                                                     </outcome>
                                                 </execute>
                                                 <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils" method="jsonStringToCtx">
-                                                    <parameter name="source" value="nameGenResponse.response-payload" />
+                                                    <parameter name="source" value="nameGenResponse.httpResponse" />
                                                     <parameter name="outputPath" value="jsonContextPrefix" />
                                                     <parameter name="isEscaped" value="false" />
                                                 </execute>
@@ -379,7 +411,8 @@
                             <outcome value='true'>
                                 <block atomic='true'>
                                     <set>
-                                        <parameter name='tmp.naming-data-payload' value='' />
+                                        <parameter name='tmp.naming-data-payload' value='{&quot;elements&quot;:[' />
+                                        <parameter name='tmp.gen-name_length' value='0' />
                                     </set>
                                     <for index='i' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`' >
                                         <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.capability-name == $ss.capability-name`'>
@@ -391,10 +424,14 @@
                                                     <for index='j' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.resource-key_length`' >
                                                         <set>
                                                             <parameter name="tmp.naming-data-payload" value="`$tmp.naming-data-payload + '&quot;' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.resource-key[$j].name + '&quot;:' + '&quot;' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.resource-key[$j].value + '&quot;,'`"/>
+                                                            <parameter name="`tmp.gen-name[$tmp.gen-name_length].element[$j].name`" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.resource-key[$j].name`"/>
+                                                            <parameter name="`tmp.gen-name[$tmp.gen-name_length].element[$j].value`" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].resource-resolution-data.resource-key[$j].value`"/>
+                                                            <parameter name="`tmp.gen-name[$tmp.gen-name_length].element_length`" value='`$j + 1`' />
                                                         </set>
                                                     </for>
                                                     <set>
                                                         <parameter name='tmp.naming-data-payload' value="`$tmp.naming-data-payload + '},'`" />
+                                                        <parameter name='tmp.gen-name_length' value='`$tmp.gen-name_length + 1`' />
                                                     </set>
                                                 </block>
                                             </outcome>
@@ -418,9 +455,14 @@
                                                     <parameter name='target' value=',]' />
                                                     <parameter name='replacement' value=']' />
                                                 </execute>
-                                                <execute plugin='org.openecomp.sdnc.prov.namegeneration.node.AssignNameNode' method='process'>
-                                                    <parameter name='payload' value='`$tmp.naming-data-payload`' />
-                                                    <parameter name="prifix" value="nameGenResponse" />
+                                                <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                                    <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/' + $prop.restapi.naming.gen-name.templatefile`" />
+                                                    <parameter name='restapiUrl' value='`$prop.naming.gen-name.url + $prop.restapi.naming.gen-name.service`' />
+                                                    <parameter name='restapiUser' value='`$prop.naming.gen-name.user`' />
+                                                    <parameter name='restapiPassword' value='`$prop.naming.gen-name.pwd`' />
+                                                    <parameter name='format' value='json' />
+                                                    <parameter name='httpMethod' value='POST' />
+                                                    <parameter name="responsePrefix" value="nameGenResponse" />
                                                     <outcome value='failure'>
                                                         <block>
                                                             <set>
@@ -447,7 +489,7 @@
                                                     </outcome>
                                                 </execute>
                                                 <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils" method="jsonStringToCtx">
-                                                    <parameter name="source" value="nameGenResponse.response-payload" />
+                                                    <parameter name="source" value="nameGenResponse.httpResponse" />
                                                     <parameter name="outputPath" value="jsonContextPrefix" />
                                                     <parameter name="isEscaped" value="false" />
                                                 </execute>
