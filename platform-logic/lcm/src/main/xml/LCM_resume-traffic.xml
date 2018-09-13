@@ -10,26 +10,75 @@
             <set>
                 <parameter name='status.code' value='200' />
                 <parameter name='status.message' value='unexpected return from DG' />
-                <parameter name='nodelist' value="`$prop.ansible.nodelist`"/>
+                <parameter name='quote' value="'" />
             </set>
-            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='jsonStringToCtx'>
+                <parameter name='source' value='resume-traffic-input.payload' />
+                <parameter name='outputPath' value='payloadJson' />
+                <parameter name='isEscaped' value='true' />
+            </execute>
+            <switch test='`$payloadJson.pnf-flag`'>
+                <outcome value='true'>
+                    <set>
+                        <parameter name='nodelist' value="`'[' + $quote + $payloadJson.ipaddress-v4-oam +  $quote + ']'`"/>
+                        <parameter name='playbookname' value='`$prop.lcm.pnf.resume-traffic.playbookname`'/>
+                    </set>
+                </outcome>
+                <outcome value='Other'>
+                    <block>
+                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='getAttributeValue'>
+                            <parameter name='outputPath' value='playbookname' />
+                            <parameter name='source' value="`'prop.lcm.' + $payloadJson.nf-naming-code + '.resume-traffic.playbookname'`" />
+                        </execute>
+                        <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 	resource="generic-vnf" 
 		key="generic-vnf.vnf-id = $resume-traffic-input.action-identifiers.vnf-id" 
 		local-only="false" 
 		pfx='aai.generic-vnf'>
-                <outcome value='success'>
+                            <outcome value='success'>
+                                <block>
+                                    <switch test='`$playbookname`'>
+                                        <outcome value=''>
+                                            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='getAttributeValue'>
+                                                <parameter name='outputPath' value='playbookname' />
+                                                <parameter name='source' value="`'prop.lcm.' + $aai.generic-vnf.nf-naming-code + '.resume-traffic.playbookname'`" />
+                                            </execute>
+                                        </outcome>
+                                    </switch>
+                                    <set>
+                                        <parameter name='nodelist' value="`'[' + $quote + $aai.generic-vnf.ipv4-oam-address +  $quote + ']'`"/>
+                                    </set>
+                                </block>
+                            </outcome>
+                        </get-resource>
+                    </block>
+                </outcome>
+            </switch>
+            <switch test='`$playbookname`'>
+                <outcome value=''>
                     <set>
-                        <parameter name='quote' value="'" />
-                        <parameter name='nodelist' value="`'[' + $quote + $aai.ipv4-oam-address +  $quote + ']'`"/>
+                        <parameter name='nodelist' value="`$prop.ansible.nodelist`"/>
+                        <parameter name='playbookname' value='`$prop.lcm.resume-traffic.playbookname`'/>
                     </set>
                 </outcome>
-                <outcome value='Other'>
-                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
-                        <parameter name="logger" value="message-log"/>
-                        <parameter name="field1" value='VNF not found in AAI. Nodelist retrieved from config'/>
-                    </record>
+            </switch>
+            <switch test='`$nodelist`'>
+                <outcome value=''>
+                    <set>
+                        <parameter name='nodelist' value="`$prop.ansible.nodelist`"/>
+                    </set>
                 </outcome>
-            </get-resource>
+                <outcome value="['']">
+                    <set>
+                        <parameter name='nodelist' value="`$prop.ansible.nodelist`"/>
+                    </set>
+                </outcome>
+            </switch>
+            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                <parameter name="logger" value="message-log"/>
+                <parameter name="field1" value='`$playbookname`'/>
+                <parameter name="field2" value='`$nodelist`'/>
+            </record>
             <execute plugin='org.onap.ccsdk.sli.adaptors.ansible.AnsibleAdapter' method='reqExec' >
                 <parameter name='AgentUrl' value='`$prop.ansible.agenturl`'/>
                 <parameter name='User' value='`$prop.ansible.user`'/>
@@ -40,7 +89,7 @@
                 <parameter name='Timeout' value='`$prop.ansible.timeout`'/>
                 <parameter name='Version' value='`$prop.ansible.version`'/>
                 <parameter name='Id' value='`$resume-traffic-input.common-header.request-id`'/>
-                <parameter name='PlaybookName' value='`$prop.lcm.resume-traffic.playbookname`'/>
+                <parameter name='PlaybookName' value='`$playbookname`'/>
                 <outcome value='not-found'>
                     <block>
                         <set>
@@ -219,7 +268,7 @@
                                 <parameter name='User' value='`$prop.ansible.user`'/>
                                 <parameter name='Password' value='`$prop.ansible.password`'/>
                                 <parameter name='Id' value='`$org.onap.appc.adapter.ansible.Id`'/>
-                                <parameter name='PlaybookName' value='`$prop.lcm.resume-traffic.playbookname`'/>
+                                <parameter name='PlaybookName' value='`$playbookname`'/>
                                 <outcome value='failure'>
                                     <block>
                                         <set>
