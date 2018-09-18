@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<service-logic xmlns="http://www.onap.org/sdnc/svclogic" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.onap.org/sdnc/svclogic ./svclogic.xsd" module="GENERIC-RESOURCE-API" version="${project.version}">
+  <method rpc="wan-connection-topology-operation-create" mode="sync"> 
+    <block atomic="true">
+      <switch test="`$network-topology-operation-input.network-information.network-id`"> 
+        <outcome value="">
+          <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils" method="generateUUID"> 
+            <parameter name="ctx-destination" value="network-topology-operation-input.network-information.network-id"/>  
+            <outcome value="failure"> 
+              <return status="failure"> 
+                <parameter name="error-code" value=""/>  
+                <parameter name="error-message" value="An error occured while generation allotted resource ID"/> 
+              </return>
+            </outcome>
+          </execute>
+        </outcome>
+        <outcome value="Other"></outcome>
+      </switch>
+      <execute plugin="org.onap.ccsdk.sli.plugins.prop.PropertiesNode" method="readProperties"> 
+        <parameter name="fileName" value="%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties"/>  
+        <parameter name="contextPrefix" value="prop"/> 
+      </execute>
+      <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils" method="contains"> 
+        <parameter name="source" value="`$network-topology-operation-input.network-information.onap-model-information.model-name`"/>  
+        <parameter name="target" value="specification"/>  
+        <outcome value="true"> 
+          <call module="GENERIC-RESOURCE-API" rpc="wan-connection-save-specification" mode="sync"></call>
+        </outcome>
+        <outcome value="false"> 
+          <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils" method="contains"> 
+            <parameter name="source" value="`$network-topology-operation-input.network-information.onap-model-information.model-name`"/>  
+            <parameter name="target" value="FC"/>  
+            <outcome value="true"> 
+              <call module="GENERIC-RESOURCE-API" rpc="wan-connection-find-specifications" mode="sync"></call>
+            </outcome>
+            <outcome value="false"> 
+              <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils" method="contains"> 
+                <parameter name="source" value="`$network-topology-operation-input.network-information.onap-model-information.model-name`"/>  
+                <parameter name="target" value="FD"/>  
+                <outcome value="true"> 
+                  <call module="GENERIC-RESOURCE-API" rpc="wan-connection-find-specifications" mode="sync"></call>
+                </outcome>
+                <outcome value="false"> 
+                  <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils" method="contains"> 
+                    <parameter name="source" value="`$network-topology-operation-input.network-information.onap-model-information.model-name`"/>  
+                    <parameter name="target" value="Link"/>  
+                    <outcome value="true"> 
+                      <call module="GENERIC-RESOURCE-API" rpc="wan-connection-route-calculation" mode="sync"></call>
+                    </outcome>
+                    <outcome value="false"> 
+                      <block></block>
+                    </outcome>
+                  </execute>
+                </outcome>
+              </execute>
+            </outcome>
+          </execute>
+        </outcome>
+      </execute>
+      <return status="success"> 
+        <parameter name="ack-final-indicator" value="Y"/>  
+        <parameter name="error-code" value="200"/>  
+        <parameter name="error-message" value="`$error-message`"/> 
+      </return>
+    </block>
+  </method>
+</service-logic>

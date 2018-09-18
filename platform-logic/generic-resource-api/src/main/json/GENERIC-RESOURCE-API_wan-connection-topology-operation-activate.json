@@ -1,0 +1,890 @@
+[{
+	"id": "6fe2b253.d8e1ec",
+	"type": "dgstart",
+	"name": "DGSTART",
+	"outputs": 1,
+	"x": 137.00390625,
+	"y": 85.00390625,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["9b2992da.b5cf7"]
+	]
+}, {
+	"id": "9b2992da.b5cf7",
+	"type": "service-logic",
+	"name": "GENERIC-RESOURCE-API ${project.version}",
+	"module": "GENERIC-RESOURCE-API",
+	"version": "${project.version}",
+	"comments": "",
+	"xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>",
+	"outputs": 1,
+	"x": 349.00391006469727,
+	"y": 157.0039234161377,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["89c3bec1.fde18"]
+	]
+}, {
+	"id": "89c3bec1.fde18",
+	"type": "method",
+	"name": "wan-connection-topology-operation-activate",
+	"xml": "<method rpc='wan-connection-topology-operation-activate' mode='sync'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 337.0040283203125,
+	"y": 245.00390625,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["c0f8761d.73a938"]
+	]
+}, {
+	"id": "3a11bfea.da676",
+	"type": "execute",
+	"name": "execute Properties",
+	"xml": "<execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >\n    <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />\n    <parameter name='contextPrefix' value='prop' />\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 724.0041885375977,
+	"y": 329.00397777557373,
+	"z": "4543b455.566d4c",
+	"wires": [
+		[]
+	]
+}, {
+	"id": "6e4dcc9e.e36384",
+	"type": "returnSuccess",
+	"name": "return success",
+	"xml": "<return status='success'>\n<parameter name=\"ack-final-indicator\" value=\"Y\" />\n<parameter name=\"error-code\" value=\"200\" />\n<parameter name=\"error-message\" value=\"`$error-message`\" />\n",
+	"comments": "",
+	"x": 324.00392150878906,
+	"y": 1194.0041198730469,
+	"z": "4543b455.566d4c",
+	"wires": []
+}, {
+	"id": "c0f8761d.73a938",
+	"type": "block",
+	"name": "block : atomic",
+	"xml": "<block atomic=\"true\">",
+	"atomic": "true",
+	"outputs": 1,
+	"x": 249.5041046142578,
+	"y": 686.0040416717529,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["8baf3ffc.3b3d9", "7c00f16b.308cb", "ffd1bf09.7cf32", "f1474dfe.b3b08", "108dc87d.0d4ba8", "3a11bfea.da676", "6e4dcc9e.e36384"]
+	]
+}, {
+	"id": "8baf3ffc.3b3d9",
+	"type": "execute",
+	"name": "generate services url",
+	"xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >\n    <parameter name=\"source\" value=\"`$prop.network-provided-resource`\"/>\n    <parameter name=\"outputPath\" value=\"tmp.services-url\"/>\n    <parameter name=\"target\" value=\"{service-instance-id}\"/>\n    <parameter name=\"replacement\" value=\"`$network-topology-operation-input.service-information.service-id`\"/>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 710.0041732788086,
+	"y": 400.00407791137695,
+	"z": "4543b455.566d4c",
+	"wires": [
+		[]
+	]
+}, {
+	"id": "7c00f16b.308cb",
+	"type": "execute",
+	"name": "execute RestApiCallNode - get-resource parent service data",
+	"xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n    <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.services-url`' />\n    <parameter name='restapiUser' value='`$prop.controller.user`' />\n    <parameter name='restapiPassword' value='`$prop.controller.pwd`' />\n    <parameter name='format' value='json' />\n    <parameter name='httpMethod' value='GET' />\n    <parameter name=\"responsePrefix\" value=\"mdsal-psd\" />\n\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 836.0041732788086,
+	"y": 477.00407791137695,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["68169bb9.6f7654", "c4497cc.245398"]
+	]
+}, {
+	"id": "68169bb9.6f7654",
+	"type": "success",
+	"name": "success",
+	"xml": "<outcome value='success'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1183.0043563842773,
+	"y": 428.00407791137695,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["150cec8f.621303"]
+	]
+}, {
+	"id": "150cec8f.621303",
+	"type": "block",
+	"name": "block",
+	"xml": "<block>\n",
+	"atomic": "false",
+	"comments": "",
+	"outputs": 1,
+	"x": 1350.0044326782227,
+	"y": 462.00413846969604,
+	"z": "4543b455.566d4c",
+	"wires": [
+		[]
+	]
+}, {
+	"id": "c4497cc.245398",
+	"type": "other",
+	"name": "other",
+	"xml": "<outcome value='Other'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1188.856128692627,
+	"y": 511.070237159729,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["7eb4810f.bcdad"]
+	]
+}, {
+	"id": "7eb4810f.bcdad",
+	"type": "returnFailure",
+	"name": "return failure",
+	"xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"404\" />\n    <parameter name=\"error-message\" value=\"Error: Parent service data not available\" />\n    \n",
+	"comments": "",
+	"x": 1359.254280090332,
+	"y": 527.0040674209595,
+	"z": "4543b455.566d4c",
+	"wires": []
+}, {
+	"id": "ffd1bf09.7cf32",
+	"type": "for",
+	"name": "for pidx..mdsal-psd.service-data.provided-allotted-resources.provided-allotted-resource[]",
+	"xml": "<for index='pidx' start='0' end='`$mdsal-psd.service-data.networks.network_length`' >\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 968.5041732788086,
+	"y": 628.0040712356567,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["d9092c6e.02a0c"]
+	]
+}, {
+	"id": "d9092c6e.02a0c",
+	"type": "switchNode",
+	"name": "switch model-name",
+	"xml": "<switch test=\"`$mdsal-psd.service-data.networks.network[$pidx].network-data.network-information.onap-model-information.model-name == $network-topology-operation-input.network-information.onap-model-information.model-name`\">\n\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 844.5041885375977,
+	"y": 705.004072189331,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["530e2f06.d8d4d"]
+	]
+}, {
+	"id": "530e2f06.d8d4d",
+	"type": "outcomeTrue",
+	"name": "true",
+	"xml": "<outcome value='true'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1026.7542915344238,
+	"y": 707.0041656494141,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["363b8474.50a60c"]
+	]
+}, {
+	"id": "363b8474.50a60c",
+	"type": "block",
+	"name": "block : atomic",
+	"xml": "<block atomic=\"true\">",
+	"atomic": "true",
+	"outputs": 1,
+	"x": 1197.5149192810059,
+	"y": 711.8612823486328,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["bad86038.a5c92"]
+	]
+}, {
+	"id": "bad86038.a5c92",
+	"type": "set",
+	"name": "set tmp.pidx and tmp.network-input-parameters",
+	"xml": "<set>\n<parameter name='tmp.pidx' value='`$pidx`' />\n<parameter name='tmp.network.' value='`$mdsal-psd.service-data.networks.network[$pidx].`' />\n<parameter name='tmp.network-input-parameters' value='`$mdsal-psd.service-data.networks.network[$pidx].network-data.network-request-input.network-input-parameters`' />\n<parameter name='tmp.found-network-input' value='true' />",
+	"comments": "",
+	"x": 1144.3723030090332,
+	"y": 785.4328784942627,
+	"z": "4543b455.566d4c",
+	"wires": []
+}, {
+	"id": "f1474dfe.b3b08",
+	"type": "set",
+	"name": "set tmp.found-network-input",
+	"xml": "<set>\n<parameter name='tmp.found-network-input' value='false' />",
+	"comments": "",
+	"x": 778.5041580200195,
+	"y": 557.004077911377,
+	"z": "4543b455.566d4c",
+	"wires": []
+}, {
+	"id": "108dc87d.0d4ba8",
+	"type": "switchNode",
+	"name": "switch found-network-input",
+	"xml": "<switch test=\"`$found-network-input`\">\n\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 609.5042037963867,
+	"y": 896.0042018890381,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["7d16474b.16d418", "7a0f71e9.fc7d6"]
+	]
+}, {
+	"id": "7d16474b.16d418",
+	"type": "outcomeTrue",
+	"name": "true",
+	"xml": "<outcome value='true'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 841.5042953491211,
+	"y": 940.0044002532959,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["13a8069f.96b759"]
+	]
+}, {
+	"id": "7a0f71e9.fc7d6",
+	"type": "outcomeTrue",
+	"name": "false",
+	"xml": "<outcome value='false'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 842.2542343139648,
+	"y": 898.0042915344238,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["e3666c3c.9ea52"]
+	]
+}, {
+	"id": "e3666c3c.9ea52",
+	"type": "returnFailure",
+	"name": "return failure",
+	"xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"404\" />\n    <parameter name=\"error-message\" value=\"Error: Network input parameters not found\" />\n    \n",
+	"comments": "",
+	"x": 1013.2542343139648,
+	"y": 906.0042610168457,
+	"z": "4543b455.566d4c",
+	"wires": []
+}, {
+	"id": "13a8069f.96b759",
+	"type": "block",
+	"name": "block : atomic",
+	"xml": "<block atomic=\"true\">",
+	"atomic": "true",
+	"outputs": 1,
+	"x": 579.0040817260742,
+	"y": 1052.004186630249,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["2ca4d8df.2c1438", "880ef6b9.5937c8", "545b9205.aef56c"]
+	]
+}, {
+	"id": "2ca4d8df.2c1438",
+	"type": "for",
+	"name": "for pidx..mdsal-psd.service-data.provided-allotted-resources.provided-allotted-resource[]",
+	"xml": "<for index='cidx' start='0' end='`$tmp.network.network-data.network-topology.network-parameters.network-parameter_length`' >\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1028.003921508789,
+	"y": 1138.0040426254272,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["2c07ccbe.75f584"]
+	]
+}, {
+	"id": "9e77767d.37bd38",
+	"type": "switchNode",
+	"name": "switch network-parameter-name == 'restapiUrl'",
+	"xml": "<switch test=\"`$tmp.network.network-data.network-topology.network-parameters.network-parameter[$cxid].network-parameter-name == 'restapiUrl'`\">\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1142.0039825439453,
+	"y": 1208.0041046142578,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["7caab150.20aa8"]
+	]
+}, {
+	"id": "7caab150.20aa8",
+	"type": "outcomeTrue",
+	"name": "true",
+	"xml": "<outcome value='true'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1393.004035949707,
+	"y": 1211.0041103363037,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["ef871089.75ba3"]
+	]
+}, {
+	"id": "ef871089.75ba3",
+	"type": "set",
+	"name": "set tmp.thirdparty-sdnc-url",
+	"xml": "<set>\n<parameter name='tmp.restapiUrl' value='`$tmp.network.network-data.network-topology.network-parameters.network-parameter[$cxid].network-parameter-value`' />\n<parameter name='tmp.restapiUrl-found' value='true' />",
+	"comments": "",
+	"x": 1594.0040664672852,
+	"y": 1209.004111289978,
+	"z": "4543b455.566d4c",
+	"wires": []
+}, {
+	"id": "f8bf0d2d.43389",
+	"type": "execute",
+	"name": "execute RestApiCallNode Create ethernet Service",
+	"xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n<parameter name=\"templateFileName\" value=\"`$tmp.templateFileName`\" />\n<parameter name=\"restapiUrl\" value=\"`$tmp.restapiUrl`\" />\n<parameter name=\"restapiUser\" value=\"`$tmp.restapiUser`\" />\n<parameter name=\"restapiPassword\" value=\"`$tmp.restapiPassword`\" />\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"post\"/>",
+	"comments": "",
+	"outputs": 1,
+	"x": 916.2539520263672,
+	"y": 1940.0046577453613,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["d0d9c534.37b158", "42181552.6be1ec", "c36a5a4e.eb2378"]
+	]
+}, {
+	"id": "af4b5ba7.3468a8",
+	"type": "switchNode",
+	"name": "switch network-parameter-name == 'restapiUser'",
+	"xml": "<switch test=\"`$tmp.network.network-data.network-topology.network-parameters.network-parameter[$cxid].network-parameter-name == 'restapiUser'`\">\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1145.2539749145508,
+	"y": 1259.0040798187256,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["3e7f8af2.352616"]
+	]
+}, {
+	"id": "3e7f8af2.352616",
+	"type": "outcomeTrue",
+	"name": "true",
+	"xml": "<outcome value='true'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1411.2540893554688,
+	"y": 1261.0041570663452,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["7d91fe5b.cdce6"]
+	]
+}, {
+	"id": "7d91fe5b.cdce6",
+	"type": "set",
+	"name": "set tmp.restapiUser",
+	"xml": "<set>\n<parameter name='tmp.restapiUser' value='`$tmp.network.network-data.network-topology.network-parameters.network-parameter[$cxid].network-parameter-value`' />\n<parameter name='tmp.restapiUser-found' value='true' />",
+	"comments": "",
+	"x": 1612.2541198730469,
+	"y": 1259.0041580200195,
+	"z": "4543b455.566d4c",
+	"wires": []
+}, {
+	"id": "cc037f2f.99b2c",
+	"type": "switchNode",
+	"name": "switch network-parameter-name == 'restapiPassword'",
+	"xml": "<switch test=\"`$tmp.network.network-data.network-topology.network-parameters.network-parameter[$cxid].network-parameter-name == 'restapiPassword'`\">\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1153.2540435791016,
+	"y": 1313.004005432129,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["e5b9478e.4d6d58"]
+	]
+}, {
+	"id": "e5b9478e.4d6d58",
+	"type": "outcomeTrue",
+	"name": "true",
+	"xml": "<outcome value='true'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1430.2540550231934,
+	"y": 1311.0040378570557,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["9c3e8cc2.ef87a"]
+	]
+}, {
+	"id": "9c3e8cc2.ef87a",
+	"type": "set",
+	"name": "set tmp.restapiPassword",
+	"xml": "<set>\n<parameter name='tmp.restapiPassword' value='`$tmp.network.network-data.network-topology.network-parameters.network-parameter[$cxid].network-parameter-value`' />\n<parameter name='tmp.restapiPassword-found' value='true' />",
+	"comments": "",
+	"x": 1631.2540855407715,
+	"y": 1309.00403881073,
+	"z": "4543b455.566d4c",
+	"wires": []
+}, {
+	"id": "1b963840.8accd8",
+	"type": "switchNode",
+	"name": "switch network-parameter-name == 'templateFileName'",
+	"xml": "<switch test=\"`$tmp.network.network-data.network-topology.network-parameters.network-parameter[$cxid].network-parameter-name == 'templateFileName'`\">\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1162.2540740966797,
+	"y": 1368.0040702819824,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["6d9ccc1d.76ecd4"]
+	]
+}, {
+	"id": "6d9ccc1d.76ecd4",
+	"type": "outcomeTrue",
+	"name": "true",
+	"xml": "<outcome value='true'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1450.254207611084,
+	"y": 1371.004165649414,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["1a260d84.256062"]
+	]
+}, {
+	"id": "1a260d84.256062",
+	"type": "set",
+	"name": "set tmp.templateFileName",
+	"xml": "<set>\n<parameter name='tmp.templateFileName' value='`$tmp.network.network-data.network-topology.network-parameters.network-parameter[$cxid].network-parameter-value`' />\n<parameter name='tmp.templateFileName-found' value='true' />",
+	"comments": "",
+	"x": 1651.254238128662,
+	"y": 1369.0041666030884,
+	"z": "4543b455.566d4c",
+	"wires": []
+}, {
+	"id": "880ef6b9.5937c8",
+	"type": "set",
+	"name": "set paras flags",
+	"xml": "<set>\n<parameter name='tmp.restapiUrl-found' value='false' />\n<parameter name='tmp.restapiUser-found' value='false' />\n<parameter name='tmp.restapiPassword-found' value='false' />\n<parameter name='tmp.templateFileName-found' value='false' />\n<parameter name='tmp.thirdPartyAdaptorRpc-found' value='false' />",
+	"comments": "",
+	"x": 815.0040893554688,
+	"y": 1053.0040397644043,
+	"z": "4543b455.566d4c",
+	"wires": []
+}, {
+	"id": "545b9205.aef56c",
+	"type": "switchNode",
+	"name": "switch thirdPartyAdaptorRpc-found == 'true'",
+	"xml": "<switch test=\"`$tmp.thirdPartyAdaptorRpc-found == 'true'`\">\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 857.0039215087891,
+	"y": 1548.0040855407715,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["a3129d8e.31035", "e5e61921.b9a2b8"]
+	]
+}, {
+	"id": "2c07ccbe.75f584",
+	"type": "block",
+	"name": "block",
+	"xml": "<block>\n",
+	"atomic": "false",
+	"comments": "",
+	"outputs": 1,
+	"x": 799.0039215087891,
+	"y": 1319.0039558410645,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["9e77767d.37bd38", "af4b5ba7.3468a8", "cc037f2f.99b2c", "1b963840.8accd8", "4e186cf1.c35b74"]
+	]
+}, {
+	"id": "a3129d8e.31035",
+	"type": "outcomeTrue",
+	"name": "true",
+	"xml": "<outcome value='true'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1119.0039405822754,
+	"y": 1510.0040225982666,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["4b5ad158.1b784"]
+	]
+}, {
+	"id": "e5e61921.b9a2b8",
+	"type": "outcomeTrue",
+	"name": "false",
+	"xml": "<outcome value='false'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1120.003890991211,
+	"y": 1576.003987312317,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["b6e56203.36a9b"]
+	]
+}, {
+	"id": "4b5ad158.1b784",
+	"type": "call",
+	"name": "call thirdPartyAdaptorRpc",
+	"xml": "<call module='GENERIC-RESOURCE-API' rpc='`$tmp.thirdPartyAdaptorRpc`' mode='sync' >\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1339.0039825439453,
+	"y": 1511.0040817260742,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["8d5d5fa1.4daa1", "44192d5c.d23de4", "681572ba.829abc"]
+	]
+}, {
+	"id": "b6e56203.36a9b",
+	"type": "switchNode",
+	"name": "switch restapiUrl-found == 'true'",
+	"xml": "<switch test=\"`$tmp.restapiUrl-found == 'true'`\">\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 881.4548110961914,
+	"y": 1660.0107316970825,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["b8fbd937.8acb08", "3a03e3c.5684c1c"]
+	]
+}, {
+	"id": "b8fbd937.8acb08",
+	"type": "outcomeTrue",
+	"name": "true",
+	"xml": "<outcome value='true'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1132.4547958374023,
+	"y": 1658.0105276107788,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["454df08a.2179"]
+	]
+}, {
+	"id": "454df08a.2179",
+	"type": "switchNode",
+	"name": "switch restapiUser-found == 'true'",
+	"xml": "<switch test=\"`$tmp.restapiUser-found == 'true'`\">\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 859.4549102783203,
+	"y": 1727.2328300476074,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["d7e56797.8dbe78", "a14dbd9f.93eb6"]
+	]
+}, {
+	"id": "d7e56797.8dbe78",
+	"type": "outcomeTrue",
+	"name": "true",
+	"xml": "<outcome value='true'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1126.4548034667969,
+	"y": 1728.2325429916382,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["3127e44b.e2a93c"]
+	]
+}, {
+	"id": "3127e44b.e2a93c",
+	"type": "switchNode",
+	"name": "switch restapiPassword-found == 'true'",
+	"xml": "<switch test=\"`$tmp.restapiPassword-found == 'true'`\">\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 874.4548034667969,
+	"y": 1797.2327527999878,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["564b963.1cc0868", "d9285546.50c438"]
+	]
+}, {
+	"id": "564b963.1cc0868",
+	"type": "outcomeTrue",
+	"name": "true",
+	"xml": "<outcome value='true'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1134.4548034667969,
+	"y": 1797.2325429916382,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["6c6f0f7b.2324e"]
+	]
+}, {
+	"id": "4e186cf1.c35b74",
+	"type": "switchNode",
+	"name": "switch network-parameter-name == 'thirdPartyAdaptorRpc'",
+	"xml": "<switch test=\"`$tmp.network.network-data.network-topology.network-parameters.network-parameter[$cxid].network-parameter-name == 'thirdPartyAdaptorRpc'`\">\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1162.0103759765625,
+	"y": 1422.0103759765625,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["44f8cbd4.850554"]
+	]
+}, {
+	"id": "44f8cbd4.850554",
+	"type": "outcomeTrue",
+	"name": "true",
+	"xml": "<outcome value='true'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1450.0105094909668,
+	"y": 1425.0104713439941,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["72db6eff.f299d"]
+	]
+}, {
+	"id": "72db6eff.f299d",
+	"type": "set",
+	"name": "set tmp.thirdPartyAdaptorRpc",
+	"xml": "<set>\n<parameter name='tmp.thirdPartyAdaptorRpc' value='`$tmp.network.network-data.network-topology.network-parameters.network-parameter[$cxid].network-parameter-value`' />\n<parameter name='tmp.thirdPartyAdaptorRpc-found' value='true' />",
+	"comments": "",
+	"x": 1651.010540008545,
+	"y": 1423.0104722976685,
+	"z": "4543b455.566d4c",
+	"wires": []
+}, {
+	"id": "6c6f0f7b.2324e",
+	"type": "switchNode",
+	"name": "switch templateFileName-found == 'true'",
+	"xml": "<switch test=\"`$tmp.templateFileName-found == 'true'`\">\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 872.0103759765625,
+	"y": 1857.3437900543213,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["71ea12c7.a5318c", "7d561616.1a6618"]
+	]
+}, {
+	"id": "71ea12c7.a5318c",
+	"type": "outcomeTrue",
+	"name": "true",
+	"xml": "<outcome value='true'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1132.0103759765625,
+	"y": 1857.3435802459717,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["f8bf0d2d.43389"]
+	]
+}, {
+	"id": "681572ba.829abc",
+	"type": "not-found",
+	"name": "not-found",
+	"xml": "<outcome value='not-found'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1605.0103759765625,
+	"y": 1550.34375,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["5ec0d5a4.d5300c"]
+	]
+}, {
+	"id": "44192d5c.d23de4",
+	"type": "failure",
+	"name": "failure",
+	"xml": "<outcome value='failure'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1596.010425567627,
+	"y": 1518.8437757492065,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["5ec0d5a4.d5300c"]
+	]
+}, {
+	"id": "8d5d5fa1.4daa1",
+	"type": "success",
+	"name": "success",
+	"xml": "<outcome value='success'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1599.7604637145996,
+	"y": 1489.2008806243539,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["572cbacd.f8e304"]
+	]
+}, {
+	"id": "5ec0d5a4.d5300c",
+	"type": "returnFailure",
+	"name": "return failure",
+	"xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'Error calling ' + $tmp.thirdPartyAdaptorRpc`\" />\n",
+	"comments": "",
+	"x": 1762.7604904174805,
+	"y": 1535.5938482284546,
+	"z": "4543b455.566d4c",
+	"wires": []
+}, {
+	"id": "572cbacd.f8e304",
+	"type": "block",
+	"name": "block",
+	"xml": "<block>\n",
+	"atomic": "false",
+	"comments": "",
+	"outputs": 1,
+	"x": 1741.416431427002,
+	"y": 1485.393049813807,
+	"z": "4543b455.566d4c",
+	"wires": [
+		[]
+	]
+}, {
+	"id": "c36a5a4e.eb2378",
+	"type": "not-found",
+	"name": "not-found",
+	"xml": "<outcome value='not-found'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1246.0103759765625,
+	"y": 1975.34375,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["458ab957.f02738"]
+	]
+}, {
+	"id": "42181552.6be1ec",
+	"type": "failure",
+	"name": "failure",
+	"xml": "<outcome value='failure'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1237.010425567627,
+	"y": 1943.8437757492065,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["458ab957.f02738"]
+	]
+}, {
+	"id": "d0d9c534.37b158",
+	"type": "success",
+	"name": "success",
+	"xml": "<outcome value='success'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1240.7604637145996,
+	"y": 1914.2008806243539,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["226251a4.1d888e"]
+	]
+}, {
+	"id": "458ab957.f02738",
+	"type": "returnFailure",
+	"name": "return failure",
+	"xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'Error calling ' + $tmp.restapiUrl`\" />\n",
+	"comments": "",
+	"x": 1403.7604904174805,
+	"y": 1960.5938482284546,
+	"z": "4543b455.566d4c",
+	"wires": []
+}, {
+	"id": "226251a4.1d888e",
+	"type": "block",
+	"name": "block",
+	"xml": "<block>\n",
+	"atomic": "false",
+	"comments": "",
+	"outputs": 1,
+	"x": 1382.416431427002,
+	"y": 1910.393049813807,
+	"z": "4543b455.566d4c",
+	"wires": [
+		[]
+	]
+}, {
+	"id": "3a03e3c.5684c1c",
+	"type": "outcomeTrue",
+	"name": "false",
+	"xml": "<outcome value='false'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1283.677001953125,
+	"y": 1625.454833984375,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["79e7ccb1.2c8fc4"]
+	]
+}, {
+	"id": "79e7ccb1.2c8fc4",
+	"type": "returnFailure",
+	"name": "return failure",
+	"xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"404\" />\n    <parameter name=\"error-message\" value=\"Error: 3rd party controller restapiUrl not found\" />\n    \n",
+	"comments": "",
+	"x": 1454.677001953125,
+	"y": 1633.4548034667969,
+	"z": "4543b455.566d4c",
+	"wires": []
+}, {
+	"id": "a14dbd9f.93eb6",
+	"type": "outcomeTrue",
+	"name": "false",
+	"xml": "<outcome value='false'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1288.677001953125,
+	"y": 1704.454833984375,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["deb032f3.3a205"]
+	]
+}, {
+	"id": "deb032f3.3a205",
+	"type": "returnFailure",
+	"name": "return failure",
+	"xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"404\" />\n    <parameter name=\"error-message\" value=\"Error: 3rd party controller restapiUser not found\" />\n    \n",
+	"comments": "",
+	"x": 1459.677001953125,
+	"y": 1712.4548034667969,
+	"z": "4543b455.566d4c",
+	"wires": []
+}, {
+	"id": "d9285546.50c438",
+	"type": "outcomeTrue",
+	"name": "false",
+	"xml": "<outcome value='false'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1279.677001953125,
+	"y": 1775.454833984375,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["1cac985e.6b9918"]
+	]
+}, {
+	"id": "1cac985e.6b9918",
+	"type": "returnFailure",
+	"name": "return failure",
+	"xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"404\" />\n    <parameter name=\"error-message\" value=\"Error: 3rd party controller restapiPassword not found\" />\n    \n",
+	"comments": "",
+	"x": 1450.677001953125,
+	"y": 1783.4548034667969,
+	"z": "4543b455.566d4c",
+	"wires": []
+}, {
+	"id": "7d561616.1a6618",
+	"type": "outcomeTrue",
+	"name": "false",
+	"xml": "<outcome value='false'>\n",
+	"comments": "",
+	"outputs": 1,
+	"x": 1278.677001953125,
+	"y": 1836.454833984375,
+	"z": "4543b455.566d4c",
+	"wires": [
+		["294e5e6f.819642"]
+	]
+}, {
+	"id": "294e5e6f.819642",
+	"type": "returnFailure",
+	"name": "return failure",
+	"xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"404\" />\n    <parameter name=\"error-message\" value=\"Error: 3rd party controller templateFileName not found\" />\n    \n",
+	"comments": "",
+	"x": 1449.677001953125,
+	"y": 1844.4548034667969,
+	"z": "4543b455.566d4c",
+	"wires": []
+}]
