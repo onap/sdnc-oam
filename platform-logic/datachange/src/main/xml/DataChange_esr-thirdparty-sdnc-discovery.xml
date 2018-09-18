@@ -5,38 +5,51 @@
         <block atomic="true">
             <switch test="`$data-change-notification-input.aai-event-trigger`">
                 <outcome value='Update'>
-                    <block atomic="true">
-                        <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                            <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-network:networks'`" />
-                            <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
-                            <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
-                            <parameter name="format" value="json"/>
-                            <parameter name="httpMethod" value="get"/>
-                            <parameter name="responsePrefix" value="topology"/>
-                            <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.openecomp.client.jks"/>
-                            <parameter name="trustStorePassword" value="adminadmin"/>
-                            <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
-                            <parameter name="keyStorePassword" value="adminadmin"/>
-                            <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
-                            <outcome value='success'>
-                                <block atomic="true"></block>
+                    <block>
+                        <switch test="`$prop.sdncRestApi.type`">
+                            <outcome value='SOTN'>
+                                <block atomic="true">
+                                    <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                        <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-network:networks'`" />
+                                        <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
+                                        <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
+                                        <parameter name="format" value="json"/>
+                                        <parameter name="httpMethod" value="get"/>
+                                        <parameter name="responsePrefix" value="topology"/>
+                                        <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.openecomp.client.jks"/>
+                                        <parameter name="trustStorePassword" value="adminadmin"/>
+                                        <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                                        <parameter name="keyStorePassword" value="adminadmin"/>
+                                        <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
+                                        <outcome value='success'>
+                                            <block atomic="true"></block>
+                                        </outcome>
+                                        <outcome value='failure'>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="Error executing Create vpn rest api" />
+                                            </return>
+                                        </outcome>
+                                    </execute>
+                                    <for index='nidx' start='0' end='`$topology.networks.network_length`' >
+                                        <block>
+                                            <set>
+                                                <parameter name='network.' value='`$topology.networks.network[$nidx].`' />
+                                            </set>
+                                            <call module='DataChange' rpc='update-network-to-aai' mode='sync' ></call>
+                                        </block>
+                                    </for>
+                                </block>
                             </outcome>
-                            <outcome value='failure'>
+                            <outcome value='Other'>
                                 <return status='failure'>
                                     <parameter name='ack-final' value='Y'/>
                                     <parameter name="error-code" value="500" />
-                                    <parameter name="error-message" value="Error executing Create vpn rest api" />
+                                    <parameter name="error-message" value="`'Unsupported type = ' + $prop.sdncRestApi.type`" />
                                 </return>
                             </outcome>
-                        </execute>
-                        <for index='nidx' start='0' end='`$topology.networks.network_length`' >
-                            <block>
-                                <set>
-                                    <parameter name='network.' value='`$topology.networks.network[$nidx].`' />
-                                </set>
-                                <call module='DataChange' rpc='update-network-to-aai' mode='sync' ></call>
-                            </block>
-                        </for>
+                        </switch>
                     </block>
                 </outcome>
                 <outcome value='delete'>
