@@ -352,9 +352,33 @@
                                                                     <block atomic="true">
                                                                         <switch test="`$mdsal-arsd.service-data.vnfs.vnf[$arvidx].vnf-data.request-information.request-action == 'ActivateSDWANPortInstance'`">
                                                                             <outcome value='true'>
-                                                                                <set>
-                                                                                    <parameter name='tmp.portvidx' value='`$arvidx`' />
-                                                                                </set>
+                                                                                <block atomic="true">
+                                                                                    <set>
+                                                                                        <parameter name='tmp.portvidx' value='`$arvidx`' />
+                                                                                    </set>
+                                                                                    <for index="wportidx" start="0" end="`$mdsal-arsd.service-data.vnfs.vnf[$tmp.portvidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length`">
+                                                                                        <block atomic="true">
+                                                                                            <switch test="`$mdsal-arsd.service-data.vnfs.vnf[$tmp.portvidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$wportidx].name == 'transportNetworkName'`">
+                                                                                                <outcome value='true'>
+                                                                                                    <block atomic="true">
+                                                                                                        <switch test="`$mdsal-arsd.service-data.vnfs.vnf[$tmp.portvidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$wportidx].value == $prop.spoke.transportNetworkName`">
+                                                                                                            <outcome value='true'>
+                                                                                                                <block atomic="true">
+                                                                                                                    <set>
+                                                                                                                        <parameter name='tmp.wanportvidx' value='`$arvidx`' />
+                                                                                                                    </set>
+                                                                                                                    <set>
+                                                                                                                        <parameter name='prop.hub.transportNetworkName' value='`$mdsal-arsd.service-data.vnfs.vnf[$tmp.portvidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$wportidx].value`' />
+                                                                                                                    </set>
+                                                                                                                </block>
+                                                                                                            </outcome>
+                                                                                                        </switch>
+                                                                                                    </block>
+                                                                                                </outcome>
+                                                                                            </switch>
+                                                                                        </block>
+                                                                                    </for>
+                                                                                </block>
                                                                             </outcome>
                                                                         </switch>
                                                                         <switch test="`$mdsal-arsd.service-data.vnfs.vnf[$arvidx].vnf-data.request-information.request-action == 'ActivateSDWANDeviceInstance'`">
@@ -374,7 +398,7 @@
                                                                     </block>
                                                                 </for>
                                                                 <block atomic="true">
-                                                                    <switch test="`$tmp.portvidx`">
+                                                                    <switch test="`$tmp.wanportvidx`">
                                                                         <outcome value=''>
                                                                             <return status='failure'>
                                                                                 <parameter name='ack-final' value='Y'/>
@@ -402,44 +426,37 @@
                                                                         </outcome>
                                                                     </switch>
                                                                 </block>
-                                                                <for index="wportidx" start="0" end="`$mdsal-arsd.service-data.vnfs.vnf[$tmp.portvidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length`">
-                                                                    <block atomic="true">
-                                                                        <switch test="`$mdsal-arsd.service-data.vnfs.vnf[$tmp.portvidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$wportidx].name == 'transportNetworkName'`">
-                                                                            <outcome value='true'>
-                                                                                <set>
-                                                                                    <parameter name='prop.hub.transportNetworkName' value='`$mdsal-arsd.service-data.vnfs.vnf[$tmp.portvidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$wportidx].value`' />
-                                                                                </set>
-                                                                            </outcome>
-                                                                        </switch>
-                                                                        <switch test="`$mdsal-arsd.service-data.vnfs.vnf[$tmp.portvidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$wportidx].name == 'wanPortId'`">
-                                                                            <outcome value='true'>
-                                                                                <set>
-                                                                                    <parameter name='prop.hub.wanPortId' value='`$mdsal-arsd.service-data.vnfs.vnf[$tmp.portvidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$wportidx].value`' />
-                                                                                </set>
-                                                                            </outcome>
-                                                                        </switch>
-                                                                        <switch test="`$mdsal-arsd.service-data.vnfs.vnf[$tmp.portvidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$wportidx].name == 'providerIpAddress'`">
-                                                                            <outcome value='true'>
-                                                                                <set>
-                                                                                    <parameter name='prop.hub.providerIpAddress' value='`$mdsal-arsd.service-data.vnfs.vnf[$tmp.portvidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$wportidx].value`' />
-                                                                                </set>
-                                                                            </outcome>
-                                                                        </switch>
-                                                                        <switch test="`$mdsal-arsd.service-data.vnfs.vnf[$tmp.portvidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$wportidx].name == 'ipAddress'`">
-                                                                            <outcome value='true'>
-                                                                                <set>
-                                                                                    <parameter name='prop.hub.ipAddress' value='`$mdsal-arsd.service-data.vnfs.vnf[$tmp.portvidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$wportidx].value`' />
-                                                                                </set>
-                                                                            </outcome>
-                                                                        </switch>
-                                                                    </block>
-                                                                </for>
                                                                 <switch test="`$prop.hub.transportNetworkName == $prop.spoke.transportNetworkName`">
                                                                     <outcome value='false'>
                                                                         <block></block>
                                                                     </outcome>
                                                                     <outcome value='true'>
                                                                         <block atomic="true">
+                                                                            <for index="wportidx" start="0" end="`$mdsal-arsd.service-data.vnfs.vnf[$tmp.wanportvidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length`">
+                                                                                <block atomic="true">
+                                                                                    <switch test="`$mdsal-arsd.service-data.vnfs.vnf[$tmp.wanportvidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$wportidx].name == 'wanPortId'`">
+                                                                                        <outcome value='true'>
+                                                                                            <set>
+                                                                                                <parameter name='prop.hub.wanPortId' value='`$mdsal-arsd.service-data.vnfs.vnf[$tmp.wanportvidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$wportidx].value`' />
+                                                                                            </set>
+                                                                                        </outcome>
+                                                                                    </switch>
+                                                                                    <switch test="`$mdsal-arsd.service-data.vnfs.vnf[$tmp.wanportvidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$wportidx].name == 'providerIpAddress'`">
+                                                                                        <outcome value='true'>
+                                                                                            <set>
+                                                                                                <parameter name='prop.hub.providerIpAddress' value='`$mdsal-arsd.service-data.vnfs.vnf[$tmp.wanportvidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$wportidx].value`' />
+                                                                                            </set>
+                                                                                        </outcome>
+                                                                                    </switch>
+                                                                                    <switch test="`$mdsal-arsd.service-data.vnfs.vnf[$tmp.wanportvidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$wportidx].name == 'ipAddress'`">
+                                                                                        <outcome value='true'>
+                                                                                            <set>
+                                                                                                <parameter name='prop.hub.ipAddress' value='`$mdsal-arsd.service-data.vnfs.vnf[$tmp.wanportvidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$wportidx].value`' />
+                                                                                            </set>
+                                                                                        </outcome>
+                                                                                    </switch>
+                                                                                </block>
+                                                                            </for>
                                                                             <set>
                                                                                 <parameter name='prop.hubTnpId' value='$prop.hub.wanPortId' />
                                                                             </set>
@@ -501,13 +518,11 @@
                                                                                             <parameter name="keyStorePassword" value="adminadmin"/>
                                                                                             <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
                                                                                             <outcome value='failure'>
-                                                                                                <return status='failure'>
-                                                                                                    <parameter name='ack-final' value='Y'/>
-                                                                                                    <parameter name="error-code" value="500" />
-                                                                                                    <parameter name="error-message" value="Error executing sdwan hub route underlay rest api" />
-                                                                                                </return>
+                                                                                                <block></block>
                                                                                             </outcome>
-                                                                                            <outcome value='success'></outcome>
+                                                                                            <outcome value='success'>
+                                                                                                <block></block>
+                                                                                            </outcome>
                                                                                         </execute>
                                                                                         <set>
                                                                                             <parameter name='prop.spoke.ipAddress' value="10.3.0.1" />
@@ -535,13 +550,11 @@
                                                                                             <parameter name="keyStorePassword" value="adminadmin"/>
                                                                                             <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
                                                                                             <outcome value='failure'>
-                                                                                                <return status='failure'>
-                                                                                                    <parameter name='ack-final' value='Y'/>
-                                                                                                    <parameter name="error-code" value="500" />
-                                                                                                    <parameter name="error-message" value="Error executing sdwan spoke route underlay rest api" />
-                                                                                                </return>
+                                                                                                <block></block>
                                                                                             </outcome>
-                                                                                            <outcome value='success'></outcome>
+                                                                                            <outcome value='success'>
+                                                                                                <block></block>
+                                                                                            </outcome>
                                                                                         </execute>
                                                                                         <set>
                                                                                             <parameter name='prop.underlay.routeIds[$prop.underlay.routeIds_length].hubSiteId' value='`$prop.hub.siteId`' />
@@ -606,13 +619,11 @@
                                                                                             <parameter name="keyStorePassword" value="adminadmin"/>
                                                                                             <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
                                                                                             <outcome value='failure'>
-                                                                                                <return status='failure'>
-                                                                                                    <parameter name='ack-final' value='Y'/>
-                                                                                                    <parameter name="error-code" value="500" />
-                                                                                                    <parameter name="error-message" value="Error executing sdwan hub route underlay rest api" />
-                                                                                                </return>
+                                                                                                <block></block>
                                                                                             </outcome>
-                                                                                            <outcome value='success'></outcome>
+                                                                                            <outcome value='success'>
+                                                                                                <block></block>
+                                                                                            </outcome>
                                                                                         </execute>
                                                                                         <set>
                                                                                             <parameter name='prop.spoke.ipAddress' value="10.3.0.1" />
@@ -641,13 +652,11 @@
                                                                                             <parameter name="keyStorePassword" value="adminadmin"/>
                                                                                             <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
                                                                                             <outcome value='failure'>
-                                                                                                <return status='failure'>
-                                                                                                    <parameter name='ack-final' value='Y'/>
-                                                                                                    <parameter name="error-code" value="500" />
-                                                                                                    <parameter name="error-message" value="Error executing sdwan spoke route underlay rest api" />
-                                                                                                </return>
+                                                                                                <block></block>
                                                                                             </outcome>
-                                                                                            <outcome value='success'></outcome>
+                                                                                            <outcome value='success'>
+                                                                                                <block></block>
+                                                                                            </outcome>
                                                                                         </execute>
                                                                                     </block>
                                                                                 </outcome>

@@ -285,19 +285,16 @@
                 <parameter name="keyStorePassword" value="adminadmin"/>
                 <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
                 <outcome value='failure'>
-                    <return status='failure'>
-                        <parameter name='ack-final' value='Y'/>
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="Error executing Create wan port rest api" />
-                    </return>
-                </outcome>
-                <outcome value='success'>
                     <block atomic="true"></block>
                 </outcome>
+                <outcome value='success'>
+                    <block atomic="true">
+                        <set>
+                            <parameter name='prop.wan.wanPortId' value='`$wanPortResp.success[0].id`' />
+                        </set>
+                    </block>
+                </outcome>
             </execute>
-            <set>
-                <parameter name='prop.wan.wanPortId' value='`$wanPortResp.success[0].id`' />
-            </set>
             <set>
                 <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length].name' value='devicePortId' />
                 <parameter name='service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param[$service-data.vnfs.vnf[$tmp.vidx].vnf-data.vnf-request-input.vnf-input-parameters.param_length].value' value='`$prop.wan.devicePortId`' />
