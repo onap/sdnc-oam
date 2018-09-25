@@ -29,6 +29,10 @@ myApp.controller('CompareConfigCtrl', ['$scope','$filter', '$http','$window', 'g
 	$scope.itemsPerPage = 5;
 	$scope.pagedItems = [];
 	$scope.currentPage = 0;
+	$scope.version1=false;
+	$scope.version2=false;
+	$scope.version3=false;
+	$scope.version4=false;
     //THIS FUNCTION WILL BE CALLED ON PAGE LOAD
     $scope.getAllVNF = function() {
 
@@ -54,9 +58,6 @@ myApp.controller('CompareConfigCtrl', ['$scope','$filter', '$http','$window', 'g
 
         if (selectedValueVnf != null && selectedValueVnf != "") {
             console.log("selectedvnf Value", selectedValueVnf);
-            //selectedItem = selectedValueVnf.split("%");
-//            var vnfName = selectedItem[0];
-//            var vnfType = selectedItem[1];
             var vnfId = selectedValueVnf;
             $scope.getVersionList(vnfId);
         } else {
@@ -278,9 +279,6 @@ myApp.controller('CompareConfigCtrl', ['$scope','$filter', '$http','$window', 'g
        $scope.versionsSelected = [];
        angular.forEach(objVersion, function(item) {
            angular.forEach($scope.objVersionModel, function(val, index) {
-              /* if (item.vnfversion == val['vnfversion'] && item.selected == false) {
-                   $scope.objVersionModel.splice(index, 1);
-               }*/
                if (item.selected) {
                    if ($scope.versionsSelected.indexOf(item) == -1)
                        $scope.versionsSelected.push(item);
@@ -295,11 +293,11 @@ myApp.controller('CompareConfigCtrl', ['$scope','$filter', '$http','$window', 'g
            versionDetails.vnfversion = item['vnfversion'];
            versionDetails.vnfName = item['vnfname'];
            var vnfid = item['vnfid'];
-          // var config = JSON.parse(item['configinfo']);
            var config = item['configinfo'];
            var config1=JSON.parse(config);
            console.log("CompareConfigCtrl::createCompareModel::objCompareModel1", config1);
            deviceConfigService.runApplyconfig(vnfid,config1);
+           $scope.showResult = false;
            $scope.successMessage = "File uploaded successfully";
            growl.success($scope.successMessage, {
                title: 'Success!',
@@ -349,9 +347,6 @@ myApp.controller('CompareConfigCtrl', ['$scope','$filter', '$http','$window', 'g
         $scope.versionsSelected = [];
         angular.forEach(objVersion, function(item) {
             angular.forEach($scope.objVersionModel, function(val, index) {
-                /*if (item.vnfversion == val['vnfversion'] && item.selected == false) {
-                    $scope.objVersionModel.splice(index, 1);
-                }*/
                 if (item.selected) {
                     if ($scope.versionsSelected.indexOf(item) == -1)
                         $scope.versionsSelected.push(item);
@@ -372,7 +367,6 @@ myApp.controller('CompareConfigCtrl', ['$scope','$filter', '$http','$window', 'g
             versionObj.versionDetails = versionDetails;
 
             //fetch all the other topology/network,opertaion status for the vnf
-           // versionObj.topologyInfo = $scope.fetchConfigDetails(item);
             versionObj.topologyInfo = $scope.fetchTopologyInfo(item);
             versionObj.vnfIdInfo = $scope.fetchVnfId(item);	
             versionObj.serviceStatusInfo= $scope.fetchServiceStatus(item);
@@ -440,9 +434,6 @@ myApp.controller('CompareConfigCtrl', ['$scope','$filter', '$http','$window', 'g
         $scope.versionsSelected = [];
         angular.forEach(objVersion, function(item) {
             angular.forEach($scope.objVersionModel, function(val, index) {
-                /*if ((item.vnfversion == val['vnfversion']) && item.selected == false) {
-                   // $scope.objVersionModel.splice(index, 1);
-                }*/
                 if (item.selected) {
                     if ($scope.versionsSelected.indexOf(item) == -1)
                         $scope.versionsSelected.push(item);
@@ -456,13 +447,10 @@ myApp.controller('CompareConfigCtrl', ['$scope','$filter', '$http','$window', 'g
             var versionObj = {};
             var versionDetails = {};
             versionDetails.vnfversion = item.vnfversion;
-            /*versionDetails.vnfName = item['vnfname'];
-            versionDetails.vnfid = item['vnfid'];*/
             versionDetails.timeStamp = item.createdAt;
             versionObj.versionDetails = versionDetails;
 
             //fetch all the other topology/network,opertaion status for the vnf
-           // versionObj.topologyInfo = $scope.fetchConfigDetails(item);
             versionObj.topologyInfo = $scope.fetchTopologyInfo(item);
             versionObj.vnfIdInfo = $scope.fetchVnfId(item);	
             versionObj.serviceStatusInfo= $scope.fetchServiceStatus(item);
@@ -475,9 +463,20 @@ myApp.controller('CompareConfigCtrl', ['$scope','$filter', '$http','$window', 'g
            
             if ((versionObj.versionDetails.vnfversion == $scope.versionsSelected[0].vnfversion)) {
                 $scope.objCompareModel1 = versionObj;
+                $scope.version1=true;
             } else if ((versionObj.versionDetails.vnfversion == $scope.versionsSelected[1].vnfversion))
                 {$scope.objCompareModel2 = versionObj;
-        }
+                $scope.version2=true;
+                $scope.version3=false;
+                $scope.version4=false;
+        }else if((versionObj.versionDetails.vnfversion == $scope.versionsSelected[2].vnfversion)){
+        	$scope.objCompareModel3 = versionObj;
+        	$scope.version3=true;
+        	$scope.version4=false;
+        }else if((versionObj.versionDetails.vnfversion == $scope.versionsSelected[3].vnfversion)){
+        	$scope.objCompareModel4 = versionObj;
+        	$scope.version4=true;
+        	}
       document.getElementById("view").style.display = "none";
         } );
         $scope.showResult = true;
