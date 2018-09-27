@@ -4,7 +4,7 @@ exec &> >(tee -a "/var/log/ansible-server.log")
 if [ ! -f /tmp/.ansible-server-installed ]
 then
     pip install PyMySQL
-    pip install cherrypy
+    pip install cherrypy<=v18.0.0
     pip install requests
 
     apt-get -y install software-properties-common
