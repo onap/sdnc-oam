@@ -432,6 +432,29 @@
                                         </outcome>
                                     </get-resource>
                                     <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                        <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/actokentemplate.json'`" />
+                                        <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/v2/tokens'`" />
+                                        <parameter name="format" value="json"/>
+                                        <parameter name="httpMethod" value="post"/>
+                                        <parameter name="responsePrefix" value="token-result"/>
+                                        <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
+                                        <parameter name="trustStorePassword" value="adminadmin"/>
+                                        <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                                        <parameter name="keyStorePassword" value="adminadmin"/>
+                                        <outcome value='success'>
+                                            <set>
+                                                <parameter name='prop.sdncRestApi.token_id' value='`$token-result.data.token_id`' />
+                                            </set>
+                                        </outcome>
+                                        <outcome value='failure'>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="Error executing get token rest api" />
+                                            </return>
+                                        </outcome>
+                                    </execute>
+                                    <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                                         <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sotn-ethernet-service.json'`" />
                                         <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-eth-tran-service:etht-svc'`" />
                                         <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
@@ -568,12 +591,13 @@
 		resource="allotted-resource" 
 		key="customer.global-customer-id = $connection-attachment-topology-operation-input.service-information.global-customer-id AND
 			service-subscription.service-type = $connection-attachment-topology-operation-input.service-information.subscription-service-type AND
-			service-instance.service-instance-id = $connection-attachment-topology-operation-input.allotted-resource-information.parent-service-instance-id AND
+			service-instance.service-instance-id = $connection-attachment-topology-operation-input.service-information.service-instance-id AND
 			allotted-resource.id = $tmp.ar.allotted-resource-id"
         pfx='pfx' local-only='false' force='false'>
                 <parameter name="description" value="`$connection-attachment-topology-operation-input.allotted-resource-information.allotted-resource-type`" />
                 <parameter name="selflink" value="`$tmp.ar.self-link`" />
-                <!--parameter name="model-invariant-id" value="`$connection-attachment-topology-operation-input.allotted-resource-information.onap-model-information.model-invariant-uuid`" /><parameter name="model-version-id" value="`$connection-attachment-topology-operation-input.allotted-resource-information.onap-model-information.model-uuid`" /-->
+                <parameter name="model-invariant-id" value="`$connection-attachment-topology-operation-input.allotted-resource-information.onap-model-information.model-invariant-uuid`" />
+                <parameter name="model-version-id" value="`$connection-attachment-topology-operation-input.allotted-resource-information.onap-model-information.model-uuid`" />
                 <parameter name="operational-status" value="Active" />
                 <outcome value='failure'>
                     <return status='failure'>
