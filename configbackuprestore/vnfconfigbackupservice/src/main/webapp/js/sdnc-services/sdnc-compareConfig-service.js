@@ -34,8 +34,7 @@ myApp.service('deviceConfigService', ['$http','VNF_API_BASE', function($http, VN
                 });
 
     };
-    
-    
+       
     	this.getAllVNF = function() {
         var testlist = {};
         return $http.get('/getAllBackupVnfIds')
@@ -51,11 +50,24 @@ myApp.service('deviceConfigService', ['$http','VNF_API_BASE', function($http, VN
 
     };
 
+    this.getAllVnfIds = function() {
+        var rctestlist = {};
+        return $http.get('/getAllVnfIds')
+            .then(function(response) {
+                   console.log("---validationTestService::getAllVNF From Restconf::TestResponse---" + JSON.stringify(response));
+                    vnflist = response.data;
+                    return vnflist;
+                },
+                function(response) {
+                   console.log("validationTestService::getAllVNF From Restconf::Status Code", response.status);
+                    return response;
+                });
+
+    };
+    
     this.getVersions = function(vnfId) {
 
         var data = {};
-//        data.selectedVnfName = vnfName;
-//        data.selectedVnfType = vnfType;
         data.vnfId = vnfId;
         var config = {
             params: data,
@@ -67,15 +79,9 @@ myApp.service('deviceConfigService', ['$http','VNF_API_BASE', function($http, VN
         console.log("deviceConfigService::getVersions::config", JSON.stringify(config));
 
         var baseUrl = VNF_API_BASE;
-        // var baseApi='runtest';
-        // var apiUrl= baseUrl + baseApi;
-
-        // Call the pre validation service
         var request = {
             method: 'GET',
             url: '/configDetailsById/'+vnfId,
-            //url: 'sdnc-stubs/getAllConfigForVNF.json',
-            //data: data,
             
             headers: {
                 'Content-Type': 'application/json',
@@ -144,22 +150,6 @@ myApp.service('deviceConfigService', ['$http','VNF_API_BASE', function($http, VN
              console.log("validationTestService::getAllVNF::Status Code", response);
              return newConfig;
          });
-         /*.then(function (response) {
-        	 if (response.data)
-        	 { $scope.successMessage1 = "Put Data Method Executed Successfully!";
-        	 return response;
-        	 }
-        	var status=	 response.status;
-        	if (status == 200){
-        	 $window.alert("applyed successfully ");
-        	 }
-        	 var successMessage1 = "Put Data Method Executed Successfully!";
-         },
-         function (response) {
-        	 	var successMessage1 = "Service not Exists";
-         });
-    	
-        */
     };
 	
 

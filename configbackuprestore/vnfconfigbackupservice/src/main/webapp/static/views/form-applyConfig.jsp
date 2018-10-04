@@ -19,22 +19,32 @@
    */
     -->
 <div class="ReportMain" >
-   <div class="heading"><img src="static/images/Apply.jpg" width=70 height="40"  style="margin-left:5px;">&nbsp;&nbsp;Apply Configruation</div>
-   <form name="myForm" style="background-color:#f2f2f2; border: 1px solid #ddd;">
+   <div class="heading"><img src="static/images/Apply.jpg" width=50 height="40"  style="margin-left:5px;">&nbsp;&nbsp;Apply Configruation</div>
+   <form name="myForm" style="background-color: #f2f2f2;padding:20px 15px;border: 1px ridge #ddd">
     <div growl></div>
     
-      <div class="row" style="background-color:#f2f2f2;width:100%;margin-left:1px;height:75px">
-         <div class="column" style="width:30%;background-color:#f2f2f2;height:55px;margin-left:40px;"> 
-            <label class="labeltext">Select Avaliable VNF</label>
-         </div>
-         <div  class="column" style="background-color:#f2f2f2;width:60%;height:55px;margin-left:0px;">
-            <select  class="form-control" style="width:100%;margin-top:0px;" ng-model="selectedValueVnf"  ng-change="selectVnf(selectedValueVnf)">
-               <option  ng-repeat="vnf in objvnfList" value="{{vnf.vnfid}}">VnfId- {{vnf.vnfid}}&nbsp;VnfName- {{vnf.vnfname}}</option>
-               <option  value="">Select VNFId</option>
-            </select>
-         </div>
-      </div>
-        <div class="row" style="background-color:#f2f2f2;width:100%;margin-left:1px;height:100px">  
+     <div class="row">
+			<div class="column"
+				style="width: 20%; background-color: #f2f2f2; height: 35px; margin-left: 35px;">
+				<label class="labeltext">Select Avaliable VNF</label>
+			</div>
+			<div class="column"
+				style="background-color: #f2f2f2; width: 45%; height: 55px; margin-left: 0px;">
+				<select class="form-control" style="width: 100%; margin-top: 0px;"
+					name="select" ng-model="selectedValueVnf"
+					ng-change=selectVnf(selectedValueVnf) required>
+					<option ng-repeat="vnf in objvnfList" value="{{vnf.vnfId}}">VnfId-
+						{{vnf.vnfId}}&nbsp;VnfName- {{vnf.vnfName}}</option>
+					<option value="">Select VNF</option>
+				</select>
+				<div role="alert">
+					<span class="error" ng-show="myForm.select.$error.required">
+						Required!</span>
+				</div>
+			</div>
+		</div>
+<br><br>
+        <div class="row" style="background-color:#f2f2f2;width:100%;margin-left:1px;height:100px" ng-show="ShowResult">  
         <div class="column" style="width:30%;height:55px;margin-left:35px;"> 
 	<input type="file" style="width:300px" id="myFileInput" ng-model="file" accept=".json"/>
 	</div>
