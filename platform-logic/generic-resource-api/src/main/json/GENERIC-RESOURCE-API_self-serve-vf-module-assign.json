@@ -1,1 +1,1269 @@
-[{"id":"d54f27c.32d09d8","type":"dgstart","name":"DGSTART","outputs":1,"x":81.57142639160156,"y":40,"z":"2a37ce0.5c7a932","wires":[["5d461bb.2f1c0e4"]]},{"id":"22458b8f.3b1884","type":"block","name":"block : atomic","xml":"<block atomic='true'>","atomic":"true","comments":"","outputs":1,"x":104.76191711425781,"y":154.84921646118164,"z":"2a37ce0.5c7a932","wires":[["ff6a2a6.8c871d8","7dee9ef1.a7c23","ce6475cf.6d4638","c2268bb7.16d468","80a128d1.6f8ae8","5f58b7e8.2aa828","4b723712.e0acb8","f485a1c2.7f11f"]]},{"id":"35e97a3.61ebc86","type":"method","name":"method self-serve-vf-module-assign","xml":"<method rpc='self-serve-vf-module-assign' mode='sync'>\n","comments":"","outputs":1,"x":185.33333587646484,"y":94.70635509490967,"z":"2a37ce0.5c7a932","wires":[["22458b8f.3b1884"]]},{"id":"5d461bb.2f1c0e4","type":"service-logic","name":"GENERIC-RESOURCE-API ${project.version}","module":"GENERIC-RESOURCE-API","version":"${project.version}","comments":"","xml":"<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>","outputs":1,"x":343.8096237182617,"y":40.19049263000488,"z":"2a37ce0.5c7a932","wires":[["35e97a3.61ebc86"]]},{"id":"7dee9ef1.a7c23","type":"switchNode","name":"switch vf-module-parameters.param_length","xml":"<switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`'>\n","comments":"","outputs":1,"x":419.8214569091797,"y":1357.3691635131836,"z":"2a37ce0.5c7a932","wires":[["fc3b10eb.4a5cd"]]},{"id":"fc3b10eb.4a5cd","type":"other","name":"NULL","xml":"<outcome value=''>\n","comments":"","outputs":1,"x":679.8214874267578,"y":1357.3691635131836,"z":"2a37ce0.5c7a932","wires":[["94d6b8b2.0f4e78"]]},{"id":"cbfdfd5f.e6884","type":"call","name":"call GENERIC-RESOURCE-API:self-serve-vfmodule-ra-assignment","xml":"<call module='GENERIC-RESOURCE-API' rpc='self-serve-vfmodule-ra-assignment' mode='sync' >\n","comments":"","outputs":1,"x":1221.5357360839844,"y":1404.6549139022827,"z":"2a37ce0.5c7a932","wires":[["3eaaeae5.409546"]]},{"id":"d791cdf1.8cae8","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n<parameter name='error-code' value='500' />\n<parameter name='error-message' value=\"`'Failed to get RA assignments: ' + $error-message`\" />\n","comments":"","x":1702.2499771118164,"y":1404.2263174057007,"z":"2a37ce0.5c7a932","wires":[]},{"id":"3c87aa6d.571d96","type":"for","name":"foreach vf-module-parameters.param[]","xml":"<for index='pidx' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`' >\n","comments":"","outputs":1,"x":705.107421875,"y":1667.5477504730225,"z":"2a37ce0.5c7a932","wires":[["b01badfa.3bbe1","83158739.1a8948"]]},{"id":"ff6a2a6.8c871d8","type":"set","name":"set ss.capability.execution-order[]","xml":"<set>\n<parameter name='ss.capability.execution-order[0]' value='generate-name' />\n<parameter name='ss.capability.execution-order[1]' value='alts-entitlement-assign' />\n<parameter name='ss.capability.execution-order[2]' value='alts-license-assign' />\n<parameter name='ss.capability.execution-order[3]' value='vlan-tag-assign' />\n<parameter name='ss.capability.execution-order[4]' value='mS-vlan-tag-assign' />\n<parameter name='ss.capability.execution-order[5]' value='eipam-ip-assign' />\n<parameter name='ss.capability.execution-order[6]' value='eipam-create-pool\"' />\n<parameter name='ss.capability.execution-order[7]' value='mac-address-assign' />\n<parameter name='ss.capability.execution-order[8]' value='mS-mac-address-assign' />\n<parameter name='ss.capability.execution-order[9]' value='create-vpe-pool' />\n<parameter name='ss.capability.execution-order[10]' value='unresolved-composite-data' />\n<parameter name='ss.capability.execution-order[11]' value='aai-vf-module-put' />\n<parameter name='ss.capability.execution-order_length' value='12' />\n","comments":"","x":391.9880905151367,"y":1219.4286432266235,"z":"2a37ce0.5c7a932","wires":[]},{"id":"ce6475cf.6d4638","type":"for","name":"foreach capability-order[]","xml":"<for index='cidx' start='0' end='`$ss.capability.execution-order_length`' >\n","comments":"","outputs":1,"x":360.7500457763672,"y":1523.3690433502197,"z":"2a37ce0.5c7a932","wires":[["9be81579.ced898","926efea2.9a817","3c87aa6d.571d96","67304d17.676334"]]},{"id":"b01badfa.3bbe1","type":"switchNode","name":"switch capability-name param vs. execution","xml":"<switch test='`$ss.capability-name == $tmp.param.capability-name`'>\n","comments":"","outputs":1,"x":1071.500244140625,"y":1713.1905431747437,"z":"2a37ce0.5c7a932","wires":[["5effdcda.8ecbf4"]]},{"id":"5effdcda.8ecbf4","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1335.000244140625,"y":1713.4405431747437,"z":"2a37ce0.5c7a932","wires":[["fdfbb3f7.f9a6b"]]},{"id":"3eaaeae5.409546","type":"failure","name":"failure","xml":"<outcome value='failure'>\n","comments":"","outputs":1,"x":1548.1070823669434,"y":1404.0835075378418,"z":"2a37ce0.5c7a932","wires":[["d791cdf1.8cae8"]]},{"id":"9be81579.ced898","type":"set","name":"set ss.capability-name","xml":"<set>\n<parameter name='ss.capability-name' value='`$ss.capability.execution-order[$cidx]`' />\n\n<!--\nss.capability.execution-order\n-->","comments":"","x":652.1071014404297,"y":1523.3214950561523,"z":"2a37ce0.5c7a932","wires":[]},{"id":"83158739.1a8948","type":"set","name":"tmp.param.capability-name","xml":"<set>\n<parameter name='tmp.param.capability-name' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.capability-name`' />\n","comments":"","x":1020.8572692871094,"y":1667.7977533340454,"z":"2a37ce0.5c7a932","wires":[]},{"id":"926efea2.9a817","type":"set","name":"set ss.capability.action = assign","xml":"<set>\n<parameter name='ss.capability-action' value='assign' />\n","comments":"","x":682.8212432861328,"y":1570.238079071045,"z":"2a37ce0.5c7a932","wires":[]},{"id":"67304d17.676334","type":"set","name":"set capability-dg with 'self-serve-' + capability-name","xml":"<set>\n<parameter name='ss.capability-dg' value=\"`'self-serve-' + $ss.capability.execution-order[$cidx]`\" />\n","comments":"","x":745.1547088623047,"y":1618.8929500579834,"z":"2a37ce0.5c7a932","wires":[]},{"id":"a2d7bd9.b62744","type":"set","name":"set sdnc-generated-cloud-resources = true","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.sdnc-generated-cloud-resources' \n\tvalue='true' />\n","comments":"","x":1007.5238189697266,"y":1105.8573188781738,"z":"2a37ce0.5c7a932","wires":[]},{"id":"fdfbb3f7.f9a6b","type":"switchNode","name":"switch resource-resolution-data.status","xml":"<switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.status`'>\n","comments":"","outputs":1,"x":451.08360290527344,"y":2241.9723148345947,"z":"2a37ce0.5c7a932","wires":[["3862b37e.a4d33c","954c079f.3aa0e8"]]},{"id":"3862b37e.a4d33c","type":"other","name":"PENDING","xml":"<outcome value='PENDING'>\n","comments":"","outputs":1,"x":720.4408187866211,"y":2241.972270965576,"z":"2a37ce0.5c7a932","wires":[["15298f4c.04fb41"]]},{"id":"954c079f.3aa0e8","type":"other","name":"FAILED","xml":"<outcome value='FAILED'>\n","comments":"","outputs":1,"x":713.976634979248,"y":2292.936601638794,"z":"2a37ce0.5c7a932","wires":[["15298f4c.04fb41"]]},{"id":"15298f4c.04fb41","type":"call","name":"call ss.capability-dg","xml":"<call module='GENERIC-RESOURCE-API' rpc='`$ss.capability-dg`' mode='sync' >\n","comments":"","outputs":1,"x":929.0953674316406,"y":2293.698452949524,"z":"2a37ce0.5c7a932","wires":[["5f7d62d1.cae71c"]]},{"id":"205d8d4c.150a22","type":"returnFailure","name":"return failure","xml":"<return status='failure'>\n<parameter name='error-code' value='500' />\n<parameter name='error-message' value=\"`'Encountered error from capability: '+ $ss.capability-dg + ', with error: '+ $error-message`\" />\n","comments":"","x":1503.785701751709,"y":2647.389304161072,"z":"2a37ce0.5c7a932","wires":[]},{"id":"5f7d62d1.cae71c","type":"failure","name":"failure","xml":"<outcome value='failure'>\n","comments":"","outputs":1,"x":1122.1307182312012,"y":2293.4127311706543,"z":"2a37ce0.5c7a932","wires":[["8e8de4d9.b6ed58"]]},{"id":"8e8de4d9.b6ed58","type":"block","name":"block : atomic","xml":"<block atomic='true'>","atomic":"true","comments":"","outputs":1,"x":1285.4048347473145,"y":2292.7222719192505,"z":"2a37ce0.5c7a932","wires":[["205d8d4c.150a22","fd054b99.428368","f7ba85bb.1dc7a8","e1e8cdc2.d08fb","3daf0fdb.6a62e","d05a52e9.d3f3e"]]},{"id":"fd054b99.428368","type":"execute","name":"execute RestApiCallNode - PUT vf-module","xml":"<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n    <parameter name='templateFileName' value=\"`$prop.restapi.templateDir + '/' + $prop.restapi.ss.vfmodule.templatefile`\" />\n    <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.ss-vfmodule-url`' />\n    <parameter name='restapiUser' value='`$prop.controller.user`' />\n    <parameter name='restapiPassword' value='`$prop.controller.pwd`' />\n    <parameter name='format' value='json' />\n    <parameter name='httpMethod' value='PUT' />\n    <parameter name=\"responsePrefix\" value=\"mdsal-ss-vfmodule\" />\n\n","comments":"","outputs":1,"x":1600.9522743225098,"y":2549.0962314605713,"z":"2a37ce0.5c7a932","wires":[["3a2b9a6b.1c9966","45de9515.60fbec"]]},{"id":"3a2b9a6b.1c9966","type":"not-found","name":"not-found","xml":"<outcome value='not-found'>\n","comments":"","outputs":1,"x":1875.54594039917,"y":2603.0943851470947,"z":"2a37ce0.5c7a932","wires":[["8dcc9b69.6b2cb8"]]},{"id":"45de9515.60fbec","type":"failure","name":"failure","xml":"<outcome value='failure'>\n","comments":"","outputs":1,"x":1867.9745750427246,"y":2549.5944051742554,"z":"2a37ce0.5c7a932","wires":[["8dcc9b69.6b2cb8"]]},{"id":"5f58b7e8.2aa828","type":"execute","name":"printContext","xml":"<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >\n<parameter name='filename' value='/var/tmp/ss-vf-assign.log' />\n","comments":"","outputs":1,"x":303.3293685913086,"y":2794.123447418213,"z":"2a37ce0.5c7a932","wires":[[]]},{"id":"c2268bb7.16d468","type":"switchNode","name":"switch vf-module_length","xml":"<switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`'>\n","comments":"","outputs":1,"x":357.7737159729004,"y":274.2619981765747,"z":"2a37ce0.5c7a932","wires":[["6336a4ad.bd287c","1415588.27e99a8","ddacdcb4.cd4aa"]]},{"id":"6336a4ad.bd287c","type":"other","name":"NULL","xml":"<outcome value=''>\n","comments":"","outputs":1,"x":570.4046859741211,"y":203.65478897094727,"z":"2a37ce0.5c7a932","wires":[["608dd4ad.4cf83c"]]},{"id":"209864bc.1268bc","type":"set","name":"set vf-module-index=0","xml":"<set>\n<parameter name='vf-module-index' value='0' />\n","comments":"","x":909.5237159729004,"y":214.5715742111206,"z":"2a37ce0.5c7a932","wires":[]},{"id":"1415588.27e99a8","type":"other","name":"other","xml":"<outcome value='Other'>\n","comments":"","outputs":1,"x":569.5832786560059,"y":342.4406490325928,"z":"2a37ce0.5c7a932","wires":[["a1fdc5d1.dd0778"]]},{"id":"a1e7be88.1e24f","type":"set","name":"set vf-module-id","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id'\n   value='`$vf-module-topology-operation-input.vf-module-information.vf-module-id`' />\n","comments":"","x":925.8093566894531,"y":496.6816177368164,"z":"2a37ce0.5c7a932","wires":[]},{"id":"d42cc69b.ed2518","type":"set","name":"set vf-module-parameters","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.'\n  value='vf-module-topology-operation-input.vf-module-request-input.vf-module-input-parameters.' />\n","comments":"","x":1090.4999542236328,"y":1356.5244059562683,"z":"2a37ce0.5c7a932","wires":[]},{"id":"3476440a.9fb9ac","type":"set","name":"set order-status to PendingCreate","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-level-oper-status.order-status'\n  value='PendingCreate' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-level-oper-status.last-rpc-action'\n  value='`$vf-module-topology-operation-input.sdnc-request-header.svc-action`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-level-oper-status.last-action'\n  value='`$vf-module-topology-operation-input.sdnc-request-header.request-action`' />\n","comments":"","x":980.0835266113281,"y":1058.5448169708252,"z":"2a37ce0.5c7a932","wires":[]},{"id":"f7ba85bb.1dc7a8","type":"set","name":"set vf data for restapi-call-node","xml":"<set>\n<parameter name='vf.vf-module-id'\n    value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id`' />\n<parameter name='vf.vf-module-data.sdnc-request-header.'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.sdnc-request-header.`' />\n<parameter name='vf.vf-module-data.request-information.'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.request-information.`' />\n<parameter name='vf.vf-module-data.service-information.'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.service-information.`' />\n<parameter name='vf.vf-module-data.vnf-information.'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vnf-information.`' />\n<parameter name='vf.vf-module-data.vf-module-information.'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-information.`' />\n<parameter name='vf.vf-module-data.vf-module-topology.'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.`' />\n<parameter name='vf.vf-module-data.vf-module-level-oper-status.'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-level-oper-status.`' />\n<parameter name='vf.vf-module-data.vf-module-request-input.vf-module-input-parameters.'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.vf-module-input-parameters.`' />\n<parameter name='vf.vf-module-data.vf-module-request-input.request-version'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.request-version`' />\n<parameter name='vf.vf-module-data.vf-module-request-input.vf-module-name'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.vf-module-name`' />\n<parameter name='vf.vf-module-data.vf-module-request-input.tenant'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.tenant`' />\n<parameter name='vf.vf-module-data.vf-module-request-input.aic-cloud-region'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.aic-cloud-region`' />\n<parameter name='vf.vf-module-data.vf-module-request-input.aic-clli'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.aic-clli`' />","comments":"","x":1562.464298248291,"y":2293.2142486572266,"z":"2a37ce0.5c7a932","wires":[]},{"id":"e1e8cdc2.d08fb","type":"execute","name":"generate ss-vfmodule url replace service-instance-id","xml":"<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >\n    <parameter name=\"source\" value=\"`$prop.restapi.ss-vfmodule-assignments`\"/>\n    <parameter name=\"outputPath\" value=\"tmp.ss-vfmodule-url\"/>\n    <parameter name=\"target\" value=\"{service-instance-id}\"/>\n    <parameter name=\"replacement\" value=\"`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.service-information.service-instance-id`\"/>\n","comments":"","outputs":1,"x":1628.7142448425293,"y":2341.2142934799194,"z":"2a37ce0.5c7a932","wires":[[]]},{"id":"3daf0fdb.6a62e","type":"execute","name":"generate ss-vfmodule url - replace vnf-id","xml":"<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >\n    <parameter name=\"source\" value=\"`$tmp.ss-vfmodule-url`\"/>\n    <parameter name=\"outputPath\" value=\"tmp.ss-vfmodule-url\"/>\n    <parameter name=\"target\" value=\"{vnf-id}\"/>\n    <parameter name=\"replacement\" value=\"`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vnf-information.vnf-id`\"/>\n","comments":"","outputs":1,"x":1592.999942779541,"y":2389.2732105255127,"z":"2a37ce0.5c7a932","wires":[[]]},{"id":"d05a52e9.d3f3e","type":"execute","name":"generate ss-vfmodule url - replace vf-module-id","xml":"<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >\n    <parameter name=\"source\" value=\"`$tmp.ss-vfmodule-url`\"/>\n    <parameter name=\"outputPath\" value=\"tmp.ss-vfmodule-url\"/>\n    <parameter name=\"target\" value=\"{vf-module-id}\"/>\n    <parameter name=\"replacement\" value=\"`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id`\"/>\n","comments":"","outputs":1,"x":1614.940616607666,"y":2439.1897106170654,"z":"2a37ce0.5c7a932","wires":[[]]},{"id":"80a128d1.6f8ae8","type":"set","name":"set ss.capability-type = vf-module","xml":"<set>\n<parameter name='ss.capability-type' value='vf-module' />\n","comments":"","x":392.89288330078125,"y":1176.4286012649536,"z":"2a37ce0.5c7a932","wires":[]},{"id":"94d6b8b2.0f4e78","type":"block","name":"block : atomic","xml":"<block atomic='true'>","atomic":"true","comments":"","outputs":1,"x":855.1785801478795,"y":1357.249975476946,"z":"2a37ce0.5c7a932","wires":[["d42cc69b.ed2518","cbfdfd5f.e6884"]]},{"id":"4b723712.e0acb8","type":"set","name":"set is-new-vfmodule = true","xml":"<set>\n<parameter name='is-new-vfmodule' value='true' />\n","comments":"","x":364.59539794921875,"y":154.67872047424316,"z":"2a37ce0.5c7a932","wires":[]},{"id":"aefc893a.1b7808","type":"for","name":"for each existing VF module","xml":"<for index='idx' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`' >\n","comments":"","outputs":1,"x":928.4166564941406,"y":342.1309871673584,"z":"2a37ce0.5c7a932","wires":[["e29eb301.c77f2"]]},{"id":"e29eb301.c77f2","type":"switchNode","name":"switch vf-module-id: input vs service-data","xml":"<switch test='`$vf-module-topology-operation-input.vf-module-information.vf-module-id == $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$idx].vf-module-id`'>\n","comments":"","outputs":1,"x":1239.535789489746,"y":342.70240211486816,"z":"2a37ce0.5c7a932","wires":[["9b8700ac.fc38f"]]},{"id":"9b8700ac.fc38f","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1493.4048194885254,"y":342.52385902404785,"z":"2a37ce0.5c7a932","wires":[["6f0eade1.7a1714"]]},{"id":"17cef1c2.67dd9e","type":"set","name":"set is-new-vfmodule = false","xml":"<set>\n<parameter name='is-new-vfmodule' value='false' />\n","comments":"","x":1865.5715599060059,"y":341.7857475280762,"z":"2a37ce0.5c7a932","wires":[]},{"id":"6f0eade1.7a1714","type":"block","name":"block","xml":"<block>\n","atomic":"false","comments":"","outputs":1,"x":1634.8215637207031,"y":342.0357437133789,"z":"2a37ce0.5c7a932","wires":[["17cef1c2.67dd9e","a154e5e.8a88318","d9b84f5.23ad9b"]]},{"id":"a154e5e.8a88318","type":"break","name":"break","xml":"<break>\n","comments":"","x":1802.7143516540527,"y":428.03572177886963,"z":"2a37ce0.5c7a932","wires":[]},{"id":"d9b84f5.23ad9b","type":"set","name":"set vf-module-index = idx","xml":"<set>\n<parameter name='vf-module-index' value='`$idx`' />\n","comments":"","x":1858.535873413086,"y":385.07140254974365,"z":"2a37ce0.5c7a932","wires":[]},{"id":"dc072fd0.46346","type":"set","name":"set new vf-module_length = vf-module-index + 1","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length' value='`$vf-module-index + 1`' />\n","comments":"","x":990.8811378479004,"y":255.8930025100708,"z":"2a37ce0.5c7a932","wires":[]},{"id":"a1fdc5d1.dd0778","type":"block","name":"block","xml":"<block>\n","atomic":"false","comments":"","outputs":1,"x":706.7381935119629,"y":342.8215112686157,"z":"2a37ce0.5c7a932","wires":[["969bf5af.167928","aefc893a.1b7808"]]},{"id":"615fa747.b2faa8","type":"set","name":"set new vf-module_length++","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length' \n\tvalue='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length + 1`' />\n","comments":"","x":1475.9882164001465,"y":454.5715160369873,"z":"2a37ce0.5c7a932","wires":[]},{"id":"969bf5af.167928","type":"switchNode","name":"switch is-new-vfmodule","xml":"<switch test='`$is-new-vfmodule`'>\n","comments":"","outputs":1,"x":914.2381896972656,"y":412.3928909301758,"z":"2a37ce0.5c7a932","wires":[["b01132fb.5a2ac"]]},{"id":"b01132fb.5a2ac","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":1112.095344543457,"y":411.9643383026123,"z":"2a37ce0.5c7a932","wires":[["a4e0b93.45f2148"]]},{"id":"608dd4ad.4cf83c","type":"block","name":"block","xml":"<block>\n","atomic":"false","comments":"","outputs":1,"x":713.2381896972656,"y":235.32150554656982,"z":"2a37ce0.5c7a932","wires":[["dc072fd0.46346","209864bc.1268bc"]]},{"id":"ddacdcb4.cd4aa","type":"other","name":"0","xml":"<outcome value='0'>\n","comments":"","outputs":1,"x":571.5714263916016,"y":273.75,"z":"2a37ce0.5c7a932","wires":[["608dd4ad.4cf83c"]]},{"id":"f485a1c2.7f11f","type":"switchNode","name":"switch is-new-vfmodule","xml":"<switch test='`$is-new-vfmodule`'>\n","comments":"","outputs":1,"x":357.32142639160156,"y":497.5,"z":"2a37ce0.5c7a932","wires":[["d4a9ff6d.1b84c"]]},{"id":"d4a9ff6d.1b84c","type":"outcomeTrue","name":"true","xml":"<outcome value='true'>\n","comments":"","outputs":1,"x":555.178581237793,"y":497.0714473724365,"z":"2a37ce0.5c7a932","wires":[["70925a62.83afb4"]]},{"id":"5d8f2306.86ddec","type":"set","name":"Copy vf-module-topology data","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-id' \n    value='`$vf-module-topology-operation-input.vf-module-information.vf-module-id`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-name' \n    value='`$vf-module-topology-operation-input.vf-module-request-input.vf-module-name`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-type' \n    value='`$vf-module-topology-operation-input.vf-module-information.vf-module-type`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.tenant' \n    value='`$vf-module-topology-operation-input.vf-module-request-input.tenant`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.aic-cloud-region' \n    value='`$vf-module-topology-operation-input.vf-module-request-input.aic-cloud-region`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.aic-clli'\n    value='`$vf-module-topology-operation-input.vf-module-request-input.aic-clli`' />","comments":"","x":971.0714416503906,"y":542.5000696182251,"z":"2a37ce0.5c7a932","wires":[]},{"id":"86cc7400.791c","type":"set","name":"set from DB","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.onap-model-information.model-invariant-uuid'\n  value='`$db.vf-module-model.invariant-uuid`' />\n","comments":"","x":1336.0832023620605,"y":594.943510055542,"z":"2a37ce0.5c7a932","wires":[]},{"id":"8ec50f0b.edeb3","type":"switchNode","name":"switch input model-invariant-uuid","xml":"<switch test='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-invariant-uuid`'>\n","comments":"","outputs":1,"x":979.9402770996094,"y":617.7679538726807,"z":"2a37ce0.5c7a932","wires":[["75b554e0.f9730c","4001e773.f09ad8"]]},{"id":"75b554e0.f9730c","type":"outcome","name":"NULL","xml":"<outcome value=''>","comments":"","outputs":1,"x":1185.606948852539,"y":594.9109172821045,"z":"2a37ce0.5c7a932","wires":[["86cc7400.791c"]]},{"id":"4001e773.f09ad8","type":"other","name":"other","xml":"<outcome value='Other'>\n","comments":"","outputs":1,"x":1187.035545349121,"y":639.1965084075928,"z":"2a37ce0.5c7a932","wires":[["deb7c0c9.7677c"]]},{"id":"deb7c0c9.7677c","type":"set","name":"set from input","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.onap-model-information.model-invariant-uuid'\n  value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-invariant-uuid`' />\n","comments":"","x":1341.3212814331055,"y":638.6250805854797,"z":"2a37ce0.5c7a932","wires":[]},{"id":"d6f45d8c.eacd7","type":"set","name":"set from DB","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.onap-model-information.model-uuid'\n  value='`$db.vf-module-model.uuid`' />\n","comments":"","x":1337.035472869873,"y":683.4821863174438,"z":"2a37ce0.5c7a932","wires":[]},{"id":"6c78131c.4b6b6c","type":"switchNode","name":"switch input model-uuid","xml":"<switch test='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-uuid`'>\n","comments":"","outputs":1,"x":952.5592956542969,"y":706.3066911697388,"z":"2a37ce0.5c7a932","wires":[["c4621bd9.a12208","577005f9.234a8c"]]},{"id":"c4621bd9.a12208","type":"outcome","name":"NULL","xml":"<outcome value=''>","comments":"","outputs":1,"x":1186.559268951416,"y":683.4496231079102,"z":"2a37ce0.5c7a932","wires":[["d6f45d8c.eacd7"]]},{"id":"577005f9.234a8c","type":"other","name":"other","xml":"<outcome value='Other'>\n","comments":"","outputs":1,"x":1187.987865447998,"y":727.7352142333984,"z":"2a37ce0.5c7a932","wires":[["cb9fba66.ea1358"]]},{"id":"cb9fba66.ea1358","type":"set","name":"set from input","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.onap-model-information.model-uuid'\n  value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-uuid`' />\n","comments":"","x":1342.2736015319824,"y":727.1637864112854,"z":"2a37ce0.5c7a932","wires":[]},{"id":"5cab3027.cd79d","type":"set","name":"set from DB","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.onap-model-information.model-version'\n  value='`$db.vf-module-model.version`' />\n","comments":"","x":1328.1784057617188,"y":772.3393936157227,"z":"2a37ce0.5c7a932","wires":[]},{"id":"782146a4.798cf8","type":"switchNode","name":"switch input model-version","xml":"<switch test='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-version`'>\n","comments":"","outputs":1,"x":954.7021675109863,"y":795.1638383865356,"z":"2a37ce0.5c7a932","wires":[["d3cbd663.95bfe8","db6de500.328378"]]},{"id":"d3cbd663.95bfe8","type":"outcome","name":"NULL","xml":"<outcome value=''>","comments":"","outputs":1,"x":1177.7021522521973,"y":772.3068008422852,"z":"2a37ce0.5c7a932","wires":[["5cab3027.cd79d"]]},{"id":"db6de500.328378","type":"other","name":"other","xml":"<outcome value='Other'>\n","comments":"","outputs":1,"x":1179.1307487487793,"y":816.5923919677734,"z":"2a37ce0.5c7a932","wires":[["e61ebdc6.9891a"]]},{"id":"e61ebdc6.9891a","type":"set","name":"set from input","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.onap-model-information.model-version'\n  value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-version`' />\n","comments":"","x":1333.4164848327637,"y":816.0209641456604,"z":"2a37ce0.5c7a932","wires":[]},{"id":"72b602cb.a93ddc","type":"set","name":"set from DB","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.onap-model-information.model-name'\n  value='`$db.vf-module-model.name`' />\n","comments":"","x":1328.1784057617188,"y":859.4822158813477,"z":"2a37ce0.5c7a932","wires":[]},{"id":"4db0e682.571828","type":"switchNode","name":"switch input model-name","xml":"<switch test='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-name`'>\n","comments":"","outputs":1,"x":951.7021675109863,"y":882.3066606521606,"z":"2a37ce0.5c7a932","wires":[["94f44a83.15e598","b2031ae4.23b278"]]},{"id":"94f44a83.15e598","type":"outcome","name":"NULL","xml":"<outcome value=''>","comments":"","outputs":1,"x":1177.7021522521973,"y":859.4496231079102,"z":"2a37ce0.5c7a932","wires":[["72b602cb.a93ddc"]]},{"id":"b2031ae4.23b278","type":"other","name":"other","xml":"<outcome value='Other'>\n","comments":"","outputs":1,"x":1179.1307487487793,"y":903.7352142333984,"z":"2a37ce0.5c7a932","wires":[["55c70679.478448"]]},{"id":"55c70679.478448","type":"set","name":"set from input","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.onap-model-information.model-name'\n  value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-name`' />\n","comments":"","x":1333.4164848327637,"y":903.1637864112854,"z":"2a37ce0.5c7a932","wires":[]},{"id":"e55be895.b5c0d8","type":"set","name":"set model-customization-uuid","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.onap-model-information.model-customization-uuid'\n  value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-customization-uuid`' />\n","comments":"","x":965.1545257568359,"y":956.2441453933716,"z":"2a37ce0.5c7a932","wires":[]},{"id":"a872bc48.ec849","type":"set","name":"copy input data","xml":"<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.sdnc-request-header.'\n   value='$vf-module-topology-operation-input.sdnc-request-header.' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.request-information.'\n   value='$vf-module-topology-operation-input.request-information.' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.service-information.'\n   value='$vf-module-topology-operation-input.service-information.' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vnf-information.'\n   value='$vf-module-topology-operation-input.vnf-information.' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-information.'\n   value='$vf-module-topology-operation-input.vf-module-information.' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.' \n    value='$vf-module-topology-operation-input.vf-module-request-input.' />","comments":"","x":921.8096008300781,"y":1010.9288482666016,"z":"2a37ce0.5c7a932","wires":[]},{"id":"70925a62.83afb4","type":"block","name":"block","xml":"<block>","atomic":"false","comments":"","outputs":1,"x":711.2738418579102,"y":496.8491916656494,"z":"2a37ce0.5c7a932","wires":[["8ec50f0b.edeb3","6c78131c.4b6b6c","782146a4.798cf8","4db0e682.571828","e55be895.b5c0d8","a872bc48.ec849","5d8f2306.86ddec","a1e7be88.1e24f","3476440a.9fb9ac","a2d7bd9.b62744"]]},{"id":"962f0062.18757","type":"set","name":"set vf-module-index = vf-module_length","xml":"<set>\n<parameter name='vf-module-index' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`' />\n","comments":"","x":1508.571445465088,"y":410.75000762939453,"z":"2a37ce0.5c7a932","wires":[]},{"id":"a4e0b93.45f2148","type":"block","name":"block","xml":"<block>\n","atomic":"false","comments":"","outputs":1,"x":1255.071445465088,"y":411.50000762939453,"z":"2a37ce0.5c7a932","wires":[["962f0062.18757","615fa747.b2faa8"]]},{"id":"8dcc9b69.6b2cb8","type":"set","name":"set error-message","xml":"<set>\n<parameter name=\"error-message\" value=\"Failed to persist self-serve vf-module assignments during assign in MD-SAL\" />","comments":"","x":2087.285713195801,"y":2549.4284229278564,"z":"2a37ce0.5c7a932","wires":[]}]
+[
+  {
+    "id": "79cac42d.82a4dc",
+    "type": "dgstart",
+    "name": "DGSTART",
+    "outputs": 1,
+    "x": 140,
+    "y": 84.99999749660492,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "f47fc6b0.f6a1d8"
+      ]
+    ]
+  },
+  {
+    "id": "629c9f43.786f9",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic='true'>",
+    "atomic": "true",
+    "comments": "",
+    "outputs": 1,
+    "x": 163.19049072265625,
+    "y": 199.84921395778656,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "6aad54ac.f3caac",
+        "3ec605f9.8838da",
+        "23449213.b3818e",
+        "840f76a2.614648",
+        "decf4ed7.49434",
+        "448e6879.87f338",
+        "d9639a54.037b48",
+        "ee1bc60b.f75e88"
+      ]
+    ]
+  },
+  {
+    "id": "b7b42bd3.4f3918",
+    "type": "method",
+    "name": "method self-serve-vf-module-assign",
+    "xml": "<method rpc='self-serve-vf-module-assign' mode='sync'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 243.76190948486328,
+    "y": 139.7063525915146,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "629c9f43.786f9"
+      ]
+    ]
+  },
+  {
+    "id": "f47fc6b0.f6a1d8",
+    "type": "service-logic",
+    "name": "GENERIC-RESOURCE-API ${project.version}",
+    "module": "GENERIC-RESOURCE-API",
+    "version": "${project.version}",
+    "comments": "",
+    "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>",
+    "outputs": 1,
+    "x": 402.23819732666016,
+    "y": 85.1904901266098,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "b7b42bd3.4f3918"
+      ]
+    ]
+  },
+  {
+    "id": "3ec605f9.8838da",
+    "type": "switchNode",
+    "name": "switch vf-module-parameters.param_length",
+    "xml": "<switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 478.2500305175781,
+    "y": 1402.3691610097885,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "1a9c3c61.643984"
+      ]
+    ]
+  },
+  {
+    "id": "1a9c3c61.643984",
+    "type": "other",
+    "name": "NULL",
+    "xml": "<outcome value=''>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 738.2500610351562,
+    "y": 1402.3691610097885,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "9d73c04f.a8004"
+      ]
+    ]
+  },
+  {
+    "id": "beaa39ce.b3ffc8",
+    "type": "call",
+    "name": "call GENERIC-RESOURCE-API:self-serve-vfmodule-ra-assignment",
+    "xml": "<call module='GENERIC-RESOURCE-API' rpc='self-serve-vfmodule-ra-assignment' mode='sync' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1279.9643096923828,
+    "y": 1449.6549113988876,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "3b98ee66.3d30a2"
+      ]
+    ]
+  },
+  {
+    "id": "3228d8db.9bd078",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n<parameter name='error-code' value='500' />\n<parameter name='error-message' value=\"`'Failed to get RA assignments: ' + $error-message`\" />\n",
+    "comments": "",
+    "x": 1760.6785507202148,
+    "y": 1449.2263149023056,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "4c4fa3b4.ff618c",
+    "type": "for",
+    "name": "foreach vf-module-parameters.param[]",
+    "xml": "<for index='pidx' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 763.5359954833984,
+    "y": 1712.5477479696274,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "4e0d4948.3d6618",
+        "b58f94e5.3a5748"
+      ]
+    ]
+  },
+  {
+    "id": "6aad54ac.f3caac",
+    "type": "set",
+    "name": "set ss.capability.execution-order[]",
+    "xml": "<set>\n<parameter name='ss.capability.execution-order[0]' value='generate-name' />\n<parameter name='ss.capability.execution-order[1]' value='alts-entitlement-assign' />\n<parameter name='ss.capability.execution-order[2]' value='alts-license-assign' />\n<parameter name='ss.capability.execution-order[3]' value='vlan-tag-assign' />\n<parameter name='ss.capability.execution-order[4]' value='mS-vlan-tag-assign' />\n<parameter name='ss.capability.execution-order[5]' value='eipam-ip-assignment' />\n<parameter name='ss.capability.execution-order[6]' value='eipam-create-pool' />\n<parameter
+name='ss.capability.execution-order[7]' value='netbox-ip-assign' />\n<parameter name='ss.capability.execution-order[8]' value='mac-address-assign' />\n<parameter name='ss.capability.execution-order[9]' value='mS-mac-address-assign' />\n<parameter name='ss.capability.execution-order[10]' value='create-vpe-pool' />\n<parameter name='ss.capability.execution-order[11]' value='unresolved-composite-data' />\n<parameter name='ss.capability.execution-order[12]' value='aai-vf-module-put' />\n<parameter name='ss.capability.execution-order_length' value='13' />\n",
+    "comments": "",
+    "x": 450.41666412353516,
+    "y": 1264.4286407232285,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "23449213.b3818e",
+    "type": "for",
+    "name": "foreach capability-order[]",
+    "xml": "<for index='cidx' start='0' end='`$ss.capability.execution-order_length`' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 419.1786193847656,
+    "y": 1568.3690408468246,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "79b45fed.9e95a",
+        "6e6f02a3.6e1a8c",
+        "4c4fa3b4.ff618c",
+        "6825ba6.a6c7b44"
+      ]
+    ]
+  },
+  {
+    "id": "4e0d4948.3d6618",
+    "type": "switchNode",
+    "name": "switch capability-name param vs. execution",
+    "xml": "<switch test='`$ss.capability-name == $tmp.param.capability-name`'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1129.9288177490234,
+    "y": 1758.1905406713486,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "b70e352c.4630e8"
+      ]
+    ]
+  },
+  {
+    "id": "b70e352c.4630e8",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1393.4288177490234,
+    "y": 1758.4405406713486,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "39d72ba9.0f9c94"
+      ]
+    ]
+  },
+  {
+    "id": "3b98ee66.3d30a2",
+    "type": "failure",
+    "name": "failure",
+    "xml": "<outcome value='failure'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1606.5356559753418,
+    "y": 1449.0835050344467,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "3228d8db.9bd078"
+      ]
+    ]
+  },
+  {
+    "id": "79b45fed.9e95a",
+    "type": "set",
+    "name": "set ss.capability-name",
+    "xml": "<set>\n<parameter name='ss.capability-name' value='`$ss.capability.execution-order[$cidx]`' />\n\n<!--\nss.capability.execution-order\n-->",
+    "comments": "",
+    "x": 710.5356750488281,
+    "y": 1568.3214925527573,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "b58f94e5.3a5748",
+    "type": "set",
+    "name": "tmp.param.capability-name",
+    "xml": "<set>\n<parameter name='tmp.param.capability-name' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.capability-name`' />\n",
+    "comments": "",
+    "x": 1079.2858428955078,
+    "y": 1712.7977508306503,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "6e6f02a3.6e1a8c",
+    "type": "set",
+    "name": "set ss.capability-action = assign",
+    "xml": "<set>\n<parameter name='ss.capability-action' value='assign' />\n",
+    "comments": "",
+    "x": 741.2498168945312,
+    "y": 1615.2380765676498,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "6825ba6.a6c7b44",
+    "type": "set",
+    "name": "set capability-dg with 'self-serve-' + capability-name",
+    "xml": "<set>\n<parameter name='ss.capability-dg' value=\"`'self-serve-' + $ss.capability.execution-order[$cidx]`\" />\n",
+    "comments": "",
+    "x": 803.5832824707031,
+    "y": 1663.8929475545883,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "efb9f733.4243e8",
+    "type": "set",
+    "name": "set sdnc-generated-cloud-resources = true",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.sdnc-generated-cloud-resources' \n\tvalue='true' />\n",
+    "comments": "",
+    "x": 1065.952392578125,
+    "y": 1150.8573163747787,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "39d72ba9.0f9c94",
+    "type": "switchNode",
+    "name": "switch resource-resolution-data.status",
+    "xml": "<switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.status`'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 509.5121765136719,
+    "y": 2286.9723123311996,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "c3a7253a.e36418",
+        "8f6e910.95aa57"
+      ]
+    ]
+  },
+  {
+    "id": "c3a7253a.e36418",
+    "type": "other",
+    "name": "PENDING",
+    "xml": "<outcome value='PENDING'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 778.8693923950195,
+    "y": 2286.972268462181,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "5345ddf0.1150f4"
+      ]
+    ]
+  },
+  {
+    "id": "8f6e910.95aa57",
+    "type": "other",
+    "name": "FAILED",
+    "xml": "<outcome value='FAILED'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 772.4052085876465,
+    "y": 2337.936599135399,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "5345ddf0.1150f4"
+      ]
+    ]
+  },
+  {
+    "id": "5345ddf0.1150f4",
+    "type": "call",
+    "name": "call ss.capability-dg",
+    "xml": "<call module='GENERIC-RESOURCE-API' rpc='`$ss.capability-dg`' mode='sync' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 987.5239410400391,
+    "y": 2338.698450446129,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "f18bef24.d1ba1"
+      ]
+    ]
+  },
+  {
+    "id": "9fad02a1.51c23",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n<parameter name='error-code' value='500' />\n<parameter name='error-message' value=\"`'Encountered error from capability: '+ $ss.capability-dg + ', with error: '+ $error-message`\" />\n",
+    "comments": "",
+    "x": 1562.2142753601074,
+    "y": 2692.3893016576767,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "f18bef24.d1ba1",
+    "type": "failure",
+    "name": "failure",
+    "xml": "<outcome value='failure'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1180.5592918395996,
+    "y": 2338.412728667259,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "dff817e.b93aee8"
+      ]
+    ]
+  },
+  {
+    "id": "dff817e.b93aee8",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic='true'>",
+    "atomic": "true",
+    "comments": "",
+    "outputs": 1,
+    "x": 1343.833408355713,
+    "y": 2337.7222694158554,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "9fad02a1.51c23",
+        "e3eb24ad.1f9df8",
+        "f1f25f48.ce065",
+        "dbccdeae.36726",
+        "deeeb223.3247f",
+        "5998fcd6.dc3424"
+      ]
+    ]
+  },
+  {
+    "id": "e3eb24ad.1f9df8",
+    "type": "execute",
+    "name": "execute RestApiCallNode - PUT vf-module",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n    <parameter name='templateFileName' value=\"`$prop.restapi.templateDir + '/' + $prop.restapi.ss.vfmodule.templatefile`\" />\n    <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.ss-vfmodule-url`' />\n    <parameter name='restapiUser' value='`$prop.controller.user`' />\n    <parameter name='restapiPassword' value='`$prop.controller.pwd`' />\n    <parameter name='format' value='json' />\n    <parameter name='httpMethod' value='PUT' />\n    <parameter name=\"responsePrefix\" value=\"mdsal-ss-vfmodule\" />\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1659.3808479309082,
+    "y": 2594.096228957176,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "67fa2519.b6797c",
+        "ed4a64cf.4b1be8"
+      ]
+    ]
+  },
+  {
+    "id": "67fa2519.b6797c",
+    "type": "not-found",
+    "name": "not-found",
+    "xml": "<outcome value='not-found'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1933.9745140075684,
+    "y": 2648.0943826436996,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "67b02263.04705c"
+      ]
+    ]
+  },
+  {
+    "id": "ed4a64cf.4b1be8",
+    "type": "failure",
+    "name": "failure",
+    "xml": "<outcome value='failure'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1926.403148651123,
+    "y": 2594.5944026708603,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "67b02263.04705c"
+      ]
+    ]
+  },
+  {
+    "id": "448e6879.87f338",
+    "type": "execute",
+    "name": "printContext",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >\n<parameter name='filename' value='/var/tmp/ss-vf-assign.log' />\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 361.75794219970703,
+    "y": 2839.123444914818,
+    "z": "79df67f4.514258",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "840f76a2.614648",
+    "type": "switchNode",
+    "name": "switch vf-module_length",
+    "xml": "<switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 416.2022895812988,
+    "y": 319.2619956731796,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "5f673fc1.968f5",
+        "fbe20ca5.38fa1",
+        "30e274b0.d8c48c"
+      ]
+    ]
+  },
+  {
+    "id": "5f673fc1.968f5",
+    "type": "other",
+    "name": "NULL",
+    "xml": "<outcome value=''>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 628.8332595825195,
+    "y": 248.65478646755219,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "37c2dea1.9a4e82"
+      ]
+    ]
+  },
+  {
+    "id": "d2367a6.32d0b88",
+    "type": "set",
+    "name": "set vf-module-index=0",
+    "xml": "<set>\n<parameter name='vf-module-index' value='0' />\n",
+    "comments": "",
+    "x": 967.9522895812988,
+    "y": 259.5715717077255,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "fbe20ca5.38fa1",
+    "type": "other",
+    "name": "other",
+    "xml": "<outcome value='Other'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 628.0118522644043,
+    "y": 387.4406465291977,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "6a7324ac.7b0bcc"
+      ]
+    ]
+  },
+  {
+    "id": "bc8a226e.61ad3",
+    "type": "set",
+    "name": "set vf-module-id",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id'\n   value='`$vf-module-topology-operation-input.vf-module-information.vf-module-id`' />\n",
+    "comments": "",
+    "x": 984.2379302978516,
+    "y": 541.6816152334213,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "6fbf85af.00b1fc",
+    "type": "set",
+    "name": "set vf-module-parameters",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.'\n  value='vf-module-topology-operation-input.vf-module-request-input.vf-module-input-parameters.' />\n",
+    "comments": "",
+    "x": 1148.9285278320312,
+    "y": 1401.5244034528732,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "bab133f3.77f18",
+    "type": "set",
+    "name": "set order-status to PendingCreate",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-level-oper-status.order-status'\n  value='PendingCreate' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-level-oper-status.last-rpc-action'\n  value='`$vf-module-topology-operation-input.sdnc-request-header.svc-action`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-level-oper-status.last-action'\n  value='`$vf-module-topology-operation-input.sdnc-request-header.request-action`' />\n",
+    "comments": "",
+    "x": 1038.5121002197266,
+    "y": 1103.5448144674301,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "f1f25f48.ce065",
+    "type": "set",
+    "name": "set vf data for restapi-call-node",
+    "xml": "<set>\n<parameter name='vf.vf-module-id'\n    value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id`' />\n<parameter name='vf.vf-module-data.sdnc-request-header.'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.sdnc-request-header.`' />\n<parameter name='vf.vf-module-data.request-information.'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.request-information.`' />\n<parameter name='vf.vf-module-data.service-information.'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.service-information.`' />\n<parameter name='vf.vf-module-data.vnf-information.'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vnf-information.`' />\n<parameter name='vf.vf-module-data.vf-module-information.'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-information.`' />\n<parameter name='vf.vf-module-data.vf-module-topology.'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.`' />\n<parameter name='vf.vf-module-data.vf-module-level-oper-status.'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-level-oper-status.`' />\n<parameter name='vf.vf-module-data.vf-module-request-input.vf-module-input-parameters.'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.vf-module-input-parameters.`' />\n<parameter name='vf.vf-module-data.vf-module-request-input.request-version'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.request-version`' />\n<parameter name='vf.vf-module-data.vf-module-request-input.vf-module-name'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.vf-module-name`' />\n<parameter name='vf.vf-module-data.vf-module-request-input.tenant'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.tenant`' />\n<parameter name='vf.vf-module-data.vf-module-request-input.aic-cloud-region'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.aic-cloud-region`' />\n<parameter name='vf.vf-module-data.vf-module-request-input.aic-clli'\n  value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.aic-clli`' />",
+    "comments": "",
+    "x": 1620.8928718566895,
+    "y": 2338.2142461538315,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "dbccdeae.36726",
+    "type": "execute",
+    "name": "generate ss-vfmodule url replace service-instance-id",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >\n    <parameter name=\"source\" value=\"`$prop.restapi.ss-vfmodule-assignments`\"/>\n    <parameter name=\"outputPath\" value=\"tmp.ss-vfmodule-url\"/>\n    <parameter name=\"target\" value=\"{service-instance-id}\"/>\n    <parameter name=\"replacement\" value=\"`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.service-information.service-instance-id`\"/>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1687.1428184509277,
+    "y": 2386.2142909765244,
+    "z": "79df67f4.514258",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "deeeb223.3247f",
+    "type": "execute",
+    "name": "generate ss-vfmodule url - replace vnf-id",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >\n    <parameter name=\"source\" value=\"`$tmp.ss-vfmodule-url`\"/>\n    <parameter name=\"outputPath\" value=\"tmp.ss-vfmodule-url\"/>\n    <parameter name=\"target\" value=\"{vnf-id}\"/>\n    <parameter name=\"replacement\" value=\"`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vnf-information.vnf-id`\"/>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1651.4285163879395,
+    "y": 2434.2732080221176,
+    "z": "79df67f4.514258",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "5998fcd6.dc3424",
+    "type": "execute",
+    "name": "generate ss-vfmodule url - replace vf-module-id",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >\n    <parameter name=\"source\" value=\"`$tmp.ss-vfmodule-url`\"/>\n    <parameter name=\"outputPath\" value=\"tmp.ss-vfmodule-url\"/>\n    <parameter name=\"target\" value=\"{vf-module-id}\"/>\n    <parameter name=\"replacement\" value=\"`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id`\"/>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1673.3691902160645,
+    "y": 2484.1897081136703,
+    "z": "79df67f4.514258",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "decf4ed7.49434",
+    "type": "set",
+    "name": "set ss.capability-type = vf-module",
+    "xml": "<set>\n<parameter name='ss.capability-type' value='vf-module' />\n",
+    "comments": "",
+    "x": 451.3214569091797,
+    "y": 1221.4285987615585,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "9d73c04f.a8004",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic='true'>",
+    "atomic": "true",
+    "comments": "",
+    "outputs": 1,
+    "x": 913.607153756278,
+    "y": 1402.249972973551,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "6fbf85af.00b1fc",
+        "beaa39ce.b3ffc8"
+      ]
+    ]
+  },
+  {
+    "id": "d9639a54.037b48",
+    "type": "set",
+    "name": "set is-new-vfmodule = true",
+    "xml": "<set>\n<parameter name='is-new-vfmodule' value='true' />\n",
+    "comments": "",
+    "x": 423.0239715576172,
+    "y": 199.67871797084808,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "e87b2ba2.633fe8",
+    "type": "for",
+    "name": "for each existing VF module",
+    "xml": "<for index='idx' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 986.8452301025391,
+    "y": 387.1309846639633,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "3ba9afdd.0665c"
+      ]
+    ]
+  },
+  {
+    "id": "3ba9afdd.0665c",
+    "type": "switchNode",
+    "name": "switch vf-module-id: input vs service-data",
+    "xml": "<switch test='`$vf-module-topology-operation-input.vf-module-information.vf-module-id == $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$idx].vf-module-id`'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1297.9643630981445,
+    "y": 387.7023996114731,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "6ce227d9.fecd58"
+      ]
+    ]
+  },
+  {
+    "id": "6ce227d9.fecd58",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1551.8333930969238,
+    "y": 387.52385652065277,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "3ad721db.a51a9e"
+      ]
+    ]
+  },
+  {
+    "id": "24be89e2.e6aa36",
+    "type": "set",
+    "name": "set is-new-vfmodule = false",
+    "xml": "<set>\n<parameter name='is-new-vfmodule' value='false' />\n",
+    "comments": "",
+    "x": 1924.0001335144043,
+    "y": 386.7857450246811,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "3ad721db.a51a9e",
+    "type": "block",
+    "name": "block",
+    "xml": "<block>\n",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 1693.2501373291016,
+    "y": 387.0357412099838,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "24be89e2.e6aa36",
+        "1e447c14.cce5b4",
+        "3f5ccfb0.8d0e9"
+      ]
+    ]
+  },
+  {
+    "id": "1e447c14.cce5b4",
+    "type": "break",
+    "name": "break",
+    "xml": "<break>\n",
+    "comments": "",
+    "x": 1861.1429252624512,
+    "y": 473.03571927547455,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "3f5ccfb0.8d0e9",
+    "type": "set",
+    "name": "set vf-module-index = idx",
+    "xml": "<set>\n<parameter name='vf-module-index' value='`$idx`' />\n",
+    "comments": "",
+    "x": 1916.9644470214844,
+    "y": 430.0714000463486,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "98a1c4.7cd14e4",
+    "type": "set",
+    "name": "set new vf-module_length = vf-module-index + 1",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length' value='`$vf-module-index + 1`' />\n",
+    "comments": "",
+    "x": 1049.3097114562988,
+    "y": 300.8930000066757,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "6a7324ac.7b0bcc",
+    "type": "block",
+    "name": "block",
+    "xml": "<block>\n",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 765.1667671203613,
+    "y": 387.82150876522064,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "3c04529f.56f7be",
+        "e87b2ba2.633fe8"
+      ]
+    ]
+  },
+  {
+    "id": "d693bb2e.413388",
+    "type": "set",
+    "name": "set new vf-module_length++",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length' \n\tvalue='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length + 1`' />\n",
+    "comments": "",
+    "x": 1534.416790008545,
+    "y": 499.5715135335922,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "3c04529f.56f7be",
+    "type": "switchNode",
+    "name": "switch is-new-vfmodule",
+    "xml": "<switch test='`$is-new-vfmodule`'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 972.6667633056641,
+    "y": 457.3928884267807,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "4309a437.97210c"
+      ]
+    ]
+  },
+  {
+    "id": "4309a437.97210c",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1170.5239181518555,
+    "y": 456.9643357992172,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "96be78ac.86f8b8"
+      ]
+    ]
+  },
+  {
+    "id": "37c2dea1.9a4e82",
+    "type": "block",
+    "name": "block",
+    "xml": "<block>\n",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 771.6667633056641,
+    "y": 280.32150304317474,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "98a1c4.7cd14e4",
+        "d2367a6.32d0b88"
+      ]
+    ]
+  },
+  {
+    "id": "30e274b0.d8c48c",
+    "type": "other",
+    "name": "0",
+    "xml": "<outcome value='0'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 630,
+    "y": 318.7499974966049,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "37c2dea1.9a4e82"
+      ]
+    ]
+  },
+  {
+    "id": "ee1bc60b.f75e88",
+    "type": "switchNode",
+    "name": "switch is-new-vfmodule",
+    "xml": "<switch test='`$is-new-vfmodule`'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 415.75,
+    "y": 542.4999974966049,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "13983552.193d8b"
+      ]
+    ]
+  },
+  {
+    "id": "13983552.193d8b",
+    "type": "outcomeTrue",
+    "name": "true",
+    "xml": "<outcome value='true'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 613.6071548461914,
+    "y": 542.0714448690414,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "cc2f6623.a91fa8"
+      ]
+    ]
+  },
+  {
+    "id": "6d104f94.64904",
+    "type": "set",
+    "name": "Copy vf-module-topology data",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-id' \n    value='`$vf-module-topology-operation-input.vf-module-information.vf-module-id`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-name' \n    value='`$vf-module-topology-operation-input.vf-module-request-input.vf-module-name`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-type' \n    value='`$vf-module-topology-operation-input.vf-module-information.vf-module-type`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.tenant' \n    value='`$vf-module-topology-operation-input.vf-module-request-input.tenant`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.aic-cloud-region' \n    value='`$vf-module-topology-operation-input.vf-module-request-input.aic-cloud-region`' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.aic-clli'\n    value='`$vf-module-topology-operation-input.vf-module-request-input.aic-clli`' />",
+    "comments": "",
+    "x": 1029.500015258789,
+    "y": 587.50006711483,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "20ce23b1.a03bcc",
+    "type": "set",
+    "name": "set from DB",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.onap-model-information.model-invariant-uuid'\n  value='`$db.vf-module-model.invariant-uuid`' />\n",
+    "comments": "",
+    "x": 1394.511775970459,
+    "y": 639.9435075521469,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "f594ed84.91226",
+    "type": "switchNode",
+    "name": "switch input model-invariant-uuid",
+    "xml": "<switch test='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-invariant-uuid`'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1038.3688507080078,
+    "y": 662.7679513692856,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "19819d73.7f6253",
+        "20ac1beb.2d92a4"
+      ]
+    ]
+  },
+  {
+    "id": "19819d73.7f6253",
+    "type": "outcome",
+    "name": "NULL",
+    "xml": "<outcome value=''>",
+    "comments": "",
+    "outputs": 1,
+    "x": 1244.0355224609375,
+    "y": 639.9109147787094,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "20ce23b1.a03bcc"
+      ]
+    ]
+  },
+  {
+    "id": "20ac1beb.2d92a4",
+    "type": "other",
+    "name": "other",
+    "xml": "<outcome value='Other'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1245.4641189575195,
+    "y": 684.1965059041977,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "6cb882c0.21104c"
+      ]
+    ]
+  },
+  {
+    "id": "6cb882c0.21104c",
+    "type": "set",
+    "name": "set from input",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.onap-model-information.model-invariant-uuid'\n  value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-invariant-uuid`' />\n",
+    "comments": "",
+    "x": 1399.749855041504,
+    "y": 683.6250780820847,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "c1338cf1.49d55",
+    "type": "set",
+    "name": "set from DB",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.onap-model-information.model-uuid'\n  value='`$db.vf-module-model.uuid`' />\n",
+    "comments": "",
+    "x": 1395.4640464782715,
+    "y": 728.4821838140488,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "da9fd0ff.5b11d",
+    "type": "switchNode",
+    "name": "switch input model-uuid",
+    "xml": "<switch test='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-uuid`'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1010.9878692626953,
+    "y": 751.3066886663437,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "efa13db1.f31b3",
+        "dc586e76.0fe1f"
+      ]
+    ]
+  },
+  {
+    "id": "efa13db1.f31b3",
+    "type": "outcome",
+    "name": "NULL",
+    "xml": "<outcome value=''>",
+    "comments": "",
+    "outputs": 1,
+    "x": 1244.9878425598145,
+    "y": 728.4496206045151,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "c1338cf1.49d55"
+      ]
+    ]
+  },
+  {
+    "id": "dc586e76.0fe1f",
+    "type": "other",
+    "name": "other",
+    "xml": "<outcome value='Other'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1246.4164390563965,
+    "y": 772.7352117300034,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "37b9776c.f277f8"
+      ]
+    ]
+  },
+  {
+    "id": "37b9776c.f277f8",
+    "type": "set",
+    "name": "set from input",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.onap-model-information.model-uuid'\n  value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-uuid`' />\n",
+    "comments": "",
+    "x": 1400.7021751403809,
+    "y": 772.1637839078903,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "5083e9e9.b5d418",
+    "type": "set",
+    "name": "set from DB",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.onap-model-information.model-version'\n  value='`$db.vf-module-model.version`' />\n",
+    "comments": "",
+    "x": 1386.6069793701172,
+    "y": 817.3393911123276,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "c4880faa.a34e6",
+    "type": "switchNode",
+    "name": "switch input model-version",
+    "xml": "<switch test='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-version`'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1013.1307411193848,
+    "y": 840.1638358831406,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "2928758b.07188a",
+        "92292a26.871f08"
+      ]
+    ]
+  },
+  {
+    "id": "2928758b.07188a",
+    "type": "outcome",
+    "name": "NULL",
+    "xml": "<outcome value=''>",
+    "comments": "",
+    "outputs": 1,
+    "x": 1236.1307258605957,
+    "y": 817.3067983388901,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "5083e9e9.b5d418"
+      ]
+    ]
+  },
+  {
+    "id": "92292a26.871f08",
+    "type": "other",
+    "name": "other",
+    "xml": "<outcome value='Other'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1237.5593223571777,
+    "y": 861.5923894643784,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "9d1f9d6a.be14d"
+      ]
+    ]
+  },
+  {
+    "id": "9d1f9d6a.be14d",
+    "type": "set",
+    "name": "set from input",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.onap-model-information.model-version'\n  value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-version`' />\n",
+    "comments": "",
+    "x": 1391.845058441162,
+    "y": 861.0209616422653,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "3b78e526.52c88a",
+    "type": "set",
+    "name": "set from DB",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.onap-model-information.model-name'\n  value='`$db.vf-module-model.name`' />\n",
+    "comments": "",
+    "x": 1386.6069793701172,
+    "y": 904.4822133779526,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "63f6df8b.ac388",
+    "type": "switchNode",
+    "name": "switch input model-name",
+    "xml": "<switch test='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-name`'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1010.1307411193848,
+    "y": 927.3066581487656,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "1a910821.50f078",
+        "8103d79c.7a9d38"
+      ]
+    ]
+  },
+  {
+    "id": "1a910821.50f078",
+    "type": "outcome",
+    "name": "NULL",
+    "xml": "<outcome value=''>",
+    "comments": "",
+    "outputs": 1,
+    "x": 1236.1307258605957,
+    "y": 904.4496206045151,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "3b78e526.52c88a"
+      ]
+    ]
+  },
+  {
+    "id": "8103d79c.7a9d38",
+    "type": "other",
+    "name": "other",
+    "xml": "<outcome value='Other'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1237.5593223571777,
+    "y": 948.7352117300034,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "9a8105a2.ce7958"
+      ]
+    ]
+  },
+  {
+    "id": "9a8105a2.ce7958",
+    "type": "set",
+    "name": "set from input",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.onap-model-information.model-name'\n  value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-name`' />\n",
+    "comments": "",
+    "x": 1391.845058441162,
+    "y": 948.1637839078903,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "c363e16.a6e012",
+    "type": "set",
+    "name": "set model-customization-uuid",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.onap-model-information.model-customization-uuid'\n  value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-customization-uuid`' />\n",
+    "comments": "",
+    "x": 1023.5830993652344,
+    "y": 1001.2441428899765,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "c5d1dbac.64b258",
+    "type": "set",
+    "name": "copy input data",
+    "xml": "<set>\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.sdnc-request-header.'\n   value='$vf-module-topology-operation-input.sdnc-request-header.' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.request-information.'\n   value='$vf-module-topology-operation-input.request-information.' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.service-information.'\n   value='$vf-module-topology-operation-input.service-information.' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vnf-information.'\n   value='$vf-module-topology-operation-input.vnf-information.' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-information.'\n   value='$vf-module-topology-operation-input.vf-module-information.' />\n<parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.' \n    value='$vf-module-topology-operation-input.vf-module-request-input.' />",
+    "comments": "",
+    "x": 980.2381744384766,
+    "y": 1055.9288457632065,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "cc2f6623.a91fa8",
+    "type": "block",
+    "name": "block",
+    "xml": "<block>",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 769.7024154663086,
+    "y": 541.8491891622543,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "f594ed84.91226",
+        "da9fd0ff.5b11d",
+        "c4880faa.a34e6",
+        "63f6df8b.ac388",
+        "c363e16.a6e012",
+        "c5d1dbac.64b258",
+        "6d104f94.64904",
+        "bc8a226e.61ad3",
+        "bab133f3.77f18",
+        "efb9f733.4243e8"
+      ]
+    ]
+  },
+  {
+    "id": "3c2bf88f.0c3cd8",
+    "type": "set",
+    "name": "set vf-module-index = vf-module_length",
+    "xml": "<set>\n<parameter name='vf-module-index' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`' />\n",
+    "comments": "",
+    "x": 1567.0000190734863,
+    "y": 455.75000512599945,
+    "z": "79df67f4.514258",
+    "wires": []
+  },
+  {
+    "id": "96be78ac.86f8b8",
+    "type": "block",
+    "name": "block",
+    "xml": "<block>\n",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 1313.5000190734863,
+    "y": 456.50000512599945,
+    "z": "79df67f4.514258",
+    "wires": [
+      [
+        "3c2bf88f.0c3cd8",
+        "d693bb2e.413388"
+      ]
+    ]
+  },
+  {
+    "id": "67b02263.04705c",
+    "type": "set",
+    "name": "set error-message",
+    "xml": "<set>\n<parameter name=\"error-message\" value=\"Failed to persist self-serve vf-module assignments during assign in MD-SAL\" />",
+    "comments": "",
+    "x": 2145.714286804199,
+    "y": 2594.4284204244614,
+    "z": "79df67f4.514258",
+    "wires": []
+  }
+]

@@ -42,26 +42,19 @@
                     </return>
                 </outcome>
             </switch>
-            <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.sdnc-generated-cloud-resources`'>
-                <outcome value='true'>
-                    <call module='GENERIC-RESOURCE-API' rpc='self-serve-vnf-changeassign' mode='sync' >
-                        <outcome value='failure'>
-                            <return status='failure'>
-                                <parameter name='error-code' value='500' />
-                                <parameter name='error-message' value="`'Encountered error while unassigning self-serve resources with error: '+ $error-message`" />
-                            </return>
-                        </outcome>
-                        <outcome value='success'>
-                            <return status='success'>
-                                <parameter name="ack-final-indicator" value="Y" />
-                                <parameter name="error-code" value="200" />
-                                <parameter name="error-message" value="`$error-message`" />
-                            </return>
-                        </outcome>
-                    </call>
-                </outcome>
-                <outcome value='Other'>
+            <call module='GENERIC-RESOURCE-API' rpc='self-serve-vnf-forking-logic' mode='sync' ></call>
+            <switch test="`$ss.self-serve-flag`">
+                <outcome value='false'>
                     <block atomic="true">
+                        <switch test='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-customization-uuid`'>
+                            <outcome value=''>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="vf-module-information.onap-model-information.model-customization-uuid is a required input" />
+                                </return>
+                            </outcome>
+                        </switch>
                         <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
   key='SELECT * from VF_MODEL WHERE customization_uuid = $vnf-topology-operation-input.vnf-information.onap-model-information.model-customization-uuid'
   pfx='db.vf-model'>
@@ -97,6 +90,23 @@
                         </set>
                         <return status='success'></return>
                     </block>
+                </outcome>
+                <outcome value='true'>
+                    <call module='GENERIC-RESOURCE-API' rpc='self-serve-vnf-changeassign' mode='sync' >
+                        <outcome value='failure'>
+                            <return status='failure'>
+                                <parameter name='error-code' value='500' />
+                                <parameter name='error-message' value="`'Encountered error performing changeassign for self-serve resources with error: '+ $error-message`" />
+                            </return>
+                        </outcome>
+                        <outcome value='success'>
+                            <return status='success'>
+                                <parameter name="ack-final-indicator" value="Y" />
+                                <parameter name="error-code" value="200" />
+                                <parameter name="error-message" value="`$error-message`" />
+                            </return>
+                        </outcome>
+                    </call>
                 </outcome>
             </switch>
         </block>
