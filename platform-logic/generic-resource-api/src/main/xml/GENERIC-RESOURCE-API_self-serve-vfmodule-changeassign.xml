@@ -13,24 +13,23 @@
                 </outcome>
             </switch>
             <for index='i' start='0' end='`$vf-module-topology-operation-input.vf-module-request-input.vf-module-input-parameters.param_length`' >
-                <block atomic='true'>
-                    <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`'>
-                        <outcome value='Other'>
+                <switch test="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length == ''`">
+                    <outcome value='false'>
+                        <block atomic='true'>
+                            <set>
+                                <parameter name='ss.input.param.found.in.service.param' value='false' />
+                            </set>
                             <for index='j' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`' >
                                 <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$j].name == $vf-module-topology-operation-input.vf-module-request-input.vf-module-input-parameters.param[$i].name`'>
-                                    <outcome value='false'>
-                                        <return status='failure'>
-                                            <parameter name='ack-final' value='Y'/>
-                                            <parameter name="error-code" value="500" />
-                                            <parameter name="error-message" value="`'No param with param[].name = ' +  $vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$i].name + ' found in service-data.'`" />
-                                        </return>
-                                    </outcome>
                                     <outcome value='true'>
                                         <block atomic='true'>
                                             <set>
                                                 <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$j].resource-resolution-data.status`' value='PENDING'/>
                                                 <parameter name='ss.input.param.index' value='`$i`' />
                                                 <parameter name='ss.service-data.param.index' value='`$j`' />
+                                                <parameter name='ss.input.param.found.in.service.param' value='true' />
+                                                <parameter name='ss.capability-type' value='vf-module' />
+                                                <parameter name='ss.capability-action' value='changeassign' />
                                             </set>
                                             <call module='GENERIC-RESOURCE-API' rpc='self-serve-generate-name-changeassign' mode='sync' >
                                                 <outcome value='failure'>
@@ -48,13 +47,23 @@
                                                     </return>
                                                 </outcome>
                                             </call>
+                                            <return status='success'></return>
                                         </block>
                                     </outcome>
                                 </switch>
                             </for>
-                        </outcome>
-                    </switch>
-                </block>
+                            <switch test='`$ss.input.param.found.in.service.param`'>
+                                <outcome value='false'>
+                                    <return status='failure'>
+                                        <parameter name='ack-final' value='Y'/>
+                                        <parameter name="error-code" value="500" />
+                                        <parameter name="error-message" value="`'No param with param[].name = ' +  $vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$i].name + ' found in service-data.'`" />
+                                    </return>
+                                </outcome>
+                            </switch>
+                        </block>
+                    </outcome>
+                </switch>
             </for>
         </block>
     </method>

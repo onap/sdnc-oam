@@ -3,6 +3,20 @@
     xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
     <method rpc='vf-module-topology-operation-unassign' mode='sync'>
         <block atomic="true">
+            <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
+                <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />
+                <parameter name='contextPrefix' value='prop' />
+            </execute>
+            <switch test='`$vf-module-topology-operation-input.vf-module-request-input.cloud-owner`'>
+                <outcome value=''>
+                    <block></block>
+                </outcome>
+                <outcome value='Other'>
+                    <set>
+                        <parameter name='prop.cloud-region.cloud-owner' value='`$vf-module-topology-operation-input.vf-module-request-input.cloud-owner`' />
+                    </set>
+                </outcome>
+            </switch>
             <switch test='`$vf-module-topology-operation-input.request-information.request-action`'>
                 <outcome value='DeleteVfModuleInstance'>
                     <block></block>
@@ -85,7 +99,8 @@
                     </return>
                 </outcome>
             </switch>
-            <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.sdnc-generated-cloud-resources`'>
+            <call module='GENERIC-RESOURCE-API' rpc='self-serve-vf-module-forking-logic' mode='sync' ></call>
+            <switch test="`$ss.self-serve-flag`">
                 <outcome value='true'>
                     <call module='GENERIC-RESOURCE-API' rpc='self-serve-vf-module-unassign' mode='sync' >
                         <outcome value='failure'>
@@ -103,7 +118,7 @@
                         </outcome>
                     </call>
                 </outcome>
-                <outcome value='Other'>
+                <outcome value='false'>
                     <block atomic="true">
                         <set>
                             <parameter name='tmp.status' value="`'PENDING_DELETE_' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-topology-identifier.vf-module-id`" />
