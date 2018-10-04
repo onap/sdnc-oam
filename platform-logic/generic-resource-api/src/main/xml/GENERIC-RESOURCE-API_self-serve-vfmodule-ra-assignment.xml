@@ -34,7 +34,7 @@
                     </set>
                 </outcome>
             </switch>
-            <for index='i' start='0' end='`$vf-module-topology-operation-input.vf-module-request-input.vf-module-input-parameters.param_length`' >
+            <for silentFailure='true' index='i' start='0' end='`$vf-module-topology-operation-input.vf-module-request-input.vf-module-input-parameters.param_length`' >
                 <switch test='`$vf-module-topology-operation-input.vf-module-request-input.vf-module-input-parameters.param[$i].name`'>
                     <outcome value='sdnc_model_name'>
                         <set>
@@ -121,7 +121,7 @@
                 <parameter name="tmp.config-name-value-payload9" value="`$tmp.config-name-value-payload8 + '&quot;aic-cloud-region&quot;:&quot;' + $vf-module-topology-operation-input.vf-module-request-input.aic-cloud-region + '&quot;'`"/>
                 <parameter name="tmp.config-name-value-payload91" value="`'{' + $tmp.config-name-value-payload9 + '}'`" />
             </set>
-            <execute plugin='org.onap.ccsdk.features.assignment.service.ConfigAssignmentNode' method='process'>
+            <execute plugin='org.onap.ccsdk.config.assignment.service.ConfigAssignmentNode' method='process'>
                 <parameter name="request-id" value='`$request-id`' />
                 <parameter name="resource-id" value='`$resource-id`' />
                 <parameter name="resource-type" value='`$resource-type`' />
@@ -151,14 +151,14 @@
                 <parameter name="outputPath" value="jsonContextPrefix" />
                 <parameter name="isEscaped" value="false" />
             </execute>
-            <for index='i' start='0' end='`$jsonContextPrefix.resource-accumulator-resolved-data_length`' >
+            <for silentFailure='true' index='i' start='0' end='`$jsonContextPrefix.resource-accumulator-resolved-data_length`' >
                 <block atomic="true">
                     <set>
                         <parameter name='tmp.mso.param.found' value='false' />
                     </set>
                     <switch test='`$prehighnum &gt; 0`'>
                         <outcome value='true'>
-                            <for index='cnt' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`' >
+                            <for silentFailure='true' index='cnt' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`' >
                                 <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$cnt].name == $jsonContextPrefix.resource-accumulator-resolved-data[$i].param-name`'>
                                     <outcome value='true'>
                                         <set>
@@ -172,56 +172,60 @@
                     </switch>
                     <switch test='`$tmp.mso.param.found`'>
                         <outcome value='false'>
-                            <set>
-                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].name`' value='`$jsonContextPrefix.resource-accumulator-resolved-data[$i].param-name`'/>
-                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].value`' value='`$jsonContextPrefix.resource-accumulator-resolved-data[$i].param-value`'/>
-                                <parameter name='highnum' value='`$highnum + 1`' />
-                            </set>
+                            <block atomic='true'>
+                                <set>
+                                    <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].name`' value='`$jsonContextPrefix.resource-accumulator-resolved-data[$i].param-name`'/>
+                                    <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].value`' value='`$jsonContextPrefix.resource-accumulator-resolved-data[$i].param-value`'/>
+                                    <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].resource-resolution-data.capability-name`' value='RA Resolved'/>
+                                    <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].resource-resolution-data.status`' value='SUCCESS'/>
+                                </set>
+                                <set>
+                                    <parameter name='highnum' value='`$highnum + 1`' />
+                                </set>
+                            </block>
                         </outcome>
                     </switch>
                 </block>
             </for>
-            <for index='i' start='0' end='`$jsonContextPrefix.capability-data_length`' >
-                <block atomic="true">
-                    <set>
-                        <parameter name='num' value='0' />
-                    </set>
-                    <for index='j' start='0' end='`$jsonContextPrefix.capability-data[$i].key-mapping_length`' >
-                        <block atomic='true'>
-                            <for index='l' start='0' end='`$jsonContextPrefix.capability-data[$i].key-mapping[$j].output-key-mapping_length`' >
-                                <block atomic="true">
-                                    <set>
-                                        <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].name`' value='`$jsonContextPrefix.capability-data[$i].key-mapping[$j].output-key-mapping[$l].resource-name`'/>
-                                        <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].value`' value='`$jsonContextPrefix.capability-data[$i].key-mapping[$j].output-key-mapping[$l].resource-value`'/>
-                                        <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].resource-resolution-data.capability-name`' value='`$jsonContextPrefix.capability-data[$i].capability-name`'/>
-                                        <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].resource-resolution-data.status`' value='PENDING'/>
-                                    </set>
-                                    <switch test="`$jsonContextPrefix.capability-data[$i].key-mapping[$j].payload_length == ''`">
-                                        <outcome value='true'></outcome>
-                                        <outcome value='false'>
-                                            <for index='k' start='0' end='`$jsonContextPrefix.capability-data[$i].key-mapping[$j].payload_length`' >
-                                                <block atomic='true'>
-                                                    <set>
-                                                        <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].resource-resolution-data.resource-key[$num].name`' value='`$jsonContextPrefix.capability-data[$i].key-mapping[$j].payload[$k].param-name`'/>
-                                                        <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].resource-resolution-data.resource-key[$num].value`' value='`$jsonContextPrefix.capability-data[$i].key-mapping[$j].payload[$k].param-value`'/>
-                                                    </set>
-                                                    <set>
-                                                        <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].resource-resolution-data.resource-key_length`' value='`$num + 1`'/>
-                                                        <parameter name='num' value='`$num + 1`' />
-                                                    </set>
-                                                </block>
-                                            </for>
-                                        </outcome>
-                                    </switch>
-                                    <set>
-                                        <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`' value='`$highnum + 1`'/>
-                                        <parameter name='highnum' value='`$highnum + 1`' />
-                                    </set>
-                                </block>
-                            </for>
+            <for silentFailure='true' index='i' start='0' end='`$jsonContextPrefix.capability-data_length`' >
+                <for silentFailure='true' index='j' start='0' end='`$jsonContextPrefix.capability-data[$i].key-mapping_length`' >
+                    <for silentFailure='true' index='l' start='0' end='`$jsonContextPrefix.capability-data[$i].key-mapping[$j].output-key-mapping_length`' >
+                        <block atomic="true">
+                            <set>
+                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].name`' value='`$jsonContextPrefix.capability-data[$i].key-mapping[$j].output-key-mapping[$l].resource-name`'/>
+                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].value`' value='`$jsonContextPrefix.capability-data[$i].key-mapping[$j].output-key-mapping[$l].resource-value`'/>
+                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].resource-resolution-data.capability-name`' value='`$jsonContextPrefix.capability-data[$i].capability-name`'/>
+                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].resource-resolution-data.status`' value='PENDING'/>
+                                <parameter name='num' value='0' />
+                            </set>
+                            <switch test="`$jsonContextPrefix.capability-data[$i].key-mapping[$j].payload_length == ''`">
+                                <outcome value='true'></outcome>
+                                <outcome value='false'>
+                                    <for index='k' start='0' end='`$jsonContextPrefix.capability-data[$i].key-mapping[$j].payload_length`' >
+                                        <block atomic='true'>
+                                            <set>
+                                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].resource-resolution-data.resource-key[$num].name`' value='`$jsonContextPrefix.capability-data[$i].key-mapping[$j].payload[$k].param-name`'/>
+                                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].resource-resolution-data.resource-key[$num].value`' value='`$jsonContextPrefix.capability-data[$i].key-mapping[$j].payload[$k].param-value`'/>
+                                            </set>
+                                            <set>
+                                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].resource-resolution-data.resource-key_length`' value='`$num + 1`'/>
+                                            </set>
+                                            <set>
+                                                <parameter name='num' value='`$num + 1`' />
+                                            </set>
+                                        </block>
+                                    </for>
+                                </outcome>
+                            </switch>
+                            <set>
+                                <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`' value='`$highnum + 1`'/>
+                            </set>
+                            <set>
+                                <parameter name='highnum' value='`$highnum + 1`' />
+                            </set>
                         </block>
                     </for>
-                </block>
+                </for>
             </for>
         </block>
     </method>
