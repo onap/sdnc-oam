@@ -236,13 +236,11 @@ value="`$connection-attachment-ar-identifiers.`" />
  + $connection-attachment-topology-operation-input.service-information.service-instance-id
  + '/service-data/service-topology/'`"/>
             </set>
-            <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
-		resource="allotted-resource" 
-		key="customer.global-customer-id = $connection-attachment-topology-operation-input.service-information.global-customer-id AND
+            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='allotted-resource' 
+      key='customer.global-customer-id = $connection-attachment-topology-operation-input.service-information.global-customer-id AND
 			service-subscription.service-type = $connection-attachment-topology-operation-input.service-information.subscription-service-type AND
-			service-instance.service-instance-id = $connection-attachment-topology-operation-input.allotted-resource-information.parent-service-instance-id AND
-			allotted-resource.id = $tmp.ar.allotted-resource-id"
-        pfx='pfx' local-only='false' force='false'>
+			service-instance.service-instance-id = $connection-attachment-topology-operation-input.service-information.service-instance-id AND
+			allotted-resource.id = $tmp.ar.allotted-resource-id' >
                 <parameter name="id" value="`$tmp.ar.allotted-resource-id`" />
                 <parameter name="name" value="`$prop.connection-attachment.sotnVpnName`" />
                 <parameter name="access-provider-id" value="`$prop.connection-attachment.access-provider-id`" />
@@ -278,13 +276,23 @@ value="`$connection-attachment-ar-identifiers.`" />
 		resource="allotted-resource:relationship-list" 
 		key="customer.global-customer-id = $connection-attachment-topology-operation-input.service-information.global-customer-id AND
 			service-subscription.service-type = $connection-attachment-topology-operation-input.service-information.subscription-service-type AND
-			service-instance.service-instance-id = $connection-attachment-topology-operation-input.allotted-resource-information.parent-service-instance-id AND
+			service-instance.service-instance-id = $connection-attachment-topology-operation-input.service-information.service-instance-id AND
 			allotted-resource.id = $tmp.ar.allotted-resource-id" 
       force="true" pfx="tmp.AnAI-data">
                 <parameter name="relationship-list.relationship[0].related-to" value="p-interface" />
                 <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $prop.connection-attachment.access-node-id + '/p-interfaces/p-interface/' + $src-ltpId`" />
                 <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="p-interface.interface-name" />
                 <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$src-ltpId`" />
+            </save>
+            <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="service-instance:relationship-list" 
+		key="customer.global-customer-id = $connection-attachment-topology-operation-input.service-information.global-customer-id AND
+			service-subscription.service-type = $connection-attachment-topology-operation-input.service-information.subscription-service-type AND
+			service-instance.service-instance-id = $connection-attachment-topology-operation-input.allotted-resource-information.parent-service-instance-id" 
+      force="true" pfx="tmp.AnAI-data">
+                <parameter name="relationship-list.relationship[0].related-to" value="allotted-resource" />
+                <parameter name="relationship-list.relationship[0].related-link" value="`'/business/customers/customer/' + $connection-attachment-topology-operation-input.service-information.global-customer-id + '/service-subscriptions/service-subscription/' + $connection-attachment-topology-operation-input.service-information.subscription-service-type + '/service-instances/service-instance/' + $connection-attachment-topology-operation-input.service-information.service-instance-id + '/allotted-resources/allotted-resource/' + $tmp.ar.allotted-resource-id`" />
+                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="allotted-resource.id" />
+                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$tmp.ar.allotted-resource-id`" />
             </save>
             <return status='success'>
                 <parameter name="ack-final-indicator" value="Y" />
