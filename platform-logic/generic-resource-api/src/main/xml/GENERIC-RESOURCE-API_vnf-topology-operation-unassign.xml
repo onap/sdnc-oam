@@ -57,25 +57,9 @@
                     </return>
                 </outcome>
             </switch>
-            <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.sdnc-generated-cloud-resources`'>
-                <outcome value='true'>
-                    <call module='GENERIC-RESOURCE-API' rpc='self-serve-vnf-unassign' mode='sync' >
-                        <outcome value='failure'>
-                            <return status='failure'>
-                                <parameter name='error-code' value='500' />
-                                <parameter name='error-message' value="`'Encountered error while unassigning self-serve resources with error: '+ $error-message`" />
-                            </return>
-                        </outcome>
-                        <outcome value='success'>
-                            <return status='success'>
-                                <parameter name="ack-final-indicator" value="Y" />
-                                <parameter name="error-code" value="200" />
-                                <parameter name="error-message" value="`$error-message`" />
-                            </return>
-                        </outcome>
-                    </call>
-                </outcome>
-                <outcome value='Other'>
+            <call module='GENERIC-RESOURCE-API' rpc='self-serve-vnf-forking-logic' mode='sync' ></call>
+            <switch test="`$ss.self-serve-flag`">
+                <outcome value='false'>
                     <block atomic="true">
                         <switch test='`$service-data.vnfs.vnf_length`'>
                             <outcome value='1'>
@@ -112,6 +96,23 @@
                             <parameter name="error-message" value="`$error-message`" />
                         </return>
                     </block>
+                </outcome>
+                <outcome value='true'>
+                    <call module='GENERIC-RESOURCE-API' rpc='self-serve-vnf-unassign' mode='sync' >
+                        <outcome value='failure'>
+                            <return status='failure'>
+                                <parameter name='error-code' value='500' />
+                                <parameter name='error-message' value="`'Encountered error while unassigning self-serve resources with error: '+ $error-message`" />
+                            </return>
+                        </outcome>
+                        <outcome value='success'>
+                            <return status='success'>
+                                <parameter name="ack-final-indicator" value="Y" />
+                                <parameter name="error-code" value="200" />
+                                <parameter name="error-message" value="`$error-message`" />
+                            </return>
+                        </outcome>
+                    </call>
                 </outcome>
             </switch>
         </block>

@@ -85,13 +85,14 @@
                     </return>
                 </outcome>
             </switch>
-            <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.sdnc-generated-cloud-resources`'>
+            <call module='GENERIC-RESOURCE-API' rpc='self-serve-vf-module-forking-logic' mode='sync' ></call>
+            <switch test="`$ss.self-serve-flag`">
                 <outcome value='true'>
                     <call module='GENERIC-RESOURCE-API' rpc='self-serve-vfmodule-changeassign' mode='sync' >
                         <outcome value='failure'>
                             <return status='failure'>
                                 <parameter name='error-code' value='500' />
-                                <parameter name='error-message' value="`'Encountered error while updating self-serve vf-module resources with error: '+ $error-message`" />
+                                <parameter name='error-message' value="`'Encountered error performing changeassign for self-serve vf-module resources with error: '+ $error-message`" />
                             </return>
                         </outcome>
                         <outcome value='success'>
@@ -103,8 +104,17 @@
                         </outcome>
                     </call>
                 </outcome>
-                <outcome value='Other'>
+                <outcome value='false'>
                     <block atomic="true">
+                        <switch test='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-customization-uuid`'>
+                            <outcome value=''>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="vf-module-information.onap-model-information.model-customization-uuid is a required input" />
+                                </return>
+                            </outcome>
+                        </switch>
                         <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
   key='SELECT * from VF_MODULE_MODEL WHERE customization_uuid = $vf-module-topology-operation-input.vf-module-information.onap-model-information.model-customization-uuid'
   pfx='db.vf-module-model'>
