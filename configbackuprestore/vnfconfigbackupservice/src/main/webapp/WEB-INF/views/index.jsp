@@ -26,8 +26,8 @@
       <!-- CSS -->
       <script src="./node_modules/jquery.min.js"></script>
       <script src="./node_modules/tether.min.js" ></script>
-      <link rel="stylesheet" href="./node_modules/bootstrap-3.3.7/dist/css/bootstrap.min.css">
-      <script src="./node_modules/bootstrap-3.3.7/dist/js/bootstrap.min.js"></script>
+      <link rel="stylesheet" href="./webjars/bootstrap/3.3.7/css/bootstrap.min.css">
+      <script src="./webjars/bootstrap/3.3.7/js/bootstrap.min.js"></script>
       <link rel="stylesheet" href="/static/style/sdnc-style.css">
       <!-- JS -->
       <!-- load angular,date-time picker,pagination,growl and ui-router -->
@@ -53,8 +53,8 @@
       <script src="./node_modules/ng-ip-address/ngIpAddress.min.js" ></script>
       <link rel="stylesheet" type="text/css" href="./node_modules/angular-growl-v2/build/angular-growl.css">
       <link rel="stylesheet" href="/static/style/w3.css">
-      <link type="text/css" href="./node_modules/angular-object-diff/dist/angular-object-diff.css" rel='stylesheet'>
-      <script type="text/javascript" src="/node_modules/angular-object-diff/dist/angular-object-diff.js"></script>
+      <link type="text/css" href="./webjars/angular-object-diff/1.0.1/dist/angular-object-diff.css" rel='stylesheet'>
+      <script type="text/javascript" src="/webjars/angular-object-diff/1.0.1/dist/angular-object-diff.js"></script>
    </head>
    <!-- apply our angular app -->
    <body>
