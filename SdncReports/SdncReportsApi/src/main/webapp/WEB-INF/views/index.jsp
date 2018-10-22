@@ -26,8 +26,8 @@
       <!-- CSS -->
       <script src="./node_modules/jquery.min.js"></script>
       <script src="./node_modules/tether.min.js" ></script>
-      <link rel="stylesheet" href="./node_modules/bootstrap-3.3.7/dist/css/bootstrap.min.css">
-      <script src="./node_modules/bootstrap-3.3.7/dist/js/bootstrap.min.js"></script>
+      <link rel="stylesheet" href="/webjars/bootstrap/3.3.7/css/bootstrap.min.css">  
+      <script src="/webjars/bootstrap/3.3.7/js/bootstrap.min.js"></script>      
       <link rel="stylesheet" href="/style/sdnc-style.css">
       <!-- JS -->
       <!-- load angular,date-time picker,pagination,growl and ui-router -->
