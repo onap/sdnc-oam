@@ -24,13 +24,6 @@ RUN cp $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.kara
 RUN cat $ODL_HOME/etc/org.apache.karaf.features.cfg.orig | sed -e "\|featuresRepositories|s|$|,${SDNC_NORTHBOUND_REPO}|" > $ODL_HOME/etc/org.apache.karaf.features.cfg.1
 RUN cat $ODL_HOME/etc/org.apache.karaf.features.cfg.1 | sed -e "\|featuresBoot=config|s|$|,sdnc-northbound-all|" > $ODL_HOME/etc/org.apache.karaf.features.cfg
 
-# Copy aaf shiro jar
-COPY aaf-shiro*.jar $ODL_HOME/deploy
-
-# install AAF configs
-COPY aaa-app-config.xml $ODL_HOME/etc/opendaylight/datastore/initial/config/
-COPY aaf-shiro-aafrealm-osgi-bundle.jar $ODL_HOME/deploy/
-RUN echo "cadi_prop_files=$SDNC_CONFIG_DIR/org.onap.sdnc.cred.props" >> $ODL_HOME/system.properties
 
 # ENTRYPOINT exec /opt/opendaylight/current/bin/karaf
 EXPOSE 8181
