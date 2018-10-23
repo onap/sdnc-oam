@@ -1,5 +1,5 @@
 # Base ubuntu with added packages needed for open ecomp
-FROM onap/ccsdk-ubuntu-image:${ccsdk.distribution.version}
+FROM onap/ccsdk-ubuntu-image:${ccsdk.docker.version}
 MAINTAINER SDN-C Team (sdnc@lists.openecomp.org)
 
 # create link for pm2

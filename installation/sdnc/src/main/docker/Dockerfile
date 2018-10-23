@@ -1,5 +1,5 @@
 # Base ubuntu with added packages needed for open ecomp
-FROM onap/ccsdk-odlsli-image:${ccsdk.distribution.version}
+FROM onap/ccsdk-odlsli-image:${ccsdk.docker.version}
 
 MAINTAINER SDN-C Team (sdnc@lists.onap.org)
 
