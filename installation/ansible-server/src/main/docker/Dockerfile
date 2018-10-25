@@ -1,5 +1,5 @@
 # Base ubuntu with added packages needed for open ecomp
-FROM onap/ccsdk-ansible-server-image:${ccsdk.distribution.version}
+FROM onap/ccsdk-ansible-server-image:${ccsdk.docker.version}
 
 LABEL maintainer="SDN-C Team (sdnc@lists.openecomp.org)"
 
