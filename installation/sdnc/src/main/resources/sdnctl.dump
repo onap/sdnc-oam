@@ -3319,4 +3319,121 @@ CREATE TABLE `RESOURCE_GROUP_TO_TARGET_NODE_MAPPING` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
+DROP TABLE IF EXISTS `ATTRIBUTE_VALUE_PAIR`;
+CREATE TABLE `ATTRIBUTE_VALUE_PAIR` (
+  `resource_uuid` varchar(255) NOT NULL,
+  `attribute_name` varchar(255) NOT NULL,
+  `resource_type` varchar(255) NOT NULL,
+  `attribute_value` varchar(255) DEFAULT NULL,
+  `resource_customization_uuid` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`resource_uuid`,`attribute_name`,`resource_type`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+DROP TABLE IF EXISTS `COMPLEX_RESOURCE`;
+CREATE TABLE `COMPLEX_RESOURCE` (
+  `uuid` varchar(255) NOT NULL,
+  `model_yaml` longblob,
+  `invariant_uuid` varchar(255) NOT NULL,
+  `customization_uuid` varchar(255) NOT NULL,
+  `version` varchar(255) DEFAULT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `description` varchar(255) DEFAULT NULL,
+  `type` varchar(255) NOT NULL,
+  PRIMARY KEY (`uuid`,`customization_uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+DROP TABLE IF EXISTS `NODE_CAPABILITY`;
+CREATE TABLE `NODE_CAPABILITY` (
+  `capability_id` int(11) NOT NULL AUTO_INCREMENT,
+  `capability_provider_uuid` varchar(255) NOT NULL,
+  `capability_provider_customization_uuid` varchar(255) NOT NULL,
+  `capability_name` varchar(255) DEFAULT NULL,
+  `capability_type` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`capability_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=69 DEFAULT CHARSET=latin1;
+
+DROP TABLE IF EXISTS `NODE_REQUIREMENT`;
+CREATE TABLE `NODE_REQUIREMENT` (
+  `requirement_id` int(11) NOT NULL AUTO_INCREMENT,
+  `capability_id` int(11) DEFAULT NULL,
+  `capability_provider_uuid` varchar(255) DEFAULT NULL,
+  `capability_provider_customization_uuid` varchar(255) DEFAULT NULL,
+  `capability_consumer_uuid` varchar(255) NOT NULL,
+  `capability_consumer_customization_uuid` varchar(255) NOT NULL,
+  `requirement_name` varchar(255) NOT NULL,
+  PRIMARY KEY (`requirement_id`),
+  KEY `NODE_REQUIREMENT_TO_NODE_CAPABILITY` (`capability_id`)
+) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=latin1;
+
+DROP TABLE IF EXISTS `RELATED_NETWORK_ROLE`;
+CREATE TABLE `RELATED_NETWORK_ROLE` (
+  `network_model_customization_uuid` varchar(255) NOT NULL,
+  `related_network_role` varchar(255) NOT NULL,
+  PRIMARY KEY (`network_model_customization_uuid`,`related_network_role`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+DROP TABLE IF EXISTS `RESOURCE_GROUP`;
+CREATE TABLE `RESOURCE_GROUP` (
+  `resource_uuid` varchar(255) NOT NULL,
+  `group_uuid` varchar(255) NOT NULL,
+  `group_customization_uuid` varchar(255) DEFAULT NULL,
+  `group_invariant_uuid` varchar(255) NOT NULL,
+  `group_name` varchar(255) DEFAULT NULL,
+  `version` varchar(255) DEFAULT NULL,
+  `group_type` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`resource_uuid`,`group_uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+DROP TABLE IF EXISTS `RESOURCE_POLICY`;
+CREATE TABLE `RESOURCE_POLICY` (
+  `resource_uuid` varchar(255) NOT NULL,
+  `policy_uuid` varchar(255) NOT NULL,
+  `policy_customization_uuid` varchar(255) DEFAULT NULL,
+  `policy_invariant_uuid` varchar(255) NOT NULL,
+  `policy_name` varchar(255) DEFAULT NULL,
+  `version` varchar(255) DEFAULT NULL,
+  `policy_type` varchar(255) DEFAULT NULL,
+  `property_type` varchar(255) DEFAULT NULL,
+  `property_source` varchar(255) DEFAULT NULL,
+  `property_name` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`resource_uuid`,`policy_uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+DROP TABLE IF EXISTS `RESOURCE_POLICY_TO_TARGET_NODE_MAPPING`;
+CREATE TABLE `RESOURCE_POLICY_TO_TARGET_NODE_MAPPING` (
+  `policy_uuid` varchar(255) NOT NULL,
+  `parent_uuid` varchar(255) NOT NULL,
+  `target_node_uuid` varchar(255) NOT NULL,
+  `target_type` varchar(255) DEFAULT NULL,
+  `target_node_customization_uuid` varchar(255) DEFAULT NULL,
+  `policy_customization_uuid` varchar(255) DEFAULT NULL,
+  PRIMARY KEY (`policy_uuid`,`parent_uuid`,`target_node_uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+
+DROP TABLE IF EXISTS `SERVICE_MODEL_TO_COMPLEX_RESOURCE_MAPPING`;
+CREATE TABLE `SERVICE_MODEL_TO_COMPLEX_RESOURCE_MAPPING` (
+  `service_uuid` varchar(255) NOT NULL,
+  `complex_resource_uuid` varchar(255) NOT NULL,
+  `complex_resource_customization_uuid` varchar(255) NOT NULL,
+  PRIMARY KEY (`service_uuid`,`complex_resource_uuid`,`complex_resource_customization_uuid`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+DROP TABLE IF EXISTS `VFC_RELATED_NETWORK_ROLE`;
+CREATE TABLE `VFC_RELATED_NETWORK_ROLE` (
+  `vfc_customization_uuid` varchar(255) NOT NULL,
+  `vm_type` varchar(255) NOT NULL,
+  `network_role` varchar(255) NOT NULL,
+  `related_network_role` varchar(255) NOT NULL,
+  PRIMARY KEY (`vfc_customization_uuid`,`vm_type`,`network_role`,`related_network_role`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+DROP TABLE IF EXISTS `VNF_RELATED_NETWORK_ROLE`;
+CREATE TABLE `VNF_RELATED_NETWORK_ROLE` (
+  `vnf_customization_uuid` varchar(255) NOT NULL,
+  `network_role` varchar(255) NOT NULL,
+  `related_network_role` varchar(255) NOT NULL,
+  PRIMARY KEY (`vnf_customization_uuid`,`network_role`,`related_network_role`)
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
 -- Dump completed on 2017-10-04 18:23:01
