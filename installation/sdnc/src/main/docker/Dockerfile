@@ -11,6 +11,9 @@ ENV SDNC_STORE_DIR /opt/onap/sdnc/data/stores
 ENV SSL_CERTS_DIR /etc/ssl/certs
 ENV JAVA_SECURITY_DIR $SSL_CERTS_DIR/java
 ENV SDNC_NORTHBOUND_REPO mvn:org.onap.sdnc.northbound/sdnc-northbound-all/${sdnc.northbound.version}/xml/features
+ENV SDNC_KEYSTORE ${sdnc.keystore}
+ENV SDNC_KEYPASS ${sdnc.keypass}
+ENV SDNC_SECUREPORT ${sdnc.secureport}
 
 USER root
 
@@ -38,6 +41,16 @@ COPY truststoreONAPall.jks $JAVA_SECURITY_DIR
 COPY truststoreONAPall.jks $SDNC_STORE_DIR
 
 RUN keytool -importkeystore -srckeystore $JAVA_SECURITY_DIR/truststoreONAPall.jks -srcstorepass changeit -destkeystore $JAVA_SECURITY_DIR/cacerts  -deststorepass changeit
+
+# Secure with TLS
+RUN echo org.osgi.service.http.secure.enabled=true >> $ODL_HOME/etc/custom.properties
+RUN echo org.osgi.service.http.secure.port=$SDNC_SECUREPORT >> $ODL_HOME/etc/custom.properties
+RUN echo org.ops4j.pax.web.ssl.keystore=$SDNC_STORE_DIR/$SDNC_KEYSTORE >> $ODL_HOME/etc/custom.properties
+RUN echo org.ops4j.pax.web.ssl.password=$SDNC_KEYPASS >> $ODL_HOME/etc/custom.properties
+RUN echo org.ops4j.pax.web.ssl.keypassword=$SDNC_KEYPASS >> $ODL_HOME/etc/custom.properties
+
+
+
 
 RUN chown -R odl /opt
 USER odl
