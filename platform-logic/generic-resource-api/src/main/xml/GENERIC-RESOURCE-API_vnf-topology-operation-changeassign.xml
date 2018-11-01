@@ -42,6 +42,24 @@
                     </return>
                 </outcome>
             </switch>
+            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+  key='SELECT * from VF_MODEL WHERE customization_uuid = $service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-customization-uuid'
+  pfx='db.vf-model'>
+                <outcome value='failure'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="Error reading VF_MODEL table" />
+                    </return>
+                </outcome>
+                <outcome value='not-found'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="`'No model found for VNF customization UUID ' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.onap-model-information.model-customization-uuid`" />
+                    </return>
+                </outcome>
+            </get-resource>
             <call module='GENERIC-RESOURCE-API' rpc='self-serve-vnf-forking-logic' mode='sync' ></call>
             <switch test="`$ss.self-serve-flag`">
                 <outcome value='false'>
