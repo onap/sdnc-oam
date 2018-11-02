@@ -42,11 +42,13 @@ END
 # load schema
 if [ -f ${SDNC_HOME}/data/sdnctl.dump ]
 then
+  echo "Installing ${SDNC_HOME}/data/sdnctl.dump"
   mysql -h dbhost -u root -p${MYSQL_PASSWD} sdnctl < ${SDNC_HOME}/data/sdnctl.dump
 fi
 
 for datafile in ${SDNC_HOME}/data/*.data.dump
 do
+    echo "Installing ${datafile}"
   mysql -h dbhost -u root -p${MYSQL_PASSWD} sdnctl < $datafile
 done
 
