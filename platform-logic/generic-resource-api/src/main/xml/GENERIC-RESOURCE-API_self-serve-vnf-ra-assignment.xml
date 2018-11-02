@@ -96,7 +96,11 @@
                 <parameter name="tmp.config-name-value-payload7" value="`$tmp.config-name-value-payload6 + '&quot;aic-cloud-region&quot;:&quot;' + $vnf-topology-operation-input.vnf-request-input.aic-cloud-region + '&quot;'`"/>
                 <parameter name="tmp.json-payload" value="`'{' + $tmp.config-name-value-payload7 + '}'`" />
             </set>
-            <execute plugin='org.onap.ccsdk.features.assignment.service.ConfigAssignmentNode' method='process'>
+            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                <parameter name="logger" value="message-log"/>
+                <parameter name="field1" value="BEFORE ConfigAssignmentNode"/>
+            </record>
+            <execute plugin='org.onap.ccsdk.config.assignment.service.ConfigAssignmentNode' method='process'>
                 <parameter name="request-id" value='`$request-id`' />
                 <parameter name="resource-id" value='`$resource-id`' />
                 <parameter name="resource-type" value='`$resource-type`' />
@@ -121,6 +125,10 @@
                     </return>
                 </outcome>
             </execute>
+            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                <parameter name="logger" value="message-log"/>
+                <parameter name="field1" value="AFTER ConfigAssignmentNode"/>
+            </record>
             <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils" method="jsonStringToCtx">
                 <parameter name="source" value="`'sriovAssign.mashed-data.' + $tmp.sdnc-artifact-name`" />
                 <parameter name="outputPath" value="jsonContextPrefix" />
@@ -202,6 +210,18 @@
                     </for>
                 </for>
             </for>
+            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                <parameter name="logger" value="message-log"/>
+                <parameter name="field1" value="DONE: vnf-ra-assignment"/>
+            </record>
+            <set>
+                <parameter name='pathname' 
+	value="`'/var/tmp/ss-vnf-ra-assignment-' + 
+	$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-information.vnf-id + '.log'`" />
+            </set>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
+                <parameter name='filename' value='`$pathname`' />
+            </execute>
         </block>
     </method>
 </service-logic>
