@@ -189,6 +189,14 @@
                 <parameter name='ss.capability.execution-order[12]' value='aai-vf-module-put' />
                 <parameter name='ss.capability.execution-order_length' value='13' />
             </set>
+            <switch test='`$prop.controller.user`'>
+                <outcome value=''>
+                    <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
+                        <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />
+                        <parameter name='contextPrefix' value='prop' />
+                    </execute>
+                </outcome>
+            </switch>
             <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`'>
                 <outcome value=''>
                     <block atomic='true'>
@@ -204,6 +212,10 @@
                                 </return>
                             </outcome>
                         </call>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                            <parameter name="logger" value="message-log"/>
+                            <parameter name="field1" value="DONE with vfmodule-ra-assignment"/>
+                        </record>
                     </block>
                 </outcome>
             </switch>
@@ -226,166 +238,181 @@ ss.capability.execution-order
                     </set>
                     <switch test='`$ss.capability-name == $tmp.param.capability-name`'>
                         <outcome value='true'>
-                            <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.status`'>
-                                <outcome value='PENDING'>
-                                    <call module='GENERIC-RESOURCE-API' rpc='`$ss.capability-dg`' mode='sync' >
-                                        <outcome value='failure'>
-                                            <block atomic='true'>
-                                                <set>
-                                                    <parameter name='vf.vf-module-id'
+                            <block atomic='true'>
+                                <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$pidx].resource-resolution-data.status`'>
+                                    <outcome value='PENDING'>
+                                        <call module='GENERIC-RESOURCE-API' rpc='`$ss.capability-dg`' mode='sync' >
+                                            <outcome value='failure'>
+                                                <block atomic='true'>
+                                                    <set>
+                                                        <parameter name='vf.vf-module-id'
     value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id`' />
-                                                    <parameter name='vf.vf-module-data.sdnc-request-header.'
+                                                        <parameter name='vf.vf-module-data.sdnc-request-header.'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.sdnc-request-header.`' />
-                                                    <parameter name='vf.vf-module-data.request-information.'
+                                                        <parameter name='vf.vf-module-data.request-information.'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.request-information.`' />
-                                                    <parameter name='vf.vf-module-data.service-information.'
+                                                        <parameter name='vf.vf-module-data.service-information.'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.service-information.`' />
-                                                    <parameter name='vf.vf-module-data.vnf-information.'
+                                                        <parameter name='vf.vf-module-data.vnf-information.'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vnf-information.`' />
-                                                    <parameter name='vf.vf-module-data.vf-module-information.'
+                                                        <parameter name='vf.vf-module-data.vf-module-information.'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-information.`' />
-                                                    <parameter name='vf.vf-module-data.vf-module-topology.'
+                                                        <parameter name='vf.vf-module-data.vf-module-topology.'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.`' />
-                                                    <parameter name='vf.vf-module-data.vf-module-level-oper-status.'
+                                                        <parameter name='vf.vf-module-data.vf-module-level-oper-status.'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-level-oper-status.`' />
-                                                    <parameter name='vf.vf-module-data.vf-module-request-input.vf-module-input-parameters.'
+                                                        <parameter name='vf.vf-module-data.vf-module-request-input.vf-module-input-parameters.'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.vf-module-input-parameters.`' />
-                                                    <parameter name='vf.vf-module-data.vf-module-request-input.request-version'
+                                                        <parameter name='vf.vf-module-data.vf-module-request-input.request-version'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.request-version`' />
-                                                    <parameter name='vf.vf-module-data.vf-module-request-input.vf-module-name'
+                                                        <parameter name='vf.vf-module-data.vf-module-request-input.vf-module-name'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.vf-module-name`' />
-                                                    <parameter name='vf.vf-module-data.vf-module-request-input.tenant'
+                                                        <parameter name='vf.vf-module-data.vf-module-request-input.tenant'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.tenant`' />
-                                                    <parameter name='vf.vf-module-data.vf-module-request-input.aic-cloud-region'
+                                                        <parameter name='vf.vf-module-data.vf-module-request-input.aic-cloud-region'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.aic-cloud-region`' />
-                                                    <parameter name='vf.vf-module-data.vf-module-request-input.aic-clli'
+                                                        <parameter name='vf.vf-module-data.vf-module-request-input.aic-clli'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.aic-clli`' />
-                                                </set>
-                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
-                                                    <parameter name="source" value="`$prop.restapi.ss-vfmodule-assignments`"/>
-                                                    <parameter name="outputPath" value="tmp.ss-vfmodule-url"/>
-                                                    <parameter name="target" value="{service-instance-id}"/>
-                                                    <parameter name="replacement" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.service-information.service-instance-id`"/>
-                                                </execute>
-                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
-                                                    <parameter name="source" value="`$tmp.ss-vfmodule-url`"/>
-                                                    <parameter name="outputPath" value="tmp.ss-vfmodule-url"/>
-                                                    <parameter name="target" value="{vnf-id}"/>
-                                                    <parameter name="replacement" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vnf-information.vnf-id`"/>
-                                                </execute>
-                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
-                                                    <parameter name="source" value="`$tmp.ss-vfmodule-url`"/>
-                                                    <parameter name="outputPath" value="tmp.ss-vfmodule-url"/>
-                                                    <parameter name="target" value="{vf-module-id}"/>
-                                                    <parameter name="replacement" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id`"/>
-                                                </execute>
-                                                <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                                                    <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/' + $prop.restapi.ss.vfmodule.templatefile`" />
-                                                    <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.ss-vfmodule-url`' />
-                                                    <parameter name='restapiUser' value='`$prop.controller.user`' />
-                                                    <parameter name='restapiPassword' value='`$prop.controller.pwd`' />
-                                                    <parameter name='format' value='json' />
-                                                    <parameter name='httpMethod' value='PUT' />
-                                                    <parameter name="responsePrefix" value="mdsal-ss-vfmodule" />
-                                                    <outcome value='failure'>
-                                                        <set>
-                                                            <parameter name="error-message" value="Failed to persist self-serve vf-module assignments during assign in MD-SAL" />
-                                                        </set>
-                                                    </outcome>
-                                                    <outcome value='not-found'>
-                                                        <set>
-                                                            <parameter name="error-message" value="Failed to persist self-serve vf-module assignments during assign in MD-SAL" />
-                                                        </set>
-                                                    </outcome>
-                                                </execute>
-                                                <return status='failure'>
-                                                    <parameter name='error-code' value='500' />
-                                                    <parameter name='error-message' value="`'Encountered error from capability: '+ $ss.capability-dg + ', with error: '+ $error-message`" />
-                                                </return>
-                                            </block>
-                                        </outcome>
-                                    </call>
-                                </outcome>
-                                <outcome value='FAILED'>
-                                    <call module='GENERIC-RESOURCE-API' rpc='`$ss.capability-dg`' mode='sync' >
-                                        <outcome value='failure'>
-                                            <block atomic='true'>
-                                                <set>
-                                                    <parameter name='vf.vf-module-id'
+                                                    </set>
+                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                                                        <parameter name="source" value="`$prop.restapi.ss-vfmodule-assignments`"/>
+                                                        <parameter name="outputPath" value="tmp.ss-vfmodule-url"/>
+                                                        <parameter name="target" value="{service-instance-id}"/>
+                                                        <parameter name="replacement" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.service-information.service-instance-id`"/>
+                                                    </execute>
+                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                                                        <parameter name="source" value="`$tmp.ss-vfmodule-url`"/>
+                                                        <parameter name="outputPath" value="tmp.ss-vfmodule-url"/>
+                                                        <parameter name="target" value="{vnf-id}"/>
+                                                        <parameter name="replacement" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vnf-information.vnf-id`"/>
+                                                    </execute>
+                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                                                        <parameter name="source" value="`$tmp.ss-vfmodule-url`"/>
+                                                        <parameter name="outputPath" value="tmp.ss-vfmodule-url"/>
+                                                        <parameter name="target" value="{vf-module-id}"/>
+                                                        <parameter name="replacement" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id`"/>
+                                                    </execute>
+                                                    <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                                        <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/' + $prop.restapi.ss.vfmodule.templatefile`" />
+                                                        <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.ss-vfmodule-url`' />
+                                                        <parameter name='restapiUser' value='`$prop.controller.user`' />
+                                                        <parameter name='restapiPassword' value='`$prop.controller.pwd`' />
+                                                        <parameter name='format' value='json' />
+                                                        <parameter name='httpMethod' value='PUT' />
+                                                        <parameter name="responsePrefix" value="mdsal-ss-vfmodule" />
+                                                        <outcome value='failure'>
+                                                            <set>
+                                                                <parameter name="error-message" value="Failed to persist self-serve vf-module assignments during assign in MD-SAL" />
+                                                            </set>
+                                                        </outcome>
+                                                        <outcome value='not-found'>
+                                                            <set>
+                                                                <parameter name="error-message" value="Failed to persist self-serve vf-module assignments during assign in MD-SAL" />
+                                                            </set>
+                                                        </outcome>
+                                                    </execute>
+                                                    <return status='failure'>
+                                                        <parameter name='error-code' value='500' />
+                                                        <parameter name='error-message' value="`'Encountered error from capability: '+ $ss.capability-dg + ', with error: '+ $error-message`" />
+                                                    </return>
+                                                </block>
+                                            </outcome>
+                                            <outcome value='success'>
+                                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                    <parameter name="logger" value="message-log"/>
+                                                    <parameter name="field1" value="`'DONE: ' + $ss.capability-dg`"/>
+                                                </record>
+                                            </outcome>
+                                        </call>
+                                    </outcome>
+                                    <outcome value='FAILED'>
+                                        <call module='GENERIC-RESOURCE-API' rpc='`$ss.capability-dg`' mode='sync' >
+                                            <outcome value='failure'>
+                                                <block atomic='true'>
+                                                    <set>
+                                                        <parameter name='vf.vf-module-id'
     value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id`' />
-                                                    <parameter name='vf.vf-module-data.sdnc-request-header.'
+                                                        <parameter name='vf.vf-module-data.sdnc-request-header.'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.sdnc-request-header.`' />
-                                                    <parameter name='vf.vf-module-data.request-information.'
+                                                        <parameter name='vf.vf-module-data.request-information.'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.request-information.`' />
-                                                    <parameter name='vf.vf-module-data.service-information.'
+                                                        <parameter name='vf.vf-module-data.service-information.'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.service-information.`' />
-                                                    <parameter name='vf.vf-module-data.vnf-information.'
+                                                        <parameter name='vf.vf-module-data.vnf-information.'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vnf-information.`' />
-                                                    <parameter name='vf.vf-module-data.vf-module-information.'
+                                                        <parameter name='vf.vf-module-data.vf-module-information.'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-information.`' />
-                                                    <parameter name='vf.vf-module-data.vf-module-topology.'
+                                                        <parameter name='vf.vf-module-data.vf-module-topology.'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.`' />
-                                                    <parameter name='vf.vf-module-data.vf-module-level-oper-status.'
+                                                        <parameter name='vf.vf-module-data.vf-module-level-oper-status.'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-level-oper-status.`' />
-                                                    <parameter name='vf.vf-module-data.vf-module-request-input.vf-module-input-parameters.'
+                                                        <parameter name='vf.vf-module-data.vf-module-request-input.vf-module-input-parameters.'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.vf-module-input-parameters.`' />
-                                                    <parameter name='vf.vf-module-data.vf-module-request-input.request-version'
+                                                        <parameter name='vf.vf-module-data.vf-module-request-input.request-version'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.request-version`' />
-                                                    <parameter name='vf.vf-module-data.vf-module-request-input.vf-module-name'
+                                                        <parameter name='vf.vf-module-data.vf-module-request-input.vf-module-name'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.vf-module-name`' />
-                                                    <parameter name='vf.vf-module-data.vf-module-request-input.tenant'
+                                                        <parameter name='vf.vf-module-data.vf-module-request-input.tenant'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.tenant`' />
-                                                    <parameter name='vf.vf-module-data.vf-module-request-input.aic-cloud-region'
+                                                        <parameter name='vf.vf-module-data.vf-module-request-input.aic-cloud-region'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.aic-cloud-region`' />
-                                                    <parameter name='vf.vf-module-data.vf-module-request-input.aic-clli'
+                                                        <parameter name='vf.vf-module-data.vf-module-request-input.aic-clli'
   value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.aic-clli`' />
-                                                </set>
-                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
-                                                    <parameter name="source" value="`$prop.restapi.ss-vfmodule-assignments`"/>
-                                                    <parameter name="outputPath" value="tmp.ss-vfmodule-url"/>
-                                                    <parameter name="target" value="{service-instance-id}"/>
-                                                    <parameter name="replacement" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.service-information.service-instance-id`"/>
-                                                </execute>
-                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
-                                                    <parameter name="source" value="`$tmp.ss-vfmodule-url`"/>
-                                                    <parameter name="outputPath" value="tmp.ss-vfmodule-url"/>
-                                                    <parameter name="target" value="{vnf-id}"/>
-                                                    <parameter name="replacement" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vnf-information.vnf-id`"/>
-                                                </execute>
-                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
-                                                    <parameter name="source" value="`$tmp.ss-vfmodule-url`"/>
-                                                    <parameter name="outputPath" value="tmp.ss-vfmodule-url"/>
-                                                    <parameter name="target" value="{vf-module-id}"/>
-                                                    <parameter name="replacement" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id`"/>
-                                                </execute>
-                                                <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                                                    <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/' + $prop.restapi.ss.vfmodule.templatefile`" />
-                                                    <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.ss-vfmodule-url`' />
-                                                    <parameter name='restapiUser' value='`$prop.controller.user`' />
-                                                    <parameter name='restapiPassword' value='`$prop.controller.pwd`' />
-                                                    <parameter name='format' value='json' />
-                                                    <parameter name='httpMethod' value='PUT' />
-                                                    <parameter name="responsePrefix" value="mdsal-ss-vfmodule" />
-                                                    <outcome value='failure'>
-                                                        <set>
-                                                            <parameter name="error-message" value="Failed to persist self-serve vf-module assignments during assign in MD-SAL" />
-                                                        </set>
-                                                    </outcome>
-                                                    <outcome value='not-found'>
-                                                        <set>
-                                                            <parameter name="error-message" value="Failed to persist self-serve vf-module assignments during assign in MD-SAL" />
-                                                        </set>
-                                                    </outcome>
-                                                </execute>
-                                                <return status='failure'>
-                                                    <parameter name='error-code' value='500' />
-                                                    <parameter name='error-message' value="`'Encountered error from capability: '+ $ss.capability-dg + ', with error: '+ $error-message`" />
-                                                </return>
-                                            </block>
-                                        </outcome>
-                                    </call>
-                                </outcome>
-                            </switch>
+                                                    </set>
+                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                                                        <parameter name="source" value="`$prop.restapi.ss-vfmodule-assignments`"/>
+                                                        <parameter name="outputPath" value="tmp.ss-vfmodule-url"/>
+                                                        <parameter name="target" value="{service-instance-id}"/>
+                                                        <parameter name="replacement" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.service-information.service-instance-id`"/>
+                                                    </execute>
+                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                                                        <parameter name="source" value="`$tmp.ss-vfmodule-url`"/>
+                                                        <parameter name="outputPath" value="tmp.ss-vfmodule-url"/>
+                                                        <parameter name="target" value="{vnf-id}"/>
+                                                        <parameter name="replacement" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vnf-information.vnf-id`"/>
+                                                    </execute>
+                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                                                        <parameter name="source" value="`$tmp.ss-vfmodule-url`"/>
+                                                        <parameter name="outputPath" value="tmp.ss-vfmodule-url"/>
+                                                        <parameter name="target" value="{vf-module-id}"/>
+                                                        <parameter name="replacement" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id`"/>
+                                                    </execute>
+                                                    <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                                        <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/' + $prop.restapi.ss.vfmodule.templatefile`" />
+                                                        <parameter name='restapiUrl' value='`$prop.controller.url + $tmp.ss-vfmodule-url`' />
+                                                        <parameter name='restapiUser' value='`$prop.controller.user`' />
+                                                        <parameter name='restapiPassword' value='`$prop.controller.pwd`' />
+                                                        <parameter name='format' value='json' />
+                                                        <parameter name='httpMethod' value='PUT' />
+                                                        <parameter name="responsePrefix" value="mdsal-ss-vfmodule" />
+                                                        <outcome value='failure'>
+                                                            <set>
+                                                                <parameter name="error-message" value="Failed to persist self-serve vf-module assignments during assign in MD-SAL" />
+                                                            </set>
+                                                        </outcome>
+                                                        <outcome value='not-found'>
+                                                            <set>
+                                                                <parameter name="error-message" value="Failed to persist self-serve vf-module assignments during assign in MD-SAL" />
+                                                            </set>
+                                                        </outcome>
+                                                    </execute>
+                                                    <return status='failure'>
+                                                        <parameter name='error-code' value='500' />
+                                                        <parameter name='error-message' value="`'Encountered error from capability: '+ $ss.capability-dg + ', with error: '+ $error-message`" />
+                                                    </return>
+                                                </block>
+                                            </outcome>
+                                            <outcome value='success'>
+                                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                    <parameter name="logger" value="message-log"/>
+                                                    <parameter name="field1" value="`'DONE: ' + $ss.capability-dg`"/>
+                                                </record>
+                                            </outcome>
+                                        </call>
+                                    </outcome>
+                                </switch>
+                                <break/>
+                            </block>
                         </outcome>
                     </switch>
                 </for>
