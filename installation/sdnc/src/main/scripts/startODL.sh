@@ -79,6 +79,7 @@ MYSQL_PASSWD=${MYSQL_PASSWD:-openECOMP1.0}
 ENABLE_ODL_CLUSTER=${ENABLE_ODL_CLUSTER:-false}
 IS_PRIMARY_CLUSTER=${IS_PRIMARY_CLUSTER:-false}
 MY_ODL_CLUSTER=${MY_ODL_CLUSTER:-127.0.0.1}
+INSTALLED_DIR=${INSTALLED_FILE:-/opt/opendaylight/current/daexim}
 
 #
 # Wait for database
@@ -91,7 +92,12 @@ do
 done
 echo -e "\nmysql ready"
 
-if [ ! -f ${SDNC_HOME}/.installed ]
+if [ ! -d ${INSTALLED_DIR} ]
+then
+    mkdir -p ${INSTALLED_DIR}
+fi
+
+if [ ! -f ${INSTALLED_DIR}/.installed ]
 then
 	echo "Installing SDN-C database"
 	${SDNC_HOME}/bin/installSdncDb.sh
@@ -108,7 +114,7 @@ then
 
     if $ENABLE_ODL_CLUSTER ; then enable_odl_cluster ; fi
 
-	echo "Installed at `date`" > ${SDNC_HOME}/.installed
+	echo "Installed at `date`" > ${INSTALLED_DIR}/.installed
 fi
 
 exec ${ODL_HOME}/bin/karaf server
