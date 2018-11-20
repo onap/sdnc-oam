@@ -9,4 +9,4 @@ MAINTAINER SDN-C Team (sdnc@lists.openecomp.org)
 COPY opt /opt
 
 #ENTRYPOINT exec /opt/openecomp/sdnc/admportal/shell/startssl.sh
-EXPOSE 8843
+EXPOSE 8843 8443
