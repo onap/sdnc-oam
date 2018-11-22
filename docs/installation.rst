@@ -7,7 +7,7 @@ The purpose of this document is to explain how to build an ONAP SDNC Instance on
 The document begins with creation of a network, and a VM.
 Then, the document explains how to run the installation scripts on the VM.
 Finally, the document shows how to check that the SDNC installation was completed successfully.
-This document and logs were created on 14 November, 2017.
+This document and logs were created on 22 November, 2018.
 
 Infrastructure setup on OpenStack
 ---------------------------------
@@ -138,38 +138,104 @@ Add the security group to the VM in order to open needed ports for SDNC like por
 Installing SDNC
 ---------------
 
-Connect to the new VM and change to user "root", and run the following commands to start the installation (the full logs are listed in the attached text file):
+Connect to the new VM and change to user "root", and run the following commands to start the installation:
 
 ::
 
- cloud@vm1-sdnc:~$ sudo -i
- root@vm1-sdnc:~# mkdir -p /opt/config
- root@vm1-sdnc:~#
- root@vm1-sdnc:~# echo "https://nexus.onap.org/content/sites/raw" > /opt/config/nexus_repo.txt
- root@vm1-sdnc:~# echo "nexus3.onap.org:10001" > /opt/config/nexus_docker_repo.txt
- root@vm1-sdnc:~# echo "docker" > /opt/config/nexus_username.txt
- root@vm1-sdnc:~# echo "docker" > /opt/config/nexus_password.txt
- root@vm1-sdnc:~# echo "1.1.0-SNAPSHOT" > /opt/config/artifacts_version.txt
- root@vm1-sdnc:~# echo "10.0.100.1" > /opt/config/dns_ip_addr.txt
- root@vm1-sdnc:~# wget https://git.onap.org/integration/plain/version-manifest/src/main/resources/docker-manifest.csv
- root@vm1-sdnc:~# DOCKER_SDNC_VERSION=$(grep onap/sdnc-image docker-manifest.csv | awk  '{v=$1; gsub(".*/*,","",$1);  print  ($1) }') 
- root@vm1-sdnc:~# echo $DOCKER_SDNC_VERSION > /opt/config/docker_version.txt
- root@vm1-sdnc:~# echo "master" > /opt/config/gerrit_branch.txt
- root@vm1-sdnc:~# echo "openstack" > /opt/config/cloud_env.txt
- root@vm1-sdnc:~# echo "8.8.8.8" > /opt/config/external_dns.txt
- root@vm1-sdnc:~# echo "http://gerrit.onap.org/r/sdnc/oam.git" > /opt/config/remote_repo.txt
- root@vm1-sdnc:~# DOCKER_BUILDER_VERSION=$(grep dgbuilder docker-manifest.csv | awk  '{v=$1; gsub(".*/*,","",$1);  print  ($1) }') 
- root@vm1-sdnc:~# echo $DOCKER_BUILDER_VERSION > /opt/config/dgbuilder_version.txt
- root@vm1-sdnc:~# curl -k https://nexus.onap.org/content/sites/raw/org.onap.demo/boot/1.1.0-
- SNAPSHOT/sdnc_install.sh -o /opt/sdnc_install.sh
-   % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+ # Login as root
+ sudo -i
+ # Clone Casablanca branch for demo Repo
+ root@sdnc-test:~# git clone https://gerrit.onap.org/r/demo -b casablanca
+ Cloning into 'demo'...
+ remote: Counting objects: 10, done
+ remote: Finding sources: 100% (10/10)
+ remote: Total 9562 (delta 0), reused 9562 (delta 0)
+ Receiving objects: 100% (9562/9562), 43.00 MiB | 13.84 MiB/s, done.
+ Resolving deltas: 100% (5922/5922), done.
+ Checking connectivity... done.
+ root@sdnc-test:~# 
+
+Use below commands to update installation environment
+
+::
+
+ # Create Configuration directory
+ mkdir -p /opt/config
+ # Update configuration folder with variables used during the installation
+ awk '$1 == "artifacts_version:" {print $2}' /root/demo/heat/ONAP/onap_openstack.env > /opt/config/artifacts_version.txt
+ awk '$1 == "sdnc_repo:" {print $2}' /root/demo/heat/ONAP/onap_openstack.env > /opt/config/remote_repo.txt
+ awk '$1 == "sdnc_branch:" {print $2}' /root/demo/heat/ONAP/onap_openstack.env > /opt/config/gerrit_branch.txt
+ echo "no_proxy" > /opt/config/http_proxy.txt
+ echo "no_proxy" > /opt/config/https_proxy.txt
+ echo "https://nexus.onap.org" > /opt/config/nexus_artifact_repo.txt
+ echo "8.8.8.8" > /opt/config/external_dns.txt
+ awk '$1 == "dns_ip_addr:" {print $2}' /root/demo/heat/ONAP/onap_openstack.env > /opt/config/dns_ip_addr.txt
+ awk '$1 == "nexus_username:" {print $2}' /root/demo/heat/ONAP/onap_openstack.env > /opt/config/nexus_username.txt
+ awk '$1 == "nexus_password:" {print $2}' /root/demo/heat/ONAP/onap_openstack.env > /opt/config/nexus_password.txt
+ awk '$1 == "nexus_docker_repo:" {print $2}' /root/demo/heat/ONAP/onap_openstack.env > /opt/config/nexus_docker_repo.txt
+ awk '$1 == "sdnc_docker:" {gsub("\"","",$2);print $2}' /root/demo/heat/ONAP/onap_openstack.env > /opt/config/docker_version.txt
+ awk '$1 == "dgbuilder_docker:" {gsub("\"","",$2);print $2}' /root/demo/heat/ONAP/onap_openstack.env > /opt/config/dgbuilder_version.txt
+ # Add host name to /etc/host to avoid warnings in openstack images
+ echo 127.0.0.1 $(hostname) >> /etc/hosts
+ # Install additional components
+ apt update
+ apt-get install -y linux-image-extra-$(uname -r) linux-image-extra-virtual apt-transport-https ca-certificates wget git ntp ntpdate make jq unzip
+ # Enable autorestart when VM reboots
+ chmod +x /root/demo/heat/ONAP/cloud-config/serv.sh
+ cp /root/demo/heat/ONAP/cloud-config/serv.sh /etc/init.d
+ update-rc.d serv.sh defaults
+
+Install docker engine
+
+::
+
+ echo "deb https://apt.dockerproject.org/repo ubuntu-$(lsb_release -cs) main" | tee /etc/apt/sources.list.d/docker.list
+ apt-get update
+ apt-get install -y --allow-unauthenticated docker-engine
+
+Install docker-compose & complete docker configuration
+
+::
+
+ root@sdnc-test:~# mkdir -p /opt/docker
+ root@sdnc-test:~# curl -L "https://github.com/docker/compose/releases/download/1.16.1/docker-compose-$(uname -s)-$(uname -m)" > /opt/docker/docker-compose
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
                                   Dload  Upload   Total   Spent    Left  Speed
- 100  3701  100  3701    0     0   5196      0 --:--:-- --:--:-- --:--:--  5190
- root@vm1-sdnc:~# cd /opt
- root@vm1-sdnc:/opt# chmod +x sdnc_install.sh
- root@vm1-sdnc:/opt# ./sdnc_install.sh
- cp: cannot stat ‘/home/ubuntu/.ssh/authorized_keys’: No such file or directory
- Get:1 http://security.ubuntu.com trusty-security InRelease [65.9 kB]
+	100 8648k  100 8648k    0     0  3925k      0  0:00:02  0:00:02 --:--:-- 10.3M
+ root@sdnc-test:~# chmod +x /opt/docker/docker-compose
+ # Set the MTU size of docker containers to the minimum MTU size supported by vNICs
+ root@sdnc-test:~# MTU=$(/sbin/ifconfig | grep MTU | sed 's/.*MTU://' | sed 's/ .*//' | sort -n | head -1)
+ root@sdnc-test:~# echo "DOCKER_OPTS=\"$DNS_FLAG--mtu=$MTU\"" >> /etc/default/docker
+ root@sdnc-test:~# cp /lib/systemd/system/docker.service /etc/systemd/system
+ root@sdnc-test:~# sed -i "/ExecStart/s/$/ --mtu=$MTU/g" /etc/systemd/system/docker.service
+ root@sdnc-test:~# systemctl daemon-reload
+ root@sdnc-test:~# service docker restart
+ # DNS IP address configuration
+ root@sdnc-test:~# echo "nameserver $(cat /opt/config/external_dns.txt)" >> /etc/resolvconf/resolv.conf.d/head
+ root@sdnc-test:~# resolvconf -u
+
+Copy & run installation scripts
+
+::
+
+ # Copy installation scripts to opt directory
+ root@sdnc-test:~# cp /root/demo/heat/ONAP/cloud-config/sdnc_install.sh /opt/sdnc_install.sh
+ root@sdnc-test:~# cp /root/demo/heat/ONAP/cloud-config/sdnc_vm_init.sh /opt/sdnc_vm_init.sh
+ # Run installation script
+ root@sdnc-test:~# cd /opt
+ root@sdnc-test:~# chmod +x sdnc_install.sh
+ root@sdnc-test:~# chmod +x sdnc_vm_init.sh
+ root@sdnc-test:~# ./sdnc_install.sh
+ Cloning into 'sdnc'...
+ remote: Finding sources: 100% (8962/8962)
+ remote: Total 8962 (delta 3999), reused 8956 (delta 3999)
+ Receiving objects: 100% (8962/8962), 702.76 MiB | 19.20 MiB/s, done.
+ Resolving deltas: 100% (3999/3999), done.
+ Checking connectivity... done.
+ Already up-to-date.
+ Login Succeeded
+ 1.4-STAGING-latest: Pulling from onap/sdnc-image
+ 18d680d61657: Pull complete 
  … output truncated …
 
 The following install logs shows the containers are coming up, meaning a successful deployment of the SDNC:
@@ -177,28 +243,37 @@ The following install logs shows the containers are coming up, meaning a success
 ::
 
  ... truncated output ...
+ d3565df0a804: Pull complete
+ Digest: sha256:0ba03586c705ca8f79030586a579001c4fab3d6fa8c388b6c1c37c695645b78e
  Status: Downloaded newer image for mysql/mysql-server:5.6
- Creating sdnc_db_container
- Creating sdnc_controller_container
- Creating sdnc_portal_container
- Creating sdnc_dgbuilder_container
- Creating sdnc_dmaaplistener_container
+ Creating sdnc_db_container ... 
+ Creating sdnc_db_container ... done
+ Creating sdnc_ansible_container ... 
+ Creating sdnc_ansible_container ... done
+ Creating sdnc_controller_container ... 
+ Creating sdnc_controller_container ... done
+ Creating sdnc_ueblistener_container ... 
+ Creating sdnc_portal_container ... 
+ Creating sdnc_dgbuilder_container ... 
+ Creating sdnc_dmaaplistener_container ... 
  Creating sdnc_ueblistener_container
- root@vm1-sdnc:/opt#
+ Creating sdnc_portal_container
+ Creating sdnc_dmaaplistener_container
+ Creating sdnc_dgbuilder_container ... done 
 
 Check that the containers are up and running:
 
 ::
 
- cloud@vm1-sdnc:~$ sudo docker container list
- CONTAINER ID        IMAGE                                   COMMAND                  CREATED              STATUS                    PORTS                                            NAMES
- 30fd20166145        onap/sdnc-dmaap-listener-image:latest   "/opt/onap/sdnc/dm..."   25 minutes ago      Up 25 minutes                                                              sdnc_dmaaplistener_container
- 484220f3b38a        onap/sdnc-ueb-listener-image:latest     "/opt/onap/sdnc/ue..."   25 minutes ago      Up 25 minutes                                                              sdnc_ueblistener_container
- 674ad3ff7f24        onap/ccsdk-dgbuilder-image:latest       "/bin/bash -c 'cd ..."   25 minutes ago      Up 25 minutes             0.0.0.0:3000->3100/tcp                           sdnc_dgbuilder_container
- d2a915c8e2e5        onap/admportal-sdnc-image:latest        "/bin/bash -c 'cd ..."   25 minutes ago      Up 25 minutes             0.0.0.0:8843->8843/tcp                           sdnc_portal_container
- a65b7fb486e7        onap/sdnc-image:latest                  "/opt/onap/sdnc/bi..."   25 minutes ago      Up 25 minutes             0.0.0.0:8201->8101/tcp, 0.0.0.0:8282->8181/tcp   sdnc_controller_container
- 2b9b2f5a79f8        mysql/mysql-server:5.6                  "/entrypoint.sh my..."   25 minutes ago      Up 25 minutes (healthy)   0.0.0.0:32768->3306/tcp                          sdnc_db_container
- cloud@vm1-sdnc:~$
+ root@sdnc-test:/opt# docker container list
+ CONTAINER ID        IMAGE                                   COMMAND                  CREATED             STATUS                    PORTS                     NAMES
+ 9de71aea163a        onap/ccsdk-dgbuilder-image:latest       "/bin/bash -c 'cd ..."   11 minutes ago      Up 11 minutes             0.0.0.0:3000->3100/tcp    sdnc_dgbuilder_container
+ adffc0e70758        onap/sdnc-dmaap-listener-image:latest   "/opt/onap/sdnc/dm..."   11 minutes ago      Up 11 minutes                                       sdnc_dmaaplistener_container
+ 53bfa2e31c44        onap/admportal-sdnc-image:latest        "/bin/bash -c 'cd ..."   11 minutes ago      Up 11 minutes             0.0.0.0:8843->8843/tcp    sdnc_portal_container
+ 2fd18ceb09de        onap/sdnc-image:latest                  "/opt/onap/sdnc/bi..."   11 minutes ago      Up 11 minutes             0.0.0.0:8282->8181/tcp    sdnc_controller_container
+ 3ddb85174acb        onap/sdnc-ansible-server-image:latest   "/opt/onap/ccsdk/s..."   11 minutes ago      Up 11 minutes             0.0.0.0:32769->8000/tcp   sdnc_ansible_container
+ 4a11c393ffa3        mysql/mysql-server:5.6                  "/entrypoint.sh my..."   11 minutes ago      Up 11 minutes (healthy)   0.0.0.0:32768->3306/tcp   sdnc_db_container
+ root@sdnc-test:/opt# 
 
 Login into APIDOC Explorer and check that you can see Swagger UI interface with all the APIs:
 
@@ -213,5 +288,3 @@ Login into DG Builder and check that you can see the GUI:
 ::
 
  DG Builder URL: http://dguser:test123@{SDNC-IP}:3000
-
-
