@@ -1,538 +1,576 @@
 [
-  {
-    "id": "1473da35.b14246",
-    "type": "other",
-    "name": "update",
-    "xml": "<outcome value='Update'>\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 630.0000991821289,
-    "y": 276.6667003631592,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "9e41086f.f40978"
-      ]
-    ]
-  },
-  {
-    "id": "63d9b444.fbeb4c",
-    "type": "other",
-    "name": "delete",
-    "xml": "<outcome value='delete'>\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 666.2222137451172,
-    "y": 478.33349609375,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "cf4516fc.415338"
-      ]
-    ]
-  },
-  {
-    "id": "cf4516fc.415338",
-    "type": "block",
-    "name": "block : atomic",
-    "xml": "<block atomic=\"true\">",
-    "atomic": "true",
-    "outputs": 1,
-    "x": 816.6668586730957,
-    "y": 473.3335485458374,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "aa391e7d.06c04",
-    "type": "comment",
-    "name": "TODO: Delete topology from AAI",
-    "info": "",
-    "comments": "",
-    "x": 774.3335266113281,
-    "y": 429.0001735687256,
-    "z": "8cb5d046.a5aaf",
-    "wires": []
-  },
-  {
-    "id": "7e2d4ad0.53ea04",
-    "type": "switchNode",
-    "name": "switch aai-event-trigger",
-    "xml": "<switch test=\"`$data-change-notification-input.aai-event-trigger`\">\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 422.5556640625,
-    "y": 345.2222261428833,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "1473da35.b14246",
-        "63d9b444.fbeb4c"
-      ]
-    ]
-  },
-  {
-    "id": "4718051e.d2c46c",
-    "type": "block",
-    "name": "block : atomic",
-    "xml": "<block atomic=\"true\">",
-    "atomic": "true",
-    "outputs": 1,
-    "x": 1224.333854675293,
-    "y": 270.1112537384033,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "d85bb5b1.82c4d8",
-        "e3be6aaa.e1c308",
-        "3b1c8725.0fcfb8"
-      ]
-    ]
-  },
-  {
-    "id": "e3be6aaa.e1c308",
-    "type": "execute",
-    "name": "execute RestApiCallNode Get token",
-    "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n<parameter name=\"templateFileName\" value=\"`$prop.restapi.templateDir + '/actokentemplate.json'`\" />\n<parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/v2/tokens'`\" />\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"post\"/>\n<parameter name=\"responsePrefix\" value=\"token-result\"/>\n<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>\n<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>\n<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>\n<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>",
-    "comments": "",
-    "outputs": 1,
-    "x": 1480.9933624267578,
-    "y": 132.0305051803589,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "6a112654.2ffd58",
-        "b242d748.545378"
-      ]
-    ]
-  },
-  {
-    "id": "6a112654.2ffd58",
-    "type": "success",
-    "name": "success",
-    "xml": "<outcome value='success'>\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1715.9933624267578,
-    "y": 110.03050518035889,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "e5b3fd51.2397c"
-      ]
-    ]
-  },
-  {
-    "id": "b242d748.545378",
-    "type": "failure",
-    "name": "failure",
-    "xml": "<outcome value='failure'>\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1708.2433624267578,
-    "y": 163.67338848114014,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "71cf21cf.2814e"
-      ]
-    ]
-  },
-  {
-    "id": "e5b3fd51.2397c",
-    "type": "set",
-    "name": "set token-id",
-    "xml": "<set>\n<parameter name='prop.sdncRestApi.token_id' value='`$token-result.data.token_id`' />\n",
-    "comments": "",
-    "x": 1875.9934921264648,
-    "y": 104.03051090240479,
-    "z": "8cb5d046.a5aaf",
-    "wires": []
-  },
-  {
-    "id": "d910de32.e62ae",
-    "type": "execute",
-    "name": "execute RestApiCallNode Get Topology",
-    "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n<parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-network:networks'`\" />\n<parameter name=\"restapiUser\" value=\"`$prop.sdncRestApi.thirdpartySdnc.user`\" />\n<parameter name=\"restapiPassword\" value=\"`$prop.sdncRestApi.thirdpartySdnc.password`\" />\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"get\"/>\n<parameter name=\"responsePrefix\" value=\"topology\"/>\n<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>\n<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>\n<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>\n<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>\n<parameter name='customHttpHeaders' value=\"`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`\" />",
-    "comments": "",
-    "outputs": 1,
-    "x": 1929.3267669677734,
-    "y": 293.2342710494995,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "3dc2b196.085a9e",
-        "c53d2802.f6ecf8"
-      ]
-    ]
-  },
-  {
-    "id": "3dc2b196.085a9e",
-    "type": "success",
-    "name": "success",
-    "xml": "<outcome value='success'>\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 2244.8823013305664,
-    "y": 322.2342777252197,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "94766aa2.652398"
-      ]
-    ]
-  },
-  {
-    "id": "94766aa2.652398",
-    "type": "block",
-    "name": "block : atomic",
-    "xml": "<block atomic=\"true\">",
-    "atomic": "true",
-    "comments": "",
-    "outputs": 1,
-    "x": 2428.437847137451,
-    "y": 316.90099835395813,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "c3e460ec.ed97f"
-      ]
-    ]
-  },
-  {
-    "id": "5ca06a0d.d6b0d4",
-    "type": "returnFailure",
-    "name": "return failure",
-    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error executing Create vpn rest api\" />\n",
-    "comments": "",
-    "x": 2389.6601524353027,
-    "y": 225.12310695648193,
-    "z": "8cb5d046.a5aaf",
-    "wires": []
-  },
-  {
-    "id": "c53d2802.f6ecf8",
-    "type": "failure",
-    "name": "failure",
-    "xml": "<outcome value='failure'>\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 2243.3268852233887,
-    "y": 226.34534358978271,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "5ca06a0d.d6b0d4"
-      ]
-    ]
-  },
-  {
-    "id": "3177a11f.85bf9e",
-    "type": "dgstart",
-    "name": "DGSTART",
-    "outputs": 1,
-    "x": 91,
-    "y": 62.50000333786011,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "774441cb.70134"
-      ]
-    ]
-  },
-  {
-    "id": "774441cb.70134",
-    "type": "service-logic",
-    "name": "DataChange ${project.version}",
-    "module": "DataChange",
-    "version": "${project.version}",
-    "comments": "",
-    "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>",
-    "outputs": 1,
-    "x": 201.11112594604492,
-    "y": 126.44446134567261,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "5969d7b2.611c88"
-      ]
-    ]
-  },
-  {
-    "id": "5969d7b2.611c88",
-    "type": "method",
-    "name": "method esr-thirdparty-sdnc-discovery",
-    "xml": "<method rpc='esr-thirdparty-sdnc-discovery' mode='sync'>\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 297.5556869506836,
-    "y": 237.22224235534668,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "70441765.9b30e8"
-      ]
-    ]
-  },
-  {
-    "id": "70441765.9b30e8",
-    "type": "block",
-    "name": "block : atomic",
-    "xml": "<block atomic=\"true\">\n",
-    "atomic": "false",
-    "comments": "",
-    "outputs": 1,
-    "x": 205.77791595458984,
-    "y": 346.11122035980225,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "7e2d4ad0.53ea04"
-      ]
-    ]
-  },
-  {
-    "id": "c3e460ec.ed97f",
-    "type": "for",
-    "name": "for each Network",
-    "xml": "<for index='nidx' start='0' end='`$topology.networks.network_length`' >\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 2202.4818229675293,
-    "y": 443.72221183776855,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "e5b6573.9876aa8"
-      ]
-    ]
-  },
-  {
-    "id": "e5b6573.9876aa8",
-    "type": "block",
-    "name": "block",
-    "xml": "<block>\n",
-    "atomic": "false",
-    "comments": "",
-    "outputs": 1,
-    "x": 2392.4817848205566,
-    "y": 451.5000047683716,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "80a22745.8dc678",
-        "de6cf312.86823"
-      ]
-    ]
-  },
-  {
-    "id": "80a22745.8dc678",
-    "type": "call",
-    "name": "call update-network-to-aai",
-    "xml": "<call module='DataChange' rpc='update-network-to-aai' mode='sync' >\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 2645.81520652771,
-    "y": 514.8333749771118,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "de6cf312.86823",
-    "type": "set",
-    "name": "set network",
-    "xml": "<set>\n<parameter name='network.' value='`$topology.networks.network[$nidx].`' />\n",
-    "comments": "",
-    "x": 2598.037326812744,
-    "y": 432.6111192703247,
-    "z": "8cb5d046.a5aaf",
-    "wires": []
-  },
-  {
-    "id": "71cf21cf.2814e",
-    "type": "block",
-    "name": "block",
-    "xml": "<block>\n",
-    "atomic": "false",
-    "comments": "",
-    "outputs": 1,
-    "x": 1869.8147583007812,
-    "y": 158.77776765823364,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "f641d4a3.15fe58",
-    "type": "comment",
-    "name": "Do Nothing",
-    "info": "",
-    "comments": "",
-    "x": 2005.3703320821123,
-    "y": 157.66664340760974,
-    "z": "8cb5d046.a5aaf",
-    "wires": []
-  },
-  {
-    "id": "50cc0089.8c5b9",
-    "type": "switchNode",
-    "name": "switch type",
-    "xml": "<switch test=\"`$prop.sdncRestApi.type`\">\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 905.0002479553223,
-    "y": 279.00003147125244,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "5f892fdd.7662a",
-        "1ec39cc9.6f7b33"
-      ]
-    ]
-  },
-  {
-    "id": "9e41086f.f40978",
-    "type": "block",
-    "name": "block",
-    "xml": "<block>\n",
-    "atomic": "false",
-    "comments": "",
-    "outputs": 1,
-    "x": 760.0000839233398,
-    "y": 277.00002002716064,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "50cc0089.8c5b9"
-      ]
-    ]
-  },
-  {
-    "id": "5f892fdd.7662a",
-    "type": "other",
-    "name": "SOTN",
-    "xml": "<outcome value='SOTN'>\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1059.0000305175781,
-    "y": 235.00000190734863,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "4718051e.d2c46c"
-      ]
-    ]
-  },
-  {
-    "id": "1ec39cc9.6f7b33",
-    "type": "other",
-    "name": "other",
-    "xml": "<outcome value='Other'>\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1056.0000305175781,
-    "y": 359.00000953674316,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "57bc8339.f1a98c"
-      ]
-    ]
-  },
-  {
-    "id": "57bc8339.f1a98c",
-    "type": "returnFailure",
-    "name": "return failure",
-    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'Unsupported type = ' + $prop.sdncRestApi.type`\" />\n\n",
-    "comments": "",
-    "x": 1204.7727355957031,
-    "y": 358.43917751312256,
-    "z": "8cb5d046.a5aaf",
-    "wires": []
-  },
-  {
-    "id": "d85bb5b1.82c4d8",
-    "type": "execute",
-    "name": "execute Properties",
-    "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >\n    <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />\n    <parameter name='contextPrefix' value='prop' />\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1421.03125,
-    "y": 50.03125,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "3b1c8725.0fcfb8",
-    "type": "switchNode",
-    "name": "switch prop.sdncRestApi.token_id",
-    "xml": "<switch test=\"`$prop.sdncRestApi.token_id`\">\n\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1474.5310821533203,
-    "y": 270.000036239624,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "51700151.3682f",
-        "56c8ba7a.de2b04"
-      ]
-    ]
-  },
-  {
-    "id": "51700151.3682f",
-    "type": "other",
-    "name": "Null",
-    "xml": "<outcome value=''>\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1690.5312004089355,
-    "y": 242.00001335144043,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "f5ddce51.60077"
-      ]
-    ]
-  },
-  {
-    "id": "56c8ba7a.de2b04",
-    "type": "other",
-    "name": "other",
-    "xml": "<outcome value='Other'>\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1689.5311393737793,
-    "y": 291.5000228881836,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "d910de32.e62ae"
-      ]
-    ]
-  },
-  {
-    "id": "f5ddce51.60077",
-    "type": "execute",
-    "name": "execute RestApiCallNode Get Topology",
-    "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n<parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-network:networks'`\" />\n<parameter name=\"restapiUser\" value=\"`$prop.sdncRestApi.thirdpartySdnc.user`\" />\n<parameter name=\"restapiPassword\" value=\"`$prop.sdncRestApi.thirdpartySdnc.password`\" />\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"get\"/>\n<parameter name=\"responsePrefix\" value=\"topology\"/>\n<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>\n<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>\n<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>\n<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1925.0311584472656,
-    "y": 239.03126525878906,
-    "z": "8cb5d046.a5aaf",
-    "wires": [
-      [
-        "c53d2802.f6ecf8",
-        "3dc2b196.085a9e"
-      ]
-    ]
-  }
+    {
+        "id": "197ffd5b.105fa3",
+        "type": "other",
+        "name": "update",
+        "xml": "<outcome value='Update'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 310,
+        "y": 360,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "8298d18a.63e4b"
+            ]
+        ]
+    },
+    {
+        "id": "3bcc844d.917dbc",
+        "type": "other",
+        "name": "delete",
+        "xml": "<outcome value='delete'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 310,
+        "y": 440,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "9a40237.2d204e"
+            ]
+        ]
+    },
+    {
+        "id": "9a40237.2d204e",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "outputs": 1,
+        "x": 451.5,
+        "y": 440,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7bf268a7.980d48",
+        "type": "comment",
+        "name": "TODO: Delete topology from AAI",
+        "info": "",
+        "comments": "",
+        "x": 384.3335189819336,
+        "y": 407.96899485588074,
+        "z": "a54d391e.88f7d8",
+        "wires": []
+    },
+    {
+        "id": "9d107456.f08fe8",
+        "type": "switchNode",
+        "name": "switch aai-event-trigger",
+        "xml": "<switch test=\"`$data-change-notification-input.aai-event-trigger`\">\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 140.5,
+        "y": 400,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "197ffd5b.105fa3",
+                "3bcc844d.917dbc"
+            ]
+        ]
+    },
+    {
+        "id": "68d03f9b.5e646",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "outputs": 1,
+        "x": 871.5,
+        "y": 240,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "608a6bc.8344d94",
+                "7a11c3b.828ac3c",
+                "365e44a4.701f6c",
+                "a3a71589.3e7428",
+                "c3222caa.a5e2a"
+            ]
+        ]
+    },
+    {
+        "id": "7a11c3b.828ac3c",
+        "type": "execute",
+        "name": "execute RestApiCallNode Get token",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n<parameter name=\"templateFileName\" value=\"`$prop.restapi.templateDir + '/actokentemplate.json'`\" />\n<parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/v2/tokens'`\" />\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"post\"/>\n<parameter name=\"responsePrefix\" value=\"token-result\"/>\n<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>\n<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>\n<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>\n<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>",
+        "comments": "",
+        "outputs": 1,
+        "x": 1144.5001983642578,
+        "y": 161.00000953674316,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "15e6e327.6bb24d",
+                "b8526c6a.21372"
+            ]
+        ]
+    },
+    {
+        "id": "15e6e327.6bb24d",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1358.0001983642578,
+        "y": 141.00000953674316,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "eada649a.e312c8"
+            ]
+        ]
+    },
+    {
+        "id": "b8526c6a.21372",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1354.0001983642578,
+        "y": 181.00000953674316,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "bf5d38a1.f76208"
+            ]
+        ]
+    },
+    {
+        "id": "eada649a.e312c8",
+        "type": "set",
+        "name": "set token-id",
+        "xml": "<set>\n<parameter name='prop.sdncRestApi.token_id' value='`$token-result.data.token_id`' />\n",
+        "comments": "",
+        "x": 1508.5001983642578,
+        "y": 141.00000953674316,
+        "z": "a54d391e.88f7d8",
+        "wires": []
+    },
+    {
+        "id": "3ad01439.f9afec",
+        "type": "execute",
+        "name": "execute RestApiCallNode Get Topology",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n<parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-network:networks'`\" />\n<parameter name=\"restapiUser\" value=\"`$prop.sdncRestApi.thirdpartySdnc.user`\" />\n<parameter name=\"restapiPassword\" value=\"`$prop.sdncRestApi.thirdpartySdnc.password`\" />\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"get\"/>\n<parameter name=\"responsePrefix\" value=\"topology\"/>\n<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>\n<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>\n<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>\n<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>\n<parameter name='customHttpHeaders' value=\"`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`\" />",
+        "comments": "",
+        "outputs": 1,
+        "x": 1575.5001983642578,
+        "y": 261.00000953674316,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "a2f37f5d.3d152",
+                "76d94eec.78391"
+            ]
+        ]
+    },
+    {
+        "id": "a2f37f5d.3d152",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1818.0001983642578,
+        "y": 281.00000953674316,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "f2edc52a.829ae8"
+            ]
+        ]
+    },
+    {
+        "id": "f2edc52a.829ae8",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 1975.5001983642578,
+        "y": 281.00000953674316,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "2876228a.bd45de"
+            ]
+        ]
+    },
+    {
+        "id": "f0deaa8b.a77c48",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error executing Create vpn rest api\" />\n",
+        "comments": "",
+        "x": 1952.0001983642578,
+        "y": 181.00000953674316,
+        "z": "a54d391e.88f7d8",
+        "wires": []
+    },
+    {
+        "id": "76d94eec.78391",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1814.0001983642578,
+        "y": 181.00000953674316,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "f0deaa8b.a77c48"
+            ]
+        ]
+    },
+    {
+        "id": "a45743c4.fd9ac",
+        "type": "dgstart",
+        "name": "DGSTART",
+        "outputs": 1,
+        "x": 98,
+        "y": 100,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "4069c94b.4e3178"
+            ]
+        ]
+    },
+    {
+        "id": "4069c94b.4e3178",
+        "type": "service-logic",
+        "name": "DataChange ${project.version}",
+        "module": "DataChange",
+        "version": "${project.version}",
+        "comments": "",
+        "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>",
+        "outputs": 1,
+        "x": 164,
+        "y": 160,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "a97cf7f0.905958"
+            ]
+        ]
+    },
+    {
+        "id": "a97cf7f0.905958",
+        "type": "method",
+        "name": "method esr-thirdparty-sdnc-discovery",
+        "xml": "<method rpc='esr-thirdparty-sdnc-discovery' mode='sync'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 184,
+        "y": 240,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "8d013bc1.d159b8"
+            ]
+        ]
+    },
+    {
+        "id": "8d013bc1.d159b8",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 431.5,
+        "y": 240,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "9d107456.f08fe8"
+            ]
+        ]
+    },
+    {
+        "id": "2876228a.bd45de",
+        "type": "for",
+        "name": "for each Network",
+        "xml": "<for index='nidx' start='0' end='`$topology.networks.network_length`' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1401.5002136230469,
+        "y": 380.0000247955322,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "ef7b8418.bcb8e8"
+            ]
+        ]
+    },
+    {
+        "id": "ef7b8418.bcb8e8",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 1550.0002136230469,
+        "y": 380.0000247955322,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "64202ed1.e0b41",
+                "93269044.8fece"
+            ]
+        ]
+    },
+    {
+        "id": "64202ed1.e0b41",
+        "type": "call",
+        "name": "call update-network-to-aai",
+        "xml": "<call module='DataChange' rpc='update-network-to-aai' mode='sync' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1729.0002136230469,
+        "y": 400.0000247955322,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "93269044.8fece",
+        "type": "set",
+        "name": "set network",
+        "xml": "<set>\n<parameter name='network.' value='`$topology.networks.network[$nidx].`' />\n",
+        "comments": "",
+        "x": 1684.0002136230469,
+        "y": 360.0000247955322,
+        "z": "a54d391e.88f7d8",
+        "wires": []
+    },
+    {
+        "id": "bf5d38a1.f76208",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 1474.0001983642578,
+        "y": 181.00000953674316,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9588f43b.0d44f8",
+        "type": "comment",
+        "name": "Do Nothing",
+        "info": "",
+        "comments": "",
+        "x": 1644.0001983642578,
+        "y": 221.00000953674316,
+        "z": "a54d391e.88f7d8",
+        "wires": []
+    },
+    {
+        "id": "60d84913.695d78",
+        "type": "switchNode",
+        "name": "switch type",
+        "xml": "<switch test=\"`$prop.sdncRestApi.type`\">\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 563,
+        "y": 360,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "de59227b.bacf9",
+                "1a34048f.8eca2b"
+            ]
+        ]
+    },
+    {
+        "id": "8298d18a.63e4b",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 430,
+        "y": 360,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "60d84913.695d78"
+            ]
+        ]
+    },
+    {
+        "id": "de59227b.bacf9",
+        "type": "other",
+        "name": "SOTN",
+        "xml": "<outcome value='SOTN'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 710,
+        "y": 240,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "68d03f9b.5e646"
+            ]
+        ]
+    },
+    {
+        "id": "1a34048f.8eca2b",
+        "type": "other",
+        "name": "other",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 725.0000076293945,
+        "y": 479.00003242492676,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "7faf207a.622e5"
+            ]
+        ]
+    },
+    {
+        "id": "7faf207a.622e5",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'Unsupported type = ' + $prop.sdncRestApi.type`\" />\n\n",
+        "comments": "",
+        "x": 903.0000076293945,
+        "y": 479.00003242492676,
+        "z": "a54d391e.88f7d8",
+        "wires": []
+    },
+    {
+        "id": "608a6bc.8344d94",
+        "type": "execute",
+        "name": "execute Properties",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >\n    <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />\n    <parameter name='contextPrefix' value='prop' />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1091.0001983642578,
+        "y": 121.00000953674316,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "365e44a4.701f6c",
+        "type": "switchNode",
+        "name": "switch prop.sdncRestApi.token_id",
+        "xml": "<switch test=\"`$prop.sdncRestApi.token_id`\">\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1137.5001983642578,
+        "y": 241.00000953674316,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "b737a6fe.87cf68",
+                "878b1fd0.506dd"
+            ]
+        ]
+    },
+    {
+        "id": "b737a6fe.87cf68",
+        "type": "other",
+        "name": "Null",
+        "xml": "<outcome value=''>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1354.0001983642578,
+        "y": 221.00000953674316,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "de7d499c.f87aa8"
+            ]
+        ]
+    },
+    {
+        "id": "878b1fd0.506dd",
+        "type": "other",
+        "name": "other",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1354.0001983642578,
+        "y": 261.00000953674316,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "3ad01439.f9afec"
+            ]
+        ]
+    },
+    {
+        "id": "de7d499c.f87aa8",
+        "type": "execute",
+        "name": "execute RestApiCallNode Get Topology",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n<parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-network:networks'`\" />\n<parameter name=\"restapiUser\" value=\"`$prop.sdncRestApi.thirdpartySdnc.user`\" />\n<parameter name=\"restapiPassword\" value=\"`$prop.sdncRestApi.thirdpartySdnc.password`\" />\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"get\"/>\n<parameter name=\"responsePrefix\" value=\"topology\"/>\n<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>\n<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>\n<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>\n<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1575.5001983642578,
+        "y": 221.00000953674316,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            [
+                "76d94eec.78391",
+                "a2f37f5d.3d152"
+            ]
+        ]
+    },
+    {
+        "id": "c3222caa.a5e2a",
+        "type": "execute",
+        "name": "execute RestconfDiscoveryNode",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restconfdiscovery.RestconfDiscoveryNode' method='establishSubscription' >\n<parameter name=\"subscriberId\" value=\"sotn-controller\" />\n<parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/operations/ietf-subscribed-notifications:establish-subscription'`\" />\n<parameter name=\"restapiUser\" value=\"`$prop.sdncRestApi.thirdpartySdnc.user`\" />\n<parameter name=\"restapiPassword\" value=\"`$prop.sdncRestApi.thirdpartySdnc.password`\" />\n<parameter name=\"sseConnectURL\" value=\"`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/streams/yang-push-json'`\" />\n<parameter name=\"dirPath\" value=\"/opt/sdnc/restconfapi/yang/notification\" />\n<parameter name=\"format\" value=\"json\" />\n<parameter name=\"httpMethod\" value=\"post\" />\n<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>\n<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>\n<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>\n<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>\n<parameter name='customHttpHeaders' value=\"`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`\" />\n<parameter name=\"module\" value=\"DataChange\" />\n<parameter name=\"rpc\" value=\"sotn-notification-handler\" />\n<parameter name=\"mode\" value=\"sync\" />",
+        "comments": "",
+        "outputs": 1,
+        "x": 1134.0001983642578,
+        "y": 381.00000953674316,
+        "z": "a54d391e.88f7d8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a3a71589.3e7428",
+        "type": "set",
+        "name": "set encoding-format",
+        "xml": "<set>\n<parameter name='input' value='ietf-subscribed-notifications:establish-subscription.input.' />\n<parameter name=\"`$input + 'encoding'`\" value=\"encode-json\" />",
+        "comments": "",
+        "x": 1094.0001983642578,
+        "y": 341.00000953674316,
+        "z": "a54d391e.88f7d8",
+        "wires": []
+    },
+    {
+        "id": "98c18166.4a0f3",
+        "type": "comment",
+        "name": "Notification subscription",
+        "info": "",
+        "comments": "",
+        "x": 1099.000343322754,
+        "y": 298.00000858306885,
+        "z": "a54d391e.88f7d8",
+        "wires": []
+    }
 ]
