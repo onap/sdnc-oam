@@ -3,8 +3,51 @@
 Release Notes
 =============
 
+Version: 1.4.3
+--------------
+
+
+:Release Date: 2018-11-30
+
+**New Features**
+
+The Casablanca release of SDNC introduces the following new features:
+
+	- Network Discovery, in support of POMBA
+	- Support for CCVPN use case
+	- Change Management enhancements
+
+**Bug Fixes**
+
+The list of bugs fixed in the SDNC Casablanca release may be found in the ONAP Jira at <https://jira.onap.org/issues/?filter=11544>
+
+
+**Known Issues**
+
+The list of known issues in the SDNC project may be found in the ONAP Jira at <https://jira.onap.org/issues/?filter=11119>
+
+
+**Security Notes**
+
+SDNC code has been formally scanned during build time using NexusIQ and all Critical vulnerabilities have been addressed, items that remain open have been assessed for risk and determined to be false positive. The SDNC open Critical security vulnerabilities and their risk assessment have been documented as part of the `project <https://wiki.onap.org/pages/viewpage.action?pageId=45307811>`_.
+
+Quick Links:
+
+- `SDNC project page <https://wiki.onap.org/display/DW/Software+Defined+Network+Controller+Project>`_
+- `Passing Badge information for SDNC <https://bestpractices.coreinfrastructure.org/en/projects/1703>`_
+- `Project Vulnerability Review Table for Casablanca Release <https://wiki.onap.org/pages/viewpage.action?pageId=45307811>`_
+
+**Upgrade Notes**
+   NA
+
+**Deprecation Notes**
+   NA
+
+**Other**
+   NA
 
 Version: 1.3.4
+--------------
 
 
 :Release Date: 2018-07-06
@@ -14,13 +57,14 @@ Version: 1.3.4
 The full list of SDNC Beijing Epics and user stories can be found in the ONAP Jira at <https://jira.onap.org/issues/?filter=10791>.  The
 following table lists the major features included in the Beijing release.
 
-+-------------+-------------------------------------------------------------------------------------------------------------------------+
-| Jira #      |  Abstract                                                                                                               |
-+=============+=========================================================================================================================+
-|  [SDNC-278] |  Change management in-place software upgrade execution using Ansible <https://jira.onap.org/browse/SDNC-278>            |
-+-------------+-------------------------------------------------------------------------------------------------------------------------+
-|  [SDNC-163] | Deploy a SDN-C high availability environment - Kubernetes <https://jira.onap.org/browse/SDNC-163>                       |
-+-------------+-------------------------------------------------------------------------------------------------------------------------+
++------------+-------------------------------------------------------------------------------------------------------------+
+| Jira #     | Abstract                                                                                                    |
++============+=============================================================================================================+
+| [SDNC-278] | Change management in-place software upgrade execution using Ansible <https://jira.onap.org/browse/SDNC-278> |
++------------+-------------------------------------------------------------------------------------------------------------+
+| [SDNC-163] | Deploy a SDN-C high availability environment - Kubernetes <https://jira.onap.org/browse/SDNC-163>           |
++------------+-------------------------------------------------------------------------------------------------------------+
+
 
 **Bug Fixes**
 
@@ -46,6 +90,7 @@ The list of bugs fixed in the SDNC Beijing release may be found in the ONAP Jira
 +------------+----------------------------------------------------------------------------------------------------------------------------------+
 | [SDNC-64]  | SDNC is not setting FromApp identifier in logging MDC <https://jira.onap.org/browse/SDNC-64>                                     |
 +------------+----------------------------------------------------------------------------------------------------------------------------------+
+
 
 **Security Notes**
 
