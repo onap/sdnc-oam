@@ -17,26 +17,39 @@
 # * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # * See the License for the specific language governing permissions and
 # * limitations under the License.
-# * 
+# *
 # * ECOMP is a trademark and service mark of AT&T Intellectual Property.
 # * ============LICENSE_END=========================================================
 # */
 
-- hosts: all
+# Host definition
+ip:	0.0.0.0
+port:	8000
 
-  # Mandatory: 
-  vars:
-      sleep_time: "{{Sleep|default(10)}}"
+# Security (controls use of TLS encrypton and RestServer authentication)
+tls:	no
+auth:	no
 
-  tasks:
+# TLS certificates (must be built on application host)
+priv:	provide_privated_key.pem
+pub:	provide_public_key.pem
 
-    - debug:
-        msg: "Sleep time: {{ sleep_time }}"
+# RestServer authentication
+id:	sdnc
+psswd:	sdnc
 
-    - name: sleep
-      shell: sleep {{ sleep_time }}
+# Mysql
+host:	dbhost
+user:	sdnc
+passwd:	sdnc
+db:	ansible
 
+# Playbooks
+from_files:		yes
+ansible_path:		/opt/ansible-server/Playbooks
+ansible_inv:		Ansible_inventory
+ansible_temp:		PlaybooksTemp
+timeout_seconds:	60
 
-    - debug:
-        msg: "Done"
-
+# Blocking on GetResults
+getresults_block:	yes
