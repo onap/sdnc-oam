@@ -3,7 +3,8 @@ FROM onap/ccsdk-odlsli-alpine-image:${ccsdk.docker.version}
 
 MAINTAINER SDN-C Team (sdnc@lists.onap.org)
 
-ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
+#ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
+ENV JAVA_HOME /usr/lib/jvm/java-1.8-openjdk
 ENV ODL_HOME /opt/opendaylight/current
 ENV SDNC_CONFIG_DIR /opt/onap/sdnc/data/properties
 ENV SDNC_STORE_DIR /opt/onap/sdnc/data/stores
