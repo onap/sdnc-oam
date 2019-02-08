@@ -33,7 +33,7 @@ RUN rsync -a /tmp/system $ODL_HOME && rm -rf /tmp/system
 # Add SDNC repositories to boot repositories
 RUN cp $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.karaf.features.cfg.orig
 RUN sed -i -e "\|featuresRepositories|s|$|,${SDNC_NORTHBOUND_REPO}|"  $ODL_HOME/etc/org.apache.karaf.features.cfg
-RUN sed -i -e "\|featuresBoot=config|s|$|,sdnc-northbound-all|"  $ODL_HOME/etc/org.apache.karaf.features.cfg
+RUN sed -i -e "\|featuresBoot[^a-zA-Z]|s|$|,sdnc-northbound-all|"  $ODL_HOME/etc/org.apache.karaf.features.cfg
 
 
 ENTRYPOINT /opt/onap/sdnc/bin/startODL.sh
