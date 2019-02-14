@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
     <parent>
         <groupId>org.onap.ccsdk.parent</groupId>
@@ -18,6 +20,7 @@
     <properties>
         <image.name>onap/sdnc-dmaap-listener-image</image.name>
         <sdnc.project.version>${project.version}</sdnc.project.version>
+        <sdnc.build.timestamp>${maven.build.timestamp}</sdnc.build.timestamp>
         <ccsdk.docker.version>0.4-STAGING-latest</ccsdk.docker.version>
         <docker.buildArg.https_proxy>${https_proxy}</docker.buildArg.https_proxy>
         <maven.build.timestamp.format>yyyyMMdd'T'HHmmss'Z'</maven.build.timestamp.format>
@@ -38,22 +41,7 @@
                             <goal>execute</goal>
                         </goals>
                         <configuration>
-                            <source>
-                                println project.properties['sdnc.project.version'];
-                                def versionArray;
-                                if ( project.properties['sdnc.project.version'] != null ) {
-                                versionArray = project.properties['sdnc.project.version'].split('\\.');
-                                }
-
-                                if (project.properties['sdnc.project.version'].endsWith("-SNAPSHOT"))
-                                {
-                                project.properties['project.docker.latesttag.version']=versionArray[0] + '.' + versionArray[1] + "-STAGING-latest";
-                                } else {
-                                project.properties['project.docker.latesttag.version']=versionArray[0] + '.' + versionArray[1] + "-STAGING-latest";
-                                }
-
-                                println 'New Tag for docker:' + project.properties['project.docker.latesttag.version'];
-                            </source>
+                            <source>${basedir}/../TagVersion.groovy</source>
                         </configuration>
                     </execution>
                 </executions>
@@ -208,9 +196,9 @@
                                         <dockerFileDir>${basedir}/target/docker-stage</dockerFileDir>
                                         <dockerFile>Dockerfile</dockerFile>
                                         <tags>
-                                            <tag>${project.version}</tag>
-                                            <tag>${project.version}-STAGING-${maven.build.timestamp}</tag>
-                                            <tag>${project.docker.latesttag.version}</tag>
+                                            <tag>${project.docker.latestminortag.version}</tag>
+                                            <tag>${project.docker.latestfulltag.version}</tag>
+                                            <tag>${project.docker.latesttagtimestamp.version}</tag>
                                         </tags>
                                     </build>
                                 </image>
