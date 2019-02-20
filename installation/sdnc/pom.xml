@@ -18,6 +18,7 @@
 
     <properties>
         <image.name>onap/sdnc-image</image.name>
+        <standalone.image.name>onap/sdnc-standalone-image</standalone.image.name>
         <sdnc.project.version>${project.version}</sdnc.project.version>
         <sdnc.build.timestamp>${maven.build.timestamp}</sdnc.build.timestamp>
         <sdnc.northbound.version>1.5.1-SNAPSHOT</sdnc.northbound.version>
@@ -84,23 +85,6 @@
                 <artifactId>docker-maven-plugin</artifactId>
                 <version>0.28.0</version>
                 <inherited>false</inherited>
-                <configuration>
-                    <images>
-                        <image>
-                            <name>${image.name}</name>
-                            <build>
-                                <cleanup>try</cleanup>
-                                <dockerFileDir>${basedir}/target/docker-stage</dockerFileDir>
-                                <dockerFile>Dockerfile</dockerFile>
-                                <tags>
-                                    <tag>${project.docker.latestminortag.version}</tag>
-                                    <tag>${project.docker.latestfulltag.version}</tag>
-                                    <tag>${project.docker.latesttagtimestamp.version}</tag>
-                                </tags>
-                            </build>
-                        </image>
-                    </images>
-                </configuration>
                 <executions>
                     <execution>
                         <id>generate-images</id>
@@ -108,21 +92,100 @@
                         <goals>
                             <goal>build</goal>
                         </goals>
+                        <configuration>
+                           <images>
+                            <image>
+                             <name>${image.name}</name>
+                             <build>
+                              <cleanup>try</cleanup>
+                              <dockerFileDir>${basedir}/target/docker-stage</dockerFileDir>
+                              <dockerFile>Dockerfile</dockerFile>
+                              <tags>
+                                 <tag>${project.docker.latestminortag.version}</tag>
+                                 <tag>${project.docker.latestfulltag.version}</tag>
+                                 <tag>${project.docker.latesttagtimestamp.version}</tag>
+                              </tags>
+                             </build>
+                            </image>
+                           </images>
+                          </configuration>
                     </execution>
-
                     <execution>
-                        <id>push-images</id>
-                        <phase>${docker.push.phase}</phase>
-                        <goals>
-                            <goal>build</goal>
-                            <goal>push</goal>
-                        </goals>
-                    </execution>
+                      <id>push-images</id>
+                      <phase>${docker.push.phase}</phase>
+                      <goals>
+                       <goal>build</goal>
+                       <goal>push</goal>
+                      </goals>
+                       <configuration>
+                        <images>
+                         <image>
+                          <name>${image.name}</name>
+                          <build>
+                           <cleanup>try</cleanup>
+                           <dockerFileDir>${basedir}/target/docker-stage</dockerFileDir>
+                           <dockerFile>Dockerfile</dockerFile>
+                           <tags>
+                              <tag>${project.docker.latestminortag.version}</tag>
+                              <tag>${project.docker.latestfulltag.version}</tag>
+                              <tag>${project.docker.latesttagtimestamp.version}</tag>
+                           </tags>
+                          </build>
+                         </image>
+                        </images>
+                       </configuration>
+                   </execution>
+                   <execution>
+                     <id>generate-standalone-images</id>
+                     <phase>package</phase>
+                     <goals>
+                      <goal>build</goal>
+                     </goals>
+                     <configuration>
+                      <images>
+                       <image>
+                        <name>${standalone.image.name}</name>
+                        <build>
+                         <cleanup>try</cleanup>
+                         <dockerFileDir>${basedir}/target/docker-stage</dockerFileDir>
+                         <dockerFile>standalone.Dockerfile</dockerFile>
+                         <tags>
+                             <tag>${project.docker.latestminortag.version}</tag>
+                             <tag>${project.docker.latestfulltag.version}</tag>
+                             <tag>${project.docker.latesttagtimestamp.version}</tag>
+                         </tags>
+                        </build>
+                       </image>
+                      </images>
+                     </configuration>
+                   </execution>
+                   <execution>
+                     <id>push-standalone-images</id>
+                     <phase>${docker.push.phase}</phase>
+                     <goals>
+                      <goal>build</goal>
+                      <goal>push</goal>
+                     </goals>
+                     <configuration>
+                       <images>
+                        <image>
+                         <name>${standalone.image.name}</name>
+                         <build>
+                          <cleanup>try</cleanup>
+                          <dockerFileDir>${basedir}/target/docker-stage</dockerFileDir>
+                          <dockerFile>standalone.Dockerfile</dockerFile>
+                          <tags>
+                             <tag>${project.docker.latestminortag.version}</tag>
+                             <tag>${project.docker.latestfulltag.version}</tag>
+                             <tag>${project.docker.latesttagtimestamp.version}</tag>
+                          </tags>
+                         </build>
+                        </image>
+                       </images>
+                     </configuration>
+                  </execution>
                 </executions>
             </plugin>
-
-
-
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
                 <version>2.6</version>
@@ -140,6 +203,7 @@
                                     <directory>src/main/docker</directory>
                                     <includes>
                                         <include>Dockerfile</include>
+                                        <include>standalone.Dockerfile</include>
                                     </includes>
                                     <filtering>true</filtering>
                                 </resource>
@@ -157,8 +221,8 @@
                             <resources>
                                 <resource>
                                     <directory>src/main/scripts</directory>
-				    <includes>
-					<include>*.py</include>
+                                    <includes>
+                                        <include>*.py</include>
                                         <include>*.sh</include>
                                     </includes>
                                     <filtering>false</filtering>
@@ -179,8 +243,8 @@
                                     <directory>src/main/resources</directory>
                                     <includes>
                                         <include>idmlight.db.mv.db</include>
-                                        <include>AAF_RootCA.cer</include>
                                         <include>truststoreONAPall.jks</include>
+                                        <include>aaa-app-config.xml</include>
                                     </includes>
                                     <filtering>false</filtering>
                                 </resource>
@@ -219,6 +283,8 @@
                                     <directory>../src/main/properties</directory>
                                     <includes>
                                         <include>*.properties</include>
+                                        <include>*.props</include>
+                                        <include>*.csv</include>
                                     </includes>
                                     <filtering>false</filtering>
                                 </resource>
@@ -238,6 +304,8 @@
                                     <directory>../src/main/stores</directory>
                                     <includes>
                                         <include>*.jks</include>
+                                        <include>*.keyfile</include>
+                                        <include>*.p12</include>
                                     </includes>
                                     <filtering>false</filtering>
                                 </resource>
@@ -287,7 +355,6 @@
                 <groupId>org.codehaus.mojo</groupId>
                 <version>1.5.0</version>
                 <executions>
-
                     <execution>
                         <id>change shell permissions</id>
                         <phase>process-sources</phase>
@@ -310,10 +377,7 @@
                     </execution>
                 </executions>
             </plugin>
-
-
         </plugins>
-
     </build>
     <organization>
         <name>ONAP</name>
