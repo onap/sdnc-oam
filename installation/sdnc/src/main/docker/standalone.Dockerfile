@@ -26,10 +26,6 @@ RUN cp $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.kara
 RUN sed -i -e "\|featuresRepositories|s|$|,${SDNC_NORTHBOUND_REPO}|"  $ODL_HOME/etc/org.apache.karaf.features.cfg
 RUN sed -i -e "\|featuresBoot[^a-zA-Z]|s|$|,sdnc-northbound-all|"  $ODL_HOME/etc/org.apache.karaf.features.cfg
 
-# install AAF configs
-COPY aaa-app-config.xml $ODL_HOME/etc/opendaylight/datastore/initial/config/
-RUN echo "cadi_prop_files=$SDNC_CONFIG_DIR/org.onap.sdnc.props" >> $ODL_HOME/etc/system.properties
-
 # imstall ssl and java certificates
 COPY truststoreONAPall.jks $JAVA_SECURITY_DIR
 COPY truststoreONAPall.jks $SDNC_STORE_DIR

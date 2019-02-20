@@ -18,10 +18,11 @@
 
 	<properties>
 		<image.name>onap/sdnc-image</image.name>
+		<standalone.image.name>onap/sdnc-standalone-image</standalone.image.name>
 		<sdnc.project.version>${project.version}</sdnc.project.version>
-        <sdnc.build.timestamp>${maven.build.timestamp}</sdnc.build.timestamp>
+        	<sdnc.build.timestamp>${maven.build.timestamp}</sdnc.build.timestamp>
 		<sdnc.northbound.version>1.5.0-SNAPSHOT</sdnc.northbound.version>
-        <ccsdk.docker.version>0.4-STAGING-latest</ccsdk.docker.version>
+        	<ccsdk.docker.version>0.4-STAGING-latest</ccsdk.docker.version>
 		<docker.buildArg.https_proxy>${https_proxy}</docker.buildArg.https_proxy>
 		<docker.push.phase>deploy</docker.push.phase>
 		<docker.verbose>true</docker.verbose>
@@ -73,7 +74,7 @@
 							<goal>execute</goal>
 						</goals>
 						<configuration>
-                            <source>${basedir}/../TagVersion.groovy</source>
+                            				<source>${basedir}/../TagVersion.groovy</source>
 						</configuration>
 					</execution>
 				</executions>
@@ -84,23 +85,6 @@
 				<artifactId>docker-maven-plugin</artifactId>
 				<version>0.28.0</version>
 				<inherited>false</inherited>
-				<configuration>
-					<images>
-						<image>
-							<name>${image.name}</name>
-							<build>
-								<cleanup>try</cleanup>
-								<dockerFileDir>${basedir}/target/docker-stage</dockerFileDir>
-								<dockerFile>Dockerfile</dockerFile>
-								<tags>
-                                    <tag>${project.docker.latestminortag.version}</tag>
-                                    <tag>${project.docker.latestfulltag.version}</tag>
-                                    <tag>${project.docker.latesttagtimestamp.version}</tag>
-								</tags>
-							</build>
-						</image>
-					</images>
-				</configuration>
 				<executions>
 					<execution>
 						<id>generate-images</id>
@@ -108,6 +92,23 @@
 						<goals>
 							<goal>build</goal>
 						</goals>
+						<configuration>
+							<images>
+								<image>
+									<name>${image.name}</name>
+									<build>
+										<cleanup>try</cleanup>
+										<dockerFileDir>${basedir}/target/docker-stage</dockerFileDir>
+										<dockerFile>Dockerfile</dockerFile>
+										<tags>
+		                                    					<tag>${project.docker.latestminortag.version}</tag>
+		                                    					<tag>${project.docker.latestfulltag.version}</tag>
+		                                    					<tag>${project.docker.latesttagtimestamp.version}</tag>
+										</tags>
+									</build>
+								</image>
+							</images>
+						</configuration>
 					</execution>
 
 					<execution>
@@ -117,11 +118,76 @@
 							<goal>build</goal>
 							<goal>push</goal>
 						</goals>
+							<configuration>
+								<images>
+									<image>
+										<name>${image.name}</name>
+										<build>
+											<cleanup>try</cleanup>
+											<dockerFileDir>${basedir}/target/docker-stage</dockerFileDir>
+											<dockerFile>Dockerfile</dockerFile>
+											<tags>
+			                                    					<tag>${project.docker.latestminortag.version}</tag>
+			                                    					<tag>${project.docker.latestfulltag.version}</tag>
+			                                    					<tag>${project.docker.latesttagtimestamp.version}</tag>
+											</tags>
+										</build>
+									</image>
+								</images>
+							</configuration>
+					</execution>
+					<execution>
+						<id>generate-standalone-images</id>
+						<phase>package</phase>
+						<goals>
+							<goal>build</goal>
+						</goals>
+						<configuration>
+							<images>
+								<image>
+									<name>${standalone.image.name}</name>
+									<build>
+										<cleanup>try</cleanup>
+										<dockerFileDir>${basedir}/target/docker-stage</dockerFileDir>
+										<dockerFile>standalone.Dockerfile</dockerFile>
+										<tags>
+		                                    					<tag>${project.docker.latestminortag.version}</tag>
+		                                    					<tag>${project.docker.latestfulltag.version}</tag>
+		                                    					<tag>${project.docker.latesttagtimestamp.version}</tag>
+										</tags>
+									</build>
+								</image>
+							</images>
+						</configuration>
+					</execution>
+
+					<execution>
+						<id>push-standalone-images</id>
+						<phase>${docker.push.phase}</phase>
+						<goals>
+							<goal>build</goal>
+							<goal>push</goal>
+						</goals>
+							<configuration>
+								<images>
+									<image>
+										<name>${standalone.image.name}</name>
+										<build>
+											<cleanup>try</cleanup>
+											<dockerFileDir>${basedir}/target/docker-stage</dockerFileDir>
+											<dockerFile>standalone.Dockerfile</dockerFile>
+											<tags>
+			                                    					<tag>${project.docker.latestminortag.version}</tag>
+			                                    					<tag>${project.docker.latestfulltag.version}</tag>
+			                                    					<tag>${project.docker.latesttagtimestamp.version}</tag>
+											</tags>
+										</build>
+									</image>
+								</images>
+							</configuration>
 					</execution>
 				</executions>
 			</plugin>
-
-
 
 			<plugin>
 				<artifactId>maven-resources-plugin</artifactId>
@@ -140,6 +206,7 @@
 									<directory>src/main/docker</directory>
 									<includes>
 										<include>Dockerfile</include>
+										<include>standalone.Dockerfile</include>
 									</includes>
 									<filtering>true</filtering>
 								</resource>
@@ -180,8 +247,8 @@
 									<directory>src/main/resources</directory>
 									<includes>
 										<include>idmlight.db.mv.db</include>
-										<include>AAF_RootCA.cer</include>
 										<include>truststoreONAPall.jks</include>
+										 <include>aaa-app-config.xml</include>
 									</includes>
 									<filtering>false</filtering>
 								</resource>
@@ -220,6 +287,7 @@
 									<directory>../src/main/properties</directory>
 									<includes>
 										<include>*.properties</include>
+										<include>*.props</include>
 									</includes>
 									<filtering>false</filtering>
 								</resource>
@@ -239,6 +307,8 @@
 									<directory>../src/main/stores</directory>
 									<includes>
 										<include>*.jks</include>
+										<include>*.keyfile</include>
+										<include>*.p12</include>
 									</includes>
 									<filtering>false</filtering>
 								</resource>
