@@ -13,6 +13,8 @@ ENV JAVA_SECURITY_DIR $SSL_CERTS_DIR/java
 ENV SDNC_NORTHBOUND_REPO mvn:org.onap.sdnc.northbound/sdnc-northbound-all/${sdnc.northbound.version}/xml/features
 
 
+USER root
+
 
 # imstall ssl and java certificates
 COPY AAF_RootCA.cer $SSL_CERTS_DIR
@@ -35,6 +37,8 @@ RUN cp $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.kara
 RUN sed -i -e "\|featuresRepositories|s|$|,${SDNC_NORTHBOUND_REPO}|"  $ODL_HOME/etc/org.apache.karaf.features.cfg
 RUN sed -i -e "\|featuresBoot[^a-zA-Z]|s|$|,sdnc-northbound-all|"  $ODL_HOME/etc/org.apache.karaf.features.cfg
 
+RUN chown -R odl /opt
+USER odl
 
 ENTRYPOINT /opt/onap/sdnc/bin/startODL.sh
 EXPOSE 8181
