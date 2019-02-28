@@ -17,8 +17,8 @@
                 <parameter name="request-id" value="`$tmp.return.generate.vnf-se-serv-uuid`"/>
                 <parameter name="resource-type" value="`$vnf-topology-operation-input.vnf-information.vnf-type`" />
                 <parameter name="resource-id" value="`$vnf-topology-operation-input.vnf-information.vnf-id`" />
-                <parameter name="action-name" value="resource-assignment-action"/>
-                <parameter name="responsePrefix" value="sriovAssign" />
+                <parameter name="action-name" value="resource-assignment"/>
+                <parameter name="responsePrefix" value="raAssign" />
             </set>
             <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param_length`'>
                 <outcome value=''>
@@ -98,18 +98,25 @@
             </set>
             <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
                 <parameter name="logger" value="message-log"/>
-                <parameter name="field1" value="BEFORE ConfigAssignmentNode"/>
+                <parameter name="field1" value="BEFORE BlueprintProcessingClient"/>
             </record>
-            <execute plugin='org.onap.ccsdk.features.assignment.service.ConfigAssignmentNode' method='process'>
-                <parameter name="request-id" value='`$request-id`' />
-                <parameter name="resource-id" value='`$resource-id`' />
-                <parameter name="resource-type" value='`$resource-type`' />
-                <parameter name="action-name" value='`$action-name`' />
-                <parameter name="template-names" value="`'[&quot;' + $tmp.sdnc-artifact-name + '&quot;]'`" />
-                <parameter name="service-template-name" value='`$tmp.sdnc-model-name`' />
-                <parameter name="service-template-version" value='`$tmp.sdnc-model-version`' />
-                <parameter name='input-data' value='`$tmp.json-payload`' />
-                <parameter name="prifix" value="sriovAssign" />
+            <execute plugin='org.onap.ccsdk.sli.adaptors.grpc.cds.BlueprintProcessingClient' method='sendRequest'>
+                <parameter name='blueprint_name' value='`$tmp.sdnc-model-name`' />
+                <parameter name='blueprint_version' value='`$tmp.sdnc-model-version`' />
+                <parameter name='action' value='`$action-name`' />
+                <parameter name='mode' value='sync' />
+                <parameter name='force' value='false' />
+                <parameter name='ttl' value='0' />
+                <parameter name='prefix' value='`$responsePrefix`' />
+                <parameter name='payload' value="`'{
+  &quot;resource-assignment-request&quot;: {
+    &quot;template-prefix&quot;: [
+      &quot;' + $tmp.sdnc-artifact-name + '&quot;
+    ],
+    &quot;resource-assignment-properties&quot;: 
+        ' + $tmp.json-payload + '
+  }
+}'`"/>
                 <outcome value='failure'>
                     <return status='failure'>
                         <parameter name='ack-final' value='Y'/>
@@ -127,10 +134,10 @@
             </execute>
             <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
                 <parameter name="logger" value="message-log"/>
-                <parameter name="field1" value="AFTER ConfigAssignmentNode"/>
+                <parameter name="field1" value="AFTER BlueprintProcessingClient"/>
             </record>
             <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils" method="jsonStringToCtx">
-                <parameter name="source" value="`'sriovAssign.mashed-data.' + $tmp.sdnc-artifact-name`" />
+                <parameter name="source" value="`'raAssign.payload.resource-assignment-params.' + $tmp.sdnc-artifact-name`" />
                 <parameter name="outputPath" value="jsonContextPrefix" />
                 <parameter name="isEscaped" value="false" />
             </execute>
