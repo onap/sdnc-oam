@@ -1,0 +1,110 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    <method rpc='bbs-access-connectivity-network-topology-operation-delete-huawei' mode='sync'>
+        <block atomic="true">
+            <call module='GENERIC-RESOURCE-API' rpc='validate-bbs-network-input-parameters' mode='sync' ></call>
+            <set>
+                <parameter name='prop.sdncRestApi.thirdpartySdnc.url' value='https://swisscom.onap.inhuawei.com:26335' />
+                <parameter name='network-input-parameters.' value='`$network-topology-operation-input.network-request-input.network-input-parameters.`' />
+            </set>
+            <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
+                <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />
+                <parameter name='contextPrefix' value='prop' />
+            </execute>
+            <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
+                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/bbs-token-template.json'`"/>
+                <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url+'/rest/plat/smapp/v1/oauth/token'`"/>
+                <parameter name="format" value="json"/>
+                <parameter name="httpMethod" value="put"/>
+                <parameter name="responsePrefix" value="token-result"/>
+                <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
+                <parameter name="trustStorePassword" value="adminadmin"/>
+                <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                <parameter name="keyStorePassword" value="adminadmin"/>
+                <outcome value='failure'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="Error executing Get token rest api" />
+                    </return>
+                </outcome>
+                <outcome value='success'>
+                    <switch test='`$token-result.accessSession`'>
+                        <outcome value=''>
+                            <return status='failure'>
+                                <parameter name='ack-final' value='Y'/>
+                                <parameter name="error-code" value="500" />
+                                <parameter name="error-message" value="Error executing Get token rest api" />
+                            </return>
+                        </outcome>
+                        <outcome value='Other'>
+                            <set>
+                                <parameter name='prop.sdncRestApi.token_id' value='`$token-result.accessSession`' />
+                            </set>
+                        </outcome>
+                    </switch>
+                </outcome>
+            </execute>
+            <for index='idx' start='0' end='`$network-input-parameters.param_length`' >
+                <switch test="`$network-input-parameters.param[$idx].name == 'serviceID'`">
+                    <outcome value='true'>
+                        <switch test='`$network-input-parameters.param[$idx].value`'>
+                            <outcome value='Other'>
+                                <set>
+                                    <parameter name='prop.bbs.serviceID' value='`$network-input-parameters.param[$idx].value`' />
+                                </set>
+                            </outcome>
+                            <outcome value=''>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="invalid network-input-parameters.param in bbs-access-connectivity-network-topology-operation-delete" />
+                                </return>
+                            </outcome>
+                        </switch>
+                    </outcome>
+                </switch>
+            </for>
+            <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
+                <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/ws/rest/1002/FanOpenAPI/DeactivateOnt?serviceID='+$prop.bbs.serviceID`" />
+                <parameter name="httpMethod" value="get"/>
+                <parameter name="contentType" value="application/x-www-form-urlencoded"/>
+                <parameter name="responsePrefix" value="service-result"/>
+                <parameter name="customHttpHeaders" value="`'X-Auth-Token=' + $prop.sdncRestApi.token_id`"/>
+                <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
+                <parameter name="trustStorePassword" value="adminadmin"/>
+                <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                <parameter name="keyStorePassword" value="adminadmin"/>
+                <outcome value='failure'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="invalid network-input-parameters.param in bbs-access-connectivity-network-topology-operation-delete" />
+                    </return>
+                </outcome>
+                <outcome value='success'>
+                    <block atomic="true">
+                        <switch test="`$service-result.errors.error[0].error-message`">
+                            <outcome value='Other'>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="`'Error deleteAccessConnectivityService failed: '+$service-result.errors.error[0].error-message`" />
+                                </return>
+                            </outcome>
+                            <outcome value=''>
+                                <block></block>
+                            </outcome>
+                        </switch>
+                    </block>
+                </outcome>
+            </execute>
+            <return status='success'>
+                <parameter name="ack-final-indicator" value="Y" />
+                <parameter name="error-code" value="200" />
+                <parameter name="error-message" value="`$error-message`" />
+            </return>
+        </block>
+    </method>
+</service-logic>
