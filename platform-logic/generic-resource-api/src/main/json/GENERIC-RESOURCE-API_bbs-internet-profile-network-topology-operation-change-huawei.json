@@ -1,0 +1,229 @@
+[
+    {
+        "id": "6fc09f6d.0870b",
+        "type": "dgstart",
+        "name": "DGSTART",
+        "outputs": 1,
+        "x": 395,
+        "y": 364,
+        "z": "42dfc057.bac69",
+        "wires": [
+            [
+                "17053a75.1de276"
+            ]
+        ]
+    },
+    {
+        "id": "17053a75.1de276",
+        "type": "service-logic",
+        "name": "GENERIC-RESOURCE-API ${project.version}",
+        "module": "GENERIC-RESOURCE-API",
+        "version": "${project.version}",
+        "comments": "",
+        "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>",
+        "outputs": 1,
+        "x": 702.9996490478516,
+        "y": 364.0000219345093,
+        "z": "42dfc057.bac69",
+        "wires": [
+            [
+                "31b28a93.bc7546"
+            ]
+        ]
+    },
+    {
+        "id": "31b28a93.bc7546",
+        "type": "method",
+        "name": "method:bbs-internet-profile-network-topology-operation-change-huawei",
+        "xml": "<method rpc='bbs-internet-profile-network-topology-operation-change-huawei' mode='sync'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 700.9996490478516,
+        "y": 560.0000619888306,
+        "z": "42dfc057.bac69",
+        "wires": [
+            [
+                "6078be8e.3dc1b"
+            ]
+        ]
+    },
+    {
+        "id": "6078be8e.3dc1b",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 1107.9998626708984,
+        "y": 561.0000619888306,
+        "z": "42dfc057.bac69",
+        "wires": [
+            [
+                "18b0a0e1.bc2b9f",
+                "d8d2c4cf.831298",
+                "a7f761b1.d0d6"
+            ]
+        ]
+    },
+    {
+        "id": "d8d2c4cf.831298",
+        "type": "execute",
+        "name": "execute:ChangeInternetProfileInstance",
+        "xml": "<execute plugin=\"org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode\" method=\"sendRequest\">\n    <parameter name=\"templateFileName\" value=\"`$prop.restapi.templateDir + '/bbs-internet-profile-operation.json'`\" />\n    <parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.url + '/ChangeInternetProfileInstance'`\" />\n    <parameter name=\"contentType\" value=\"application/json\"/>\n    <parameter name=\"httpMethod\" value=\"post\"/>\n    <parameter name=\"responsePrefix\" value=\"service-result\"/>\n    <parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>\n    <parameter name=\"trustStorePassword\" value=\"adminadmin\"/>\n    <parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>\n    <parameter name=\"keyStorePassword\" value=\"adminadmin\"/>",
+        "comments": "",
+        "outputs": 1,
+        "x": 1435,
+        "y": 562,
+        "z": "42dfc057.bac69",
+        "wires": [
+            [
+                "6653aa52.b5a3e4",
+                "5cfea4a3.4063fc"
+            ]
+        ]
+    },
+    {
+        "id": "5cfea4a3.4063fc",
+        "type": "outcome",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1736.3329811096191,
+        "y": 562,
+        "z": "42dfc057.bac69",
+        "wires": [
+            [
+                "18532102.a9364f"
+            ]
+        ]
+    },
+    {
+        "id": "6653aa52.b5a3e4",
+        "type": "outcome",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1745.332893371582,
+        "y": 637.0000019073486,
+        "z": "42dfc057.bac69",
+        "wires": [
+            [
+                "fee00388.9b406"
+            ]
+        ]
+    },
+    {
+        "id": "fee00388.9b406",
+        "type": "switchNode",
+        "name": "switch:service-result",
+        "xml": "<switch test=\"`$service-result.errors.error[0].error-message`\">\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1980.3490142822266,
+        "y": 636.0392971038818,
+        "z": "42dfc057.bac69",
+        "wires": [
+            [
+                "842854c5.b1e1c8",
+                "e77a86f6.1bffc8"
+            ]
+        ]
+    },
+    {
+        "id": "18532102.a9364f",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n<parameter name='ack-final' value='Y'/>\n<parameter name=\"error-code\" value=\"500\" />\n<parameter name=\"error-message\" value=\"`$prop.sdncRestApi.thirdpartySdnc.url + '/ChangeInternetProfileInstance'`\" />\n",
+        "comments": "",
+        "x": 2245.2665939331055,
+        "y": 562.289547920227,
+        "z": "42dfc057.bac69",
+        "wires": []
+    },
+    {
+        "id": "842854c5.b1e1c8",
+        "type": "outcome",
+        "name": "Other",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2206.349353790283,
+        "y": 637.0393905639648,
+        "z": "42dfc057.bac69",
+        "wires": [
+            [
+                "b066a3a6.b8196"
+            ]
+        ]
+    },
+    {
+        "id": "e77a86f6.1bffc8",
+        "type": "outcome",
+        "name": "NULL",
+        "xml": "<outcome value=''>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2216.3490600585938,
+        "y": 723.0392570495605,
+        "z": "42dfc057.bac69",
+        "wires": [
+            [
+                "cf2d9b30.93fde8"
+            ]
+        ]
+    },
+    {
+        "id": "b066a3a6.b8196",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n<parameter name='ack-final' value='Y'/>\n<parameter name=\"error-code\" value=\"500\" />\n<parameter name=\"error-message\" value=\"`'Error ChangeInternetProfileInstance failed: '+$service-result.errors.error[0].error-message`\" />\n\n",
+        "comments": "",
+        "x": 2392.849021911621,
+        "y": 637.0392274856567,
+        "z": "42dfc057.bac69",
+        "wires": []
+    },
+    {
+        "id": "cf2d9b30.93fde8",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 2374.5156898498535,
+        "y": 724.0392322540283,
+        "z": "42dfc057.bac69",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a7f761b1.d0d6",
+        "type": "returnSuccess",
+        "name": "return success",
+        "xml": "<return status='success'>\n<parameter name=\"ack-final-indicator\" value=\"Y\" />\n<parameter name=\"error-code\" value=\"200\" />\n<parameter name=\"error-message\" value=\"`$error-message`\" />\n",
+        "comments": "",
+        "x": 1350.8489570617676,
+        "y": 644.0393257141113,
+        "z": "42dfc057.bac69",
+        "wires": []
+    },
+    {
+        "id": "18b0a0e1.bc2b9f",
+        "type": "call",
+        "name": "call:bbs-internet-profile-network-topology-operation-common-huawei",
+        "xml": "<call module='GENERIC-RESOURCE-API' rpc='bbs-internet-profile-network-topology-operation-common-huawei' mode='sync' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1537.015869140625,
+        "y": 476.03915786743164,
+        "z": "42dfc057.bac69",
+        "wires": [
+            []
+        ]
+    }
+]

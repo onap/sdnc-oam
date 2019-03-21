@@ -1,0 +1,229 @@
+[
+    {
+        "id": "2d7f5053.43f88",
+        "type": "dgstart",
+        "name": "DGSTART",
+        "outputs": 1,
+        "x": 161,
+        "y": 430,
+        "z": "ad27a06a.ac6cb",
+        "wires": [
+            [
+                "72df2435.5886ec"
+            ]
+        ]
+    },
+    {
+        "id": "72df2435.5886ec",
+        "type": "service-logic",
+        "name": "GENERIC-RESOURCE-API ${project.version}",
+        "module": "GENERIC-RESOURCE-API",
+        "version": "${project.version}",
+        "comments": "",
+        "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>",
+        "outputs": 1,
+        "x": 468.99964904785156,
+        "y": 430.0000219345093,
+        "z": "ad27a06a.ac6cb",
+        "wires": [
+            [
+                "ffb91d40.32d4b"
+            ]
+        ]
+    },
+    {
+        "id": "ffb91d40.32d4b",
+        "type": "method",
+        "name": "method:bbs-internet-profile-network-topology-operation-create-huawei",
+        "xml": "<method rpc='bbs-internet-profile-network-topology-operation-create-huawei' mode='sync'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 466.9996643066406,
+        "y": 650.0000991821289,
+        "z": "ad27a06a.ac6cb",
+        "wires": [
+            [
+                "53f797bd.cfd8e8"
+            ]
+        ]
+    },
+    {
+        "id": "53f797bd.cfd8e8",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 890.9998626708984,
+        "y": 649.0000991821289,
+        "z": "ad27a06a.ac6cb",
+        "wires": [
+            [
+                "370af337.5154fc",
+                "4e0ef08b.97054",
+                "f93c1da.de250e"
+            ]
+        ]
+    },
+    {
+        "id": "370af337.5154fc",
+        "type": "call",
+        "name": "call:bbs-internet-profile-network-topology-operation-common-huawei",
+        "xml": "<call module='GENERIC-RESOURCE-API' rpc='bbs-internet-profile-network-topology-operation-common-huawei' mode='sync' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1407.0001525878906,
+        "y": 562.0000190734863,
+        "z": "ad27a06a.ac6cb",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "4e0ef08b.97054",
+        "type": "execute",
+        "name": "execute:CreateInternetProfileInstance",
+        "xml": "<execute plugin=\"org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode\" method=\"sendRequest\">\n    <parameter name=\"templateFileName\" value=\"`$prop.restapi.templateDir + '/bbs-internet-profile-operation.json'`\" />\n    <parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.url + '/CreateInternetProfileInstance'`\" />\n    <parameter name=\"contentType\" value=\"application/json\"/>\n    <parameter name=\"httpMethod\" value=\"post\"/>\n    <parameter name=\"responsePrefix\" value=\"service-result\"/>\n    <parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>\n    <parameter name=\"trustStorePassword\" value=\"adminadmin\"/>\n    <parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>\n    <parameter name=\"keyStorePassword\" value=\"adminadmin\"/>",
+        "comments": "",
+        "outputs": 1,
+        "x": 1296.6507873535156,
+        "y": 647.9608345031738,
+        "z": "ad27a06a.ac6cb",
+        "wires": [
+            [
+                "e4c140e5.037d7",
+                "d8bbe45d.2352e8"
+            ]
+        ]
+    },
+    {
+        "id": "d8bbe45d.2352e8",
+        "type": "outcome",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1597.9837684631348,
+        "y": 647.9608345031738,
+        "z": "ad27a06a.ac6cb",
+        "wires": [
+            [
+                "1df15208.d8ff4e"
+            ]
+        ]
+    },
+    {
+        "id": "e4c140e5.037d7",
+        "type": "outcome",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1606.9836807250977,
+        "y": 722.9608364105225,
+        "z": "ad27a06a.ac6cb",
+        "wires": [
+            [
+                "facb658d.68f2f8"
+            ]
+        ]
+    },
+    {
+        "id": "facb658d.68f2f8",
+        "type": "switchNode",
+        "name": "switch:service-result",
+        "xml": "<switch test=\"`$service-result.errors.error[0].error-message`\">\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1841.9998016357422,
+        "y": 722.0001316070557,
+        "z": "ad27a06a.ac6cb",
+        "wires": [
+            [
+                "6422cd06.ccef54",
+                "d37ab755.7eae88"
+            ]
+        ]
+    },
+    {
+        "id": "1df15208.d8ff4e",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n<parameter name='ack-final' value='Y'/>\n<parameter name=\"error-code\" value=\"500\" />\n<parameter name=\"error-message\" value=\"`$prop.sdncRestApi.thirdpartySdnc.url + '/CreateInternetProfileInstance'`\" />\n",
+        "comments": "",
+        "x": 2106.917381286621,
+        "y": 648.2503824234009,
+        "z": "ad27a06a.ac6cb",
+        "wires": []
+    },
+    {
+        "id": "6422cd06.ccef54",
+        "type": "outcome",
+        "name": "Other",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2068.000141143799,
+        "y": 723.0002250671387,
+        "z": "ad27a06a.ac6cb",
+        "wires": [
+            [
+                "8b2e9879.6244c8"
+            ]
+        ]
+    },
+    {
+        "id": "d37ab755.7eae88",
+        "type": "outcome",
+        "name": "NULL",
+        "xml": "<outcome value=''>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2077.9998474121094,
+        "y": 809.0000915527344,
+        "z": "ad27a06a.ac6cb",
+        "wires": [
+            [
+                "684bf460.d7a28c"
+            ]
+        ]
+    },
+    {
+        "id": "8b2e9879.6244c8",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n<parameter name='ack-final' value='Y'/>\n<parameter name=\"error-code\" value=\"500\" />\n<parameter name=\"error-message\" value=\"`'Error CreateInternetProfileInstance failed: '+$service-result.errors.error[0].error-message`\" />\n\n",
+        "comments": "",
+        "x": 2254.4998092651367,
+        "y": 723.0000619888306,
+        "z": "ad27a06a.ac6cb",
+        "wires": []
+    },
+    {
+        "id": "684bf460.d7a28c",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 2236.166477203369,
+        "y": 810.0000667572021,
+        "z": "ad27a06a.ac6cb",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f93c1da.de250e",
+        "type": "returnSuccess",
+        "name": "return success",
+        "xml": "<return status='success'>\n<parameter name=\"ack-final-indicator\" value=\"Y\" />\n<parameter name=\"error-code\" value=\"200\" />\n<parameter name=\"error-message\" value=\"`$error-message`\" />\n",
+        "comments": "",
+        "x": 1217.4998321533203,
+        "y": 742.0001058578491,
+        "z": "ad27a06a.ac6cb",
+        "wires": []
+    }
+]
