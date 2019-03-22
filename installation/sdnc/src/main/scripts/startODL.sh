@@ -73,6 +73,7 @@ function enable_odl_cluster(){
 ODL_HOME=${ODL_HOME:-/opt/opendaylight/current}
 ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD:-Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U}
 SDNC_HOME=${SDNC_HOME:-/opt/onap/sdnc}
+SDNC_BIN=${SDNC_BIN:-/opt/sdnc/bin}
 CCSDK_HOME=${CCSDK_HOME:-/opt/onap/ccsdk}
 SLEEP_TIME=${SLEEP_TIME:-120}
 MYSQL_PASSWD=${MYSQL_PASSWD:-openECOMP1.0}
@@ -116,5 +117,9 @@ then
 
 	echo "Installed at `date`" > ${INSTALLED_DIR}/.installed
 fi
+
+cp /opt/opendaylight/current/certs/* /tmp
+
+nohup python ${SDNC_BIN}/installCerts.py &
 
 exec ${ODL_HOME}/bin/karaf server
