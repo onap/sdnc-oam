@@ -6,7 +6,13 @@
             <call module='GENERIC-RESOURCE-API' rpc='validate-vnf-input' mode='sync' ></call>
             <switch test='`$vnf-topology-operation-input.sdnc-request-header.svc-action`'>
                 <outcome value='assign'>
-                    <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-assign' mode='sync' ></call>
+                    <block atomic="true">
+                        <switch test='`$vnf-topology-operation-input.request-information.request-action`'>
+                            <outcome value='Other'>
+                                <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-assign' mode='sync' ></call>
+                            </outcome>
+                        </switch>
+                    </block>
                 </outcome>
                 <outcome value='activate'>
                     <block atomic="true">
@@ -19,6 +25,25 @@
                             </outcome>
                             <outcome value='ActivateSDWANPortInstance'>
                                 <call module='GENERIC-RESOURCE-API' rpc='sdwan-vnf-topology-operation-wanport-activate' mode='sync' ></call>
+                            </outcome>
+                            <outcome value='ActivateSDLANPortInstance'>
+                                <call module='GENERIC-RESOURCE-API' rpc='sdwan-vnf-topology-operation-lanport-activate' mode='sync' ></call>
+                            </outcome>
+                            <outcome value='ActivateSDWANBandwidthInstance'>
+                                <call module='GENERIC-RESOURCE-API' rpc='sdwan-vnf-topology-operation-bandwidth-policy-activate' mode='sync' ></call>
+                            </outcome>
+                            <outcome value='ActivateCameraEdgeInstance'>
+                                <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-camera-edge-activate' mode='sync' ></call>
+                            </outcome>
+                            <outcome value='ActivateSDWANVpnResourceInstance'>
+                                <block atomic="true">
+                                    <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-vpn-site-resource-activate' mode='sync' ></call>
+                                </block>
+                            </outcome>
+                            <outcome value='ActivateSDWANSiteResourceInstance'>
+                                <block atomic="true">
+                                    <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-vpn-site-resource-activate' mode='sync' ></call>
+                                </block>
                             </outcome>
                             <outcome value='Other'>
                                 <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-activate' mode='sync' ></call>
@@ -37,6 +62,16 @@
                             </outcome>
                             <outcome value='DeactivateSDWANPortInstance'>
                                 <call module='GENERIC-RESOURCE-API' rpc='sdwan-vnf-topology-operation-wanport-deactivate' mode='sync' ></call>
+                            </outcome>
+                            <outcome value='DeactivateSDWANVpnResourceInstance'>
+                                <block atomic="true">
+                                    <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-vpn-site-resource-deactivate' mode='sync' ></call>
+                                </block>
+                            </outcome>
+                            <outcome value='DeactivateSDWANSiteResourceInstance'>
+                                <block atomic="true">
+                                    <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-vpn-site-resource-deactivate' mode='sync' ></call>
+                                </block>
                             </outcome>
                             <outcome value='Other'>
                                 <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-deactivate' mode='sync' ></call>
@@ -59,6 +94,31 @@
                             <outcome value='CreateSDWANPortInstance'>
                                 <call module='GENERIC-RESOURCE-API' rpc='sdwan-vnf-topology-operation-wanport-create' mode='sync' ></call>
                             </outcome>
+                            <outcome value='CreateSDLANPortInstance'>
+                                <call module='GENERIC-RESOURCE-API' rpc='sdwan-vnf-topology-operation-lanport-create' mode='sync' ></call>
+                            </outcome>
+                            <outcome value='CreateSDWANBandwidthInstance'>
+                                <call module='GENERIC-RESOURCE-API' rpc='sdwan-vnf-topology-operation-bandwidth-policy-create' mode='sync' ></call>
+                            </outcome>
+                            <outcome value='CreateCameraEdgeInstance'>
+                                <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-camera-edge-create' mode='sync' ></call>
+                            </outcome>
+                            <outcome value='CreateSDWANConnectivityInstance'>
+                                <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-vpn-resource-create' mode='sync' ></call>
+                            </outcome>
+                            <outcome value='AddVipInstance'>
+                                <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-vip-create' mode='sync' ></call>
+                            </outcome>
+                            <outcome value='CreateSDWANVpnResourceInstance'>
+                                <block atomic="true">
+                                    <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-vpn-site-resource-create' mode='sync' ></call>
+                                </block>
+                            </outcome>
+                            <outcome value='CreateSDWANSiteResourceInstance'>
+                                <block atomic="true">
+                                    <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-vpn-site-resource-create' mode='sync' ></call>
+                                </block>
+                            </outcome>
                             <outcome value='Other'>
                                 <block></block>
                             </outcome>
@@ -77,8 +137,36 @@
                             <outcome value='DeleteSDWANPortInstance'>
                                 <call module='GENERIC-RESOURCE-API' rpc='sdwan-vnf-topology-operation-wanport-delete' mode='sync' ></call>
                             </outcome>
+                            <outcome value='DeleteSDWANVpnResourceInstance'>
+                                <block atomic="true">
+                                    <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-vpn-site-resource-delete' mode='sync' ></call>
+                                </block>
+                            </outcome>
+                            <outcome value='DeleteSDWANSiteResourceInstance'>
+                                <block atomic="true">
+                                    <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-vpn-site-resource-delete' mode='sync' ></call>
+                                </block>
+                            </outcome>
                             <outcome value='Other'>
                                 <block></block>
+                            </outcome>
+                        </switch>
+                    </block>
+                </outcome>
+                <outcome value='update'>
+                    <block atomic="true">
+                        <switch test='`$vnf-topology-operation-input.request-information.request-action`'>
+                            <outcome value='SdwanBWPolicyChange'>
+                                <call module='GENERIC-RESOURCE-API' rpc='sdwan-bandwidth-policy-change' mode='sync' ></call>
+                            </outcome>
+                            <outcome value='UpdateEdgeModelInstance'>
+                                <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-edge-model-update' mode='sync' ></call>
+                            </outcome>
+                            <outcome value='UpdateCameraEdgeInstance'>
+                                <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-camera-edge-update' mode='sync' ></call>
+                            </outcome>
+                            <outcome value='SetScreenSourceCameraInstance'>
+                                <call module='GENERIC-RESOURCE-API' rpc='vnf-topology-operation-set-screen-source' mode='sync' ></call>
                             </outcome>
                         </switch>
                     </block>
