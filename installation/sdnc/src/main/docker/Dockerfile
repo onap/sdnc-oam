@@ -27,6 +27,7 @@ RUN keytool -importkeystore -srckeystore $JAVA_SECURITY_DIR/truststoreONAPall.jk
 # copy onap
 COPY opt /opt
 RUN test -L /opt/sdnc || ln -s /opt/onap/sdnc /opt/sdnc
+RUN mkdir /opt/opendaylight/current/certs
 
 # copy SDNC mvn artifacts to ODL repository
 COPY system /tmp/system
