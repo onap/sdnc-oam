@@ -1,0 +1,159 @@
+[
+    {
+        "id": "dbaa41e6.046bf",
+        "type": "method",
+        "name": "method sdwan-vf-operation-vpn-delete",
+        "xml": "<method rpc='sdwan-vf-operation-vpn-delete' mode='sync'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 347.03125,
+        "y": 269.99999737739563,
+        "z": "4a211eac.9076a",
+        "wires": [
+            [
+                "2654c2fb.11dfbe"
+            ]
+        ]
+    },
+    {
+        "id": "8578b02a.61d67",
+        "type": "dgstart",
+        "name": "DGSTART",
+        "outputs": 1,
+        "x": 147.0311279296875,
+        "y": 109.99999737739563,
+        "z": "4a211eac.9076a",
+        "wires": [
+            [
+                "de304501.e706b8"
+            ]
+        ]
+    },
+    {
+        "id": "de304501.e706b8",
+        "type": "service-logic",
+        "name": "GENERIC-RESOURCE-API ${project.version}",
+        "module": "GENERIC-RESOURCE-API",
+        "version": "${project.version}",
+        "comments": "",
+        "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>",
+        "outputs": 1,
+        "x": 359.03113174438477,
+        "y": 182.00001454353333,
+        "z": "4a211eac.9076a",
+        "wires": [
+            [
+                "dbaa41e6.046bf"
+            ]
+        ]
+    },
+    {
+        "id": "2654c2fb.11dfbe",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 517.4755821228027,
+        "y": 332.4444534778595,
+        "z": "4a211eac.9076a",
+        "wires": [
+            [
+                "d773525e.57dfe",
+                "7dccf11a.58654",
+                "f366cb35.f14868",
+                "1458597e.bb0697",
+                "38c53cd1.7984d4",
+                "6bc9b9bd.b7c0e8",
+                "a3fafa89.e43bc8"
+            ]
+        ]
+    },
+    {
+        "id": "d773525e.57dfe",
+        "type": "record",
+        "name": "record",
+        "xml": "<record plugin=\"org.onap.ccsdk.sli.core.sli.recording.FileRecorder\">\n<parameter name=\"file\" value=\"/opt/opendaylight/current/data/log/svclogic.log\"/>\n<parameter name=\"field1\" value=\"__TIMESTAMP__\"/>\n<parameter name=\"field2\" value=\"sdwan-vf-module-operation-delete\"/>\n<parameter name=\"field3\" value=\"SDWAN-Delete\"/>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 792.8088531494141,
+        "y": 193.3333694934845,
+        "z": "4a211eac.9076a",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7dccf11a.58654",
+        "type": "returnSuccess",
+        "name": "return success",
+        "xml": "<return status='success'>\n<parameter name=\"ack-final-indicator\" value=\"Y\" />\n<parameter name=\"error-code\" value=\"200\" />\n<parameter name=\"error-message\" value=\"`$error-message`\" />\n",
+        "comments": "",
+        "x": 806.586784362793,
+        "y": 504.9796769618988,
+        "z": "4a211eac.9076a",
+        "wires": []
+    },
+    {
+        "id": "1458597e.bb0697",
+        "type": "set",
+        "name": "set new vpn-vf length",
+        "xml": "<set>\n\t<parameter name=\"service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length\" value=\"`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length - 1`\"/>\n",
+        "comments": "",
+        "x": 836.1082077026367,
+        "y": 318.89519906044006,
+        "z": "4a211eac.9076a",
+        "wires": []
+    },
+    {
+        "id": "f366cb35.f14868",
+        "type": "set",
+        "name": "Remove networks from ServiceData",
+        "xml": "<set>\n\t<parameter name=\"service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$tmp.nidx].\" value=\"\"/>\n\n",
+        "comments": "",
+        "x": 876.732364654541,
+        "y": 366.8631408214569,
+        "z": "4a211eac.9076a",
+        "wires": []
+    },
+    {
+        "id": "a3fafa89.e43bc8",
+        "type": "delete",
+        "name": "delete SDWAN VPNInstance connectivity in AAI",
+        "xml": "<delete plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" resource='sdwan-vpn' \n        key='sdwan-vpn.sdwan-vpn-id = $vf-module-topology-operation-input.vf-module-information.vf-module-id'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 914.6637077331543,
+        "y": 260.00628304481506,
+        "z": "4a211eac.9076a",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "38c53cd1.7984d4",
+        "type": "call",
+        "name": "call GENERIC-RESOURCE-API:validate-sdwan-vf-vpn-input-parameters",
+        "xml": "<call module='GENERIC-RESOURCE-API' rpc='validate-sdwan-vf-vpn-input-parameters' mode='sync' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 997.0312805175781,
+        "y": 131.99999928474426,
+        "z": "4a211eac.9076a",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "6bc9b9bd.b7c0e8",
+        "type": "set",
+        "name": "set vf-module-object-path",
+        "xml": "<set>\n<parameter name='vf-module-object-path' value=\"`'restconf/config/GENERIC-RESOURCE-API:services/service/'\n + $vf-module-topology-operation-input.service-information.service-instance-id\n + '/service-data/vnfs/vnf/'\n + $service-data.vnfs.vnf[$vnf-index].vnf-id\n + '/vnf-data/vf-modules/vf-module/'\n + $vf-module-topology-operation-input.vf-module-information.vf-module-id\n + '/vf-module-data/vf-module-topology/'`\"/>\n<parameter name='vnf-object-path'\n value=\"`'restconf/config/GENERIC-RESOURCE-API:services/service/'\n + $vf-module-topology-operation-input.service-information.service-instance-id\n + '/service-data/vnfs/vnf/'\n + $service-data.vnfs.vnf[$vnf-index].vnf-id\n + '/vnf-data/vnf-topology/'`\"/>\n<parameter name='service-object-path'\n value=\"`'restconf/config/GENERIC-RESOURCE-API:services/service/'\n + $vf-module-topology-operation-input.service-information.service-instance-id\n + '/service-data/service-topology/'`\"/>\n",
+        "comments": "",
+        "x": 845.0000305175781,
+        "y": 431.00001335144043,
+        "z": "4a211eac.9076a",
+        "wires": []
+    }
+]
