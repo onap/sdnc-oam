@@ -38,6 +38,7 @@ RUN cp $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.kara
 RUN sed -i -e "\|featuresRepositories|s|$|,${SDNC_NORTHBOUND_REPO}|"  $ODL_HOME/etc/org.apache.karaf.features.cfg
 RUN sed -i -e "\|featuresBoot[^a-zA-Z]|s|$|,sdnc-northbound-all|"  $ODL_HOME/etc/org.apache.karaf.features.cfg
 RUN sed -i "s/odl-restconf-all/odl-restconf-all,odl-netconf-connector-all,odl-netconf-clustered-topology/g"  $ODL_HOME/etc/org.apache.karaf.features.cfg
+RUN sed -i "s/odl-mdsal-all/odl-mdsal-all,odl-mdsal-clustering/g" $ODL_HOME/etc/org.apache.karaf.features.cfg
 
 RUN chown -R odl /opt
 USER odl
