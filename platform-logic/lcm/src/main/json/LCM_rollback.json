@@ -1,0 +1,702 @@
+[
+    {
+        "id": "367cac6c.e28ad4",
+        "type": "method",
+        "name": "rollback",
+        "xml": "<method rpc='rollback' mode='sync'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 606,
+        "y": 73,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "397a12a.10f34ee"
+            ]
+        ]
+    },
+    {
+        "id": "b7a7c5dd.d286a8",
+        "type": "service-logic",
+        "name": "LCM ${project.version}",
+        "module": "LCM",
+        "version": "${project.version}",
+        "comments": "",
+        "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='LCM' version='${project.version}'>",
+        "outputs": 1,
+        "x": 393.99993896484375,
+        "y": 74,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "367cac6c.e28ad4"
+            ]
+        ]
+    },
+    {
+        "id": "2749994d.fe16d6",
+        "type": "execute",
+        "name": "execute AnsibleA.reqExec",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.adaptors.ansible.AnsibleAdapter' method='reqExec' >\n<parameter name='AgentUrl' value='`$prop.ansible.agenturl`'/>\n<parameter name='User' value='`$prop.ansible.user`'/>\n<parameter name='Password' value='`$prop.ansible.password`'/>\n<parameter name='LocalParameters' value='`$prop.ansible.lcm.localparameters`'/>\n<parameter name='EnvParameters' value='`$rollback-input.payload`'/>\n<parameter name='NodeList' value=\"`$nodelist`\"/>\n<parameter name='Timeout' value='`$prop.ansible.timeout`'/>\n<parameter name='Version' value='`$prop.ansible.version`'/>\n<parameter name='Id' value='`$rollback-input.common-header.request-id`'/>\n<parameter name='PlaybookName' value='`$playbookname`'/>",
+        "comments": "",
+        "outputs": 1,
+        "x": 461.00001525878906,
+        "y": 681,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "d80c72ca.e0d3b",
+                "3b639a7b.0ca876",
+                "f4b3d5c4.d9b698"
+            ]
+        ]
+    },
+    {
+        "id": "3f74fb5f.f66a64",
+        "type": "switchNode",
+        "name": "switch",
+        "xml": "<switch test=\"`$org.onap.appc.adapter.ansible.result.code`\">\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 860.9999389648438,
+        "y": 789.0000305175781,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "5e7ae3c.af98c1c",
+                "80745976.4dae58",
+                "2d735711.50c158"
+            ]
+        ]
+    },
+    {
+        "id": "5e7ae3c.af98c1c",
+        "type": "other",
+        "name": "outcome 500",
+        "xml": "<outcome value='500'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1005.9999389648438,
+        "y": 787.0000381469727,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "c157f020.8fa16"
+            ]
+        ]
+    },
+    {
+        "id": "80745976.4dae58",
+        "type": "other",
+        "name": "outcome 100",
+        "xml": "<outcome value='100'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1002.9999389648438,
+        "y": 844.0000305175781,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "8633c607.bab378"
+            ]
+        ]
+    },
+    {
+        "id": "8633c607.bab378",
+        "type": "execute",
+        "name": "execute reqExecResult",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.adaptors.ansible.AnsibleAdapter' method='reqExecResult' >\n    <parameter name='AgentUrl' value='`$prop.ansible.agenturl`'/>\n\t<parameter name='User' value='`$prop.ansible.user`'/>\n\t<parameter name='Password' value='`$prop.ansible.password`'/>\n\t<parameter name='Id' value='`$org.onap.appc.adapter.ansible.Id`'/>\n\t<parameter name='PlaybookName' value='`$playbookname`'/>\n\t\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1190.9999389648438,
+        "y": 843.0000305175781,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "7d406d3c.e2a7a4",
+                "c98b9933.a78a78"
+            ]
+        ]
+    },
+    {
+        "id": "3b639a7b.0ca876",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 719.9999389648438,
+        "y": 702.0000915527344,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "c157f020.8fa16"
+            ]
+        ]
+    },
+    {
+        "id": "d80c72ca.e0d3b",
+        "type": "other",
+        "name": "other",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 721.9999389648438,
+        "y": 754.0000610351562,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "3f74fb5f.f66a64"
+            ]
+        ]
+    },
+    {
+        "id": "7d406d3c.e2a7a4",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1359.9999389648438,
+        "y": 801.0000381469727,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "c157f020.8fa16"
+            ]
+        ]
+    },
+    {
+        "id": "2d735711.50c158",
+        "type": "other",
+        "name": "outcome 101",
+        "xml": "<outcome value='101'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1002.9999389648438,
+        "y": 745.0000686645508,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "c157f020.8fa16"
+            ]
+        ]
+    },
+    {
+        "id": "c98b9933.a78a78",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1367.9998779296875,
+        "y": 849.0001220703125,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "5b424098.08bd5"
+            ]
+        ]
+    },
+    {
+        "id": "4e1d4556.7dd52c",
+        "type": "returnSuccess",
+        "name": "return success",
+        "xml": "<return status='success'>\n<parameter name='status.code' value='`$org.onap.appc.adapter.ansible.result.code`' />\n<parameter name='status.message' value='`$org.onap.appc.adapter.ansible.message`'/>",
+        "comments": "",
+        "x": 1661.9998779296875,
+        "y": 906.0000610351562,
+        "z": "6f1e5235.30d27c",
+        "wires": []
+    },
+    {
+        "id": "d900eabd.53e918",
+        "type": "dgstart",
+        "name": "DGSTART",
+        "outputs": 1,
+        "x": 209,
+        "y": 73,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "b7a7c5dd.d286a8"
+            ]
+        ]
+    },
+    {
+        "id": "397a12a.10f34ee",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 206.9166259765625,
+        "y": 165.08331298828125,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "2749994d.fe16d6",
+                "73725554.5774bc",
+                "8603ce63.b7c47",
+                "9a79bc82.279ce",
+                "cc7baeb9.6a3dc",
+                "b9b832a7.ed87d",
+                "16e37417.d2c8bc",
+                "763cfac9.48a8a4"
+            ]
+        ]
+    },
+    {
+        "id": "73725554.5774bc",
+        "type": "execute",
+        "name": "execute Properties",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >\n    <parameter name='fileName' value='%SDNC_CONFIG_DIR%/lcm-dg.properties' />\n    <parameter name='contextPrefix' value='prop' />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 505.0000305175781,
+        "y": 198.08334350585938,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c9d7b572.9b1b08",
+        "type": "execute",
+        "name": "execute DmaapMsg",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n    <parameter name='templateFileName' value=\"`$prop.restapi.templateDir + '/' + $prop.restapi.lcm.dmaap.publish.templatefile`\" />\n    <parameter name='restapiUrl' value='`$prop.lcm.dmaap.url`' />\n    <parameter name='restapiUser' value='`$prop.lcm.dmaap.user`' />\n    <parameter name='restapiPassword' value='`$prop.lcm.dmaap.password`' />\n    <parameter name='format' value='json' />\n    <parameter name='httpMethod' value='POST' />\n    <parameter name='contentType' value='application/json' />\n    <parameter name=\"responsePrefix\" value=\"lcm\" />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1671.9998779296875,
+        "y": 651.0834045410156,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "18a85145.032faf"
+            ]
+        ]
+    },
+    {
+        "id": "18a85145.032faf",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1841.9998168945312,
+        "y": 650.0834045410156,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "1f387472.1096ac"
+            ]
+        ]
+    },
+    {
+        "id": "c157f020.8fa16",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 1474.9998168945312,
+        "y": 675.0834045410156,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "c9d7b572.9b1b08",
+                "b8d2a948.9f6268",
+                "9c77e950.a59098"
+            ]
+        ]
+    },
+    {
+        "id": "246949fc.089f56",
+        "type": "execute",
+        "name": "execute DmaapMsg",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n    <parameter name='templateFileName' value=\"`$prop.restapi.templateDir + '/' + $prop.restapi.lcm.dmaap.publish.templatefile`\" />\n    <parameter name='restapiUrl' value='`$prop.lcm.dmaap.url`' />\n    <parameter name='restapiUser' value='`$prop.lcm.dmaap.user`' />\n    <parameter name='restapiPassword' value='`$prop.lcm.dmaap.password`' />\n    <parameter name='format' value='json' />\n    <parameter name='httpMethod' value='POST' />\n    <parameter name='contentType' value='application/json' />\n    <parameter name=\"responsePrefix\" value=\"lcm\" />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1672.4998779296875,
+        "y": 856.0833740234375,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "3c6c9ce.ec3e364"
+            ]
+        ]
+    },
+    {
+        "id": "3c6c9ce.ec3e364",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1840.4998779296875,
+        "y": 856.0833740234375,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "8c845e57.511d"
+            ]
+        ]
+    },
+    {
+        "id": "1f387472.1096ac",
+        "type": "record",
+        "name": "record",
+        "xml": "<record plugin=\"org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder\"> \n\t<parameter name=\"logger\" value=\"message-log\"/> \n\t<parameter name=\"field1\" value='Failed to Publish to DMaap'/>",
+        "comments": "",
+        "outputs": 1,
+        "x": 1961.9998779296875,
+        "y": 649.0833740234375,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b8d2a948.9f6268",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n<parameter name='status.code' value='401' />\n<parameter name='status.message' value='`$org.onap.appc.adapter.ansible.message`' />\n",
+        "comments": "",
+        "x": 1653.91650390625,
+        "y": 702.0834045410156,
+        "z": "6f1e5235.30d27c",
+        "wires": []
+    },
+    {
+        "id": "8c845e57.511d",
+        "type": "record",
+        "name": "record",
+        "xml": "<record plugin=\"org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder\"> \n\t<parameter name=\"logger\" value=\"message-log\"/> \n\t<parameter name=\"field1\" value='Failed to Publish to DMaap'/>",
+        "comments": "",
+        "outputs": 1,
+        "x": 1968.9166259765625,
+        "y": 856.0833740234375,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9c77e950.a59098",
+        "type": "set",
+        "name": "set DmaapReq",
+        "xml": "<set>\n<parameter name='lcm-dmaap.version' value='`$prop.lcm.dmaap.version`'/>\n<parameter name='lcm-dmaap.correlation-id' value=\"`$rollback-input.common-header.request-id + '-' + $rollback-input.common-header.sub-request-id`\"/>\n<parameter name='lcm-dmaap.partition' value='`$prop.lcm.dmaap.partition`'/>\n<parameter name='lcm-dmaap.rpc-name' value='rollback'/>\n<parameter name='lcm-dmaap.type' value='`$prop.lcm.dmaap.type`'/>\n<parameter name='lcm-dmaap.timestamp' value='`$rollback-input.common-header.timestamp`'/>\n<parameter name='lcm-dmaap.api-ver' value='`$rollback-input.common-header.api-ver`'/>\n<parameter name='lcm-dmaap.originator-id' value='`$rollback-input.common-header.originator-id`'/>\n<parameter name='lcm-dmaap.request-id' value='`$rollback-input.common-header.request-id`'/>\n<parameter name='lcm-dmaap.sub-request-id' value='`$rollback-input.common-header.sub-request-id`'/>\n<parameter name='lcm-dmaap.flags.mode' value='`$rollback-input.common-header.flags.mode`'/>\n<parameter name='lcm-dmaap.flags.force' value='`$rollback-input.common-header.flags.force`'/>\n<parameter name='lcm-dmaap.flags.ttl' value='`$rollback-input.common-header.flags.ttl`'/>\n<parameter name='lcm-dmaap.status.code' value='`$org.onap.appc.adapter.ansible.result.code`' />\n<parameter name='lcm-dmaap.status.message' value='`$org.onap.appc.adapter.ansible.message`'/>\n",
+        "comments": "",
+        "x": 1658.9998779296875,
+        "y": 598.0833740234375,
+        "z": "6f1e5235.30d27c",
+        "wires": []
+    },
+    {
+        "id": "5b424098.08bd5",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 1495.9998779296875,
+        "y": 850.0833740234375,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "246949fc.089f56",
+                "4d96ab15.f92c04",
+                "4e1d4556.7dd52c"
+            ]
+        ]
+    },
+    {
+        "id": "4d96ab15.f92c04",
+        "type": "set",
+        "name": "set DmaapReq",
+        "xml": "<set>\n<parameter name='lcm-dmaap.version' value='`$prop.lcm.dmaap.version`'/>\n<parameter name='lcm-dmaap.correlation-id' value=\"`$rollback-input.common-header.request-id + '-' + $rollback-input.common-header.sub-request-id`\"/>\n<parameter name='lcm-dmaap.partition' value='`$prop.lcm.dmaap.partition`'/>\n<parameter name='lcm-dmaap.rpc-name' value='rollback'/>\n<parameter name='lcm-dmaap.type' value='`$prop.lcm.dmaap.type`'/>\n<parameter name='lcm-dmaap.timestamp' value='`$rollback-input.common-header.timestamp`'/>\n<parameter name='lcm-dmaap.api-ver' value='`$rollback-input.common-header.api-ver`'/>\n<parameter name='lcm-dmaap.originator-id' value='`$rollback-input.common-header.originator-id`'/>\n<parameter name='lcm-dmaap.request-id' value='`$rollback-input.common-header.request-id`'/>\n<parameter name='lcm-dmaap.sub-request-id' value='`$rollback-input.common-header.sub-request-id`'/>\n<parameter name='lcm-dmaap.flags.mode' value='`$rollback-input.common-header.flags.mode`'/>\n<parameter name='lcm-dmaap.flags.force' value='`$rollback-input.common-header.flags.force`'/>\n<parameter name='lcm-dmaap.flags.ttl' value='`$rollback-input.common-header.flags.ttl`'/>\n<parameter name='lcm-dmaap.status.code' value='`$org.onap.appc.adapter.ansible.result.code`' />\n<parameter name='lcm-dmaap.status.message' value='`$org.onap.appc.adapter.ansible.message`'/>\n",
+        "comments": "",
+        "x": 1662.1666259765625,
+        "y": 801.0833740234375,
+        "z": "6f1e5235.30d27c",
+        "wires": []
+    },
+    {
+        "id": "f4b3d5c4.d9b698",
+        "type": "not-found",
+        "name": "not-found",
+        "xml": "<outcome value='not-found'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 728.9999389648438,
+        "y": 654.0000610351562,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "9b946286.c1fc1"
+            ]
+        ]
+    },
+    {
+        "id": "2c09132b.2c598c",
+        "type": "set",
+        "name": "set Defaults",
+        "xml": "<set>\n<parameter name='org.onap.appc.adapter.ansible.result.code' value='401'/>\n<parameter name='org.onap.appc.adapter.ansible.message' value='Ansible Adapter was not found'/>\n",
+        "comments": "",
+        "x": 1019.9999389648438,
+        "y": 613,
+        "z": "6f1e5235.30d27c",
+        "wires": []
+    },
+    {
+        "id": "9b946286.c1fc1",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 865.9999389648438,
+        "y": 648.0000610351562,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "2c09132b.2c598c",
+                "c157f020.8fa16"
+            ]
+        ]
+    },
+    {
+        "id": "8603ce63.b7c47",
+        "type": "set",
+        "name": "set default values",
+        "xml": "<set>\n<parameter name='status.code' value='200' />\n<parameter name='status.message' value='unexpected return from DG' />\n<parameter name='quote' value=\"'\" />\n",
+        "comments": "",
+        "x": 498,
+        "y": 245,
+        "z": "6f1e5235.30d27c",
+        "wires": []
+    },
+    {
+        "id": "16e37417.d2c8bc",
+        "type": "record",
+        "name": "record",
+        "xml": "<record plugin=\"org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder\"> \n\t<parameter name=\"logger\" value=\"message-log\"/> \n\t<parameter name=\"field1\" value='`$playbookname`'/>\n\t<parameter name=\"field2\" value='`$nodelist`'/>",
+        "comments": "",
+        "outputs": 1,
+        "x": 426.9998779296875,
+        "y": 609,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "cc7baeb9.6a3dc",
+        "type": "switchNode",
+        "name": "switch pnf-flag",
+        "xml": "<switch test='`$payloadJson.pnf-flag`'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 480,
+        "y": 346,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "b515ebb.9b7de18",
+                "ea8f46f7.654968"
+            ]
+        ]
+    },
+    {
+        "id": "9a79bc82.279ce",
+        "type": "execute",
+        "name": "execute jsonStringToCtx",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='jsonStringToCtx'>\n\t<parameter name='source' value='rollback-input.payload' />\n\t<parameter name='outputPath' value='payloadJson' />\n\t<parameter name='isEscaped' value='true' />",
+        "comments": "",
+        "outputs": 1,
+        "x": 512,
+        "y": 292,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b515ebb.9b7de18",
+        "type": "outcome",
+        "name": "true",
+        "xml": "<outcome value='true'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 677,
+        "y": 325,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "d8920a01.f108b8"
+            ]
+        ]
+    },
+    {
+        "id": "ea8f46f7.654968",
+        "type": "outcome",
+        "name": "other",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 677,
+        "y": 386,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "32f9eda7.1c1082"
+            ]
+        ]
+    },
+    {
+        "id": "32f9eda7.1c1082",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 824.9999389648438,
+        "y": 385,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "3756c2a1.fa5d6e"
+            ]
+        ]
+    },
+    {
+        "id": "d8920a01.f108b8",
+        "type": "set",
+        "name": "set AnsibleReq",
+        "xml": "<set>\n<parameter name='nodelist' value=\"`'[' + $quote + $payloadJson.ipaddress-v4-oam +  $quote + ']'`\"/>\n<parameter name='playbookname' value='`$prop.lcm.pnf.rollback.playbookname`'/>\n",
+        "comments": "",
+        "x": 838,
+        "y": 323,
+        "z": "6f1e5235.30d27c",
+        "wires": []
+    },
+    {
+        "id": "b9b832a7.ed87d",
+        "type": "switchNode",
+        "name": "switch playbookname",
+        "xml": "<switch test='`$playbookname`'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 477,
+        "y": 477,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "5725646c.c7b37c"
+            ]
+        ]
+    },
+    {
+        "id": "5725646c.c7b37c",
+        "type": "outcome",
+        "name": "null",
+        "xml": "<outcome value=''>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 648,
+        "y": 478,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "4546e558.72429c"
+            ]
+        ]
+    },
+    {
+        "id": "4546e558.72429c",
+        "type": "set",
+        "name": "set playbookname",
+        "xml": "<set>\n<parameter name='nodelist' value=\"`$prop.ansible.nodelist`\"/>\n<parameter name='playbookname' value='`$prop.lcm.rollback.playbookname`'/>",
+        "comments": "",
+        "x": 838,
+        "y": 477,
+        "z": "6f1e5235.30d27c",
+        "wires": []
+    },
+    {
+        "id": "763cfac9.48a8a4",
+        "type": "switchNode",
+        "name": "switch nodelist",
+        "xml": "<switch test='`$nodelist`'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 467,
+        "y": 536,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "76eb51c0.552ce",
+                "178c823.496cd7e"
+            ]
+        ]
+    },
+    {
+        "id": "76eb51c0.552ce",
+        "type": "outcome",
+        "name": "null",
+        "xml": "<outcome value=''>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 647,
+        "y": 529,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "66b6e37a.9e852c"
+            ]
+        ]
+    },
+    {
+        "id": "66b6e37a.9e852c",
+        "type": "set",
+        "name": "set nodelist",
+        "xml": "<set>\n<parameter name='nodelist' value=\"`$prop.ansible.nodelist`\"/>",
+        "comments": "",
+        "x": 804,
+        "y": 543,
+        "z": "6f1e5235.30d27c",
+        "wires": []
+    },
+    {
+        "id": "178c823.496cd7e",
+        "type": "outcome",
+        "name": "empty",
+        "xml": "<outcome value=\"['']\">\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 646,
+        "y": 573,
+        "z": "6f1e5235.30d27c",
+        "wires": [
+            [
+                "66b6e37a.9e852c"
+            ]
+        ]
+    },
+    {
+        "id": "3756c2a1.fa5d6e",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n<parameter name='status.code' value='401' />\n<parameter name='status.message' value='Currently only support PNF.' />",
+        "comments": "",
+        "x": 998,
+        "y": 385,
+        "z": "6f1e5235.30d27c",
+        "wires": []
+    }
+]
