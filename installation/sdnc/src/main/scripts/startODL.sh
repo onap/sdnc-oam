@@ -21,6 +21,26 @@
 # ============LICENSE_END=========================================================
 ###
 
+# Append features to karaf boot feature configuration
+# $1 additional feature to be added
+# $2 repositories to be added (optional)
+function addToFeatureBoot() {
+  CFG=$ODL_HOME/etc/org.apache.karaf.features.cfg
+  ORIG=$CFG.orig
+  if [ -n "$2" ] ; then
+    echo "Add repository: $2"
+    mv $CFG $ORIG
+    cat $ORIG | sed -e "\|featuresRepositories|s|$|,$2|" > $CFG
+  fi
+  echo "Add boot feature: $1"
+  mv $CFG $ORIG
+  cat $ORIG | sed -e "\|featuresBoot *=|s|$|,$1|" > $CFG
+}
+
+function install_sdnrwt_features() {
+  addToFeatureBoot "$SDNRWT_BOOTFEATURES" $SDNRWT_REPOSITORY
+}
+
 function enable_odl_cluster(){
   if [ -z $SDNC_REPLICAS ]; then
      echo "SDNC_REPLICAS is not configured in Env field"
@@ -81,6 +101,14 @@ ENABLE_ODL_CLUSTER=${ENABLE_ODL_CLUSTER:-false}
 IS_PRIMARY_CLUSTER=${IS_PRIMARY_CLUSTER:-false}
 MY_ODL_CLUSTER=${MY_ODL_CLUSTER:-127.0.0.1}
 INSTALLED_DIR=${INSTALLED_FILE:-/opt/opendaylight/current/daexim}
+SDNRWT=${SDNRWT:-false}
+SDNRWT_BOOTFEATURES=${SDNRWT_BOOTFEATURES:-sdnr-wt-feature-aggregator}
+
+
+echo "Settings:"
+echo "  ENABLE_ODL_CLUSTER=$ENABLE_ODL_CLUSTER"
+echo "  SDNC_REPLICAS=$SDNC_REPLICAS"
+echo "  SDNRWT=$SDNRWT"
 
 #
 # Wait for database
@@ -114,6 +142,8 @@ then
 	fi
 
     if $ENABLE_ODL_CLUSTER ; then enable_odl_cluster ; fi
+
+	if $SDNRWT ; then install_sdnrwt_features ; fi
 
 	echo "Installed at `date`" > ${INSTALLED_DIR}/.installed
 fi
