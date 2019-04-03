@@ -37,6 +37,16 @@ function addToFeatureBoot() {
   cat $ORIG | sed -e "\|featuresBoot *=|s|$|,$1|" > $CFG
 }
 
+# Append features to karaf boot feature configuration
+# $1 search pattern
+# $2 replacement
+function replaceFeatureBoot() {
+  CFG=$ODL_HOME/etc/org.apache.karaf.features.cfg
+  ORIG=$CFG.orig
+  echo "Replace boot feature $1 with: $2"
+  sed -i "/featuresBoot/ s/$1/$2/g" $CFG
+}
+
 function install_sdnrwt_features() {
   addToFeatureBoot "$SDNRWT_BOOTFEATURES" $SDNRWT_REPOSITORY
 }
@@ -48,8 +58,8 @@ function enable_odl_cluster(){
   fi
 
   echo "Installing Opendaylight cluster features"
-  mv $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.karaf.features.cfg.orig
-  cat $ODL_HOME/etc/org.apache.karaf.features.cfg.orig | sed -e "\|featuresBoot=config|s|$|,odl-mdsal-clustering,odl-jolokia|" > $ODL_HOME/etc/org.apache.karaf.features.cfg
+  replaceFeatureBoot odl-mdsal-all odl-mdsal-all,odl-mdsal-clustering
+  addToFeatureBoot odl-jolokia
   #${ODL_HOME}/bin/client feature:install odl-mdsal-clustering
   #${ODL_HOME}/bin/client feature:install odl-jolokia
 
