@@ -58,6 +58,7 @@ function enable_odl_cluster(){
   fi
 
   echo "Installing Opendaylight cluster features"
+  replaceFeatureBoot odl-netconf-topology odl-netconf-clustered-topology
   replaceFeatureBoot odl-mdsal-all odl-mdsal-all,odl-mdsal-clustering
   addToFeatureBoot odl-jolokia
   #${ODL_HOME}/bin/client feature:install odl-mdsal-clustering
