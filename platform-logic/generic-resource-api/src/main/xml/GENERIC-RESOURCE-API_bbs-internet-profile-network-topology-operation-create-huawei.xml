@@ -10,15 +10,11 @@
                 <parameter name="contentType" value="application/json"/>
                 <parameter name="httpMethod" value="post"/>
                 <parameter name="responsePrefix" value="service-result"/>
-                <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
-                <parameter name="trustStorePassword" value="adminadmin"/>
-                <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
-                <parameter name="keyStorePassword" value="adminadmin"/>
                 <outcome value='failure'>
                     <return status='failure'>
                         <parameter name='ack-final' value='Y'/>
                         <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/CreateInternetProfileInstance'`" />
+                        <parameter name="error-message" value="Error failed to call CreateInternetProfileInstance" />
                     </return>
                 </outcome>
                 <outcome value='success'>
@@ -27,7 +23,7 @@
                             <return status='failure'>
                                 <parameter name='ack-final' value='Y'/>
                                 <parameter name="error-code" value="500" />
-                                <parameter name="error-message" value="`'Error CreateInternetProfileInstance failed: '+$service-result.errors.error[0].error-message`" />
+                                <parameter name="error-message" value="`'Error CreateInternetProfileInstance return: '+$service-result.errors.error[0].error-message`" />
                             </return>
                         </outcome>
                         <outcome value=''>
@@ -36,6 +32,102 @@
                     </switch>
                 </outcome>
             </execute>
+            <block>
+                <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils" method="generateUUID">
+                    <parameter name="ctx-destination" value="prop.random-data"/>
+                    <outcome value='success'>
+                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                            <parameter name="ctx_memory_result_key" value="prop.random-data-list"/>
+                            <parameter name="original_string" value="`$prop.random-data`"/>
+                            <parameter name="regex" value="-"/>
+                            <outcome value='success'>
+                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                    <parameter name="file" value="/opt/oak/logx.txt" />
+                                    <parameter name="field1" value="`$prop.random-data`" />
+                                </record>
+                            </outcome>
+                        </execute>
+                    </outcome>
+                </execute>
+                <set>
+                    <parameter name='vnf-id' value="`$prop.random-data-list[3]`"/>
+                    <parameter name='vnf-name' value="`'vnf-'+$prop.random-data-list[4]`"/>
+                </set>
+                <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="generic-vnf" key="generic-vnf.vnf-id = $vnf-id" >
+                    <parameter name= "vnf-id" value = "`$vnf-id`"/>
+                    <parameter name=  "vnf-name" value = "`$vnf-name`"/>
+                    <parameter name=  "vnf-type" value = "InternetProfile"/>
+                    <parameter name=  "service-id" value = "`$network-topology-operation-input.service-information.service-id`"/>
+                    <parameter name=  "prov-status" value = "ACTIVE"/>
+                    <parameter name=  "orchestration-status" value = "Active"/>
+                    <parameter name=  "ipv4-oam-address" value = "169.254.236.13"/>
+                    <parameter name=  "in-maint" value = "false" />
+                    <parameter name=  "is-closed-loop-disabled" value = "false" />
+                    <parameter name=  "model-invariant-id" value = "`$network-topology-operation-input.network-information.onap-model-information.model-invariant-uuid`"/>
+                    <parameter name=  "model-version-id" value = "`$network-topology-operation-input.network-information.onap-model-information.model-uuid`"/>
+                    <parameter name=  "model-customization-id" value = "`$network-topology-operation-input.network-information.onap-model-information.model-customization-uuid`"/>
+                    <outcome value='failure'>
+                        <return status='failure'>
+                            <parameter name='ack-final' value='Y'/>
+                            <parameter name="error-code" value="500" />
+                            <parameter name="error-message" value="Failure calling AAI to save generic-vnf" />
+                        </return>
+                    </outcome>
+                    <outcome value='not-found'>
+                        <return status='failure'>
+                            <parameter name='ack-final' value='Y'/>
+                            <parameter name="error-code" value="500" />
+                            <parameter name="error-message" value="generic-vnf instance does not exist in AAI" />
+                        </return>
+                    </outcome>
+                    <outcome value='success'>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                            <parameter name="file" value="/opt/oak/logx.txt" />
+                            <parameter name="field1" value="save generic-vnf success!" />
+                        </record>
+                    </outcome>
+                </save>
+                <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="service-instance:metadata"
+ key="service-instance.service-instance-id = $network-topology-operation-input.service-information.service-id  
+	AND customer.global-customer-id = $network-topology-operation-input.service-information.global-customer-id
+	  AND service-subscription.service-type = $network-topology-operation-input.service-information.subscription-service-type
+	  AND service-instance.service-instance-id =  $network-topology-operation-input.service-information.service-instance-id"  force="true" pfx="tmp.AnAI-data">
+                    <parameter name="metadata.metadatum[0].metaname" value="service-type" />
+                    <parameter name="metadata.metadatum[0].metaval" value="`$prop.bbs.service_type`" />
+                    <parameter name="metadata.metadatum[1].metaname" value="up-speed" />
+                    <parameter name="metadata.metadatum[1].metaval" value="`$prop.bbs.up_speed`" />
+                    <parameter name="metadata.metadatum[2].metaname" value="down-speed" />
+                    <parameter name="metadata.metadatum[2].metaval" value="`$prop.bbs.down_speed`" />
+                    <parameter name="metadata.metadatum[3].metaname" value="cvlan" />
+                    <parameter name="metadata.metadatum[3].metaval" value="`$prop.bbs.c_vlan`" />
+                    <parameter name="metadata.metadatum[4].metaname" value="svlan" />
+                    <parameter name="metadata.metadatum[4].metaval" value="`$prop.bbs.s_vlan`" />
+                    <parameter name="metadata.metadatum[5].metaname" value="expected-ont-id" />
+                    <parameter name="metadata.metadatum[5].metaval" value="`$prop.bbs.ont_sn`" />
+                    <parameter name="metadata.metadatum[6].metaname" value="rgw-mac-address" />
+                    <parameter name="metadata.metadatum[6].metaval" value="`$prop.bbs.mac`" />
+                    <outcome value='failure'>
+                        <return status='failure'>
+                            <parameter name='ack-final' value='Y'/>
+                            <parameter name="error-code" value="500" />
+                            <parameter name="error-message" value="Failure calling AAI to save metadatum" />
+                        </return>
+                    </outcome>
+                    <outcome value='not-found'>
+                        <return status='failure'>
+                            <parameter name='ack-final' value='Y'/>
+                            <parameter name="error-code" value="500" />
+                            <parameter name="error-message" value="metadatum instance does not exist in AAI" />
+                        </return>
+                    </outcome>
+                    <outcome value='success'>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                            <parameter name="file" value="/opt/oak/logx.txt" />
+                            <parameter name="field1" value="save metadatum success!" />
+                        </record>
+                    </outcome>
+                </save>
+            </block>
             <return status='success'>
                 <parameter name="ack-final-indicator" value="Y" />
                 <parameter name="error-code" value="200" />
