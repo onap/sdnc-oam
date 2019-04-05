@@ -1,0 +1,58 @@
+---
+- hosts: all
+  tasks:
+  - name: execute downloadNESw operation
+    shell: ./swm/downloadNESw.sh --swToBeDownloaded {{swToBeDownloaded}} --neIdentifier {{neIdentifier}}
+    register: download_result
+
+  - name: parse response of downloadNESw
+    set_fact:
+      download_response: "{{ download_result.stdout | from_json }}"
+
+  - name: fetch file of Notification notifyDownloadNESwStatusChanged
+    fetch:
+      dest: /tmp/
+      src: /tmp/notifyDownloadNESwStatusChanged-{{download_response.downloadProcessId}}
+
+  - name: read contents of Notification notifyDownloadNESwStatusChanged
+    set_fact:
+      download_notification: "{{ lookup('file', '/tmp/{{inventory_hostname}}/tmp/notifyDownloadNESwStatusChanged-{{download_response.downloadProcessId}}') | from_json }}"
+
+  - name: delete file of Notification notifyDownloadNESwStatusChanged
+    local_action: file path="/tmp/{{inventory_hostname}}/tmp/notifyDownloadNESwStatusChanged-{{download_response.downloadProcessId}}" state=absent
+
+  - name: execute installNESw operation
+    shell: ./swm/installNESw.sh --swToBeInstalled {{item}} --neIdentifier {{neIdentifier}}
+    register: install_result
+    with_items: "{{ download_notification.downloadedNESwInfo }}"
+
+  - name: parse responses of all the installNESws
+    set_fact:
+      install_responses: "{{ install_responses | default([]) + [item.stdout | from_json] }}"
+    with_items: "{{ install_result.results }}"
+
+  - name: fetch files of all the Notifications notifyInstallNESwStatusChanged
+    fetch:
+      dest: /tmp/
+      src: /tmp/notifyInstallNESwStatusChanged-{{item.installProcessId}}
+    with_items: "{{ install_responses }}"
+
+  - name: read contents of all the Notifications notifyInstallNESwStatusChanged
+    set_fact:
+      install_notifications: "{{ install_notifications | default([]) + [lookup('file', '/tmp/{{inventory_hostname}}/tmp/notifyInstallNESwStatusChanged-{{item.installProcessId}}') | from_json] }}"
+    with_items: "{{ install_responses }}"
+
+  - name: delete files of all the Notifications notifyInstallNESwStatusChanged
+    local_action: file path="/tmp/{{inventory_hostname}}/tmp/notifyInstallNESwStatusChanged-{{item.installProcessId}}" state=absent
+    with_items: "{{ install_responses }}"
+
+  - name: parse all the installed NE SW info
+    set_fact:
+      installed_ne_sw_info: "{{ installed_ne_sw_info | default([]) + item.installedNESwInfo }}"
+    with_items: "{{ install_notifications }}"
+
+  - name: execute activateNESw operation
+    shell: ./swm/activateNESw.sh --swVersionToBeActivated {{item}} --neIdentifier {{neIdentifier}}
+    register: activate_result
+    with_items: "{{ installed_ne_sw_info }}"
+
