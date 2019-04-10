@@ -1,21 +1,8 @@
 ---
 - hosts: all
   tasks:
-  - name: create a temporary file for additional data
-    file: 
-        path: /tmp/tmp-{{Id}}
-        state: touch
-    become: false
 
-  - name: prepare additional data
-    shell: echo {{additionalData}} > /tmp/tmp-{{Id}}
-    become: false
+  - name: execute swFallback operation
+    shell: ./swm/swFallback.sh --filter {{filter}}
+    register: fallback__result
 
-  - name: execute rollback operation
-    shell: ./swm/rollback.sh {{pnfId}} {{oldSwVersion}} /tmp/tmp-{{Id}}
-
-  - name: remove the temporary file
-    file:
-        path: /tmp/tmp-{{Id}}
-        state: absent
-    become: false
