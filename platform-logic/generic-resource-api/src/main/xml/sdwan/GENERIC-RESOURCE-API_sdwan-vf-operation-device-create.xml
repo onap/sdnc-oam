@@ -103,6 +103,31 @@
                 <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-index].vf-module-data.vf-module-level-oper-status.last-rpc-action'  value='`$vf-module-topology-operation-input.sdnc-request-header.svc-action`' />
                 <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-index].vf-module-data.vf-module-level-oper-status.last-action'  value='`$vf-module-topology-operation-input.sdnc-request-header.request-action`' />
             </set>
+            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='device' 
+      key='device.device-id = $prop.device-vf-index' >
+                <parameter name='device-id' value='`$prop.device-vf-index`' />
+                <parameter name='esn' value='`$prop.device.esn`' />
+                <parameter name='device-name' value='`$prop.device.name`' />
+                <parameter name='description' value='`$prop.device.description`' />
+                <parameter name='vendor' value='`$prop.device.vendor`' />
+                <parameter name='class' value='`$prop.device.class`' />
+                <parameter name='type' value='`$prop.device.deviceModel`' />
+                <parameter name='version' value='`$prop.device.version`' />
+                <parameter name='system-ip' value='`$prop.device.systemIp`' />
+                <parameter name='operational-status' value='Created' />
+                <parameter name='model-customization-id' value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-customization-uuid`' />
+                <parameter name='model-invariant-id' value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-invariant-uuid`' />
+                <parameter name='model-version-id' value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-version`' />
+                <parameter name='selflink' value="`'restconf/config/GENERIC-RESOURCE-API:services/service/'  + $vf-module-topology-operation-input.service-information.service-instance-id  + '/service-data/vnfs/vnf/'  + $service-data.vnfs.vnf[$vnf-index].vnf-id  + '/vnf-data/vf-modules/vf-module/' + $prop.device-vf-index + '/vf-module-data/'` " />
+            </save>
+            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='generic-vnf:relationship-list' 
+      key='generic-vnf.vnf-id = $service-data.vnfs.vnf[$vnf-index].vnf-id' 
+      force="true" pfx="tmp.AnAI-data">
+                <parameter name="relationship-list.relationship[0].related-to" value="device" />
+                <parameter name="relationship-list.relationship[0].related-link" value="`'/network/devices/device/' + $prop.device-vf-index`" />
+                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="device.device-id" />
+                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$prop.device-vf-index`" />
+            </save>
             <return status='success'>
                 <parameter name="ack-final-indicator" value="Y" />
                 <parameter name="error-code" value="200" />
