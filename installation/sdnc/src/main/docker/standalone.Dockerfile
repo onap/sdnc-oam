@@ -30,7 +30,11 @@ RUN rsync -a /tmp/system $ODL_HOME && rm -rf /tmp/system
 RUN cp $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.karaf.features.cfg.orig
 RUN sed -i -e "\|featuresRepositories|s|$|,${SDNC_NORTHBOUND_REPO}|"  $ODL_HOME/etc/org.apache.karaf.features.cfg
 RUN sed -i -e "\|featuresBoot[^a-zA-Z]|s|$|,sdnc-northbound-all|"  $ODL_HOME/etc/org.apache.karaf.features.cfg
-RUN sed -i "s/odl-restconf-all/odl-restconf-all,odl-netconf-connector-all,odl-netconf-clustered-topology/g"  $ODL_HOME/etc/org.apache.karaf.features.cfg
+RUN sed -i "s/odl-restconf-all/odl-restconf-all,odl-netconf-topology/g"  $ODL_HOME/etc/org.apache.karaf.features.cfg
+
+# install AAF configs
+COPY aaa-app-config.xml $ODL_HOME/etc/opendaylight/datastore/initial/config/
+RUN echo "cadi_prop_files=$SDNC_CONFIG_DIR/org.onap.sdnc.props" >> $ODL_HOME/etc/system.properties
 
 # install ssl and java certificates
 COPY truststoreONAPall.jks $JAVA_SECURITY_DIR
@@ -44,6 +48,8 @@ RUN echo org.osgi.service.http.secure.port=$SDNC_SECUREPORT >> $ODL_HOME/etc/cus
 RUN echo org.ops4j.pax.web.ssl.keystore=$SDNC_STORE_DIR/$SDNC_KEYSTORE >> $ODL_HOME/etc/custom.properties
 RUN echo org.ops4j.pax.web.ssl.password=$SDNC_KEYPASS >> $ODL_HOME/etc/custom.properties
 RUN echo org.ops4j.pax.web.ssl.keypassword=$SDNC_KEYPASS >> $ODL_HOME/etc/custom.properties
+
+
 
 
 RUN chown -R odl /opt
