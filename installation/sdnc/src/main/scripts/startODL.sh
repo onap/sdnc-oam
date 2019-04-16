@@ -51,6 +51,10 @@ function install_sdnrwt_features() {
   addToFeatureBoot "$SDNRWT_BOOTFEATURES" $SDNRWT_REPOSITORY
 }
 
+function install_sdnr_northbound_features() {
+  addToFeatureBoot "$SDNR_NORTHBOUND_BOOTFEATURES" $SDNR_NORTHBOUND_REPOSITORY
+}
+
 function enable_odl_cluster(){
   if [ -z $SDNC_REPLICAS ]; then
      echo "SDNC_REPLICAS is not configured in Env field"
@@ -114,12 +118,16 @@ MY_ODL_CLUSTER=${MY_ODL_CLUSTER:-127.0.0.1}
 INSTALLED_DIR=${INSTALLED_FILE:-/opt/opendaylight/current/daexim}
 SDNRWT=${SDNRWT:-false}
 SDNRWT_BOOTFEATURES=${SDNRWT_BOOTFEATURES:-sdnr-wt-feature-aggregator}
+SDNR_NORTHBOUND=${SDNR_NORTHBOUND:-false}
+SDNR_NORTHBOUND_BOOTFEATURES=${SDNR_NORTHBOUND_BOOTFEATURES:-sdnr-northbound-all}
 
 
 echo "Settings:"
 echo "  ENABLE_ODL_CLUSTER=$ENABLE_ODL_CLUSTER"
 echo "  SDNC_REPLICAS=$SDNC_REPLICAS"
 echo "  SDNRWT=$SDNRWT"
+echo "  SDNR_NORTHBOUND=$SDNR_NORTHBOUND"
+
 
 #
 # Wait for database
@@ -155,6 +163,8 @@ then
     if $ENABLE_ODL_CLUSTER ; then enable_odl_cluster ; fi
 
 	if $SDNRWT ; then install_sdnrwt_features ; fi
+
+  if $SDNR_NORTHBOUND ; then install_sdnr_northbound_features ; fi
 
 	echo "Installed at `date`" > ${INSTALLED_DIR}/.installed
 fi
