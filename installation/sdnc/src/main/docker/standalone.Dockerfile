@@ -30,7 +30,7 @@ RUN rsync -a /tmp/system $ODL_HOME && rm -rf /tmp/system
 RUN cp $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.karaf.features.cfg.orig
 RUN sed -i -e "\|featuresRepositories|s|$|,${SDNC_NORTHBOUND_REPO}|"  $ODL_HOME/etc/org.apache.karaf.features.cfg
 RUN sed -i -e "\|featuresBoot[^a-zA-Z]|s|$|,sdnc-northbound-all|"  $ODL_HOME/etc/org.apache.karaf.features.cfg
-RUN sed -i "s/odl-restconf-all/odl-restconf-all,odl-netconf-connector-all,odl-netconf-clustered-topology/g"  $ODL_HOME/etc/org.apache.karaf.features.cfg
+RUN sed -i "s/odl-restconf-all/odl-restconf-all,odl-netconf-topology/g"  $ODL_HOME/etc/org.apache.karaf.features.cfg
 
 # install ssl and java certificates
 COPY truststoreONAPall.jks $JAVA_SECURITY_DIR
