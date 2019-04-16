@@ -10,13 +10,49 @@
                 <parameter name="field2" value="sdwan-vf-module-operation-delete"/>
                 <parameter name="field3" value="SDWAN-Delete"/>
             </record>
-            <delete plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource='sdwan-vpn' 
-        key='sdwan-vpn.sdwan-vpn-id = $vf-module-topology-operation-input.vf-module-information.vf-module-id'></delete>
+            <switch test="`$tmp.vidx`">
+                <outcome value=''>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="vnf-topology-operation-input.vnf-request-input.vnf-id not found in service-data" />
+                    </return>
+                </outcome>
+            </switch>
+            <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$tmp.vidx].vf-module-data.vf-module-level-oper-status.order-status`'>
+                <outcome value='PendingDelete'>
+                    <block atomic="true"></block>
+                </outcome>
+                <outcome value='Other'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="`'VNF is not in appropriate state for activate. Current state is ' + $service-data.vnfs.vnf[$tmp.nidx].vnf-data.vnf-level-oper-status.order-status`" />
+                    </return>
+                </outcome>
+            </switch>
             <set>
-                <parameter name="service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length - 1`"/>
+                <parameter name='prop.vnfidxLen' value='`0`' />
             </set>
+            <for index='lidx' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`' >
+                <block atomic="true">
+                    <switch test="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$lidx].vf-module-data.vf-module-information.vf-module-id == $vf-module-topology-operation-input.vf-module-information.vf-module-id`">
+                        <outcome value='false'>
+                            <block atomic="true">
+                                <set>
+                                    <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$prop.vnfidxLen].vnf-id' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[lidx].vf-module-id`' />
+                                    <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$prop.vnfidxLen].vnf-data.' value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[lidx].vf-module-data.`' />
+                                </set>
+                                <set>
+                                    <parameter name='prop.vnfidxLen' value='`$prop.vnfidxLen + 1`' />
+                                </set>
+                            </block>
+                        </outcome>
+                    </switch>
+                </block>
+            </for>
             <set>
-                <parameter name="service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$tmp.nidx]." value=""/>
+                <parameter name="service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length" value='`$prop.vnfidxLen`'/>
             </set>
             <set>
                 <parameter name='vf-module-object-path' value="`'restconf/config/GENERIC-RESOURCE-API:services/service/'
@@ -37,6 +73,11 @@
  + $vf-module-topology-operation-input.service-information.service-instance-id
  + '/service-data/service-topology/'`"/>
             </set>
+            <set>
+                <parameter name="service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$prop.vnfidxLen]." value=""/>
+            </set>
+            <delete plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource='sdwan-vpn' 
+        key='sdwan-vpn.sdwan-vpn-id = $vf-module-topology-operation-input.vf-module-information.vf-module-id'></delete>
             <return status='success'>
                 <parameter name="ack-final-indicator" value="Y" />
                 <parameter name="error-code" value="200" />
