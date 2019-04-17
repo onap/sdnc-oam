@@ -1,23 +1,21 @@
-<service-logic
-    xmlns='http://www.onap.org/sdnc/svclogic'
-    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>
-    <method rpc='esr-thirdparty-sdnc-discovery' mode='sync'>
+<service-logic xsi:schemaLocation="http://www.onap.org/sdnc/svclogic ./svclogic.xsd" module="DataChange" version="${project.version}">
+    <method rpc="esr-thirdparty-sdnc-discovery" mode="sync">
         <block atomic="true">
             <switch test="`$prop.sdncRestApi.vendor == 'ZTE'`">
-                <outcome value='false'>
+                <outcome value="false">
                     <switch test="`$data-change-notification-input.aai-event-trigger`">
-                        <outcome value='Update'>
+                        <outcome value="Update">
                             <block>
                                 <switch test="`$prop.sdncRestApi.type`">
-                                    <outcome value='SOTN'>
+                                    <outcome value="SOTN">
                                         <block atomic="true">
-                                            <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
-                                                <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />
-                                                <parameter name='contextPrefix' value='prop' />
+                                            <execute plugin="org.onap.ccsdk.sli.plugins.prop.PropertiesNode" method="readProperties">
+                                                <parameter name="fileName" value="%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties"/>
+                                                <parameter name="contextPrefix" value="prop"/>
                                             </execute>
-                                            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                                                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/actokentemplate.json'`" />
-                                                <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/v2/tokens'`" />
+                                            <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
+                                                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/actokentemplate.json'`"/>
+                                                <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/v2/tokens'`"/>
                                                 <parameter name="format" value="json"/>
                                                 <parameter name="httpMethod" value="post"/>
                                                 <parameter name="responsePrefix" value="token-result"/>
@@ -25,21 +23,21 @@
                                                 <parameter name="trustStorePassword" value="adminadmin"/>
                                                 <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
                                                 <parameter name="keyStorePassword" value="adminadmin"/>
-                                                <outcome value='success'>
+                                                <outcome value="success">
                                                     <set>
-                                                        <parameter name='prop.sdncRestApi.token_id' value='`$token-result.data.token_id`' />
+                                                        <parameter name="prop.sdncRestApi.token_id" value="`$token-result.data.token_id`"/>
                                                     </set>
                                                 </outcome>
-                                                <outcome value='failure'>
-                                                    <block></block>
+                                                <outcome value="failure">
+                                                    <block/>
                                                 </outcome>
                                             </execute>
                                             <switch test="`$prop.sdncRestApi.token_id`">
-                                                <outcome value=''>
-                                                    <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                                                        <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-network:networks'`" />
-                                                        <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
-                                                        <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
+                                                <outcome value="">
+                                                    <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
+                                                        <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-network:networks'`"/>
+                                                        <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`"/>
+                                                        <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`"/>
                                                         <parameter name="format" value="json"/>
                                                         <parameter name="httpMethod" value="get"/>
                                                         <parameter name="responsePrefix" value="topology"/>
@@ -47,32 +45,65 @@
                                                         <parameter name="trustStorePassword" value="adminadmin"/>
                                                         <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
                                                         <parameter name="keyStorePassword" value="adminadmin"/>
-                                                        <outcome value='failure'>
-                                                            <return status='failure'>
-                                                                <parameter name='ack-final' value='Y'/>
-                                                                <parameter name="error-code" value="500" />
-                                                                <parameter name="error-message" value="Error executing Create vpn rest api" />
+                                                        <outcome value="failure">
+                                                            <return status="failure">
+                                                                <parameter name="ack-final" value="Y"/>
+                                                                <parameter name="error-code" value="500"/>
+                                                                <parameter name="error-message" value="Error executing Create vpn rest api"/>
                                                             </return>
                                                         </outcome>
-                                                        <outcome value='success'>
+                                                        <outcome value="success">
                                                             <block atomic="true">
-                                                                <for index='nidx' start='0' end='`$topology.networks.network_length`' >
+                                                                <for index="nidx" start="0" end="`$topology.networks.network_length`">
                                                                     <block>
                                                                         <set>
-                                                                            <parameter name='network.' value='`$topology.networks.network[$nidx].`' />
+                                                                            <parameter name="network." value="`$topology.networks.network[$nidx].`"/>
                                                                         </set>
-                                                                        <call module='DataChange' rpc='update-network-to-aai' mode='sync' ></call>
+                                                                        <call module="DataChange" rpc="update-network-to-aai" mode="sync"/>
                                                                     </block>
                                                                 </for>
+                                                                <switch test="`$topology.networks.network_length >= 2`">
+                                                                    <outcome value="true">
+                                                                        <block atomic="true">
+                                                                            <for index="netidx" start="0" end="`$topology.networks.network_length`">
+                                                                                <block>
+                                                                                    <set>
+                                                                                        <parameter name="network." value=""/>
+                                                                                    </set>
+                                                                                    <set>
+                                                                                        <parameter name="network." value="`$topology.networks.network[$netidx].`"/>
+                                                                                    </set>
+                                                                                    <switch test="`$network.te-topology-id`">
+                                                                                        <outcome value="11">
+                                                                                            <block>
+                                                                                                <set>
+                                                                                                    <parameter name="network-otn." value="`$topology.networks.network[$netidx].`"/>
+                                                                                                </set>
+                                                                                            </block>
+                                                                                        </outcome>
+                                                                                        <outcome value="33">
+                                                                                            <block>
+                                                                                                <set>
+                                                                                                    <parameter name="network-eth." value="`$topology.networks.network[$netidx].`"/>
+                                                                                                </set>
+                                                                                            </block>
+                                                                                        </outcome>
+                                                                                    </switch>
+                                                                                </block>
+                                                                            </for>
+                                                                            <call module="DataChange" rpc="update-tp-ttp-relationship" mode="sync"/>
+                                                                        </block>
+                                                                    </outcome>
+                                                                </switch>
                                                             </block>
                                                         </outcome>
                                                     </execute>
                                                 </outcome>
-                                                <outcome value='Other'>
-                                                    <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                                                        <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-network:networks'`" />
-                                                        <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
-                                                        <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
+                                                <outcome value="Other">
+                                                    <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
+                                                        <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-network:networks'`"/>
+                                                        <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`"/>
+                                                        <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`"/>
                                                         <parameter name="format" value="json"/>
                                                         <parameter name="httpMethod" value="get"/>
                                                         <parameter name="responsePrefix" value="topology"/>
@@ -80,56 +111,89 @@
                                                         <parameter name="trustStorePassword" value="adminadmin"/>
                                                         <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
                                                         <parameter name="keyStorePassword" value="adminadmin"/>
-                                                        <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
-                                                        <outcome value='failure'>
-                                                            <return status='failure'>
-                                                                <parameter name='ack-final' value='Y'/>
-                                                                <parameter name="error-code" value="500" />
-                                                                <parameter name="error-message" value="Error executing Create vpn rest api" />
+                                                        <parameter name="customHttpHeaders" value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`"/>
+                                                        <outcome value="failure">
+                                                            <return status="failure">
+                                                                <parameter name="ack-final" value="Y"/>
+                                                                <parameter name="error-code" value="500"/>
+                                                                <parameter name="error-message" value="Error executing Create vpn rest api"/>
                                                             </return>
                                                         </outcome>
-                                                        <outcome value='success'>
+                                                        <outcome value="success">
                                                             <block atomic="true">
-                                                                <for index='nidx' start='0' end='`$topology.networks.network_length`' >
+                                                                <for index="nidx" start="0" end="`$topology.networks.network_length`">
                                                                     <block>
                                                                         <set>
-                                                                            <parameter name='network.' value='`$topology.networks.network[$nidx].`' />
+                                                                            <parameter name="network." value="`$topology.networks.network[$nidx].`"/>
                                                                         </set>
-                                                                        <call module='DataChange' rpc='update-network-to-aai' mode='sync' ></call>
+                                                                        <call module="DataChange" rpc="update-network-to-aai" mode="sync"/>
                                                                     </block>
                                                                 </for>
+                                                                <switch test="`$topology.networks.network_length >= 2`">
+                                                                    <outcome value="true">
+                                                                        <block atomic="true">
+                                                                            <for index="netidx" start="0" end="`$topology.networks.network_length`">
+                                                                                <block>
+                                                                                    <set>
+                                                                                        <parameter name="network." value=""/>
+                                                                                    </set>
+                                                                                    <set>
+                                                                                        <parameter name="network." value="`$topology.networks.network[$netidx].`"/>
+                                                                                    </set>
+                                                                                    <switch test="`$network.te-topology-id`">
+                                                                                        <outcome value="11">
+                                                                                            <block>
+                                                                                                <set>
+                                                                                                    <parameter name="network-otn." value="`$topology.networks.network[$netidx].`"/>
+                                                                                                </set>
+                                                                                            </block>
+                                                                                        </outcome>
+                                                                                        <outcome value="33">
+                                                                                            <block>
+                                                                                                <set>
+                                                                                                    <parameter name="network-eth." value="`$topology.networks.network[$netidx].`"/>
+                                                                                                </set>
+                                                                                            </block>
+                                                                                        </outcome>
+                                                                                    </switch>
+                                                                                </block>
+                                                                            </for>
+                                                                            <call module="DataChange" rpc="update-tp-ttp-relationship" mode="sync"/>
+                                                                        </block>
+                                                                    </outcome>
+                                                                </switch>
                                                             </block>
                                                         </outcome>
                                                     </execute>
                                                 </outcome>
                                             </switch>
                                             <set>
-                                                <parameter name='input' value='ietf-subscribed-notifications:establish-subscription.input.' />
-                                                <parameter name="`$input + 'encoding'`" value="encode-json" />
+                                                <parameter name="input" value="ietf-subscribed-notifications:establish-subscription.input."/>
+                                                <parameter name="`$input + 'encoding'`" value="encode-json"/>
                                             </set>
-                                            <execute plugin='org.onap.ccsdk.sli.plugins.restconfdiscovery.RestconfDiscoveryNode' method='establishSubscription' >
-                                                <parameter name="subscriberId" value="sotn-controller" />
-                                                <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/operations/ietf-subscribed-notifications:establish-subscription'`" />
-                                                <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
-                                                <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
-                                                <parameter name="sseConnectURL" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/streams/yang-push-json'`" />
-                                                <parameter name="dirPath" value="/opt/sdnc/restconfapi/yang/notification" />
-                                                <parameter name="format" value="json" />
-                                                <parameter name="httpMethod" value="post" />
+                                            <execute plugin="org.onap.ccsdk.sli.plugins.restconfdiscovery.RestconfDiscoveryNode" method="establishSubscription">
+                                                <parameter name="subscriberId" value="sotn-controller"/>
+                                                <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/operations/ietf-subscribed-notifications:establish-subscription'`"/>
+                                                <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`"/>
+                                                <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`"/>
+                                                <parameter name="sseConnectURL" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/streams/yang-push-json'`"/>
+                                                <parameter name="dirPath" value="/opt/sdnc/restconfapi/yang/notification"/>
+                                                <parameter name="format" value="json"/>
+                                                <parameter name="httpMethod" value="post"/>
                                                 <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
                                                 <parameter name="trustStorePassword" value="adminadmin"/>
                                                 <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
                                                 <parameter name="keyStorePassword" value="adminadmin"/>
-                                                <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
-                                                <parameter name="module" value="DataChange" />
-                                                <parameter name="rpc" value="sotn-notification-handler" />
-                                                <parameter name="mode" value="sync" />
+                                                <parameter name="customHttpHeaders" value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`"/>
+                                                <parameter name="module" value="DataChange"/>
+                                                <parameter name="rpc" value="sotn-notification-handler"/>
+                                                <parameter name="mode" value="sync"/>
                                             </execute>
                                         </block>
                                     </outcome>
-                                    <outcome value='TAPI'>
+                                    <outcome value="TAPI">
                                         <block atomic="true">
-                                            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                            <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
                                                 <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/cxf/tapi/v2/topologies?topology-id-or-name=otn'`"/>
                                                 <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`"/>
                                                 <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`"/>
@@ -140,21 +204,21 @@
                                                 <parameter name="trustStorePassword" value="adminadmin"/>
                                                 <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
                                                 <parameter name="keyStorePassword" value="adminadmin"/>
-                                                <outcome value='failure'>
-                                                    <return status='failure'>
-                                                        <parameter name='ack-final' value='Y'/>
-                                                        <parameter name="error-code" value="500" />
-                                                        <parameter name="error-message" value="Error executing get topology TAPI rest api" />
+                                                <outcome value="failure">
+                                                    <return status="failure">
+                                                        <parameter name="ack-final" value="Y"/>
+                                                        <parameter name="error-code" value="500"/>
+                                                        <parameter name="error-message" value="Error executing get topology TAPI rest api"/>
                                                     </return>
                                                 </outcome>
-                                                <outcome value='success'>
+                                                <outcome value="success">
                                                     <block atomic="true">
-                                                        <for index='tidx' start='0' end="`$topologies.topology_length`" >
+                                                        <for index="tidx" start="0" end="`$topologies.topology_length`">
                                                             <block>
                                                                 <set>
-                                                                    <parameter name='topology.' value='`$topologies.topology[$tidx].`' />
+                                                                    <parameter name="topology." value="`$topologies.topology[$tidx].`"/>
                                                                 </set>
-                                                                <call module='DataChange' rpc='tapi-update-network-to-aai' mode='sync' ></call>
+                                                                <call module="DataChange" rpc="tapi-update-network-to-aai" mode="sync"/>
                                                             </block>
                                                         </for>
                                                     </block>
@@ -162,9 +226,9 @@
                                             </execute>
                                         </block>
                                     </outcome>
-                                    <outcome value='MSA'>
+                                    <outcome value="MSA">
                                         <block atomic="true">
-                                            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                            <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
                                                 <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/cxf/openroadm/v2/networks/otn-topology'`"/>
                                                 <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`"/>
                                                 <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`"/>
@@ -175,103 +239,91 @@
                                                 <parameter name="trustStorePassword" value="adminadmin"/>
                                                 <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
                                                 <parameter name="keyStorePassword" value="adminadmin"/>
-                                                <outcome value='failure'>
-                                                    <return status='failure'>
-                                                        <parameter name='ack-final' value='Y'/>
-                                                        <parameter name="error-code" value="500" />
-                                                        <parameter name="error-message" value="Error executing get topology MSA rest api" />
+                                                <outcome value="failure">
+                                                    <return status="failure">
+                                                        <parameter name="ack-final" value="Y"/>
+                                                        <parameter name="error-code" value="500"/>
+                                                        <parameter name="error-message" value="Error executing get topology MSA rest api"/>
                                                     </return>
                                                 </outcome>
-                                                <outcome value='success'>
+                                                <outcome value="success">
                                                     <block atomic="true">
-                                                        <call module='DataChange' rpc='msa-update-network-to-aai' mode='sync' ></call>
+                                                        <call module="DataChange" rpc="msa-update-network-to-aai" mode="sync"/>
                                                     </block>
                                                 </outcome>
                                             </execute>
                                         </block>
                                     </outcome>
-                                    <outcome value='Other'>
-                                        <return status='failure'>
-                                            <parameter name='ack-final' value='Y'/>
-                                            <parameter name="error-code" value="500" />
-                                            <parameter name="error-message" value="`'Unsupported type = ' + $prop.sdncRestApi.type`" />
+                                    <outcome value="Other">
+                                        <return status="failure">
+                                            <parameter name="ack-final" value="Y"/>
+                                            <parameter name="error-code" value="500"/>
+                                            <parameter name="error-message" value="`'Unsupported type = ' + $prop.sdncRestApi.type`"/>
                                         </return>
                                     </outcome>
                                 </switch>
                             </block>
                         </outcome>
-                        <outcome value='Delete'>
+                        <outcome value="Delete">
                             <block atomic="true">
                                 <switch test="`$prop.sdncRestApi.type`">
-                                    <outcome value='MSA'>
-                                        <block atomic='true'>
+                                    <outcome value="MSA">
+                                        <block atomic="true">
                                             <set>
-                                                <parameter name='controllerid' value="`$prop.sdncRestApi.type + '_' + $prop.sdncRestApi.thirdpartySdnc.url + '_' + $prop.sdncRestApi.thirdpartySdnc.id`" />
+                                                <parameter name="controllerid" value="`$prop.sdncRestApi.type + '_' + $prop.sdncRestApi.thirdpartySdnc.url + '_' + $prop.sdncRestApi.thirdpartySdnc.id`"/>
                                             </set>
-                                            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
-key='SELECT controller_id
-from TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE
-WHERE controller_id = $controllerid'
-pfx='dbcontrollerid'>
-                                                <outcome value='success'>
-                                                    <delete plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource'
-    resource="SQL"
-    key="DELETE FROM TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE WHERE controller_id = $controllerid"></delete>
+                                            <get-resource plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL" key="SELECT controller_id from TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE WHERE controller_id = $controllerid" pfx="dbcontrollerid">
+                                                <outcome value="success">
+                                                    <delete plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL" key="DELETE FROM TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE WHERE controller_id = $controllerid"/>
                                                 </outcome>
-                                                <outcome value='failure'>
-                                                    <return status='failure'>
-                                                        <parameter name='ack-final' value='Y'/>
-                                                        <parameter name="error-code" value="500" />
-                                                        <parameter name="error-message" value="Failure in getting controller-id from DB" />
+                                                <outcome value="failure">
+                                                    <return status="failure">
+                                                        <parameter name="ack-final" value="Y"/>
+                                                        <parameter name="error-code" value="500"/>
+                                                        <parameter name="error-message" value="Failure in getting controller-id from DB"/>
                                                     </return>
                                                 </outcome>
-                                                <outcome value='not-found'>
-                                                    <return status='failure'>
-                                                        <parameter name='ack-final' value='Y'/>
-                                                        <parameter name="error-code" value="500" />
-                                                        <parameter name="error-message" value="controller-id could not be found in DB" />
+                                                <outcome value="not-found">
+                                                    <return status="failure">
+                                                        <parameter name="ack-final" value="Y"/>
+                                                        <parameter name="error-code" value="500"/>
+                                                        <parameter name="error-message" value="controller-id could not be found in DB"/>
                                                     </return>
                                                 </outcome>
                                             </get-resource>
                                         </block>
                                     </outcome>
-                                    <outcome value='TAPI'>
+                                    <outcome value="TAPI">
                                         <block>
                                             <set>
-                                                <parameter name='controllerid' value="`$prop.sdncRestApi.type + '_' + $prop.sdncRestApi.thirdpartySdnc.url + '_' + $prop.sdncRestApi.thirdpartySdnc.id`" />
+                                                <parameter name="controllerid" value="`$prop.sdncRestApi.type + '_' + $prop.sdncRestApi.thirdpartySdnc.url + '_' + $prop.sdncRestApi.thirdpartySdnc.id`"/>
                                             </set>
-                                            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
-key='SELECT controller_id
-from TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE
-WHERE controller_id = $controllerid'
-pfx='dbcontrollerid'>
-                                                <outcome value='success'>
-                                                    <delete plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource'
-    resource="SQL"
-    key="DELETE FROM TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE WHERE controller_id = $controllerid"></delete>
+                                            <get-resource plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL" key="SELECT controller_id from TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE WHERE controller_id = $controllerid" pfx="dbcontrollerid">
+                                                <outcome value="success">
+                                                    <delete plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL" key="DELETE FROM TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE WHERE controller_id = $controllerid"/>
                                                 </outcome>
-                                                <outcome value='failure'>
-                                                    <return status='failure'>
-                                                        <parameter name='ack-final' value='Y'/>
-                                                        <parameter name="error-code" value="500" />
-                                                        <parameter name="error-message" value="Failure in getting controller-id from DB" />
+                                                <outcome value="failure">
+                                                    <return status="failure">
+                                                        <parameter name="ack-final" value="Y"/>
+                                                        <parameter name="error-code" value="500"/>
+                                                        <parameter name="error-message" value="Failure in getting controller-id from DB"/>
                                                     </return>
                                                 </outcome>
-                                                <outcome value='not-found'>
-                                                    <return status='failure'>
-                                                        <parameter name='ack-final' value='Y'/>
-                                                        <parameter name="error-code" value="500" />
-                                                        <parameter name="error-message" value="controller-id could not be found in DB" />
+                                                <outcome value="not-found">
+                                                    <return status="failure">
+                                                        <parameter name="ack-final" value="Y"/>
+                                                        <parameter name="error-code" value="500"/>
+                                                        <parameter name="error-message" value="controller-id could not be found in DB"/>
                                                     </return>
                                                 </outcome>
                                             </get-resource>
                                         </block>
                                     </outcome>
-                                    <outcome value='Other'>
-                                        <return status='failure'>
-                                            <parameter name='ack-final' value='Y'/>
-                                            <parameter name="error-code" value="500" />
-                                            <parameter name="error-message" value="`'Unsupported type = ' + $prop.sdncRestApi.type`" />
+                                    <outcome value="Other">
+                                        <return status="failure">
+                                            <parameter name="ack-final" value="Y"/>
+                                            <parameter name="error-code" value="500"/>
+                                            <parameter name="error-message" value="`'Unsupported type = ' + $prop.sdncRestApi.type`"/>
                                         </return>
                                     </outcome>
                                 </switch>
@@ -279,8 +331,8 @@ pfx='dbcontrollerid'>
                         </outcome>
                     </switch>
                 </outcome>
-                <outcome value='true'>
-                    <call module='DataChange' rpc='esr-thirdparty-sdnc-of-zte' mode='sync' ></call>
+                <outcome value="true">
+                    <call module="DataChange" rpc="esr-thirdparty-sdnc-of-zte" mode="sync"/>
                 </outcome>
             </switch>
         </block>

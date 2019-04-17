@@ -1,202 +1,271 @@
-<service-logic
-    xmlns='http://www.onap.org/sdnc/svclogic'
-    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>
-    <method rpc='update-network-links-to-aai' mode='sync'>
+<service-logic xsi:schemaLocation="http://www.onap.org/sdnc/svclogic ./svclogic.xsd" module="DataChange" version="${project.version}">
+    <method rpc="update-network-links-to-aai" mode="sync">
         <block atomic="true">
-            <for index='pidx' start='0' end='`$network.link_length`' >
+            <for index="pidx" start="0" end="`$network.link_length`">
                 <set>
-                    <parameter name='link.' value='' />
-                    <parameter name='dst-tpId' value='' />
-                    <parameter name='unique-dst-node-Id' value='' />
-                    <parameter name='is-open-ended-link' value='false' />
-                    <parameter name='is-invalid-open-ended-link' value='false' />
+                    <parameter name="link." value=""/>
+                    <parameter name="dst-tpId" value=""/>
+                    <parameter name="unique-dst-node-Id" value=""/>
+                    <parameter name="is-open-ended-link" value="false"/>
+                    <parameter name="is-invalid-open-ended-link" value="false"/>
                 </set>
                 <set>
-                    <parameter name='link.' value='`$network.link[$pidx].`' />
-                    <parameter name='unique-networkId' value='`$tmp.network-id`' />
+                    <parameter name="link." value="`$network.link[$pidx].`"/>
+                    <parameter name="unique-networkId" value="`$tmp.network-id`"/>
                 </set>
                 <set>
-                    <parameter name='unique-linkId' value="`'networkId-' + $unique-networkId + '-linkId-' + $link.link-id`" />
-                    <parameter name='src-tpId' value="`'networkId-' + $unique-networkId + '-nodeId-' + $link.source.source-node + '-ltpId-' + $link.source.source-tp`" />
-                    <parameter name='unique-src-node-Id' value="`'networkId-' + $unique-networkId + '-nodeId-' + $link.source.source-node`" />
+                    <parameter name="unique-linkId" value="`'networkId-' + $unique-networkId + '-linkId-' + $link.link-id`"/>
+                    <parameter name="src-tpId" value="`'networkId-' + $unique-networkId + '-nodeId-' + $link.source.source-node + '-ltpId-' + $link.source.source-tp`"/>
+                    <parameter name="unique-src-node-Id" value="`'networkId-' + $unique-networkId + '-nodeId-' + $link.source.source-node`"/>
                 </set>
-                <switch test='`$link.destination.dest-node`'>
-                    <outcome value=''>
+                <switch test="`$link.destination.dest-node`">
+                    <outcome value="">
                         <block>
                             <set>
-                                <parameter name='is-open-ended-link' value='true' />
+                                <parameter name="is-open-ended-link" value="true"/>
                             </set>
                             <set>
-                                <parameter name='tmp.aai.p-interface' value='' />
-                                <parameter name='tmp.aai.p-interface.inter-domain-plug-id' value='' />
+                                <parameter name="tmp.aai.p-interface" value=""/>
+                                <parameter name="tmp.aai.p-interface.inter-domain-plug-id" value=""/>
                             </set>
-                            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
-	resource="p-interface"
-	    key="pnf.pnf-name = $unique-src-node-Id
-	        and p-interface.interface-name = $src-tpId"
-		local-only="false" 
-		pfx="tmp.aai.p-interface" >
-                                <outcome value='success'>
-                                    <switch test='`$tmp.aai.p-interface.inter-domain-plug-id`'>
-                                        <outcome value=''>
+                            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="p-interface" key="pnf.pnf-name = $unique-src-node-Id and p-interface.interface-name = $src-tpId" local-only="false" pfx="tmp.aai.p-interface">
+                                <outcome value="success">
+                                    <switch test="`$tmp.aai.p-interface.inter-domain-plug-id`">
+                                        <outcome value="">
                                             <set>
-                                                <parameter name='is-open-ended-link' value='false' />
-                                                <parameter name='is-invalid-open-ended-link' value='true' />
+                                                <parameter name="is-open-ended-link" value="false"/>
+                                                <parameter name="is-invalid-open-ended-link" value="true"/>
                                             </set>
                                         </outcome>
-                                        <outcome value='Other'>
+                                        <outcome value="Other">
                                             <set>
-                                                <parameter name='alt-unique-linkId' value="`$tmp.aai.p-interface.inter-domain-plug-id`" />
-                                                <!--<parameter name='alt-unique-linkId' value="`'networkId-' + $unique-networkId + '-linkId-' + $tmp.aai.p-interface.inter-domain-plug-id`" />-->
+                                                <parameter name="alt-unique-linkId" value="`$tmp.aai.p-interface.inter-domain-plug-id`"/>
+                                                <!--
+                                                <parameter name='alt-unique-linkId' value="`'networkId-' + $unique-networkId + '-linkId-' + $tmp.aai.p-interface.inter-domain-plug-id`" />
+                                                -->
                                             </set>
                                         </outcome>
                                     </switch>
                                 </outcome>
-                                <outcome value='not-found'>
-                                    <return status='failure'>
-                                        <parameter name='ack-final' value='Y'/>
-                                        <parameter name="error-code" value="500" />
-                                        <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.l3vpn.pe1_id`" />
+                                <outcome value="not-found">
+                                    <return status="failure">
+                                        <parameter name="ack-final" value="Y"/>
+                                        <parameter name="error-code" value="500"/>
+                                        <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.l3vpn.pe1_id`"/>
                                     </return>
                                 </outcome>
-                                <outcome value='failure'>
-                                    <return status='failure'>
-                                        <parameter name='error-code' value='' />
-                                        <parameter name='error-message' value='' />
+                                <outcome value="failure">
+                                    <return status="failure">
+                                        <parameter name="error-code" value=""/>
+                                        <parameter name="error-message" value=""/>
                                     </return>
                                 </outcome>
                             </get-resource>
                         </block>
                     </outcome>
-                    <outcome value='Other'>
+                    <outcome value="Other">
                         <set>
-                            <parameter name='dst-tpId' value="`'networkId-' + $unique-networkId + '-nodeId-' + $link.destination.dest-node + '-ltpId-' + $link.destination.dest-tp`" />
-                            <parameter name='unique-dst-node-Id' value="`'networkId-' + $unique-networkId + '-nodeId-' + $link.destination.dest-node`" />
-                            <parameter name='is-open-ended-link' value='false' />
+                            <parameter name="dst-tpId" value="`'networkId-' + $unique-networkId + '-nodeId-' + $link.destination.dest-node + '-ltpId-' + $link.destination.dest-tp`"/>
+                            <parameter name="unique-dst-node-Id" value="`'networkId-' + $unique-networkId + '-nodeId-' + $link.destination.dest-node`"/>
+                            <parameter name="is-open-ended-link" value="false"/>
                         </set>
                     </outcome>
                 </switch>
-                <switch test='`$is-invalid-open-ended-link`'>
-                    <outcome value='true'>
-                        <block></block>
+                <switch test="`$is-invalid-open-ended-link`">
+                    <outcome value="true">
+                        <block/>
                     </outcome>
-                    <outcome value='false'>
-                        <switch test='`$is-open-ended-link`'>
-                            <outcome value='true'>
-                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
-	resource="logical-link"
-	    key="logical-link.link-name = $alt-unique-linkId"
-		local-only="false" 
-		pfx="tmp.aai.logical-link" >
-                                    <outcome value='success'>
+                    <outcome value="false">
+                        <switch test="`$is-open-ended-link`">
+                            <outcome value="true">
+                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="logical-link" key="logical-link.link-name = $alt-unique-linkId" local-only="false" pfx="tmp.aai.logical-link">
+                                    <outcome value="success">
                                         <block>
                                             <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
-                                                <parameter name="file" value="/opt/onap/logMerge.txt" />
-                                                <parameter name="field1" value="__TIMESTAMP__" />
-                                                <parameter name="field2" value="altUniqueLinkId" />
-                                                <parameter name="field3" value="`$alt-unique-linkId`" />
-                                                <parameter name="field4" value="srcTpId" />
-                                                <parameter name="field5" value="`$src-tpId`" />
-                                                <parameter name="field6" value="relationship-value" />
-                                                <parameter name="field7" value='`$tmp.aai.logical-link.relationship-list.relationship[0].relationship-data[1].relationship-value`' />
+                                                <parameter name="file" value="/opt/onap/logMerge.txt"/>
+                                                <parameter name="field1" value="__TIMESTAMP__"/>
+                                                <parameter name="field2" value="altUniqueLinkId"/>
+                                                <parameter name="field3" value="`$alt-unique-linkId`"/>
+                                                <parameter name="field4" value="srcTpId"/>
+                                                <parameter name="field5" value="`$src-tpId`"/>
+                                                <parameter name="field6" value="relationship-value"/>
+                                                <parameter name="field7" value="`$tmp.aai.logical-link.relationship-list.relationship[0].relationship-data[1].relationship-value`"/>
                                             </record>
-                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='logical-link:relationship-list' 
-      key='logical-link.link-name = $alt-unique-linkId' force="true" pfx="tmp.AnAI-data">
-                                                <!--<parameter name="relationship-list.relationship[0].related-to" value="p-interface" />-->
-                                                <!--<parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $unique-src-node-Id + '/p-interfaces/p-interface/' + $src-tpId`" />-->
-                                                <!--<parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="p-interface.interface-name" />-->
-                                                <!--<parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$src-tpId`" />-->
+                                            <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="logical-link:relationship-list" key="logical-link.link-name = $alt-unique-linkId" force="true" pfx="tmp.AnAI-data">
+                                                <!--
                                                 <parameter name="relationship-list.relationship[0].related-to" value="p-interface" />
+                                                -->
+                                                <!--
                                                 <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $unique-src-node-Id + '/p-interfaces/p-interface/' + $src-tpId`" />
+                                                -->
+                                                <!--
                                                 <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="p-interface.interface-name" />
+                                                -->
+                                                <!--
                                                 <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$src-tpId`" />
-                                                <outcome value='success'>
+                                                -->
+                                                <parameter name="relationship-list.relationship[0].related-to" value="p-interface"/>
+                                                <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $unique-src-node-Id + '/p-interfaces/p-interface/' + $src-tpId`"/>
+                                                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="p-interface.interface-name"/>
+                                                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$src-tpId`"/>
+                                                <outcome value="success">
                                                     <block>
                                                         <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
-                                                            <parameter name="file" value="/opt/onap/logMergeSuccess.txt" />
-                                                            <parameter name="field1" value="__TIMESTAMP__" />
-                                                            <parameter name="field2" value="altUniqueLinkId" />
-                                                            <parameter name="field3" value="`$alt-unique-linkId`" />
-                                                            <parameter name="field4" value="srcTpId" />
-                                                            <parameter name="field5" value="`$src-tpId`" />
-                                                            <parameter name="field6" value="relationship-value" />
-                                                            <parameter name="field7" value='`$tmp.aai.logical-link.relationship-list.relationship[0].relationship-data[1].relationship-value`' />
+                                                            <parameter name="file" value="/opt/onap/logMergeSuccess.txt"/>
+                                                            <parameter name="field1" value="__TIMESTAMP__"/>
+                                                            <parameter name="field2" value="altUniqueLinkId"/>
+                                                            <parameter name="field3" value="`$alt-unique-linkId`"/>
+                                                            <parameter name="field4" value="srcTpId"/>
+                                                            <parameter name="field5" value="`$src-tpId`"/>
+                                                            <parameter name="field6" value="relationship-value"/>
+                                                            <parameter name="field7" value="`$tmp.aai.logical-link.relationship-list.relationship[0].relationship-data[1].relationship-value`"/>
                                                         </record>
                                                     </block>
                                                 </outcome>
-                                                <outcome value='failure'>
+                                                <outcome value="failure">
                                                     <block>
                                                         <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
-                                                            <parameter name="file" value="/opt/onap/logMergeFailure.txt" />
-                                                            <parameter name="field1" value="__TIMESTAMP__" />
-                                                            <parameter name="field2" value="altUniqueLinkId" />
-                                                            <parameter name="field3" value="`$alt-unique-linkId`" />
-                                                            <parameter name="field4" value="srcTpId" />
-                                                            <parameter name="field5" value="`$src-tpId`" />
-                                                            <parameter name="field6" value="relationship-value" />
-                                                            <parameter name="field7" value='`$tmp.aai.logical-link.relationship-list.relationship[0].relationship-data[1].relationship-value`' />
+                                                            <parameter name="file" value="/opt/onap/logMergeFailure.txt"/>
+                                                            <parameter name="field1" value="__TIMESTAMP__"/>
+                                                            <parameter name="field2" value="altUniqueLinkId"/>
+                                                            <parameter name="field3" value="`$alt-unique-linkId`"/>
+                                                            <parameter name="field4" value="srcTpId"/>
+                                                            <parameter name="field5" value="`$src-tpId`"/>
+                                                            <parameter name="field6" value="relationship-value"/>
+                                                            <parameter name="field7" value="`$tmp.aai.logical-link.relationship-list.relationship[0].relationship-data[1].relationship-value`"/>
                                                         </record>
                                                     </block>
                                                 </outcome>
                                             </save>
-                                        </block>
-                                    </outcome>
-                                    <outcome value='not-found'>
-                                        <block atomic='true'>
-                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='logical-link' 
-      key='logical-link.link-name = $alt-unique-linkId' >
-                                                <parameter name='link-name' value='`$alt-unique-linkId`' />
-                                                <parameter name='link-id' value='`$link.link-id`' />
-                                                <parameter name='link-type' value='`$link.te.te-link-attributes.access-type`' />
+                                            <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="te-link-attribute" key="te-link-attribute.id = $link.te.te-link-attributes.name">
+                                                <parameter name="id" value="`$link.te.te-link-attributes.name`"/>
+                                                <parameter name="access-type" value="`$link.te.te-link-attributes.access-type`"/>
                                             </save>
-                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='logical-link:relationship-list' 
-      key='logical-link.link-name = $alt-unique-linkId' force="true" pfx="tmp.AnAI-data">
-                                                <parameter name="relationship-list.relationship[0].related-to" value="p-interface" />
-                                                <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $unique-src-node-Id + '/p-interfaces/p-interface/' + $src-tpId`" />
-                                                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="p-interface.interface-name" />
-                                                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$src-tpId`" />
-                                            </save>
-                                            <switch test='`$link.te.te-link-attributes.label-restriction`'>
-                                                <outcome value=''>
-                                                    <block></block>
+                                            <switch test="`$link.te.te-link-attributes.label-restriction_length`">
+                                                <outcome value="">
+                                                    <block/>
                                                 </outcome>
-                                                <outcome value='Other'>
-                                                    <for index='tidx' start='0' end='`$link.te.te-link-attributes.label-restriction_length`' >
+                                                <outcome value="0">
+                                                    <block/>
+                                                </outcome>
+                                                <outcome value="Other">
+                                                    <for index="tidx" start="0" end="`$link.te.te-link-attributes.label-restriction_length`">
                                                         <set>
-                                                            <parameter name='label-restriction.' value='`$link.te.te-link-attributes.label-restriction[$tidx].`' />
-                                                            <parameter name='unique-lrId' value="`$alt-unique-linkId + '-lrId-' + $label-restriction.index`" />
+                                                            <parameter name="label-restriction." value=""/>
+                                                            <parameter name="unique-lrId" value=""/>
                                                         </set>
-                                                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='label-restriction' 
-      key='logical-link.link-name = $alt-unique-linkId
-      AND label-restriction.id = $unique-lrId' >
-                                                            <parameter name='id' value='`$unique-lrId`' />
-                                                            <parameter name='label-start' value='`$label-restriction.label-start`' />
-                                                            <parameter name='label-end' value='`$label-restriction.label-end`' />
-                                                            <parameter name='range-bitmap' value='`$label-restriction.range-bitmap`' />
-                                                            <parameter name='label-step' value='`$label-restriction.label-step`' />
-                                                            <parameter name='inclusive-exclusive' value='`$label-restriction.inclusive-exclusive`' />
-                                                            <outcome value='success'>
-                                                                <block></block>
+                                                        <set>
+                                                            <parameter name="label-restriction." value="`$link.te.te-link-attributes.label-restriction[$tidx].`"/>
+                                                        </set>
+                                                        <set>
+                                                            <parameter name="unique-lrId" value="`$alt-unique-linkId + '-lrId-' + $label-restriction.index`"/>
+                                                        </set>
+                                                        <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="label-restriction" key="label-restriction.id = $unique-lrId">
+                                                            <parameter name="id" value="`$unique-lrId`"/>
+                                                            <parameter name="label-start" value="`$label-restriction.label-start.te-label-tpn`"/>
+                                                            <parameter name="label-end" value="`$label-restriction.label-end.te-label-tpn`"/>
+                                                            <parameter name="range-bitmap" value="`$label-restriction.range-bitmap`"/>
+                                                            <parameter name="label-step" value="`$label-restriction.label-step`"/>
+                                                            <parameter name="inclusive-exclusive" value="`$label-restriction.inclusive-exclusive`"/>
+                                                            <outcome value="success">
+                                                                <block/>
                                                             </outcome>
-                                                            <outcome value='failure'>
-                                                                <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='label-restriction' 
-      key='logical-link.link-name = $alt-unique-linkId
-      AND label-restriction.id = $unique-lrId' >
-                                                                    <parameter name='id' value='`$unique-lrId`' />
-                                                                    <parameter name='label-start' value='`$label-restriction.label-start`' />
-                                                                    <parameter name='label-end' value='`$label-restriction.label-end`' />
-                                                                    <parameter name='range-bitmap' value='`$label-restriction.range-bitmap`' />
-                                                                    <parameter name='label-step' value='`$label-restriction.label-step`' />
-                                                                    <parameter name='inclusive-exclusive' value='`$label-restriction.inclusive-exclusive`' />
-                                                                </update>
+                                                            <outcome value="failure">
+                                                                <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="label-restriction" key="label-restriction.id = $unique-lrId">
+                                                                    <parameter name="id" value="`$unique-lrId`"/>
+                                                                    <parameter name="label-start" value="`$label-restriction.label-start.te-label-tpn`"/>
+                                                                    <parameter name="label-end" value="`$label-restriction.label-end.te-label-tpn`"/>
+                                                                    <parameter name="range-bitmap" value="`$label-restriction.range-bitmap`"/>
+                                                                    <parameter name="label-step" value="`$label-restriction.label-step`"/>
+                                                                    <parameter name="inclusive-exclusive" value="`$label-restriction.inclusive-exclusive`"/>
+                                                                </save>
                                                             </outcome>
                                                         </save>
-                                                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='logical-link:relationship-list' 
-      key='logical-link.link-name = $alt-unique-linkId' force="true" pfx="tmp.AnAI-data">
-                                                            <parameter name="relationship-list.relationship[$tidx].related-to" value="label-restriction" />
-                                                            <parameter name="relationship-list.relationship[$tidx].related-link" value="`'/network/label-restrictions/label-restriction/' + $unique-lrId`" />
-                                                            <parameter name="relationship-list.relationship[$tidx].relationship-data[0].relationship-key" value="label-restriction.id" />
-                                                            <parameter name="relationship-list.relationship[$tidx].relationship-data[0].relationship-value" value="`$unique-lrId`" />
+                                                        <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="te-link-attribute:relationship-list" key="te-link-attribute.id = $link.te.te-link-attributes.name" force="true" pfx="tmp.AnAI-data">
+                                                            <parameter name="relationship-list.relationship[0].related-to" value="logical-link"/>
+                                                            <parameter name="relationship-list.relationship[0].related-link" value="`'/network/logical-links/logical-link/' + $alt-unique-linkId`"/>
+                                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="logical-link.link-name"/>
+                                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$alt-unique-linkId`"/>
+                                                        </save>
+                                                        <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="te-link-attribute:relationship-list" key="te-link-attribute.id = $link.te.te-link-attributes.name" force="true" pfx="tmp.AnAI-data">
+                                                            <parameter name="relationship-list.relationship[0].related-to" value="label-restriction"/>
+                                                            <parameter name="relationship-list.relationship[0].related-link" value="`'/network/label-restrictions/label-restriction/' + $unique-lrId`"/>
+                                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="label-restriction.id"/>
+                                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$unique-lrId`"/>
+                                                        </save>
+                                                    </for>
+                                                </outcome>
+                                            </switch>
+                                        </block>
+                                    </outcome>
+                                    <outcome value="not-found">
+                                        <block atomic="true">
+                                            <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="logical-link" key="logical-link.link-name = $alt-unique-linkId">
+                                                <parameter name="link-name" value="`$alt-unique-linkId`"/>
+                                                <parameter name="link-id" value="`$link.link-id`"/>
+                                                <parameter name="link-type" value="`$link.te.te-link-attributes.access-type`"/>
+                                            </save>
+                                            <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="logical-link:relationship-list" key="logical-link.link-name = $alt-unique-linkId" force="true" pfx="tmp.AnAI-data">
+                                                <parameter name="relationship-list.relationship[0].related-to" value="p-interface"/>
+                                                <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $unique-src-node-Id + '/p-interfaces/p-interface/' + $src-tpId`"/>
+                                                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="p-interface.interface-name"/>
+                                                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$src-tpId`"/>
+                                            </save>
+                                            <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="te-link-attribute" key="te-link-attribute.id = $link.te.te-link-attributes.name">
+                                                <parameter name="id" value="`$link.te.te-link-attributes.name`"/>
+                                                <parameter name="access-type" value="`$link.te.te-link-attributes.access-type`"/>
+                                            </save>
+                                            <switch test="`$link.te.te-link-attributes.label-restriction_length`">
+                                                <outcome value="">
+                                                    <block/>
+                                                </outcome>
+                                                <outcome value="0">
+                                                    <block/>
+                                                </outcome>
+                                                <outcome value="Other">
+                                                    <for index="tidx" start="0" end="`$link.te.te-link-attributes.label-restriction_length`">
+                                                        <set>
+                                                            <parameter name="label-restriction." value=""/>
+                                                            <parameter name="unique-lrId" value=""/>
+                                                        </set>
+                                                        <set>
+                                                            <parameter name="label-restriction." value="`$link.te.te-link-attributes.label-restriction[$tidx].`"/>
+                                                        </set>
+                                                        <set>
+                                                            <parameter name="unique-lrId" value="`$alt-unique-linkId + '-lrId-' + $label-restriction.index`"/>
+                                                        </set>
+                                                        <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="label-restriction" key="label-restriction.id = $unique-lrId">
+                                                            <parameter name="id" value="`$unique-lrId`"/>
+                                                            <parameter name="label-start" value="`$label-restriction.label-start.te-label-tpn`"/>
+                                                            <parameter name="label-end" value="`$label-restriction.label-end.te-label-tpn`"/>
+                                                            <parameter name="range-bitmap" value="`$label-restriction.range-bitmap`"/>
+                                                            <parameter name="label-step" value="`$label-restriction.label-step`"/>
+                                                            <parameter name="inclusive-exclusive" value="`$label-restriction.inclusive-exclusive`"/>
+                                                            <outcome value="success">
+                                                                <block/>
+                                                            </outcome>
+                                                            <outcome value="failure">
+                                                                <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="label-restriction" key="logical-link.link-name = $alt-unique-linkId AND label-restriction.id = $unique-lrId">
+                                                                    <parameter name="id" value="`$unique-lrId`"/>
+                                                                    <parameter name="label-start" value="`$label-restriction.label-start`"/>
+                                                                    <parameter name="label-end" value="`$label-restriction.label-end`"/>
+                                                                    <parameter name="range-bitmap" value="`$label-restriction.range-bitmap`"/>
+                                                                    <parameter name="label-step" value="`$label-restriction.label-step`"/>
+                                                                    <parameter name="inclusive-exclusive" value="`$label-restriction.inclusive-exclusive`"/>
+                                                                </save>
+                                                            </outcome>
+                                                        </save>
+                                                        <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="te-link-attribute:relationship-list" key="te-link-attribute.id = $link.te.te-link-attributes.name" force="true" pfx="tmp.AnAI-data">
+                                                            <parameter name="relationship-list.relationship[0].related-to" value="logical-link"/>
+                                                            <parameter name="relationship-list.relationship[0].related-link" value="`'/network/logical-links/logical-link/' + $alt-unique-linkId`"/>
+                                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="logical-link.link-name"/>
+                                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$alt-unique-linkId`"/>
+                                                        </save>
+                                                        <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="te-link-attribute:relationship-list" key="te-link-attribute.id = $link.te.te-link-attributes.name" force="true" pfx="tmp.AnAI-data">
+                                                            <parameter name="relationship-list.relationship[0].related-to" value="label-restriction"/>
+                                                            <parameter name="relationship-list.relationship[0].related-link" value="`'/network/label-restrictions/label-restriction/' + $unique-lrId`"/>
+                                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="label-restriction.id"/>
+                                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$unique-lrId`"/>
                                                         </save>
                                                     </for>
                                                 </outcome>
@@ -205,76 +274,88 @@
                                     </outcome>
                                 </get-resource>
                             </outcome>
-                            <outcome value='false'>
-                                <block atomic='true'>
-                                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='logical-link' 
-      key='logical-link.link-name = $unique-linkId' >
-                                        <parameter name='link-name' value='`$unique-linkId`' />
-                                        <parameter name='link-id' value='`$link.link-id`' />
-                                        <parameter name='link-type' value='`$link.te.te-link-attributes.access-type`' />
+                            <outcome value="false">
+                                <block atomic="true">
+                                    <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="logical-link" key="logical-link.link-name = $unique-linkId">
+                                        <parameter name="link-name" value="`$unique-linkId`"/>
+                                        <parameter name="link-id" value="`$link.link-id`"/>
+                                        <parameter name="link-type" value="`$link.te.te-link-attributes.access-type`"/>
                                     </save>
                                     <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
-                                        <parameter name="file" value="/opt/onap/logTopologyDiscovery.txt" />
-                                        <parameter name="field1" value="__TIMESTAMP__" />
-                                        <parameter name="field2" value="uniqueLinkId" />
-                                        <parameter name="field3" value="`$unique-linkId`" />
-                                        <parameter name="field4" value="srcTpId" />
-                                        <parameter name="field5" value="`$src-tpId`" />
-                                        <parameter name="field6" value="dstTpId" />
-                                        <parameter name="field7" value="`$dst-tpId`" />
+                                        <parameter name="file" value="/opt/onap/logTopologyDiscovery.txt"/>
+                                        <parameter name="field1" value="__TIMESTAMP__"/>
+                                        <parameter name="field2" value="uniqueLinkId"/>
+                                        <parameter name="field3" value="`$unique-linkId`"/>
+                                        <parameter name="field4" value="srcTpId"/>
+                                        <parameter name="field5" value="`$src-tpId`"/>
+                                        <parameter name="field6" value="dstTpId"/>
+                                        <parameter name="field7" value="`$dst-tpId`"/>
                                     </record>
-                                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='logical-link:relationship-list' 
-      key='logical-link.link-name = $unique-linkId' force="true" pfx="tmp.AnAI-data">
-                                        <parameter name="relationship-list.relationship[0].related-to" value="p-interface" />
-                                        <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $unique-src-node-Id + '/p-interfaces/p-interface/' + $src-tpId`" />
-                                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="p-interface.interface-name" />
-                                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$src-tpId`" />
-                                        <parameter name="relationship-list.relationship[1].related-to" value="p-interface" />
-                                        <parameter name="relationship-list.relationship[1].related-link" value="`'/network/pnfs/pnf/' + $unique-dst-node-Id + '/p-interfaces/p-interface/' + $dst-tpId`" />
-                                        <parameter name="relationship-list.relationship[1].relationship-data[0].relationship-key" value="p-interface.interface-name" />
-                                        <parameter name="relationship-list.relationship[1].relationship-data[0].relationship-value" value="`$dst-tpId`" />
+                                    <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="logical-link:relationship-list" key="logical-link.link-name = $unique-linkId" force="true" pfx="tmp.AnAI-data">
+                                        <parameter name="relationship-list.relationship[0].related-to" value="p-interface"/>
+                                        <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $unique-src-node-Id + '/p-interfaces/p-interface/' + $src-tpId`"/>
+                                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="p-interface.interface-name"/>
+                                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$src-tpId`"/>
+                                        <parameter name="relationship-list.relationship[1].related-to" value="p-interface"/>
+                                        <parameter name="relationship-list.relationship[1].related-link" value="`'/network/pnfs/pnf/' + $unique-dst-node-Id + '/p-interfaces/p-interface/' + $dst-tpId`"/>
+                                        <parameter name="relationship-list.relationship[1].relationship-data[0].relationship-key" value="p-interface.interface-name"/>
+                                        <parameter name="relationship-list.relationship[1].relationship-data[0].relationship-value" value="`$dst-tpId`"/>
                                     </save>
-                                    <switch test='`$link.te.te-link-attributes.label-restriction`'>
-                                        <outcome value=''>
-                                            <block></block>
+                                    <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="te-link-attribute" key="te-link-attribute.id = $link.te.te-link-attributes.name">
+                                        <parameter name="id" value="`$link.te.te-link-attributes.name`"/>
+                                        <parameter name="access-type" value="`$link.te.te-link-attributes.access-type`"/>
+                                    </save>
+                                    <switch test="`$link.te.te-link-attributes.label-restriction_length`">
+                                        <outcome value="">
+                                            <block/>
                                         </outcome>
-                                        <outcome value='Other'>
-                                            <for index='tidx' start='0' end='`$link.te.te-link-attributes.label-restriction_length`' >
-                                                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='logical-link:relationship-list' 
-      key='logical-link.link-name = $unique-linkId' force="true" pfx="tmp.AnAI-data">
-                                                    <parameter name="relationship-list.relationship[$tidx].related-to" value="label-restriction" />
-                                                    <parameter name="relationship-list.relationship[$tidx].related-link" value="`'/network/label-restrictions/label-restriction/' + $unique-lrId`" />
-                                                    <parameter name="relationship-list.relationship[$tidx].relationship-data[0].relationship-key" value="label-restriction.id" />
-                                                    <parameter name="relationship-list.relationship[$tidx].relationship-data[0].relationship-value" value="`$unique-lrId`" />
-                                                </save>
+                                        <outcome value="0">
+                                            <block/>
+                                        </outcome>
+                                        <outcome value="Other">
+                                            <for index="tidx" start="0" end="`$link.te.te-link-attributes.label-restriction_length`">
                                                 <set>
-                                                    <parameter name='label-restriction.' value='`$link.te.te-link-attributes.label-restriction[$tidx].`' />
-                                                    <parameter name='unique-lrId' value="`$unique-linkId + '-lrId-' + $label-restriction.index`" />
+                                                    <parameter name="label-restriction." value=""/>
+                                                    <parameter name="unique-lrId" value=""/>
                                                 </set>
-                                                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='label-restriction' 
-      key='logical-link.link-name = $unique-linkId
-      AND label-restriction.id = $unique-lrId' >
-                                                    <parameter name='id' value='`$unique-lrId`' />
-                                                    <parameter name='label-start' value='`$label-restriction.label-start`' />
-                                                    <parameter name='label-end' value='`$label-restriction.label-end`' />
-                                                    <parameter name='range-bitmap' value='`$label-restriction.range-bitmap`' />
-                                                    <parameter name='label-step' value='`$label-restriction.label-step`' />
-                                                    <parameter name='inclusive-exclusive' value='`$label-restriction.inclusive-exclusive`' />
-                                                    <outcome value='success'>
-                                                        <block></block>
+                                                <set>
+                                                    <parameter name="label-restriction." value="`$link.te.te-link-attributes.label-restriction[$tidx].`"/>
+                                                </set>
+                                                <set>
+                                                    <parameter name="unique-lrId" value="`$unique-linkId + '-lrId-' + $label-restriction.index`"/>
+                                                </set>
+                                                <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="label-restriction" key="label-restriction.id = $unique-lrId">
+                                                    <parameter name="id" value="`$unique-lrId`"/>
+                                                    <parameter name="label-start" value="`$label-restriction.label-start.te-label-tpn`"/>
+                                                    <parameter name="label-end" value="`$label-restriction.label-end.te-label-tpn`"/>
+                                                    <parameter name="range-bitmap" value="`$label-restriction.range-bitmap`"/>
+                                                    <parameter name="label-step" value="`$label-restriction.label-step`"/>
+                                                    <parameter name="inclusive-exclusive" value="`$label-restriction.inclusive-exclusive`"/>
+                                                    <outcome value="success">
+                                                        <block/>
                                                     </outcome>
-                                                    <outcome value='failure'>
-                                                        <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='label-restriction' 
-      key='logical-link.link-name = $unique-linkId
-      AND label-restriction.id = $unique-lrId' >
-                                                            <parameter name='id' value='`$unique-lrId`' />
-                                                            <parameter name='label-start' value='`$label-restriction.label-start`' />
-                                                            <parameter name='label-end' value='`$label-restriction.label-end`' />
-                                                            <parameter name='range-bitmap' value='`$label-restriction.range-bitmap`' />
-                                                            <parameter name='label-step' value='`$label-restriction.label-step`' />
-                                                            <parameter name='inclusive-exclusive' value='`$label-restriction.inclusive-exclusive`' />
-                                                        </update>
+                                                    <outcome value="failure">
+                                                        <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="label-restriction" key="logical-link.link-name = $unique-linkId AND label-restriction.id = $unique-lrId">
+                                                            <parameter name="id" value="`$unique-lrId`"/>
+                                                            <parameter name="label-start" value="`$label-restriction.label-start`"/>
+                                                            <parameter name="label-end" value="`$label-restriction.label-end`"/>
+                                                            <parameter name="range-bitmap" value="`$label-restriction.range-bitmap`"/>
+                                                            <parameter name="label-step" value="`$label-restriction.label-step`"/>
+                                                            <parameter name="inclusive-exclusive" value="`$label-restriction.inclusive-exclusive`"/>
+                                                        </save>
                                                     </outcome>
+                                                </save>
+                                                <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="te-link-attribute:relationship-list" key="te-link-attribute.id = $link.te.te-link-attributes.name" force="true" pfx="tmp.AnAI-data">
+                                                    <parameter name="relationship-list.relationship[0].related-to" value="logical-link"/>
+                                                    <parameter name="relationship-list.relationship[0].related-link" value="`'/network/logical-links/logical-link/' + $unique-linkId`"/>
+                                                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="logical-link.link-name"/>
+                                                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$unique-linkId`"/>
+                                                </save>
+                                                <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="te-link-attribute:relationship-list" key="te-link-attribute.id = $link.te.te-link-attributes.name" force="true" pfx="tmp.AnAI-data">
+                                                    <parameter name="relationship-list.relationship[0].related-to" value="label-restriction"/>
+                                                    <parameter name="relationship-list.relationship[0].related-link" value="`'/network/label-restrictions/label-restriction/' + $unique-lrId`"/>
+                                                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="label-restriction.id"/>
+                                                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$unique-lrId`"/>
                                                 </save>
                                             </for>
                                         </outcome>
