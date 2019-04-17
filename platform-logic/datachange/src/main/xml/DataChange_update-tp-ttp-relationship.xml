@@ -1,76 +1,98 @@
-<service-logic
-    xmlns='http://www.onap.org/sdnc/svclogic'
-    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>
-    <method rpc='update-tp-ttp-relationship' mode='sync'>
+<service-logic xsi:schemaLocation="http://www.onap.org/sdnc/svclogic ./svclogic.xsd" module="DataChange" version="${project.version}">
+    <method rpc="update-tp-ttp-relationship" mode="sync">
         <block atomic="true">
-            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+            <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils" method="replace">
                 <parameter name="source" value="`$network-eth.network-id`"/>
                 <parameter name="outputPath" value="tmp.network-eth.network-id"/>
                 <parameter name="target" value="/"/>
                 <parameter name="replacement" value="-"/>
             </execute>
-            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+            <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils" method="replace">
                 <parameter name="source" value="`$network-otn.network-id`"/>
                 <parameter name="outputPath" value="tmp.network-otn.network-id"/>
                 <parameter name="target" value="/"/>
                 <parameter name="replacement" value="-"/>
             </execute>
-            <for index='pethidx' start='0' end='`$network-eth.node_length`' >
+            <for index="pethidx" start="0" end="`$network-eth.node_length`">
                 <set>
-                    <parameter name='node-eth.' value='`$network-eth.node[$pethidx].`' />
+                    <parameter name="node-eth." value="`$network-eth.node[$pethidx].`"/>
                 </set>
                 <set>
-                    <parameter name='unique-network-ethId' value='`$tmp.network-eth.network-id`' />
-                    <parameter name='unique-node-ethId' value="`'networkId-' + $unique-network-ethId + '-nodeId-' + $node-eth.node-id`" />
+                    <parameter name="unique-network-ethId" value="`$tmp.network-eth.network-id`"/>
+                    <parameter name="unique-node-ethId" value="`'networkId-' + $unique-network-ethId + '-nodeId-' + $node-eth.node-id`"/>
                 </set>
-                <for index='tidx' start='0' end='`$node-eth.termination-point_length`' >
-                    <set>
-                        <parameter name='tp-eth.' value='' />
-                    </set>
-                    <set>
-                        <parameter name='tp-eth.' value='`$node-eth.termination-point[$tidx].`' />
-                    </set>
-                    <set>
-                        <parameter name='unique-ltpethId' value="`$unique-node-ethId + '-ltpId-' + $tp-eth.te-tp-id`" />
-                    </set>
-                    <set>
-                        <parameter name='tp-inter-layer-lock-id' value='`$node-eth.termination-point[$tidx].te.inter-layer-lock-id[0]`' />
-                    </set>
-                    <for index='potnidx' start='0' end='`$network-otn.node_length`' >
-                        <set>
-                            <parameter name='node-otn.' value='`$network-otn.node[$potnidx].`' />
-                        </set>
-                        <set>
-                            <parameter name='unique-network-otnId' value='`$tmp.network-otn.network-id`' />
-                            <parameter name='unique-node-otnId' value="`'networkId-' + $unique-network-otnId + '-nodeId-' + $node-otn.node-id`" />
-                        </set>
-                        <for index='ttidx' start='0' end='`$node.te.tunnel-termination-point_length`' >
+                <switch test="`$node-eth.termination-point_length`">
+                    <outcome value="">
+                        <block/>
+                    </outcome>
+                    <outcome value="0">
+                        <block/>
+                    </outcome>
+                    <outcome value="Other">
+                        <for index="tidx" start="0" end="`$node-eth.termination-point_length`">
                             <set>
-                                <parameter name='ttp.' value='' />
+                                <parameter name="tp-eth." value=""/>
                             </set>
                             <set>
-                                <parameter name='ttp.' value='`$node-otn.te.tunnel-termination-point[$ttidx].`' />
+                                <parameter name="tp-eth." value="`$node-eth.termination-point[$tidx].`"/>
                             </set>
                             <set>
-                                <parameter name='unique-ttpId' value="`$unique-node-otnId + '-ttpId-' + $ttp.tunnel-tp-id`" />
+                                <parameter name="unique-ltpethId" value="`$unique-node-ethId + '-ltpId-' + $tp-eth.te-tp-id`"/>
                             </set>
                             <set>
-                                <parameter name='ttp-inter-layer-lock-id' value='`$node-otn.te.tunnel-termination-point[$ttidx].inter-layer-lock-id`' />
+                                <parameter name="tp-inter-layer-lock-id" value="`$node-eth.termination-point[$tidx].te.inter-layer-lock-id[0]`"/>
                             </set>
-                            <switch test='tp-inter-layer-lock-id'>
-                                <outcome value='ttp-inter-layer-lock-id'>
-                                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface:relationship-list' 
-      key='p-interface.interface-name = $unique-ltpethId' force="true" pfx="tmp.AnAI-data">
-                                        <parameter name="relationship-list.relationship[1].related-to" value="tunnel-termination-point" />
-                                        <parameter name="relationship-list.relationship[1].related-link" value="/network/tunnel-termination-points/tunnel-termination-point/ + `$unique-ttpId`" />
-                                        <parameter name="relationship-list.relationship[1].relationship-data[0].relationship-key" value="tunnel-termination-point.tunnel-tp-id" />
-                                        <parameter name="relationship-list.relationship[1].relationship-data[0].relationship-value" value="`$unique-ttpId`" />
-                                    </save>
-                                </outcome>
-                            </switch>
+                            <for index="potnidx" start="0" end="`$network-otn.node_length`">
+                                <set>
+                                    <parameter name="node-otn." value=""/>
+                                    <parameter name="unique-network-otnId" value=""/>
+                                    <parameter name="unique-node-otnId" value=""/>
+                                </set>
+                                <set>
+                                    <parameter name="node-otn." value="`$network-otn.node[$potnidx].`"/>
+                                </set>
+                                <set>
+                                    <parameter name="unique-network-otnId" value="`$tmp.network-otn.network-id`"/>
+                                    <parameter name="unique-node-otnId" value="`'networkId-' + $unique-network-otnId + '-nodeId-' + $node-otn.node-id`"/>
+                                </set>
+                                <switch test="`$node-otn.te.tunnel-termination-point_length`">
+                                    <outcome value="">
+                                        <block/>
+                                    </outcome>
+                                    <outcome value="0">
+                                        <block/>
+                                    </outcome>
+                                    <outcome value="Other">
+                                        <for index="ttidx" start="0" end="`$node-otn.te.tunnel-termination-point_length`">
+                                            <set>
+                                                <parameter name="ttp." value=""/>
+                                            </set>
+                                            <set>
+                                                <parameter name="ttp." value="`$node-otn.te.tunnel-termination-point[$ttidx].`"/>
+                                            </set>
+                                            <set>
+                                                <parameter name="unique-ttpId" value="`$unique-node-otnId + '-ttpId-' + $ttp.tunnel-tp-id`"/>
+                                            </set>
+                                            <set>
+                                                <parameter name="ttp-inter-layer-lock-id" value="`$node-otn.te.tunnel-termination-point[$ttidx].inter-layer-lock-id`"/>
+                                            </set>
+                                            <switch test="`$tp-inter-layer-lock-id`">
+                                                <outcome value="`$ttp-inter-layer-lock-id`">
+                                                    <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="p-interface:relationship-list" key="p-interface.interface-name = $unique-ltpethId" force="true" pfx="tmp.AnAI-data">
+                                                        <parameter name="relationship-list.relationship[0].related-to" value="tunnel-termination-point"/>
+                                                        <parameter name="relationship-list.relationship[0].related-link" value="/network/tunnel-termination-points/tunnel-termination-point/ + `$unique-ttpId`"/>
+                                                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="tunnel-termination-point.tunnel-tp-id"/>
+                                                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$unique-ttpId`"/>
+                                                    </save>
+                                                </outcome>
+                                            </switch>
+                                        </for>
+                                    </outcome>
+                                </switch>
+                            </for>
                         </for>
-                    </for>
-                </for>
+                    </outcome>
+                </switch>
             </for>
         </block>
     </method>
