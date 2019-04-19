@@ -3,6 +3,16 @@
   tasks:
 
   - name: execute swFallback operation
-    shell: ./swm/swFallback.sh --filter {{filter}}
-    register: fallback__result
+    shell: ./swm/swFallback --filter {{filter}}
+    ignore_errors: yes
+    register: fallback_result
+    
+  - name: write output to file
+    local_action: shell echo -n "{{fallback_result.stdout}}" > "/{{inventory_dir}}/{{inventory_hostname}}_results.txt"
+    when: fallback_result.stdout != ""
+
+  - name: use result of swFallback as the result of Playbook
+    fail:
+      msg: "{{fallback_result.stderr}}"
+    when: fallback_result is failed
 
