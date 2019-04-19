@@ -21,6 +21,15 @@
                     </outcome>
                 </switch>
             </for>
+            <switch test='`$vnf-index`'>
+                <outcome value=''>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="vnf id not found in service-data" />
+                    </return>
+                </outcome>
+            </switch>
             <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`'>
                 <outcome value='0'>
                     <return status='failure'>
@@ -75,13 +84,6 @@
                     </return>
                 </outcome>
             </switch>
-            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
-                <parameter name="file" value="/opt/opendaylight/current/data/log/svclogic.log"/>
-                <parameter name="field1" value="__TIMESTAMP__"/>
-                <parameter name="field2" value="Provided alloted resource length"/>
-                <parameter name="field3" value="'parameters length'"/>
-                <parameter name="field4" value='`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param_length`'/>
-            </record>
             <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
                 <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />
                 <parameter name='contextPrefix' value='prop' />
@@ -244,7 +246,6 @@
                     <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
                 </execute>
             </block>
-            <call module='GENERIC-RESOURCE-API' rpc='sdwan-get-tenant-auth' mode='sync' ></call>
             <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                 <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-device.json'`" />
                 <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v3/devices'`" />
@@ -306,6 +307,11 @@
                 <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$tmp.vidx].vf-module-data.service-information.' value='`$vf-module-topology-operation-input.service-information.`' />
                 <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$tmp.vidx].vf-module-data.vf-module-information.' value='`$vf-module-topology-operation-input.vf-module-information.`' />
             </set>
+            <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='device' 
+      key='device.device-id = $vf-module-topology-operation-input.vf-module-information.vf-module-id' >
+                <parameter name='device-id' value='`$vf-module-topology-operation-input.vf-module-information.vf-module-id`' />
+                <parameter name='operational-status' value='Active' />
+            </update>
             <return status='success'>
                 <parameter name="ack-final-indicator" value="Y" />
                 <parameter name="error-code" value="200" />
