@@ -4,24 +4,6 @@
     <method rpc='sdwan-vf-operation-vpn-create' mode='sync'>
         <block atomic="true">
             <call module='GENERIC-RESOURCE-API' rpc='validate-sdwan-vf-vpn-input-parameters' mode='sync' ></call>
-            <switch test='`$service-data.vnfs.vnf_length`'>
-                <outcome value=''>
-                    <return status='failure'>
-                        <parameter name='ack-final' value='Y'/>
-                        <parameter name="error-code" value="404" />
-                        <parameter name="error-message" value="There are no VNFs in MD-SAL" />
-                    </return>
-                </outcome>
-            </switch>
-            <for index='idx' start='0' end='`$service-data.vnfs.vnf_length`' >
-                <switch test="`$service-data.vnfs.vnf[$idx].vnf-id == $vf-module-topology-operation-input.vnf-information.vnf-id`">
-                    <outcome value='true'>
-                        <set>
-                            <parameter name='vnf-index' value='`$idx`' />
-                        </set>
-                    </outcome>
-                </switch>
-            </for>
             <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`'>
                 <outcome value=''>
                     <set>
@@ -128,9 +110,7 @@
                 <parameter name='sdwan-vpn-name' value='`$prop.name`' />
                 <parameter name='topology' value='`$prop.topology`' />
                 <parameter name='operational-status' value='Created' />
-                <parameter name='model-customization-id' value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-customization-uuid`' />
-                <parameter name='model-invariant-id' value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-invariant-uuid`' />
-                <parameter name='model-version-id' value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-version`' />
+                <!--parameter name='model-customization-id' value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-customization-uuid`' /><parameter name='model-invariant-id' value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-invariant-uuid`' /><parameter name='model-version-id' value='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-version`' /-->
                 <parameter name='selflink' value="`'restconf/config/GENERIC-RESOURCE-API:services/service/'  + $vf-module-topology-operation-input.service-information.service-instance-id  + '/service-data/vnfs/vnf/'  + $service-data.vnfs.vnf[$vnf-index].vnf-id  + '/vnf-data/vf-modules/vf-module/' + $prop.vpn-vf-index + '/vf-module-data/'` " />
             </save>
             <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='generic-vnf:relationship-list' 
