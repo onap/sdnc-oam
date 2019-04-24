@@ -22,58 +22,106 @@
       ne_identifier: "{{neIdentifier}}"
     when: neIdentifier is defined
 
+  - name: support new parameter swToBeInstalled
+    set_fact:
+      sw_to_be_installed: "{{swToBeInstalled}}"
+    when: swToBeInstalled is defined
+
+  - name: check if swToBeInstalled is empty
+    fail:
+    when: swToBeInstalled is defined and sw_to_be_installed | length == 0
+
+  - name: support new parameter swVersionToBeActivated
+    set_fact:
+      sw_version_to_be_activated: "{{swVersionToBeActivated}}"
+    when: swVersionToBeActivated is defined
+
   - name: execute downloadNESw operation
-    shell: ./swm/downloadNESw.sh --swToBeDownloaded {{sw_to_be_downloaded}} --neIdentifier {{ne_identifier}}
+    shell: ./swm/downloadNESw --swToBeDownloaded {{sw_to_be_downloaded}} --neIdentifier {{ne_identifier}}
     register: download_result
 
   - name: parse response of downloadNESw
     set_fact:
       download_response: "{{ download_result.stdout | from_json }}"
+    when: swToBeInstalled is not defined
 
   - name: fetch file of Notification notifyDownloadNESwStatusChanged
     fetch:
-      dest: /tmp/
-      src: /tmp/notifyDownloadNESwStatusChanged-{{download_response.downloadProcessId}}
+      dest: "{{inventory_dir}}"
+      src: "/tmp/notifyDownloadNESwStatusChanged-{{download_response.downloadProcessId}}"
+    when: swToBeInstalled is not defined
 
   - name: read contents of Notification notifyDownloadNESwStatusChanged
     set_fact:
-      download_notification: "{{ lookup('file', '/tmp/{{inventory_hostname}}/tmp/notifyDownloadNESwStatusChanged-{{download_response.downloadProcessId}}') | from_json }}"
+      download_notification: "{{ lookup('file', '{{inventory_dir}}/{{inventory_hostname}}/tmp/notifyDownloadNESwStatusChanged-{{download_response.downloadProcessId}}') | from_json }}"
+    when: swToBeInstalled is not defined
 
   - name: delete file of Notification notifyDownloadNESwStatusChanged
-    local_action: file path="/tmp/{{inventory_hostname}}/tmp/notifyDownloadNESwStatusChanged-{{download_response.downloadProcessId}}" state=absent
+    local_action: file path="{{inventory_dir}}/{{inventory_hostname}}/tmp/notifyDownloadNESwStatusChanged-{{download_response.downloadProcessId}}" state=absent
+    when: swToBeInstalled is not defined
+
+  - name: set downloadedNESwInfo
+    set_fact:
+      downloaded_ne_sw_info: "{{ download_notification.downloadedNESwInfo }}"
+    when: swToBeInstalled is not defined
 
   - name: execute installNESw operation
-    shell: ./swm/installNESw.sh --swToBeInstalled {{item}} --neIdentifier {{ne_identifier}}
+    shell: ./swm/installNESw --swToBeInstalled {{item}} --neIdentifier {{ne_identifier}}
     register: install_result
-    with_items: "{{ download_notification.downloadedNESwInfo }}"
+    with_items: "{{ downloaded_ne_sw_info | default([]) }}"
+
+  - name: execute installNESw operation using new parameter
+    shell: ./swm/installNESw --swToBeInstalled {{item}} --neIdentifier {{ne_identifier}}
+    register: install_result_new
+    with_items: "{{ sw_to_be_installed | default([]) }}"
+
+  - name: unify install result
+    set_fact:
+      install_result: "{{ install_result_new }}"
+    when: swToBeInstalled is defined
+
+  - name: set install results list
+    set_fact:
+      install_results_list: "{{ install_result.results }}"
+    when: swVersionToBeActivated is not defined
 
   - name: parse responses of all the installNESws
     set_fact:
       install_responses: "{{ install_responses | default([]) + [item.stdout | from_json] }}"
-    with_items: "{{ install_result.results }}"
+    with_items: "{{ install_results_list | default([]) }}"
 
   - name: fetch files of all the Notifications notifyInstallNESwStatusChanged
     fetch:
-      dest: /tmp/
-      src: /tmp/notifyInstallNESwStatusChanged-{{item.installProcessId}}
-    with_items: "{{ install_responses }}"
+      dest: "{{inventory_dir}}"
+      src: "/tmp/notifyInstallNESwStatusChanged-{{item.installProcessId}}"
+    with_items: "{{ install_responses | default([]) }}"
 
   - name: read contents of all the Notifications notifyInstallNESwStatusChanged
     set_fact:
-      install_notifications: "{{ install_notifications | default([]) + [lookup('file', '/tmp/{{inventory_hostname}}/tmp/notifyInstallNESwStatusChanged-{{item.installProcessId}}') | from_json] }}"
-    with_items: "{{ install_responses }}"
+      install_notifications: "{{ install_notifications | default([]) + [lookup('file', '{{inventory_dir}}/{{inventory_hostname}}/tmp/notifyInstallNESwStatusChanged-{{item.installProcessId}}') | from_json] }}"
+    with_items: "{{ install_responses | default([]) }}"
 
   - name: delete files of all the Notifications notifyInstallNESwStatusChanged
-    local_action: file path="/tmp/{{inventory_hostname}}/tmp/notifyInstallNESwStatusChanged-{{item.installProcessId}}" state=absent
-    with_items: "{{ install_responses }}"
+    local_action: file path="{{inventory_dir}}/{{inventory_hostname}}/tmp/notifyInstallNESwStatusChanged-{{item.installProcessId}}" state=absent
+    with_items: "{{ install_responses | default([]) }}"
 
   - name: parse all the installed NE SW info
     set_fact:
       installed_ne_sw_info: "{{ installed_ne_sw_info | default([]) + item.installedNESwInfo }}"
-    with_items: "{{ install_notifications }}"
+    with_items: "{{ install_notifications | default([]) }}"
 
   - name: execute activateNESw operation
-    shell: ./swm/activateNESw.sh --swVersionToBeActivated {{item}} --neIdentifier {{ne_identifier}}
+    shell: ./swm/activateNESw --swVersionToBeActivated {{item}} --neIdentifier {{ne_identifier}}
     register: activate_result
-    with_items: "{{ installed_ne_sw_info }}"
+    with_items: "{{ installed_ne_sw_info | default([]) }}"
+
+  - name: execute activateNESw operation using new parameter
+    shell: ./swm/activateNESw --swVersionToBeActivated {{sw_version_to_be_activated}} --neIdentifier {{ne_identifier}}
+    register: activate_result_new
+    when: swVersionToBeActivated is defined
+
+  - name: unify activate result
+    set_fact:
+      activate_result: "{{ activate_result_new }}"
+    when: swVersionToBeActivated is defined
 
