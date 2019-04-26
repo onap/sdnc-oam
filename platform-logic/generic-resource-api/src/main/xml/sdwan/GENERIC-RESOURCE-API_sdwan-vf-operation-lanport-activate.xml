@@ -159,6 +159,13 @@
                             <outcome value='true'>
                                 <for index='pidx' start='0' end='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param_length`' >
                                     <block atomic="true">
+                                        <switch test="`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].name == 'topology'`">
+                                            <outcome value='true'>
+                                                <set>
+                                                    <parameter name='prop.topology' value='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].value`' />
+                                                </set>
+                                            </outcome>
+                                        </switch>
                                         <switch test="`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].name == 'name'`">
                                             <outcome value='true'>
                                                 <set>
@@ -169,7 +176,7 @@
                                         <switch test="`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].name == 'vpn-id'`">
                                             <outcome value='true'>
                                                 <set>
-                                                    <parameter name='prop.vpn1Id' value='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].value`' />
+                                                    <parameter name='prop.vpnId' value='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].value`' />
                                                 </set>
                                             </outcome>
                                         </switch>
@@ -201,6 +208,23 @@
                     </switch>
                 </block>
             </for>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                <parameter name="original_string" value='`$prop.lan.ipAddress`'/>
+                <parameter name="regex" value="/"/>
+                <parameter name="ctx_memory_result_key" value="ipandMask"/>
+                <outcome value='success'>
+                    <set>
+                        <parameter name='prop.lan.ip-address' value='`$ipandMask[0]`' />
+                        <parameter name='prop.lan.prefixLength' value='`$ipandMask[1]`' />
+                    </set>
+                </outcome>
+                <outcome value='failure'>
+                    <return status='failure'>
+                        <parameter name='error-code' value='' />
+                        <parameter name='error-message' value="An error occured while splitting sna1_route" />
+                    </return>
+                </outcome>
+            </execute>
             <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="esr-thirdparty-sdnc" 
 		key="esr-thirdparty-sdnc.thirdparty-sdnc-id = 'SDWANController' AND 
@@ -252,6 +276,54 @@
                 </outcome>
             </execute>
             <call module='GENERIC-RESOURCE-API' rpc='sdwan-get-tenant-auth' mode='sync' ></call>
+            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-vpn.json'`" />
+                <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/sdwan/overlay-network/vpn'`" />
+                <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
+                <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
+                <parameter name="format" value="json"/>
+                <parameter name="httpMethod" value="put"/>
+                <parameter name="responsePrefix" value="vpn-result"/>
+                <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
+                <parameter name="trustStorePassword" value="adminadmin"/>
+                <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                <parameter name="keyStorePassword" value="adminadmin"/>
+                <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
+                <outcome value='failure'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="Error executing Create vpn failed" />
+                    </return>
+                </outcome>
+                <outcome value='success'>
+                    <block atomic="true"></block>
+                </outcome>
+            </execute>
+            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-vpn-topology.json'`" />
+                <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/sdwan/overlay-network/' + $prop.vpnId + '/topology'`" />
+                <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
+                <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
+                <parameter name="format" value="json"/>
+                <parameter name="httpMethod" value="put"/>
+                <parameter name="responsePrefix" value="vpn-result"/>
+                <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
+                <parameter name="trustStorePassword" value="adminadmin"/>
+                <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                <parameter name="keyStorePassword" value="adminadmin"/>
+                <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
+                <outcome value='failure'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="Error executing Create vpn topology failed" />
+                    </return>
+                </outcome>
+                <outcome value='success'>
+                    <block atomic="true"></block>
+                </outcome>
+            </execute>
             <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                 <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdlan-port.json'`" />
                 <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/sdwan/net/ports'`" />
@@ -307,23 +379,6 @@
                     </execute>
                 </outcome>
             </switch>
-            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
-                <parameter name="original_string" value='`$prop.lan.ipAddress`'/>
-                <parameter name="regex" value="/"/>
-                <parameter name="ctx_memory_result_key" value="ipandMask"/>
-                <outcome value='success'>
-                    <set>
-                        <parameter name='prop.lan.ip-address' value='`$ipandMask[0]`' />
-                        <parameter name='prop.lan.prefixLength' value='`$ipandMask[1]`' />
-                    </set>
-                </outcome>
-                <outcome value='failure'>
-                    <return status='failure'>
-                        <parameter name='error-code' value='' />
-                        <parameter name='error-message' value="An error occured while splitting sna1_route" />
-                    </return>
-                </outcome>
-            </execute>
             <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                 <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdlan-ip-subnets.json'`" />
                 <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/sdwan/overlay-network/ip-subnets'`" />
@@ -350,54 +405,6 @@
                             <parameter name='prop.lan.lanPortId' value='`lanPortResp.success[0].id`' />
                         </set>
                     </block>
-                </outcome>
-            </execute>
-            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-vpn.json'`" />
-                <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/sdwan/overlay-network/vpn'`" />
-                <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
-                <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
-                <parameter name="format" value="json"/>
-                <parameter name="httpMethod" value="put"/>
-                <parameter name="responsePrefix" value="vpn-result"/>
-                <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
-                <parameter name="trustStorePassword" value="adminadmin"/>
-                <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
-                <parameter name="keyStorePassword" value="adminadmin"/>
-                <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
-                <outcome value='failure'>
-                    <return status='failure'>
-                        <parameter name='ack-final' value='Y'/>
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="Error executing Create vpn failed" />
-                    </return>
-                </outcome>
-                <outcome value='success'>
-                    <block atomic="true"></block>
-                </outcome>
-            </execute>
-            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-vpn-topology.json'`" />
-                <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/sdwan/overlay-network/' + $prop.vpn1Id + '/topology'`" />
-                <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
-                <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
-                <parameter name="format" value="json"/>
-                <parameter name="httpMethod" value="put"/>
-                <parameter name="responsePrefix" value="vpn-result"/>
-                <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
-                <parameter name="trustStorePassword" value="adminadmin"/>
-                <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
-                <parameter name="keyStorePassword" value="adminadmin"/>
-                <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
-                <outcome value='failure'>
-                    <return status='failure'>
-                        <parameter name='ack-final' value='Y'/>
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="Error executing Create vpn topology failed" />
-                    </return>
-                </outcome>
-                <outcome value='success'>
-                    <block atomic="true"></block>
                 </outcome>
             </execute>
             <set>
