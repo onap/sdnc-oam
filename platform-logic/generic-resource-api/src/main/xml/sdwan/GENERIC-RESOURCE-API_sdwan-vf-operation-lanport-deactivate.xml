@@ -30,6 +30,10 @@
                     </return>
                 </outcome>
             </switch>
+            <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
+                <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />
+                <parameter name='contextPrefix' value='prop' />
+            </execute>
             <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`'>
                 <outcome value='0'>
                     <return status='failure'>
@@ -70,28 +74,44 @@
                 </outcome>
             </switch>
             <for index='vnfidx' start='0' end='`$service-data.vnfs.vnf_length`' >
-                <for index='vfidx' start='0' end='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module_length`' >
-                    <for index='pidx' start='0' end='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param_length`' >
-                        <switch test="`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].value == $prop.lan.deviceName`">
-                            <outcome value='true'>
-                                <block atomic="true">
-                                    <set>
-                                        <parameter name='prop.vnf-id' value='`$service-data.vnfs.vnf[$vnfidx].vnf-id`' />
-                                    </set>
+                <block atomic="true">
+                    <switch test="`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module_length >= '0'`">
+                        <!--switch test="`$service-data.vnfs.vnf[$i].vnf-data.request-information.request-action == 'ActivateSDWANDeviceInstance'`"-->
+                        <outcome value='true'>
+                            <block atomic="true">
+                                <for index='vfidx' start='0' end='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module_length`' >
                                     <for index='pidx' start='0' end='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param_length`' >
-                                        <switch test="`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].name == 'deviceId'`">
-                                            <outcome value='true'>
-                                                <set>
-                                                    <parameter name='prop.lan.deviceId' value='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].value`' />
-                                                </set>
-                                            </outcome>
-                                        </switch>
+                                        <block atomic="true">
+                                            <switch test="`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].value == $prop.lan.deviceName`">
+                                                <outcome value='true'>
+                                                    <block atomic="true">
+                                                        <set>
+                                                            <parameter name='prop.vnf-id' value='`$service-data.vnfs.vnf[$vnfidx].vnf-id`' />
+                                                        </set>
+                                                        <for index='pidx' start='0' end='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param_length`' >
+                                                            <switch test="`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].name == 'deviceId'`">
+                                                                <outcome value='true'>
+                                                                    <block atomic="true">
+                                                                        <set>
+                                                                            <parameter name='prop.lan.deviceId' value='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].value`' />
+                                                                        </set>
+                                                                        <set>
+                                                                            <parameter name='site-vnf-index' value='`$vnfidx`' />
+                                                                        </set>
+                                                                    </block>
+                                                                </outcome>
+                                                            </switch>
+                                                        </for>
+                                                    </block>
+                                                </outcome>
+                                            </switch>
+                                        </block>
                                     </for>
-                                </block>
-                            </outcome>
-                        </switch>
-                    </for>
-                </for>
+                                </for>
+                            </block>
+                        </outcome>
+                    </switch>
+                </block>
             </for>
             <set>
                 <parameter name='prop.siteAttachements_length' value='0' />
@@ -102,23 +122,10 @@
                     <outcome value='false'>
                         <for index='vfidx' start='0' end='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module_length`' >
                             <block>
-                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
-                                    <parameter name="file" value="/opt/opendaylight/current/data/log/svclogic24.log"/>
-                                    <parameter name="field1" value="__TIMESTAMP__"/>
-                                    <parameter name="field2" value="request-action"/>
-                                    <parameter name="field3" value='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.request-information.request-action`'/>
-                                </record>
-                                <!--switch test="`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.request-information.request-action == 'ActivateSDWANSiteInstance'`"-->
-                                <switch test="`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.request-information.request-action == 'ActivateSiteInstance'`">
+                                <switch test="`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.request-information.request-action == 'ActivateSDWANSiteInstance'`">
                                     <outcome value='true'>
-                                        <for index='pidx' start='0' end='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param_length`' >
-                                            <block atomic="true">
-                                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
-                                                    <parameter name="file" value="/opt/opendaylight/current/data/log/svclogic23.log"/>
-                                                    <parameter name="field1" value="__TIMESTAMP__"/>
-                                                    <parameter name="field2" value="param-name"/>
-                                                    <parameter name="field3" value='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].name`'/>
-                                                </record>
+                                        <block atomic="true">
+                                            <for index='pidx' start='0' end='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param_length`' >
                                                 <switch test="`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].name == 'role'`">
                                                     <outcome value='true'>
                                                         <block atomic="true">
@@ -129,56 +136,99 @@
                                                                     </set>
                                                                 </outcome>
                                                             </switch>
-                                                            <switch test="`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].name == 'dsvpn-hub'`">
+                                                            <switch test="`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].value == 'dsvpn-hub'`">
                                                                 <outcome value='true'>
                                                                     <set>
                                                                         <parameter name='prop.role' value="hub" />
                                                                     </set>
                                                                 </outcome>
                                                             </switch>
+                                                            <for index='sidx' start='0' end='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param_length`' >
+                                                                <switch test="`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$sidx].name == 'siteId'`">
+                                                                    <outcome value='true'>
+                                                                        <block atomic="true">
+                                                                            <set>
+                                                                                <parameter name='prop.attach.siteId' value='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$sidx].value`' />
+                                                                            </set>
+                                                                            <set>
+                                                                                <parameter name='prop.siteIds[$prop.siteIds_length]' value='`$prop.attach.siteId`' />
+                                                                                <parameter name='prop.siteIds_length' value='`$prop.siteIds_length + 1`' />
+                                                                            </set>
+                                                                            <set>
+                                                                                <parameter name='prop.siteAttachements[$prop.siteAttachements_length].siteId' value='`$prop.attach.siteId`' />
+                                                                                <parameter name='prop.siteAttachements[$prop.siteAttachements_length].roles[0]' value='`$prop.role`' />
+                                                                                <parameter name='prop.siteAttachements[$prop.siteAttachements_length].roles_length' value='1' />
+                                                                                <parameter name='prop.siteAttachements_length' value='`$prop.siteAttachements_length + 1`' />
+                                                                            </set>
+                                                                        </block>
+                                                                    </outcome>
+                                                                </switch>
+                                                            </for>
                                                         </block>
                                                     </outcome>
                                                 </switch>
-                                                <switch test="`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].name == 'siteId'`">
-                                                    <outcome value='true'>
-                                                        <block atomic="true">
-                                                            <set>
-                                                                <parameter name='prop.attach.siteId' value='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].value`' />
-                                                            </set>
-                                                            <set>
-                                                                <parameter name='prop.siteIds[$prop.siteIds_length]' value='`$prop.attach.siteId`' />
-                                                                <parameter name='prop.siteIds_length' value='`$prop.siteIds_length + 1`' />
-                                                            </set>
-                                                            <set>
-                                                                <parameter name='prop.siteAttachements[$prop.siteAttachements_length].siteId' value='`$prop.attach.siteId`' />
-                                                                <parameter name='prop.siteAttachements[$prop.siteAttachements_length].roles[0]' value='`$prop.role`' />
-                                                                <parameter name='prop.siteAttachements[$prop.siteAttachements_length].roles_length' value='1' />
-                                                                <parameter name='prop.siteAttachements_length' value='`$prop.siteAttachements_length + 1`' />
-                                                            </set>
-                                                        </block>
-                                                    </outcome>
-                                                </switch>
-                                            </block>
-                                        </for>
-                                    </outcome>
-                                </switch>
-                                <switch test="`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.request-information.request-action == 'ActivateSDWANVpnInstance'`">
-                                    <outcome value='true'>
-                                        <for index='pidx' start='0' end='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param_length`' >
-                                            <switch test="`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].name == 'vpn-id'`">
-                                                <outcome value='true'>
-                                                    <set>
-                                                        <parameter name='prop.vpn1Id' value='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].value`' />
-                                                    </set>
-                                                </outcome>
-                                            </switch>
-                                        </for>
+                                            </for>
+                                        </block>
                                     </outcome>
                                 </switch>
                             </block>
                         </for>
                     </outcome>
                 </switch>
+            </for>
+            <for index='vnfidx' start='0' end='`$service-data.vnfs.vnf_length`' >
+                <for index='vfidx' start='0' end='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module_length`' >
+                    <switch test="`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.request-information.request-action == 'ActivateSDWANVpnInstance'`">
+                        <outcome value='true'>
+                            <for index='pidx' start='0' end='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param_length`' >
+                                <block atomic="true">
+                                    <switch test="`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].name == 'topology'`">
+                                        <outcome value='true'>
+                                            <set>
+                                                <parameter name='prop.topology' value='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].value`' />
+                                            </set>
+                                        </outcome>
+                                    </switch>
+                                    <switch test="`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].name == 'name'`">
+                                        <outcome value='true'>
+                                            <set>
+                                                <parameter name='prop.name' value='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].value`' />
+                                            </set>
+                                        </outcome>
+                                    </switch>
+                                    <switch test="`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].name == 'vpn-id'`">
+                                        <outcome value='true'>
+                                            <set>
+                                                <parameter name='prop.vpnId' value='`$service-data.vnfs.vnf[$vnfidx].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].value`' />
+                                            </set>
+                                        </outcome>
+                                    </switch>
+                                </block>
+                            </for>
+                        </outcome>
+                    </switch>
+                </for>
+            </for>
+            <for index='vfidx' start='0' end='`$service-data.vnfs.vnf[$site-vnf-index].vnf-data.vf-modules.vf-module_length`' >
+                <block>
+                    <switch test="`$service-data.vnfs.vnf[$site-vnf-index].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.request-information.request-action == 'ActivateSDWANSiteInstance'`">
+                        <outcome value='true'>
+                            <for index='pidx' start='0' end='`$service-data.vnfs.vnf[$site-vnf-index].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param_length`' >
+                                <block atomic="true">
+                                    <switch test="`$service-data.vnfs.vnf[$site-vnf-index].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].name == 'siteId'`">
+                                        <outcome value='true'>
+                                            <block atomic="true">
+                                                <set>
+                                                    <parameter name='prop.siteId' value='`$service-data.vnfs.vnf[$site-vnf-index].vnf-data.vf-modules.vf-module[$vfidx].vf-module-data.vf-module-request-input.vf-module-input-parameters.param[$pidx].value`' />
+                                                </set>
+                                            </block>
+                                        </outcome>
+                                    </switch>
+                                </block>
+                            </for>
+                        </outcome>
+                    </switch>
+                </block>
             </for>
             <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="esr-thirdparty-sdnc" 
@@ -232,6 +282,30 @@
             </execute>
             <call module='GENERIC-RESOURCE-API' rpc='sdwan-get-tenant-auth' mode='sync' ></call>
             <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-vpn-topology.json'`" />
+                <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/sdwan/overlay-network/' + $prop.vpnId + '/topology'`" />
+                <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
+                <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
+                <parameter name="format" value="json"/>
+                <parameter name="httpMethod" value="put"/>
+                <parameter name="responsePrefix" value="vpn-result"/>
+                <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
+                <parameter name="trustStorePassword" value="adminadmin"/>
+                <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                <parameter name="keyStorePassword" value="adminadmin"/>
+                <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
+                <outcome value='failure'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="Error executing Create vpn topology failed" />
+                    </return>
+                </outcome>
+                <outcome value='success'>
+                    <block atomic="true"></block>
+                </outcome>
+            </execute>
+            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                 <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdlan-port-del.json'`" />
                 <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/sdwan/net/ports/action/batch-delete'`" />
                 <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
@@ -258,8 +332,8 @@
             <switch test="`$prop.lan.portSwitch == 'layer2-port'`">
                 <outcome value='true'>
                     <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                        <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdlan-bridge-domain.json'`" />
-                        <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/sdwan/overlay-network/bridge-domains'`" />
+                        <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdlan-bridge-domain-del.json'`" />
+                        <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/sdwan/overlay-network/bridge-domains/action/batch-delete'`" />
                         <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
                         <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
                         <parameter name="format" value="json"/>
@@ -318,58 +392,6 @@
                         <parameter name='ack-final' value='Y'/>
                         <parameter name="error-code" value="500" />
                         <parameter name="error-message" value="Error executing Create device port rest api" />
-                    </return>
-                </outcome>
-                <outcome value='success'>
-                    <block atomic="true">
-                        <set>
-                            <parameter name='prop.lan.lanPortId' value='`lanPortResp.success[0].id`' />
-                        </set>
-                    </block>
-                </outcome>
-            </execute>
-            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-vpn.json'`" />
-                <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/sdwan/overlay-network/vpn'`" />
-                <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
-                <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
-                <parameter name="format" value="json"/>
-                <parameter name="httpMethod" value="put"/>
-                <parameter name="responsePrefix" value="vpn-result"/>
-                <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
-                <parameter name="trustStorePassword" value="adminadmin"/>
-                <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
-                <parameter name="keyStorePassword" value="adminadmin"/>
-                <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
-                <outcome value='failure'>
-                    <return status='failure'>
-                        <parameter name='ack-final' value='Y'/>
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="Error executing Create vpn failed" />
-                    </return>
-                </outcome>
-                <outcome value='success'>
-                    <block atomic="true"></block>
-                </outcome>
-            </execute>
-            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sdwan-vpn-topology.json'`" />
-                <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/campus/v1/sdwan/overlay-network/' + $prop.vpn1Id + '/topology'`" />
-                <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />
-                <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />
-                <parameter name="format" value="json"/>
-                <parameter name="httpMethod" value="put"/>
-                <parameter name="responsePrefix" value="vpn-result"/>
-                <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
-                <parameter name="trustStorePassword" value="adminadmin"/>
-                <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
-                <parameter name="keyStorePassword" value="adminadmin"/>
-                <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
-                <outcome value='failure'>
-                    <return status='failure'>
-                        <parameter name='ack-final' value='Y'/>
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="Error executing Create vpn topology failed" />
                     </return>
                 </outcome>
                 <outcome value='success'>
