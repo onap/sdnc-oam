@@ -22,6 +22,7 @@
                     <set>
                         <parameter name='nodelist' value="`'[' + $quote + $payloadJson.ipaddress-v4-oam +  $quote + ']'`"/>
                         <parameter name='playbookname' value='`$prop.lcm.pnf.upgrade-pre-check.playbookname`'/>
+                        <parameter name='nodehost' value='`$payloadJson.ipaddress-v4-oam`'/>
                     </set>
                 </outcome>
                 <outcome value='Other'>
@@ -270,23 +271,56 @@
                                 <parameter name='PlaybookName' value='`$playbookname`'/>
                                 <outcome value='failure'>
                                     <block>
-                                        <set>
-                                            <parameter name='lcm-dmaap.version' value='`$prop.lcm.dmaap.version`'/>
-                                            <parameter name='lcm-dmaap.correlation-id' value="`$upgrade-pre-check-input.common-header.request-id + '-' + $upgrade-pre-check-input.common-header.sub-request-id`"/>
-                                            <parameter name='lcm-dmaap.partition' value='`$prop.lcm.dmaap.partition`'/>
-                                            <parameter name='lcm-dmaap.rpc-name' value='upgrade-pre-check'/>
-                                            <parameter name='lcm-dmaap.type' value='`$prop.lcm.dmaap.type`'/>
-                                            <parameter name='lcm-dmaap.timestamp' value='`$upgrade-pre-check-input.common-header.timestamp`'/>
-                                            <parameter name='lcm-dmaap.api-ver' value='`$upgrade-pre-check-input.common-header.api-ver`'/>
-                                            <parameter name='lcm-dmaap.originator-id' value='`$upgrade-pre-check-input.common-header.originator-id`'/>
-                                            <parameter name='lcm-dmaap.request-id' value='`$upgrade-pre-check-input.common-header.request-id`'/>
-                                            <parameter name='lcm-dmaap.sub-request-id' value='`$upgrade-pre-check-input.common-header.sub-request-id`'/>
-                                            <parameter name='lcm-dmaap.flags.mode' value='`$upgrade-pre-check-input.common-header.flags.mode`'/>
-                                            <parameter name='lcm-dmaap.flags.force' value='`$upgrade-pre-check-input.common-header.flags.force`'/>
-                                            <parameter name='lcm-dmaap.flags.ttl' value='`$upgrade-pre-check-input.common-header.flags.ttl`'/>
-                                            <parameter name='lcm-dmaap.status.code' value='`$org.onap.appc.adapter.ansible.result.code`' />
-                                            <parameter name='lcm-dmaap.status.message' value='`$org.onap.appc.adapter.ansible.message`'/>
-                                        </set>
+                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='jsonStringToCtx'>
+                                            <parameter name='source' value='org.onap.appc.adapter.ansible.results' />
+                                            <parameter name='outputPath' value='resultsJson' />
+                                            <parameter name='isEscaped' value='false' />
+                                        </execute>
+                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='getAttributeValue'>
+                                            <parameter name='source' value="`'resultsJson.' + $nodehost + '.Output'`" />
+                                            <parameter name='outputPath' value='outputPayload' />
+                                        </execute>
+                                        <switch test='`$outputPayload`'>
+                                            <outcome value=''>
+                                                <set>
+                                                    <parameter name='lcm-dmaap.version' value='`$prop.lcm.dmaap.version`'/>
+                                                    <parameter name='lcm-dmaap.correlation-id' value="`$upgrade-pre-check-input.common-header.request-id + '-' + $upgrade-pre-check-input.common-header.sub-request-id`"/>
+                                                    <parameter name='lcm-dmaap.partition' value='`$prop.lcm.dmaap.partition`'/>
+                                                    <parameter name='lcm-dmaap.rpc-name' value='upgrade-pre-check'/>
+                                                    <parameter name='lcm-dmaap.type' value='`$prop.lcm.dmaap.type`'/>
+                                                    <parameter name='lcm-dmaap.timestamp' value='`$upgrade-pre-check-input.common-header.timestamp`'/>
+                                                    <parameter name='lcm-dmaap.api-ver' value='`$upgrade-pre-check-input.common-header.api-ver`'/>
+                                                    <parameter name='lcm-dmaap.originator-id' value='`$upgrade-pre-check-input.common-header.originator-id`'/>
+                                                    <parameter name='lcm-dmaap.request-id' value='`$upgrade-pre-check-input.common-header.request-id`'/>
+                                                    <parameter name='lcm-dmaap.sub-request-id' value='`$upgrade-pre-check-input.common-header.sub-request-id`'/>
+                                                    <parameter name='lcm-dmaap.flags.mode' value='`$upgrade-pre-check-input.common-header.flags.mode`'/>
+                                                    <parameter name='lcm-dmaap.flags.force' value='`$upgrade-pre-check-input.common-header.flags.force`'/>
+                                                    <parameter name='lcm-dmaap.flags.ttl' value='`$upgrade-pre-check-input.common-header.flags.ttl`'/>
+                                                    <parameter name='lcm-dmaap.status.code' value='`$org.onap.appc.adapter.ansible.result.code`' />
+                                                    <parameter name='lcm-dmaap.status.message' value='`$org.onap.appc.adapter.ansible.message`'/>
+                                                </set>
+                                            </outcome>
+                                            <outcome value='Other'>
+                                                <set>
+                                                    <parameter name='lcm-dmaap.version' value='`$prop.lcm.dmaap.version`'/>
+                                                    <parameter name='lcm-dmaap.correlation-id' value="`$upgrade-pre-check-input.common-header.request-id + '-' + $upgrade-pre-check-input.common-header.sub-request-id`"/>
+                                                    <parameter name='lcm-dmaap.partition' value='`$prop.lcm.dmaap.partition`'/>
+                                                    <parameter name='lcm-dmaap.rpc-name' value='upgrade-pre-check'/>
+                                                    <parameter name='lcm-dmaap.type' value='`$prop.lcm.dmaap.type`'/>
+                                                    <parameter name='lcm-dmaap.timestamp' value='`$upgrade-pre-check-input.common-header.timestamp`'/>
+                                                    <parameter name='lcm-dmaap.api-ver' value='`$upgrade-pre-check-input.common-header.api-ver`'/>
+                                                    <parameter name='lcm-dmaap.originator-id' value='`$upgrade-pre-check-input.common-header.originator-id`'/>
+                                                    <parameter name='lcm-dmaap.request-id' value='`$upgrade-pre-check-input.common-header.request-id`'/>
+                                                    <parameter name='lcm-dmaap.sub-request-id' value='`$upgrade-pre-check-input.common-header.sub-request-id`'/>
+                                                    <parameter name='lcm-dmaap.flags.mode' value='`$upgrade-pre-check-input.common-header.flags.mode`'/>
+                                                    <parameter name='lcm-dmaap.flags.force' value='`$upgrade-pre-check-input.common-header.flags.force`'/>
+                                                    <parameter name='lcm-dmaap.flags.ttl' value='`$upgrade-pre-check-input.common-header.flags.ttl`'/>
+                                                    <parameter name='lcm-dmaap.status.code' value='`$org.onap.appc.adapter.ansible.result.code`' />
+                                                    <parameter name='lcm-dmaap.status.message' value='`$org.onap.appc.adapter.ansible.message`'/>
+                                                    <parameter name='lcm-dmaap.payload' value='`$outputPayload`'/>
+                                                </set>
+                                            </outcome>
+                                        </switch>
                                         <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                                             <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/' + $prop.restapi.lcm.dmaap.publish.templatefile`" />
                                             <parameter name='restapiUrl' value='`$prop.lcm.dmaap.url`' />
@@ -303,31 +337,96 @@
                                                 </record>
                                             </outcome>
                                         </execute>
-                                        <return status='failure'>
-                                            <parameter name='status.code' value='401' />
-                                            <parameter name='status.message' value='`$org.onap.appc.adapter.ansible.message`' />
-                                        </return>
+                                        <switch test='`$outputPayload`'>
+                                            <outcome value=''>
+                                                <switch test="`$org.onap.appc.adapter.ansible.result.code`">
+                                                    <outcome value='400'>
+                                                        <return status='success'>
+                                                            <parameter name='status.code' value='`$org.onap.appc.adapter.ansible.result.code`' />
+                                                            <parameter name='status.message' value='`$org.onap.appc.adapter.ansible.message`'/>
+                                                        </return>
+                                                    </outcome>
+                                                    <outcome value='Other'>
+                                                        <return status='failure'>
+                                                            <parameter name='status.code' value='401' />
+                                                            <parameter name='status.message' value='`$org.onap.appc.adapter.ansible.message`' />
+                                                        </return>
+                                                    </outcome>
+                                                </switch>
+                                            </outcome>
+                                            <outcome value='Other'>
+                                                <switch test="`$org.onap.appc.adapter.ansible.result.code`">
+                                                    <outcome value='400'>
+                                                        <return status='success'>
+                                                            <parameter name='status.code' value='`$org.onap.appc.adapter.ansible.result.code`' />
+                                                            <parameter name='status.message' value='`$org.onap.appc.adapter.ansible.message`'/>
+                                                            <parameter name='payload' value='`$outputPayload`'/>
+                                                        </return>
+                                                    </outcome>
+                                                    <outcome value='Other'>
+                                                        <return status='failure'>
+                                                            <parameter name='status.code' value='401' />
+                                                            <parameter name='status.message' value='`$org.onap.appc.adapter.ansible.message`' />
+                                                            <parameter name='payload' value='`$outputPayload`'/>
+                                                        </return>
+                                                    </outcome>
+                                                </switch>
+                                            </outcome>
+                                        </switch>
                                     </block>
                                 </outcome>
                                 <outcome value='success'>
                                     <block>
-                                        <set>
-                                            <parameter name='lcm-dmaap.version' value='`$prop.lcm.dmaap.version`'/>
-                                            <parameter name='lcm-dmaap.correlation-id' value="`$upgrade-pre-check-input.common-header.request-id + '-' + $upgrade-pre-check-input.common-header.sub-request-id`"/>
-                                            <parameter name='lcm-dmaap.partition' value='`$prop.lcm.dmaap.partition`'/>
-                                            <parameter name='lcm-dmaap.rpc-name' value='upgrade-pre-check'/>
-                                            <parameter name='lcm-dmaap.type' value='`$prop.lcm.dmaap.type`'/>
-                                            <parameter name='lcm-dmaap.timestamp' value='`$upgrade-pre-check-input.common-header.timestamp`'/>
-                                            <parameter name='lcm-dmaap.api-ver' value='`$upgrade-pre-check-input.common-header.api-ver`'/>
-                                            <parameter name='lcm-dmaap.originator-id' value='`$upgrade-pre-check-input.common-header.originator-id`'/>
-                                            <parameter name='lcm-dmaap.request-id' value='`$upgrade-pre-check-input.common-header.request-id`'/>
-                                            <parameter name='lcm-dmaap.sub-request-id' value='`$upgrade-pre-check-input.common-header.sub-request-id`'/>
-                                            <parameter name='lcm-dmaap.flags.mode' value='`$upgrade-pre-check-input.common-header.flags.mode`'/>
-                                            <parameter name='lcm-dmaap.flags.force' value='`$upgrade-pre-check-input.common-header.flags.force`'/>
-                                            <parameter name='lcm-dmaap.flags.ttl' value='`$upgrade-pre-check-input.common-header.flags.ttl`'/>
-                                            <parameter name='lcm-dmaap.status.code' value='`$org.onap.appc.adapter.ansible.result.code`' />
-                                            <parameter name='lcm-dmaap.status.message' value='`$org.onap.appc.adapter.ansible.message`'/>
-                                        </set>
+                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='jsonStringToCtx'>
+                                            <parameter name='source' value='org.onap.appc.adapter.ansible.results' />
+                                            <parameter name='outputPath' value='resultsJson' />
+                                            <parameter name='isEscaped' value='false' />
+                                        </execute>
+                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='getAttributeValue'>
+                                            <parameter name='source' value="`'resultsJson.' + $nodehost + '.Output'`" />
+                                            <parameter name='outputPath' value='outputPayload' />
+                                        </execute>
+                                        <switch test='`$outputPayload`'>
+                                            <outcome value=''>
+                                                <set>
+                                                    <parameter name='lcm-dmaap.version' value='`$prop.lcm.dmaap.version`'/>
+                                                    <parameter name='lcm-dmaap.correlation-id' value="`$upgrade-pre-check-input.common-header.request-id + '-' + $upgrade-pre-check-input.common-header.sub-request-id`"/>
+                                                    <parameter name='lcm-dmaap.partition' value='`$prop.lcm.dmaap.partition`'/>
+                                                    <parameter name='lcm-dmaap.rpc-name' value='upgrade-pre-check'/>
+                                                    <parameter name='lcm-dmaap.type' value='`$prop.lcm.dmaap.type`'/>
+                                                    <parameter name='lcm-dmaap.timestamp' value='`$upgrade-pre-check-input.common-header.timestamp`'/>
+                                                    <parameter name='lcm-dmaap.api-ver' value='`$upgrade-pre-check-input.common-header.api-ver`'/>
+                                                    <parameter name='lcm-dmaap.originator-id' value='`$upgrade-pre-check-input.common-header.originator-id`'/>
+                                                    <parameter name='lcm-dmaap.request-id' value='`$upgrade-pre-check-input.common-header.request-id`'/>
+                                                    <parameter name='lcm-dmaap.sub-request-id' value='`$upgrade-pre-check-input.common-header.sub-request-id`'/>
+                                                    <parameter name='lcm-dmaap.flags.mode' value='`$upgrade-pre-check-input.common-header.flags.mode`'/>
+                                                    <parameter name='lcm-dmaap.flags.force' value='`$upgrade-pre-check-input.common-header.flags.force`'/>
+                                                    <parameter name='lcm-dmaap.flags.ttl' value='`$upgrade-pre-check-input.common-header.flags.ttl`'/>
+                                                    <parameter name='lcm-dmaap.status.code' value='`$org.onap.appc.adapter.ansible.result.code`' />
+                                                    <parameter name='lcm-dmaap.status.message' value='`$org.onap.appc.adapter.ansible.message`'/>
+                                                </set>
+                                            </outcome>
+                                            <outcome value='Other'>
+                                                <set>
+                                                    <parameter name='lcm-dmaap.version' value='`$prop.lcm.dmaap.version`'/>
+                                                    <parameter name='lcm-dmaap.correlation-id' value="`$upgrade-pre-check-input.common-header.request-id + '-' + $upgrade-pre-check-input.common-header.sub-request-id`"/>
+                                                    <parameter name='lcm-dmaap.partition' value='`$prop.lcm.dmaap.partition`'/>
+                                                    <parameter name='lcm-dmaap.rpc-name' value='upgrade-pre-check'/>
+                                                    <parameter name='lcm-dmaap.type' value='`$prop.lcm.dmaap.type`'/>
+                                                    <parameter name='lcm-dmaap.timestamp' value='`$upgrade-pre-check-input.common-header.timestamp`'/>
+                                                    <parameter name='lcm-dmaap.api-ver' value='`$upgrade-pre-check-input.common-header.api-ver`'/>
+                                                    <parameter name='lcm-dmaap.originator-id' value='`$upgrade-pre-check-input.common-header.originator-id`'/>
+                                                    <parameter name='lcm-dmaap.request-id' value='`$upgrade-pre-check-input.common-header.request-id`'/>
+                                                    <parameter name='lcm-dmaap.sub-request-id' value='`$upgrade-pre-check-input.common-header.sub-request-id`'/>
+                                                    <parameter name='lcm-dmaap.flags.mode' value='`$upgrade-pre-check-input.common-header.flags.mode`'/>
+                                                    <parameter name='lcm-dmaap.flags.force' value='`$upgrade-pre-check-input.common-header.flags.force`'/>
+                                                    <parameter name='lcm-dmaap.flags.ttl' value='`$upgrade-pre-check-input.common-header.flags.ttl`'/>
+                                                    <parameter name='lcm-dmaap.status.code' value='`$org.onap.appc.adapter.ansible.result.code`' />
+                                                    <parameter name='lcm-dmaap.status.message' value='`$org.onap.appc.adapter.ansible.message`'/>
+                                                    <parameter name='lcm-dmaap.payload' value='`$outputPayload`'/>
+                                                </set>
+                                            </outcome>
+                                        </switch>
                                         <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                                             <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/' + $prop.restapi.lcm.dmaap.publish.templatefile`" />
                                             <parameter name='restapiUrl' value='`$prop.lcm.dmaap.url`' />
@@ -344,10 +443,42 @@
                                                 </record>
                                             </outcome>
                                         </execute>
-                                        <return status='success'>
-                                            <parameter name='status.code' value='`$org.onap.appc.adapter.ansible.result.code`' />
-                                            <parameter name='status.message' value='`$org.onap.appc.adapter.ansible.message`'/>
-                                        </return>
+                                        <switch test='`$outputPayload`'>
+                                            <outcome value=''>
+                                                <switch test="`$org.onap.appc.adapter.ansible.result.code`">
+                                                    <outcome value='400'>
+                                                        <return status='success'>
+                                                            <parameter name='status.code' value='`$org.onap.appc.adapter.ansible.result.code`' />
+                                                            <parameter name='status.message' value='`$org.onap.appc.adapter.ansible.message`'/>
+                                                        </return>
+                                                    </outcome>
+                                                    <outcome value='Other'>
+                                                        <return status='failure'>
+                                                            <parameter name='status.code' value='401' />
+                                                            <parameter name='status.message' value='`$org.onap.appc.adapter.ansible.message`' />
+                                                        </return>
+                                                    </outcome>
+                                                </switch>
+                                            </outcome>
+                                            <outcome value='Other'>
+                                                <switch test="`$org.onap.appc.adapter.ansible.result.code`">
+                                                    <outcome value='400'>
+                                                        <return status='success'>
+                                                            <parameter name='status.code' value='`$org.onap.appc.adapter.ansible.result.code`' />
+                                                            <parameter name='status.message' value='`$org.onap.appc.adapter.ansible.message`'/>
+                                                            <parameter name='payload' value='`$outputPayload`'/>
+                                                        </return>
+                                                    </outcome>
+                                                    <outcome value='Other'>
+                                                        <return status='failure'>
+                                                            <parameter name='status.code' value='401' />
+                                                            <parameter name='status.message' value='`$org.onap.appc.adapter.ansible.message`' />
+                                                            <parameter name='payload' value='`$outputPayload`'/>
+                                                        </return>
+                                                    </outcome>
+                                                </switch>
+                                            </outcome>
+                                        </switch>
                                     </block>
                                 </outcome>
                             </execute>
