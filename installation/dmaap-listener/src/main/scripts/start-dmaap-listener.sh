@@ -31,13 +31,7 @@ JAVA_HOME=${JAVA_HOME:-/usr/lib/jvm/java-7-oracle}
 JAVA_OPTS=${JAVA_OPTS:--Dhttps.protocols=TLSv1.1,TLSv1.2}
 JAVA=${JAVA:-${JAVA_HOME}/bin/java}
 
-# Redirect output from script to $LISTENER.out
-if [ ! -d ${DMAAPLISTENERROOT}/logs ]
-then
-  mkdir ${DMAAPLISTENERROOT}/logs
-fi
-exec >> ${DMAAPLISTENERROOT}/logs/$LISTENER.out
-exec 2>&1
+
 
 for file in ${DMAAPLISTENERROOT}/lib/*.jar
 do
@@ -45,7 +39,7 @@ do
 done
 
 echo "Starting dmaap-listener"
-exec ${JAVA} ${JAVA_OPTS} -Dlog4j.configuration=file:${PROPERTY_DIR}/log4j.properties -jar ${DMAAPLISTENERROOT}/lib/dmaap-listener*.jar dmaap-listener.properties -cp ${LISTENERCLASSPATH}
+exec ${JAVA} ${JAVA_OPTS} -Dlog4j.configurationFile=${PROPERTY_DIR}/log4j.properties -jar ${DMAAPLISTENERROOT}/lib/dmaap-listener*.jar dmaap-listener.properties -cp ${LISTENERCLASSPATH}
 
 
 
