@@ -1,4 +1,4 @@
-#!/bin/bash
+\\#!/bin/bash
 
 ###
 # ============LICENSE_START=======================================================
@@ -31,13 +31,6 @@ JAVA_HOME=${JAVA_HOME:-/usr/lib/jvm/java-7-oracle}
 JAVA_OPTS=${JAVA_OPTS:--Dhttps.protocols=TLSv1.1,TLSv1.2}
 JAVA=${JAVA:-${JAVA_HOME}/bin/java}
 
-# Redirect output from script to $LISTENER.out
-if [ ! -d ${UEBLISTENERROOT}/logs ]
-then
-  mkdir ${UEBLISTENERROOT}/logs
-fi
-exec >> ${UEBLISTENERROOT}/logs/$LISTENER.out
-exec 2>&1
 
 for file in ${UEBLISTENERROOT}/lib/*.jar
 do
@@ -45,7 +38,7 @@ do
 done
 
 echo "Starting ueb-listener"
-exec ${JAVA} ${JAVA_OPTS} -jar ${UEBLISTENERROOT}/lib/ueb-listener*.jar -Dlog4j.configuration=file:${PROPERTY_DIR}/log4j.properties -cp ${LISTENERCLASSPATH}
+exec ${JAVA} ${JAVA_OPTS} -jar ${UEBLISTENERROOT}/lib/ueb-listener*.jar -Dlog4j.configurationFile=${PROPERTY_DIR}/log4j.properties -cp ${LISTENERCLASSPATH}
 
 
 
