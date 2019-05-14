@@ -29,12 +29,12 @@ import shutil
 Path = "/tmp"
 
 zipFileList = []
-username = "admin"
-password = "Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U"
 
-TIME_OUT=1000
-INTERVAL=30
-TIME=0
+username = os.environ['ODL_ADMIN_USERNAME']
+password = os.environ['ODL_ADMIN_PASSWORD']
+timeOut=1000
+interval=30
+timePassed=0
 
 postKeystore= "/restconf/operations/netconf-keystore:add-keystore-entry"
 postPrivateKey= "/restconf/operations/netconf-keystore:add-private-key"
@@ -55,27 +55,21 @@ def readFile(folder, file):
     return fileRead
 
 def readTrustedCertificate(folder, file):
+    listCert = list()
     caPem = ""
-    serverCrt = ""
     startCa = False
-    startCrt = False
     key = open(Path + "/" + folder + "/" + file, "r")
     lines = key.readlines()
     for line in lines:
-        if not "BEGIN CERTIFICATE CA.pem" in line and not "END CERTIFICATE CA.pem" in line and startCa:
+        if not "BEGIN CERTIFICATE" in line and not "END CERTIFICATE" in line and startCa:
             caPem += line
-        elif "BEGIN CERTIFICATE CA.pem" in line:
+        elif "BEGIN CERTIFICATE" in line:
             startCa = True
-        elif "END CERTIFICATE CA.pem" in line:
+        elif "END CERTIFICATE" in line:
             startCa = False
-
-        if not "BEGIN CERTIFICATE Server.crt" in line and not "END CERTIFICATE Server.crt" in line and startCrt:
-            serverCrt += line
-        elif "BEGIN CERTIFICATE Server.crt" in line:
-            startCrt = True
-        elif "END CERTIFICATE Server.crt" in line:
-            startCrt = False
-    return caPem, serverCrt
+            listCert.append(caPem)
+            caPem = ""
+    return listCert
 
 def makeKeystoreKey(clientKey, count):
     odl_private_key="ODL_private_key_%d" %count
@@ -89,11 +83,16 @@ def makeKeystoreKey(clientKey, count):
 
 
 
-def makePrivateKey(clientKey, clientCrt, caPem, count):
+def makePrivateKey(clientKey, clientCrt, certList, count):
+    caPem = ""
+    for cert in certList:
+        caPem += '\"%s\",' % cert
+
+    caPem = caPem.rsplit(',', 1)[0]
     odl_private_key="ODL_private_key_%d" %count
 
     json_private_key='{{\"input\": {{ \"private-key\":{{\"name\": \"{odl_private_key}\", \"data\" : ' \
-                     '\"{clientKey}\",\"certificate-chain\":[\"{clientCrt}\",\"{caPem}\"]}}}}}}'.format(
+                     '\"{clientKey}\",\"certificate-chain\":[\"{clientCrt}\",{caPem}]}}}}}}'.format(
         odl_private_key=odl_private_key,
         clientKey=clientKey,
         clientCrt=clientCrt,
@@ -101,17 +100,19 @@ def makePrivateKey(clientKey, clientCrt, caPem, count):
 
     return json_private_key
 
-def makeTrustedCertificate(serverCrt, caPem, count):
-    trusted_cert_name = "xNF_Server_certificate_%d" %count
-    trusted_name = "xNF_CA_certificate_%d" %count
+def makeTrustedCertificate(certList, count):
+    number = 0
+    json_cert_format = ""
+    for cert in certList:
+        cert_name = "xNF_CA_certificate_%d_%d" %(count, number)
+        json_cert_format += '{{\"name\": \"{trusted_name}\",\"certificate\":\"{cert}\"}},\n'.format(
+            trusted_name=cert_name,
+            cert=cert.strip())
+        number += 1
 
-    json_trusted_cert='{{\"input\": {{ \"trusted-certificate\": [{{\"name\":\"{trusted_cert_name}\",\"certificate\" : ' \
-                      '\"{serverCrt}\"}},{{\"name\": \"{trusted_name}\",\"certificate\":\"{caPem}\"}}]}}}}'.format(
-        trusted_cert_name=trusted_cert_name,
-        serverCrt=serverCrt,
-        trusted_name=trusted_name,
-        caPem=caPem)
-
+    json_cert_format = json_cert_format.rsplit(',', 1)[0]
+    json_trusted_cert='{{\"input\": {{ \"trusted-certificate\": [{certificates}]}}}}'.format(
+        certificates=json_cert_format)
     return json_trusted_cert
 
 
@@ -138,52 +139,52 @@ def processFiles(folder, count):
             if ".key" in file:
                 clientKey = readFile(folder, file.strip())
             elif "trustedCertificate" in file:
-                caPem, serverCrt = readTrustedCertificate(folder, file.strip())
+                certList = readTrustedCertificate(folder, file.strip())
             elif ".crt" in file:
                 clientCrt = readFile(folder, file.strip())
         else:
             print "Could not find file %s" % file.strip()
     shutil.rmtree(Path + "/" + folder)
     json_keystore_key = makeKeystoreKey(clientKey, count)
-    json_private_key = makePrivateKey(clientKey, clientCrt, caPem, count)
-    json_trusted_cert = makeTrustedCertificate(serverCrt, caPem, count)
+    json_private_key = makePrivateKey(clientKey, clientCrt, certList, count)
+    json_trusted_cert = makeTrustedCertificate(certList, count)
 
     makeRestconfPost(conn, json_keystore_key, postKeystore)
     makeRestconfPost(conn, json_private_key, postPrivateKey)
     makeRestconfPost(conn, json_trusted_cert, postTrustedCertificate)
 
-def makeHealthcheckCall(headers):
+def makeHealthcheckCall(headers, timePassed):
     conn = httplib.HTTPConnection("localhost",8181)
     req = conn.request("POST", "/restconf/operations/SLI-API:healthcheck",headers=headers)
     res = conn.getresponse()
     res.read()
     if res.status == 200:
-        print ("Healthcheck Passed in %d seconds." %TIME)
+        print ("Healthcheck Passed in %d seconds." %timePassed)
     else:
-        print ("Sleep: %d seconds before testing if Healtcheck worked. Total wait time up now is: %d seconds. Timeout is: %d seconds" %(INTERVAL, TIME, TIME_OUT))
+        print ("Sleep: %d seconds before testing if Healtcheck worked. Total wait time up now is: %d seconds. Timeout is: %d seconds" %(interval, timePassed, timeOut))
     return res.status
 
 
-def timeIncrement(TIME):
-    time.sleep(INTERVAL)
-    TIME = TIME + INTERVAL
-    return TIME
+def timeIncrement(timePassed):
+    time.sleep(interval)
+    timePassed = timePassed + interval
+    return timePassed
 
-def healthcheck(TIME):
+def healthcheck(time):
     # WAIT 10 minutes maximum and test every 30 seconds if HealthCheck API is returning 200
-    while TIME < TIME_OUT:
+    while timePassed < timeOut:
         try:
-            status = makeHealthcheckCall(headers)
+            status = makeHealthcheckCall(headers, timePassed)
             if status == 200:
                 connected = True
                 break
         except:
-            print ("Sleep: %d seconds before testing if Healthcheck worked. Total wait time up now is: %d seconds. Timeout is: %d seconds" %(INTERVAL, TIME, TIME_OUT))
+            print ("Sleep: %d seconds before testing if Healthcheck worked. Total wait time up now is: %d seconds. Timeout is: %d seconds" %(interval, timePassed, timeOut))
 
-        TIME = timeIncrement(TIME)
+        timePassed = timeIncrement(timePassed)
 
-    if TIME > TIME_OUT:
-        print ("TIME OUT: Healthcheck not passed in  %d seconds... Could cause problems for testing activities..." %TIME_OUT)
+    if timePassed > timeOut:
+        print ("TIME OUT: Healthcheck not passed in  %d seconds... Could cause problems for testing activities..." %timeOut)
 
     if connected:
         count = 0
@@ -202,4 +203,4 @@ def healthcheck(TIME):
         print "This was a problem here, Healthcheck never passed, please check is your instance up and running."
 
 
-healthcheck(TIME)
+healthcheck(timePassed)
