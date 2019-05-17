@@ -100,23 +100,14 @@
                 <parameter name="logger" value="message-log"/>
                 <parameter name="field1" value="BEFORE BlueprintProcessingClient"/>
             </record>
-            <execute plugin='org.onap.ccsdk.sli.adaptors.grpc.cds.BlueprintProcessingClient' method='sendRequest'>
-                <parameter name='blueprint_name' value='`$tmp.sdnc-model-name`' />
-                <parameter name='blueprint_version' value='`$tmp.sdnc-model-version`' />
-                <parameter name='action' value='`$action-name`' />
-                <parameter name='mode' value='sync' />
-                <parameter name='force' value='false' />
-                <parameter name='ttl' value='0' />
-                <parameter name='prefix' value='`$responsePrefix`' />
-                <parameter name='payload' value="`'{
-  &quot;resource-assignment-request&quot;: {
-    &quot;template-prefix&quot;: [
-      &quot;' + $tmp.sdnc-artifact-name + '&quot;
-    ],
-    &quot;resource-assignment-properties&quot;: 
-        ' + $tmp.json-payload + '
-  }
-}'`"/>
+            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/cds-processor-payload'" />
+                <parameter name='restapiUrl' value='`$prop.cds.url`' />
+                <parameter name='restapiUser' value='`$prop.cds.user`' />
+                <parameter name='restapiPassword' value='`$prop.cds.pwd`' />
+                <parameter name='format' value='json' />
+                <parameter name='httpMethod' value='POST' />
+                <parameter name="responsePrefix" value="$responsePrefix" />
                 <outcome value='failure'>
                     <return status='failure'>
                         <parameter name='ack-final' value='Y'/>
