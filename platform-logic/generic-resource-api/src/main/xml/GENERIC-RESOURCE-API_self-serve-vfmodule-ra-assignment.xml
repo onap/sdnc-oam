@@ -119,29 +119,20 @@
                 <parameter name="tmp.config-name-value-payload7" value="`$tmp.config-name-value-payload6 + '&quot;vnf-model-customization-uuid&quot;:&quot;' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-information.onap-model-information.model-customization-uuid + '&quot;,'`"/>
                 <parameter name="tmp.config-name-value-payload8" value="`$tmp.config-name-value-payload7 + '&quot;vf-module-id&quot;:&quot;' + $vf-module-topology-operation-input.vf-module-information.vf-module-id + '&quot;,'`"/>
                 <parameter name="tmp.config-name-value-payload9" value="`$tmp.config-name-value-payload8 + '&quot;aic-cloud-region&quot;:&quot;' + $vf-module-topology-operation-input.vf-module-request-input.aic-cloud-region + '&quot;'`"/>
-                <parameter name="tmp.config-name-value-payload91" value="`'{' + $tmp.config-name-value-payload9 + '}'`" />
+                <parameter name="tmp.json-payload" value="`'{' + $tmp.config-name-value-payload9 + '}'`" />
             </set>
             <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
                 <parameter name="logger" value="message-log"/>
                 <parameter name="field1" value="BEFORE BlueprintProcessingClient"/>
             </record>
-            <execute plugin='org.onap.ccsdk.sli.adaptors.grpc.cds.BlueprintProcessingClient' method='sendRequest' >
-                <parameter name='blueprint_name' value='`$tmp.sdnc-model-name`' />
-                <parameter name='blueprint_version' value='`$tmp.sdnc-model-version`' />
-                <parameter name='action' value='`$action-name`' />
-                <parameter name='mode' value='sync' />
-                <parameter name='force' value='false' />
-                <parameter name='ttl' value='0' />
-                <parameter name='prefix' value='`$responsePrefix`' />
-                <parameter name='payload' value="`'{
-  &quot;resource-assignment-request&quot;: {
-    &quot;template-prefix&quot;: [
-      &quot;' + $tmp.vf-module-label + '&quot;
-    ],
-    &quot;resource-assignment-properties&quot;: 
-        ' + $tmp.config-name-value-payload91 + '
-  }
-}'`"/>
+            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/cds-processor-payload.json'" />
+                <parameter name='restapiUrl' value='`$prop.cds.url`' />
+                <parameter name='restapiUser' value='`$prop.cds.user`' />
+                <parameter name='restapiPassword' value='`$prop.cds.pwd`' />
+                <parameter name='format' value='json' />
+                <parameter name='httpMethod' value='POST' />
+                <parameter name="responsePrefix" value="$responsePrefix" />
                 <outcome value='failure'>
                     <return status='failure'>
                         <parameter name='ack-final' value='Y'/>
