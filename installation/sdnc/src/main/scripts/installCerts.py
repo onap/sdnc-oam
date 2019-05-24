@@ -32,9 +32,9 @@ zipFileList = []
 
 username = os.environ['ODL_ADMIN_USERNAME']
 password = os.environ['ODL_ADMIN_PASSWORD']
-timeOut=1000
-interval=30
-time=0
+TIMEOUT=1000
+INTERVAL=30
+timePassed=0
 
 postKeystore= "/restconf/operations/netconf-keystore:add-keystore-entry"
 postPrivateKey= "/restconf/operations/netconf-keystore:add-private-key"
@@ -153,38 +153,37 @@ def processFiles(folder, count):
     makeRestconfPost(conn, json_private_key, postPrivateKey)
     makeRestconfPost(conn, json_trusted_cert, postTrustedCertificate)
 
-def makeHealthcheckCall(headers, time):
-    conn = httplib.HTTPConnection("localhost",8181)
-    req = conn.request("POST", "/restconf/operations/SLI-API:healthcheck",headers=headers)
-    res = conn.getresponse()
-    res.read()
-    if res.status == 200:
-        print ("Healthcheck Passed in %d seconds." %time)
-    else:
-        print ("Sleep: %d seconds before testing if Healtcheck worked. Total wait time up now is: %d seconds. Timeout is: %d seconds" %(interval, time, timeOut))
-    return res.status
-
-
-def timeIncrement(time):
-    time.sleep(interval)
-    time = time + interval
-    return time
-
-def healthcheck(time):
+def makeHealthcheckCall(headers, timePassed):
+    connected = False
     # WAIT 10 minutes maximum and test every 30 seconds if HealthCheck API is returning 200
-    while time < timeOut:
+    while timePassed < TIMEOUT:
         try:
-            status = makeHealthcheckCall(headers, time)
-            #if status == 200:
-            connected = True
-            break
+            conn = httplib.HTTPConnection("localhost",8181)
+            req = conn.request("POST", "/restconf/operations/SLI-API:healthcheck",headers=headers)
+            res = conn.getresponse()
+            res.read()
+            if res.status == 200:
+                print ("Healthcheck Passed in %d seconds." %timePassed)
+                connected = True
+                break
+            else:
+                print ("Sleep: %d seconds before testing if Healthcheck worked. Total wait time up now is: %d seconds. Timeout is: %d seconds" %(INTERVAL, timePassed, TIMEOUT))
         except:
-            print ("Sleep: %d seconds before testing if Healthcheck worked. Total wait time up now is: %d seconds. Timeout is: %d seconds" %(interval, time, timeOut))
+            print ("Cannot execute REST call. Sleep: %d seconds before testing if Healthcheck worked. Total wait time up now is: %d seconds. Timeout is: %d seconds" %(INTERVAL, timePassed, TIMEOUT))
+        timePassed = timeIncrement(timePassed)
 
-        time = timeIncrement(time)
+    if timePassed > TIMEOUT:
+        print ("TIME OUT: Healthcheck not passed in  %d seconds... Could cause problems for testing activities..." %TIMEOUT)
+    return connected
 
-    if time > timeOut:
-        print ("TIME OUT: Healthcheck not passed in  %d seconds... Could cause problems for testing activities..." %timeOut)
+
+def timeIncrement(timePassed):
+    time.sleep(INTERVAL)
+    timePassed = timePassed + INTERVAL
+    return timePassed
+
+def readCertProperties():
+    connected = makeHealthcheckCall(headers, timePassed)
 
     if connected:
         count = 0
@@ -199,8 +198,5 @@ def healthcheck(time):
                         del zipFileList[:]
         else:
             print "Error: File not found in path entered"
-    else:
-        print "This was a problem here, Healthcheck never passed, please check is your instance up and running."
 
-
-healthcheck(time)
+readCertProperties()
