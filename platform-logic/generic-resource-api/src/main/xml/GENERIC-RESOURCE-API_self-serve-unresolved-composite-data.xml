@@ -63,105 +63,191 @@
                                                     <parameter name="source" value="`$tmp.ss.composite`" />
                                                     <parameter name="target" value="["/>
                                                     <parameter name="replacement" value=""/>
-                                                    <parameter name="outputPath" value="tmp.ss.composite-0"/>
+                                                    <parameter name="outputPath" value="tmp.ss.composite"/>
                                                 </execute>
                                                 <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
-                                                    <parameter name="source" value="`$tmp.ss.composite-0`" />
+                                                    <parameter name="source" value="`$tmp.ss.composite`" />
                                                     <parameter name="target" value="]"/>
                                                     <parameter name="replacement" value=""/>
-                                                    <parameter name="outputPath" value="tmp.ss.composite-1"/>
+                                                    <parameter name="outputPath" value="tmp.ss.composite"/>
                                                 </execute>
                                                 <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='trim' >
-                                                    <parameter name="source" value="`$tmp.ss.composite-1`" />
-                                                    <parameter name="outputPath" value="tmp.ss.composite-2"/>
+                                                    <parameter name="source" value="`$tmp.ss.composite`" />
+                                                    <parameter name="outputPath" value="tmp.ss.composite"/>
                                                 </execute>
                                                 <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
                                                     <parameter name="logger" value="message-log"/>
                                                     <parameter name="field1" value="__TIMESTAMP__"/>
-                                                    <parameter name="field2" value="`'SS: tmp.ss.composite-2: ' + $tmp.ss.composite-2`"/>
+                                                    <parameter name="field2" value="`'SS: tmp.ss.composite: ' + $tmp.ss.composite`"/>
                                                 </record>
                                                 <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
-                                                    <parameter name="original_string" value="`$tmp.ss.composite-2`" />
+                                                    <parameter name="original_string" value="`$tmp.ss.composite`" />
                                                     <parameter name="regex" value=","/>
-                                                    <parameter name="ctx_memory_result_key" value="splits" />
+                                                    <parameter name="ctx_memory_result_key" value="comma-splits" />
                                                 </execute>
-                                                <for silentFailure='true' index="split-index" start="0" end="`$splits_length`">
+                                                <for silentFailure='true' index="comma-splits-index" start="0" end="`$comma-splits_length`">
                                                     <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='trim' >
-                                                        <parameter name="source" value="`$splits[$split-index]`" />
-                                                        <parameter name="outputPath" value="tmp.ss.trim"/>
+                                                        <parameter name="source" value="`$comma-splits[$comma-splits-index]`" />
+                                                        <parameter name="outputPath" value="tmp.ss.composite.trim"/>
                                                     </execute>
-                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
-                                                        <parameter name="source" value="`$tmp.ss.trim`" />
-                                                        <parameter name="target" value="${"/>
-                                                        <parameter name="replacement" value=""/>
-                                                        <parameter name="outputPath" value="tmp.ss.trim-0"/>
-                                                    </execute>
-                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
-                                                        <parameter name="source" value="`$tmp.ss.trim-0`" />
-                                                        <parameter name="target" value="}"/>
-                                                        <parameter name="replacement" value=""/>
-                                                        <parameter name="outputPath" value="tmp.ss.trim-1"/>
-                                                    </execute>
-                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='trim' >
-                                                        <parameter name="source" value="`$tmp.ss.trim-1`" />
-                                                        <parameter name="outputPath" value="tmp.ss.partial.composite-value"/>
-                                                    </execute>
-                                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
-                                                        <parameter name="logger" value="message-log"/>
-                                                        <parameter name="field1" value="__TIMESTAMP__"/>
-                                                        <parameter name="field2" value="`'SS: tmp.ss.partial.composite-value: ' + $tmp.ss.partial.composite-value`"/>
-                                                    </record>
-                                                    <switch test='`$ss.capability-type`'>
-                                                        <outcome value='vnf'>
-                                                            <for silentFailure='true' index="i" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param_length`">
+                                                    <set>
+                                                        <parameter name='tmp.ss.param-prefix' value='' />
+                                                        <parameter name='tmp.ss.param-suffix' value='' />
+                                                    </set>
+                                                    <block>
+                                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                                                            <parameter name="original_string" value="`$tmp.ss.composite.trim`" />
+                                                            <parameter name="regex" value="\$"/>
+                                                            <parameter name="ctx_memory_result_key" value="dollar-splits" />
+                                                        </execute>
+                                                        <set>
+                                                            <parameter name='tmp.ss.param-prefix' value='`$dollar-splits[0]`' />
+                                                        </set>
+                                                        <set>
+                                                            <parameter name='tmp.ss.final.composite-resolved-value' value='' />
+                                                        </set>
+                                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='trim' >
+                                                            <parameter name="source" value="`$tmp.ss.param-prefix`" />
+                                                            <parameter name="outputPath" value="tmp.ss.param-prefix"/>
+                                                        </execute>
+                                                        <switch test='`$dollar-splits_length == 1`'>
+                                                            <outcome value='true'>
                                                                 <set>
-                                                                    <parameter name='tmp.ss.param-name' 
+                                                                    <parameter name='tmp.ss.final.composite-resolved-value' 
+	value="`$tmp.ss.param-prefix`" />
+                                                                </set>
+                                                            </outcome>
+                                                        </switch>
+                                                        <for silentFailure='true' index="dollar-splits-index" start="1" end="`$dollar-splits_length`">
+                                                            <set>
+                                                                <parameter name='tmp.ss.partial.resolved-value' value="`'$' + $dollar-splits[$dollar-splits-index]`" />
+                                                            </set>
+                                                            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='startsWith' emitsOutcome='true' >
+                                                                <parameter name="source" value="`$dollar-splits[$dollar-splits-index]`" />
+                                                                <parameter name="target" value="{"/>
+                                                                <outcome value='true'>
+                                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                                                                        <parameter name="source" value="`$dollar-splits[$dollar-splits-index]`" />
+                                                                        <parameter name="target" value="{"/>
+                                                                        <parameter name="replacement" value=""/>
+                                                                        <parameter name="outputPath" value="tmp.ss.partial.composite-value"/>
+                                                                    </execute>
+                                                                </outcome>
+                                                                <outcome value='false'>
+                                                                    <set>
+                                                                        <parameter name='tmp.ss.partial.composite-value' value='`$dollar-splits[$dollar-splits-index]`' />
+                                                                    </set>
+                                                                </outcome>
+                                                            </execute>
+                                                            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='endsWith' emitsOutcome='true' >
+                                                                <parameter name="source" value="`$tmp.ss.partial.composite-value`" />
+                                                                <parameter name="target" value="}"/>
+                                                                <outcome value='true'>
+                                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                                                                        <parameter name="source" value="`$tmp.ss.partial.composite-value`" />
+                                                                        <parameter name="target" value="}"/>
+                                                                        <parameter name="replacement" value=""/>
+                                                                        <parameter name="outputPath" value="tmp.ss.partial.composite-value"/>
+                                                                    </execute>
+                                                                </outcome>
+                                                                <outcome value='false'>
+                                                                    <block>
+                                                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                                                                            <parameter name="original_string" value="`$tmp.ss.partial.composite-value`" />
+                                                                            <parameter name="regex" value="\}"/>
+                                                                            <parameter name="ctx_memory_result_key" value="end-curly-splits" />
+                                                                        </execute>
+                                                                        <set>
+                                                                            <parameter name='tmp.ss.partial.composite-value' value='`$end-curly-splits[0]`' />
+                                                                        </set>
+                                                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='trim' >
+                                                                            <parameter name="source" value="`$tmp.ss.partial.composite-value`" />
+                                                                            <parameter name="outputPath" value="tmp.ss.partial.composite-value"/>
+                                                                        </execute>
+                                                                        <set>
+                                                                            <parameter name='tmp.ss.param-suffix' value='`$end-curly-splits[1]`' />
+                                                                        </set>
+                                                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='trim' >
+                                                                            <parameter name="source" value="`$tmp.ss.param-suffix`" />
+                                                                            <parameter name="outputPath" value="tmp.ss.param-suffix"/>
+                                                                        </execute>
+                                                                        <set>
+                                                                            <parameter name='tmp.ss.partial.resolved-value' value="`'${' + $tmp.ss.partial.composite-value + '}'`" />
+                                                                        </set>
+                                                                    </block>
+                                                                </outcome>
+                                                            </execute>
+                                                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                                <parameter name="logger" value="message-log"/>
+                                                                <parameter name="field1" value="__TIMESTAMP__"/>
+                                                                <parameter name="field2" value="`'SS: tmp.ss.partial.composite-value: ' + $tmp.ss.partial.composite-value`"/>
+                                                            </record>
+                                                            <switch test='`$ss.capability-type`'>
+                                                                <outcome value='vnf'>
+                                                                    <for silentFailure='true' index="i" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param_length`">
+                                                                        <set>
+                                                                            <parameter name='tmp.ss.param-name' 
 	value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].name`' />
-                                                                </set>
-                                                                <switch test='`$tmp.ss.partial.composite-value == $tmp.ss.param-name`'>
-                                                                    <outcome value='true'>
-                                                                        <block>
-                                                                            <set>
-                                                                                <parameter name='tmp.ss.partial.resolved-value' 
+                                                                        </set>
+                                                                        <switch test='`$tmp.ss.partial.composite-value == $tmp.ss.param-name`'>
+                                                                            <outcome value='true'>
+                                                                                <block>
+                                                                                    <set>
+                                                                                        <parameter name='tmp.ss.partial.resolved-value' 
 	value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].value`' />
-                                                                            </set>
-                                                                            <break/>
-                                                                        </block>
-                                                                    </outcome>
-                                                                </switch>
-                                                            </for>
-                                                        </outcome>
-                                                        <outcome value='vf-module'>
-                                                            <for silentFailure='true' index="i" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`">
-                                                                <set>
-                                                                    <parameter name='tmp.ss.param-name' 
+                                                                                    </set>
+                                                                                    <break/>
+                                                                                </block>
+                                                                            </outcome>
+                                                                        </switch>
+                                                                    </for>
+                                                                </outcome>
+                                                                <outcome value='vf-module'>
+                                                                    <for silentFailure='true' index="i" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`">
+                                                                        <set>
+                                                                            <parameter name='tmp.ss.param-name' 
 	value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].name`' />
-                                                                </set>
-                                                                <switch test='`$tmp.ss.partial.composite-value == $tmp.ss.param-name`'>
-                                                                    <outcome value='true'>
-                                                                        <block>
-                                                                            <set>
-                                                                                <parameter name='tmp.ss.partial.resolved-value' 
+                                                                        </set>
+                                                                        <switch test='`$tmp.ss.partial.composite-value == $tmp.ss.param-name`'>
+                                                                            <outcome value='true'>
+                                                                                <block>
+                                                                                    <set>
+                                                                                        <parameter name='tmp.ss.partial.resolved-value' 
 	value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].value`' />
-                                                                            </set>
-                                                                            <break/>
-                                                                        </block>
-                                                                    </outcome>
-                                                                </switch>
-                                                            </for>
-                                                        </outcome>
-                                                    </switch>
-                                                    <switch test='`$split-index == 0`'>
+                                                                                    </set>
+                                                                                    <break/>
+                                                                                </block>
+                                                                            </outcome>
+                                                                        </switch>
+                                                                    </for>
+                                                                </outcome>
+                                                            </switch>
+                                                            <set>
+                                                                <parameter name='tmp.ss.partial.resolved-value' 
+	value="`$tmp.ss.param-prefix + $tmp.ss.partial.resolved-value + $tmp.ss.param-suffix`" />
+                                                            </set>
+                                                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                                <parameter name="logger" value="message-log"/>
+                                                                <parameter name="field1" value="__TIMESTAMP__"/>
+                                                                <parameter name="field2" value="`'SS: tmp.ss.partial.resolved-value: ' + $tmp.ss.partial.resolved-value`"/>
+                                                            </record>
+                                                            <set>
+                                                                <parameter name='tmp.ss.final.composite-resolved-value' 
+	value="`$tmp.ss.final.composite-resolved-value + $tmp.ss.partial.resolved-value`" />
+                                                            </set>
+                                                        </for>
+                                                    </block>
+                                                    <switch test='`$comma-splits-index == 0`'>
                                                         <outcome value='true'>
                                                             <set>
                                                                 <parameter name='tmp.ss.final.resolved-value' 
-	value="`$tmp.ss.final.resolved-value + $tmp.ss.partial.resolved-value`" />
+	value="`$tmp.ss.final.resolved-value + $tmp.ss.final.composite-resolved-value`" />
                                                             </set>
                                                         </outcome>
                                                         <outcome value='false'>
                                                             <set>
                                                                 <parameter name='tmp.ss.final.resolved-value' 
-	value="`$tmp.ss.final.resolved-value + ',' + $tmp.ss.partial.resolved-value`" />
+	value="`$tmp.ss.final.resolved-value + ',' + $tmp.ss.final.composite-resolved-value`" />
                                                             </set>
                                                         </outcome>
                                                     </switch>
@@ -264,105 +350,191 @@
                                                     <parameter name="source" value="`$tmp.ss.composite`" />
                                                     <parameter name="target" value="["/>
                                                     <parameter name="replacement" value=""/>
-                                                    <parameter name="outputPath" value="tmp.ss.composite-0"/>
+                                                    <parameter name="outputPath" value="tmp.ss.composite"/>
                                                 </execute>
                                                 <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
-                                                    <parameter name="source" value="`$tmp.ss.composite-0`" />
+                                                    <parameter name="source" value="`$tmp.ss.composite`" />
                                                     <parameter name="target" value="]"/>
                                                     <parameter name="replacement" value=""/>
-                                                    <parameter name="outputPath" value="tmp.ss.composite-1"/>
+                                                    <parameter name="outputPath" value="tmp.ss.composite"/>
                                                 </execute>
                                                 <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='trim' >
-                                                    <parameter name="source" value="`$tmp.ss.composite-1`" />
-                                                    <parameter name="outputPath" value="tmp.ss.composite-2"/>
+                                                    <parameter name="source" value="`$tmp.ss.composite`" />
+                                                    <parameter name="outputPath" value="tmp.ss.composite"/>
                                                 </execute>
                                                 <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
                                                     <parameter name="logger" value="message-log"/>
                                                     <parameter name="field1" value="__TIMESTAMP__"/>
-                                                    <parameter name="field2" value="`'SS: tmp.ss.composite-2: ' + $tmp.ss.composite-2`"/>
+                                                    <parameter name="field2" value="`'SS: tmp.ss.composite: ' + $tmp.ss.composite`"/>
                                                 </record>
                                                 <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
-                                                    <parameter name="original_string" value="`$tmp.ss.composite-2`" />
+                                                    <parameter name="original_string" value="`$tmp.ss.composite`" />
                                                     <parameter name="regex" value=","/>
-                                                    <parameter name="ctx_memory_result_key" value="splits" />
+                                                    <parameter name="ctx_memory_result_key" value="comma-splits" />
                                                 </execute>
-                                                <for silentFailure='true' index="split-index" start="0" end="`$splits_length`">
+                                                <for silentFailure='true' index="comma-splits-index" start="0" end="`$comma-splits_length`">
                                                     <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='trim' >
-                                                        <parameter name="source" value="`$splits[$split-index]`" />
-                                                        <parameter name="outputPath" value="tmp.ss.trim"/>
+                                                        <parameter name="source" value="`$comma-splits[$comma-splits-index]`" />
+                                                        <parameter name="outputPath" value="tmp.ss.composite.trim"/>
                                                     </execute>
-                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
-                                                        <parameter name="source" value="`$tmp.ss.trim`" />
-                                                        <parameter name="target" value="${"/>
-                                                        <parameter name="replacement" value=""/>
-                                                        <parameter name="outputPath" value="tmp.ss.trim-0"/>
-                                                    </execute>
-                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
-                                                        <parameter name="source" value="`$tmp.ss.trim-0`" />
-                                                        <parameter name="target" value="}"/>
-                                                        <parameter name="replacement" value=""/>
-                                                        <parameter name="outputPath" value="tmp.ss.trim-1"/>
-                                                    </execute>
-                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='trim' >
-                                                        <parameter name="source" value="`$tmp.ss.trim-1`" />
-                                                        <parameter name="outputPath" value="tmp.ss.partial.composite-value"/>
-                                                    </execute>
-                                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
-                                                        <parameter name="logger" value="message-log"/>
-                                                        <parameter name="field1" value="__TIMESTAMP__"/>
-                                                        <parameter name="field2" value="`'SS: tmp.ss.partial.composite-value: ' + $tmp.ss.partial.composite-value`"/>
-                                                    </record>
-                                                    <switch test='`$ss.capability-type`'>
-                                                        <outcome value='vnf'>
-                                                            <for silentFailure='true' index="i" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param_length`">
+                                                    <set>
+                                                        <parameter name='tmp.ss.param-prefix' value='' />
+                                                        <parameter name='tmp.ss.param-suffix' value='' />
+                                                    </set>
+                                                    <block>
+                                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                                                            <parameter name="original_string" value="`$tmp.ss.composite.trim`" />
+                                                            <parameter name="regex" value="\$"/>
+                                                            <parameter name="ctx_memory_result_key" value="dollar-splits" />
+                                                        </execute>
+                                                        <set>
+                                                            <parameter name='tmp.ss.param-prefix' value='`$dollar-splits[0]`' />
+                                                        </set>
+                                                        <set>
+                                                            <parameter name='tmp.ss.final.composite-resolved-value' value='' />
+                                                        </set>
+                                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='trim' >
+                                                            <parameter name="source" value="`$tmp.ss.param-prefix`" />
+                                                            <parameter name="outputPath" value="tmp.ss.param-prefix"/>
+                                                        </execute>
+                                                        <switch test='`$dollar-splits_length == 1`'>
+                                                            <outcome value='true'>
                                                                 <set>
-                                                                    <parameter name='tmp.ss.param-name' 
+                                                                    <parameter name='tmp.ss.final.composite-resolved-value' 
+	value="`$tmp.ss.param-prefix`" />
+                                                                </set>
+                                                            </outcome>
+                                                        </switch>
+                                                        <for silentFailure='true' index="dollar-splits-index" start="1" end="`$dollar-splits_length`">
+                                                            <set>
+                                                                <parameter name='tmp.ss.partial.resolved-value' value="`'$' + $dollar-splits[$dollar-splits-index]`" />
+                                                            </set>
+                                                            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='startsWith' emitsOutcome='true' >
+                                                                <parameter name="source" value="`$dollar-splits[$dollar-splits-index]`" />
+                                                                <parameter name="target" value="{"/>
+                                                                <outcome value='true'>
+                                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                                                                        <parameter name="source" value="`$dollar-splits[$dollar-splits-index]`" />
+                                                                        <parameter name="target" value="{"/>
+                                                                        <parameter name="replacement" value=""/>
+                                                                        <parameter name="outputPath" value="tmp.ss.partial.composite-value"/>
+                                                                    </execute>
+                                                                </outcome>
+                                                                <outcome value='false'>
+                                                                    <set>
+                                                                        <parameter name='tmp.ss.partial.composite-value' value='`$dollar-splits[$dollar-splits-index]`' />
+                                                                    </set>
+                                                                </outcome>
+                                                            </execute>
+                                                            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='endsWith' emitsOutcome='true' >
+                                                                <parameter name="source" value="`$tmp.ss.partial.composite-value`" />
+                                                                <parameter name="target" value="}"/>
+                                                                <outcome value='true'>
+                                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                                                                        <parameter name="source" value="`$tmp.ss.partial.composite-value`" />
+                                                                        <parameter name="target" value="}"/>
+                                                                        <parameter name="replacement" value=""/>
+                                                                        <parameter name="outputPath" value="tmp.ss.partial.composite-value"/>
+                                                                    </execute>
+                                                                </outcome>
+                                                                <outcome value='false'>
+                                                                    <block>
+                                                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                                                                            <parameter name="original_string" value="`$tmp.ss.partial.composite-value`" />
+                                                                            <parameter name="regex" value="\}"/>
+                                                                            <parameter name="ctx_memory_result_key" value="end-curly-splits" />
+                                                                        </execute>
+                                                                        <set>
+                                                                            <parameter name='tmp.ss.partial.composite-value' value='`$end-curly-splits[0]`' />
+                                                                        </set>
+                                                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='trim' >
+                                                                            <parameter name="source" value="`$tmp.ss.partial.composite-value`" />
+                                                                            <parameter name="outputPath" value="tmp.ss.partial.composite-value"/>
+                                                                        </execute>
+                                                                        <set>
+                                                                            <parameter name='tmp.ss.param-suffix' value='`$end-curly-splits[1]`' />
+                                                                        </set>
+                                                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='trim' >
+                                                                            <parameter name="source" value="`$tmp.ss.param-suffix`" />
+                                                                            <parameter name="outputPath" value="tmp.ss.param-suffix"/>
+                                                                        </execute>
+                                                                        <set>
+                                                                            <parameter name='tmp.ss.partial.resolved-value' value="`'${' + $tmp.ss.partial.composite-value + '}'`" />
+                                                                        </set>
+                                                                    </block>
+                                                                </outcome>
+                                                            </execute>
+                                                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                                <parameter name="logger" value="message-log"/>
+                                                                <parameter name="field1" value="__TIMESTAMP__"/>
+                                                                <parameter name="field2" value="`'SS: tmp.ss.partial.composite-value: ' + $tmp.ss.partial.composite-value`"/>
+                                                            </record>
+                                                            <switch test='`$ss.capability-type`'>
+                                                                <outcome value='vnf'>
+                                                                    <for silentFailure='true' index="i" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param_length`">
+                                                                        <set>
+                                                                            <parameter name='tmp.ss.param-name' 
 	value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].name`' />
-                                                                </set>
-                                                                <switch test='`$tmp.ss.partial.composite-value == $tmp.ss.param-name`'>
-                                                                    <outcome value='true'>
-                                                                        <block>
-                                                                            <set>
-                                                                                <parameter name='tmp.ss.partial.resolved-value' 
+                                                                        </set>
+                                                                        <switch test='`$tmp.ss.partial.composite-value == $tmp.ss.param-name`'>
+                                                                            <outcome value='true'>
+                                                                                <block>
+                                                                                    <set>
+                                                                                        <parameter name='tmp.ss.partial.resolved-value' 
 	value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-parameters-data.param[$i].value`' />
-                                                                            </set>
-                                                                            <break/>
-                                                                        </block>
-                                                                    </outcome>
-                                                                </switch>
-                                                            </for>
-                                                        </outcome>
-                                                        <outcome value='vf-module'>
-                                                            <for silentFailure='true' index="i" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`">
-                                                                <set>
-                                                                    <parameter name='tmp.ss.param-name' 
+                                                                                    </set>
+                                                                                    <break/>
+                                                                                </block>
+                                                                            </outcome>
+                                                                        </switch>
+                                                                    </for>
+                                                                </outcome>
+                                                                <outcome value='vf-module'>
+                                                                    <for silentFailure='true' index="i" start="0" end="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param_length`">
+                                                                        <set>
+                                                                            <parameter name='tmp.ss.param-name' 
 	value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].name`' />
-                                                                </set>
-                                                                <switch test='`$tmp.ss.partial.composite-value == $tmp.ss.param-name`'>
-                                                                    <outcome value='true'>
-                                                                        <block>
-                                                                            <set>
-                                                                                <parameter name='tmp.ss.partial.resolved-value' 
+                                                                        </set>
+                                                                        <switch test='`$tmp.ss.partial.composite-value == $tmp.ss.param-name`'>
+                                                                            <outcome value='true'>
+                                                                                <block>
+                                                                                    <set>
+                                                                                        <parameter name='tmp.ss.partial.resolved-value' 
 	value='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$i].value`' />
-                                                                            </set>
-                                                                            <break/>
-                                                                        </block>
-                                                                    </outcome>
-                                                                </switch>
-                                                            </for>
-                                                        </outcome>
-                                                    </switch>
-                                                    <switch test='`$split-index == 0`'>
+                                                                                    </set>
+                                                                                    <break/>
+                                                                                </block>
+                                                                            </outcome>
+                                                                        </switch>
+                                                                    </for>
+                                                                </outcome>
+                                                            </switch>
+                                                            <set>
+                                                                <parameter name='tmp.ss.partial.resolved-value' 
+	value="`$tmp.ss.param-prefix + $tmp.ss.partial.resolved-value + $tmp.ss.param-suffix`" />
+                                                            </set>
+                                                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                                                <parameter name="logger" value="message-log"/>
+                                                                <parameter name="field1" value="__TIMESTAMP__"/>
+                                                                <parameter name="field2" value="`'SS: tmp.ss.partial.resolved-value: ' + $tmp.ss.partial.resolved-value`"/>
+                                                            </record>
+                                                            <set>
+                                                                <parameter name='tmp.ss.final.composite-resolved-value' 
+	value="`$tmp.ss.final.composite-resolved-value + $tmp.ss.partial.resolved-value`" />
+                                                            </set>
+                                                        </for>
+                                                    </block>
+                                                    <switch test='`$comma-splits-index == 0`'>
                                                         <outcome value='true'>
                                                             <set>
                                                                 <parameter name='tmp.ss.final.resolved-value' 
-	value="`$tmp.ss.final.resolved-value + $tmp.ss.partial.resolved-value`" />
+	value="`$tmp.ss.final.resolved-value + $tmp.ss.final.composite-resolved-value`" />
                                                             </set>
                                                         </outcome>
                                                         <outcome value='false'>
                                                             <set>
                                                                 <parameter name='tmp.ss.final.resolved-value' 
-	value="`$tmp.ss.final.resolved-value + ',' + $tmp.ss.partial.resolved-value`" />
+	value="`$tmp.ss.final.resolved-value + ',' + $tmp.ss.final.composite-resolved-value`" />
                                                             </set>
                                                         </outcome>
                                                     </switch>
