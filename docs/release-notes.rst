@@ -3,6 +3,53 @@
 Release Notes
 =============
 
+Version 1.5.3
+-------------
+:Release Date: 2019-06-13
+
+**New Features**
+
+The full list of Dublin epics and user stories for SDNC maybe be found at <https://jira.onap.org/issues/?filter=11803>.
+
+The following list summarizes some of the most significant epics:
+
++------------+----------------------------------------------------------------------------+
+| Jira #     | Abstract                                                                   |
++============+============================================================================+
+| [SDNC-551] | OpenDaylight Fluorine Support                                              |
++------------+----------------------------------------------------------------------------+
+| [SDNC-564] | 5G Use Case                                                                |
++------------+----------------------------------------------------------------------------+
+| [SDNC-565] | CCVPN Use Case Extension                                                   |
++------------+----------------------------------------------------------------------------+
+| [SDNC-570] | SDN-R: Server side component                                               |
++------------+----------------------------------------------------------------------------+
+| [SDNC-579] | SDN-R : UX-Client                                                          |
++------------+----------------------------------------------------------------------------+
+| [SDNC-631] | SDNC support for the PNF Use Case Network Assign for Plug and Play feature |
++------------+----------------------------------------------------------------------------+
+
+
+**Bug Fixes**
+The full list of bug fixes in the SDNC Dublin release may be found at <https://jira.onap.org/issues/?filter=11805>
+
+**Known Issues**
+The full list of known issues in SDNC may be found in the ONAP Jira at <https://jira.onap.org/issues/?filter=11119>
+
+**Security Notes**
+
+*Fixed Security Issues*
+
+*Known Security Issues*
+
+*Known Vulnerabilities in Used Modules*
+
+Quick Links:
+
+- `SDNC project page <https://wiki.onap.org/display/DW/Software+Defined+Network+Controller+Project>`_
+- `Passing Badge information for SDNC <https://bestpractices.coreinfrastructure.org/en/projects/1703>`_
+- `Project Vulnerability Review Table for Casablanca Release <https://wiki.onap.org/pages/viewpage.action?pageId=45307811>`_
+
 Version: 1.4.4
 --------------
 
