@@ -50,6 +50,8 @@ The full list of known issues in SDNC may be found in the ONAP Jira at <https://
   Fixed temporarily by disabling admportal
 - `OJSI-98 <https://jira.onap.org/browse/OJSI-98>`_ In default deployment SDNC (sdnc-portal) exposes HTTP port 30201 outside of cluster.
   Fixed temporarily by disabling admportal
+- CVE-2019-12112 `OJSI-199 <https://jira.onap.org/browse/OJSI-199>`_ SDNC service allows for arbitrary code execution in sla/upload form
+  Fixed temporarily by disabling admportal
 
 *Known Security Issues*
 
