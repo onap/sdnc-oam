@@ -56,6 +56,7 @@ The full list of known issues in SDNC may be found in the ONAP Jira at <https://
 *Known Security Issues*
 
 - `OJSI-34 <https://jira.onap.org/browse/OJSI-34>`_ Multiple SQL Injection issues in SDNC
+- `OJSI-99 <https://jira.onap.org/browse/OJSI-99>`_ In default deployment SDNC (sdnc) exposes HTTP port 30202 outside of cluster.
 
 *Known Vulnerabilities in Used Modules*
 
