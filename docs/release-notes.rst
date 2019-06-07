@@ -46,6 +46,8 @@ The full list of known issues in SDNC may be found in the ONAP Jira at <https://
   Fixed temporarily by disabling admportal
 - CVE-2019-12113 `OJSI-43 <https://jira.onap.org/browse/OJSI-43>`_ SDNC service allows for arbitrary code execution in sla/printAsGv form
   Fixed temporarily by disabling admportal
+- `OJSI-91 <https://jira.onap.org/browse/OJSI-91>`_ SDNC exposes unprotected API for user creation
+  Fixed temporarily by disabling admportal
 
 *Known Security Issues*
 
