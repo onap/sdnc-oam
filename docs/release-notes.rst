@@ -55,6 +55,8 @@ The full list of known issues in SDNC may be found in the ONAP Jira at <https://
 
 *Known Security Issues*
 
+- `OJSI-34 <https://jira.onap.org/browse/OJSI-34>`_ Multiple SQL Injection issues in SDNC
+
 *Known Vulnerabilities in Used Modules*
 
 Quick Links:
