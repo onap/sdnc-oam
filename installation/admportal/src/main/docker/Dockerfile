@@ -8,5 +8,7 @@ MAINTAINER SDN-C Team (sdnc@lists.openecomp.org)
 # copy openecomp
 COPY opt /opt
 
+RUN cd /opt/onap/sdnc/admportal && npm install
+
 #ENTRYPOINT exec /opt/openecomp/sdnc/admportal/shell/startssl.sh
 EXPOSE 8843 8443

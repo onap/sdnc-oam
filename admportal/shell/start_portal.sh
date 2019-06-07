@@ -20,11 +20,12 @@ SSL_ENABLED=`python $PROJECT_HOME/admportal/shell/getAdmPortalProp.py sslEnabled
 export SSL_ENABLED
 
 if [ ! -d /opt/onap/sdnc/admportal/node_modules ]; then
-	cd /opt/onap/sdnc/admportal && npm install
+    echo "ERROR: missing node modules: /opt/onap/sdnc/admportal/node_modules"
+    exit 1
 fi
 
 cd /opt/onap/sdnc/admportal
-node shell/www
+exec node shell/www
 #if [ "true" == "${SSL_ENABLED}" ]; then
 	#pm2 startOrRestart process.https.json
 #else
