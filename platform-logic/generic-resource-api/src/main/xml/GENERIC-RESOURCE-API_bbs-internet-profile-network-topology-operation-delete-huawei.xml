@@ -32,6 +32,48 @@
                     </switch>
                 </outcome>
             </execute>
+            <for silentFailure='false' index='rdidx' start='0' end="`$aai.service-instance.relationship-list.relationship[$ridx].relationship-data_length`" >
+                <block atomic='true'>
+                    <switch test='`$aai.service-instance.relationship-list.relationship[$ridx].relationship-data[$rdidx].relationship-key`'>
+                        <outcome value='generic-vnf.vnf-id'>
+                            <block atomic='true'>
+                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+		resource="generic-vnf" 
+		key="generic-vnf.vnf-id = $aai.service-instance.relationship-list.relationship[$ridx].relationship-data[$rdidx].relationship-value"
+        pfx='aai.generic-vnf' local-only='false' >
+                                    <outcome value='success'>
+                                        <block atomic='true'>
+                                            <switch test='`$aai.generic-vnf.vnf-type`'>
+                                                <outcome value='InternetProfile'>
+                                                    <set>
+                                                        <parameter name='prop.bbs.internetProfileVNFId' value='`$aai.generic-vnf.vnf-id`' />
+                                                    </set>
+                                                </outcome>
+                                            </switch>
+                                        </block>
+                                    </outcome>
+                                </get-resource>
+                            </block>
+                        </outcome>
+                    </switch>
+                </block>
+            </for>
+            <delete plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+		resource="generic-vnf" 
+		key="generic-vnf.vnf-id = $prop.bbs.internetProfileVNFId">
+                <outcome value='failure'>
+                    <return status='failure'>
+                        <parameter name='error-code' value='' />
+                        <parameter name='error-message' value='' />
+                    </return>
+                </outcome>
+                <outcome value='not-found'>
+                    <return status='failure'>
+                        <parameter name='error-code' value='' />
+                        <parameter name='error-message' value='' />
+                    </return>
+                </outcome>
+            </delete>
             <return status='success'>
                 <parameter name="ack-final-indicator" value="Y" />
                 <parameter name="error-code" value="200" />

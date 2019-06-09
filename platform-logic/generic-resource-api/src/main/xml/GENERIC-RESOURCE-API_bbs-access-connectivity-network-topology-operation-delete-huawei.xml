@@ -100,6 +100,67 @@
                     </block>
                 </outcome>
             </execute>
+            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+		resource="service-instance" 
+		key="customer.global-customer-id = $network-topology-operation-input.service-information.global-customer-id AND
+			service-subscription.service-type = $network-topology-operation-input.service-information.subscription-service-type AND
+			service-instance.service-instance-id = $network-topology-operation-input.service-information.service-instance-id"
+        pfx='aai.service-instance' local-only='false' >
+                <outcome value='failure'>
+                    <return status='failure'>
+                        <parameter name='error-code' value='' />
+                        <parameter name='error-message' value='' />
+                    </return>
+                </outcome>
+                <outcome value='success'>
+                    <block atomic='true'>
+                        <for silentFailure='true' index='ridx' start='0' end="`$aai.service-instance.relationship-list.relationship_length`" >
+                            <for silentFailure='false' index='rdidx' start='0' end="`$aai.service-instance.relationship-list.relationship[$ridx].relationship-data_length`" >
+                                <block atomic='true'>
+                                    <switch test='`$aai.service-instance.relationship-list.relationship[$ridx].relationship-data[$rdidx].relationship-key`'>
+                                        <outcome value='generic-vnf.vnf-id'>
+                                            <block atomic='true'>
+                                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+		resource="generic-vnf" 
+		key="generic-vnf.vnf-id = $aai.service-instance.relationship-list.relationship[$ridx].relationship-data[$rdidx].relationship-value"
+        pfx='aai.generic-vnf' local-only='false' >
+                                                    <outcome value='success'>
+                                                        <block atomic='true'>
+                                                            <switch test='`$aai.generic-vnf.vnf-type`'>
+                                                                <outcome value='AccessConnectivity'>
+                                                                    <set>
+                                                                        <parameter name='prop.bbs.accessConnectivityVNFId' value='`$aai.generic-vnf.vnf-id`' />
+                                                                    </set>
+                                                                </outcome>
+                                                            </switch>
+                                                        </block>
+                                                    </outcome>
+                                                </get-resource>
+                                            </block>
+                                        </outcome>
+                                    </switch>
+                                </block>
+                            </for>
+                        </for>
+                    </block>
+                </outcome>
+            </get-resource>
+            <delete plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+		resource="generic-vnf" 
+		key="generic-vnf.vnf-id = $prop.bbs.accessConnectivityVNFId">
+                <outcome value='failure'>
+                    <return status='failure'>
+                        <parameter name='error-code' value='' />
+                        <parameter name='error-message' value='' />
+                    </return>
+                </outcome>
+                <outcome value='not-found'>
+                    <return status='failure'>
+                        <parameter name='error-code' value='' />
+                        <parameter name='error-message' value='' />
+                    </return>
+                </outcome>
+            </delete>
             <return status='success'>
                 <parameter name="ack-final-indicator" value="Y" />
                 <parameter name="error-code" value="200" />
