@@ -3,9 +3,10 @@
 Release Notes
 =============
 
-Version 1.5.3
+Version 1.5.4
 -------------
 :Release Date: 2019-06-13
+
 
 **New Features**
 
