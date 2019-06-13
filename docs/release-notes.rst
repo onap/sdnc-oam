@@ -37,6 +37,10 @@ The full list of bug fixes in the SDNC Dublin release may be found at <https://j
 **Known Issues**
 The full list of known issues in SDNC may be found in the ONAP Jira at <https://jira.onap.org/issues/?filter=11119>
 
+One item of note is that the SDNC admin portal was determined to have a number of security vulnerabilities,
+under Known Security Issues.  As a temporary remediation, the admin portal is disabled in
+Dublin.  It will be re-enabled in El Alto once the security issues are addressed.
+
 **Security Notes**
 
 *Fixed Security Issues*
