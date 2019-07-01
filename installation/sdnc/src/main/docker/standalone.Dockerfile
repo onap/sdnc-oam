@@ -1,9 +1,27 @@
-# Base ubuntu with added packages needed for open ecomp
+# Prepare stage for multistage image build
+## START OF STAGE0 ##
+FROM onap/ccsdk-odlsli-alpine-image:${ccsdk.docker.version} AS stage0
+
+ENV JAVA_HOME /usr/lib/jvm/java-1.8-openjdk
+ENV ODL_HOME /opt/opendaylight
+
+USER root
+
+# copy onap
+COPY opt /opt
+RUN test -L /opt/sdnc || ln -s /opt/onap/sdnc /opt/sdnc
+RUN mkdir $ODL_HOME/current/certs
+
+# copy SDNC mvn artifacts to ODL repository
+COPY system /tmp/system
+RUN rsync -a /tmp/system $ODL_HOME
+## END OF STAGE0 ##
+
+
 FROM onap/ccsdk-odlsli-alpine-image:${ccsdk.docker.version}
 
 MAINTAINER SDN-C Team (sdnc@lists.onap.org)
 
-#ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
 ENV JAVA_HOME /usr/lib/jvm/java-1.8-openjdk
 ENV ODL_HOME /opt/opendaylight
 ENV SDNC_CONFIG_DIR /opt/onap/sdnc/data/properties
@@ -19,14 +37,7 @@ ENV SDNC_SECUREPORT ${sdnc.secureport}
 
 USER root
 
-# copy onap
-COPY opt /opt
-RUN test -L /opt/sdnc || ln -s /opt/onap/sdnc /opt/sdnc
-RUN mkdir /opt/opendaylight/current/certs
-
-# copy SDNC mvn artifacts to ODL repository
-COPY system /tmp/system
-RUN rsync -a /tmp/system $ODL_HOME && rm -rf /tmp/system
+COPY --from=stage0 --chown=odl:odl /opt /opt
 
 # Add SDNC repositories to boot repositories
 RUN cp $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.karaf.features.cfg.orig
@@ -34,10 +45,9 @@ RUN sed -i -e "\|featuresRepositories|s|$|,${SDNC_NORTHBOUND_REPO}, ${SDNR_NORTH
 RUN sed -i -e "\|featuresBoot[^a-zA-Z]|s|$|,sdnc-northbound-all, sdnr-northbound-all|"  $ODL_HOME/etc/org.apache.karaf.features.cfg
 RUN sed -i "s/odl-restconf-all/odl-restconf-all,odl-netconf-topology/g"  $ODL_HOME/etc/org.apache.karaf.features.cfg
 
-# install ssl and java certificates
+# Install ssl and java certificates
 COPY truststoreONAPall.jks $JAVA_SECURITY_DIR
 COPY truststoreONAPall.jks $SDNC_STORE_DIR
-
 RUN keytool -importkeystore -srckeystore $JAVA_SECURITY_DIR/truststoreONAPall.jks -srcstorepass changeit -destkeystore $JAVA_SECURITY_DIR/cacerts  -deststorepass changeit
 
 # Secure with TLS
@@ -47,8 +57,8 @@ RUN echo org.ops4j.pax.web.ssl.keystore=$SDNC_STORE_DIR/$SDNC_KEYSTORE >> $ODL_H
 RUN echo org.ops4j.pax.web.ssl.password=$SDNC_KEYPASS >> $ODL_HOME/etc/custom.properties
 RUN echo org.ops4j.pax.web.ssl.keypassword=$SDNC_KEYPASS >> $ODL_HOME/etc/custom.properties
 
+RUN chown -R odl:odl /opt
 
-RUN chown -R odl /opt
 USER odl
 
 ENTRYPOINT /opt/onap/sdnc/bin/startODL.sh
