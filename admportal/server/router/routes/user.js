@@ -5,8 +5,13 @@ var util = require('util');
 var fs = require('fs');
 var dbRoutes = require('./dbRoutes');
 var csp = require('./csp');
+var cookieParser = require('cookie-parser');
+var csrf = require('csurf');
 var bodyParser = require('body-parser');
-var sax = require('sax'),strict=true,parser = sax.parser(strict);
+//var sax = require('sax'),strict=true,parser = sax.parser(strict);
+
+var csrfProtection = csrf({cookie: true});
+router.use(cookieParser());
 
 // SVC_LOGIC table columns
 var _module=''; // cannot use module its a reserved word
@@ -17,16 +22,21 @@ var xmlfile='';
 
 
 //router.use(bodyParser());
-router.use(bodyParser.urlencoded({
-  extended: true
-}));
+router.use(bodyParser.urlencoded({ extended: true }));
 
 
 // GET
 router.get('/listUsers', csp.checkAuth, function(req,res) {
 	dbRoutes.listUsers(req,res, {user:req.session.loggedInAdmin,code:'', msg:''} );
 });
-router.get('/deleteUser', csp.checkAuth, function(req,res) {
+// POST
+router.post('/updateUser', csp.checkAuth, csrfProtection, function(req,res,next){
+	dbRoutes.updateUser(req,res,{code:'',msg:''});
+});
+router.post('/addUser', csp.checkAuth, csrfProtection, function(req,res) {
+	dbRoutes.addUser(req,res, {code:'', msg:''} );
+});
+router.get('/deleteUser', csp.checkAuth, csrfProtection, function(req,res) {
 	dbRoutes.deleteUser(req,res, {code:'', msg:''} );
 });
 
@@ -93,13 +103,6 @@ parser.onend = function () {
 */
 
 
-// POST
-router.post('/updateUser', csp.checkAuth, function(req,res,next){
-	dbRoutes.updateUser(req,res,{code:'',msg:''});
-});
-router.post('/addUser', csp.checkAuth, function(req,res) {
-	dbRoutes.addUser(req,res, {code:'', msg:''} );
-});
 
 //router.post('/upload', csp.checkAuth, function(req, res, next){
 

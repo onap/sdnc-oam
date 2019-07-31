@@ -20,12 +20,15 @@ var finalJson={};
 var platform;
 var req,res;
 var preloadVersion;  // 1607, 1610, etc...
+var proc_error = false;
+var filename;
 
 puts = helpers.puts;
 putd = helpers.putd;
 
 network.go = function(lreq,lres,cb,dir) {
   puts("Processing NETWORK workbook");
+	proc_error = false;
   req = lreq;
   res = lres;
   callback = cb;
@@ -49,7 +52,8 @@ function doGeneral() {
     helpers.readCsv(indir, newFileName, gotGeneral);
   }
   else {
-    callback(csvFilename + ' file is missing from upload.');
+    puts('general file is missing from upload.');
+		proc_error=true;
   }
 }
 
@@ -57,8 +61,9 @@ function gotGeneral(err, jsonObj) {
   if (err) {
     puts("\nError!");
     putd(err);
-    callback('General.csv file is missing from upload.');
-    return;
+    proc_error=true;
+		callback('General.csv file is missing from upload.');
+		return;
   }
   csvGeneral = jsonObj;
   puts("\nRead this: ");
@@ -77,7 +82,10 @@ function doSubnets() {
     helpers.readCsv(indir, newFileName, gotSubnets);
   }
   else {
+		puts('subnets file is missing from upload.');
+    proc_error=true;
     callback(csvFilename + ' file is missing from upload.');
+		return;
   }
 }
 
@@ -85,6 +93,7 @@ function gotSubnets(err, jsonObj) {
   if (err) {
     puts("\nError!");
     putd(err);
+		proc_error=true;
     callback('Subnets.csv file is missing from upload.');
     return;
   }
@@ -108,7 +117,10 @@ function doVpnBindings() {
     helpers.readCsv(indir, newFileName, gotVpnBindings);
   }
   else {
+		puts('vnp-bindings file is missing from upload.');
+    proc_error=true;
     callback(csvFilename + ' file is missing from upload.');
+		return;
   }
 }
 
@@ -116,6 +128,7 @@ function gotVpnBindings(err, jsonObj) {
   if (err) {
     puts("\nError!");
     putd(err);
+		proc_error=true;
     callback('VPN-Bindings.csv file is missing from upload.');
     return;
   }
@@ -140,7 +153,10 @@ function doPolicies() {
     helpers.readCsv(indir, newFileName, gotPolicies);
   }
   else {
+		puts('policies file is missing from upload.');
+    proc_error=true;
     callback(csvFilename + ' file is missing from upload.');
+		return;
   }
 }
 
@@ -148,6 +164,7 @@ function gotPolicies(err, jsonObj) {
   if (err) {
     puts("\nError!");
     putd(err);
+		proc_error=true;
     callback('Policies.csv file is missing from upload.');
     return;
   }
@@ -178,7 +195,10 @@ function doNetRoutes() {
     helpers.readCsv(indir, newFileName, gotNetRoutes);
   }
   else {
+		puts('network-routes file is missing from upload.');
+    proc_error=true;
     callback(csvFilename + ' file is missing from upload.');
+		return;
   }
 }
 
@@ -186,6 +206,7 @@ function gotNetRoutes(err, jsonObj) {
   if (err) {
     puts("\nError!");
     putd(err);
+		proc_error=true;
     callback('Network-Routes.csv file is missing from upload.');
     return;
   }
@@ -218,6 +239,21 @@ function processJson() {
   processPolicies();
   processNetRoutes();
   assembleJson();
+	outputJson();
+
+	puts('proc_error=');
+  putd(proc_error);
+  if ( proc_error ){
+    puts('callback with failure');
+    callback('Error was encountered processing upload.');
+    return;
+  }
+  else
+  {
+    puts('callback with success');
+  	callback(null,  finalJson, filename);
+    return;
+	}
 }
 
 // ASSEMBLE AND OUTPUT RESULTS
@@ -256,7 +292,7 @@ function assembleJson() {
 
   finalJson = {"input": networkInput};
 
-  outputJson();
+  //outputJson();
 }
 
 function outputJson() {
@@ -265,7 +301,7 @@ function outputJson() {
   puts(JSON.stringify(finalJson,null,2));
   puts("\n");
   puts("\n");
-  var unixTime, fullpath_filename, filename;
+  var unixTime, fullpath_filename;
   unixTime = moment().unix();
   if (platform=='portal') {
     fullpath_filename = process.cwd() + "/uploads/" + unixTime + ".net_worksheet.json";
@@ -275,7 +311,7 @@ function outputJson() {
     filename = "output.json." + unixTime;
   }
   helpers.writeOutput(req, fullpath_filename, JSON.stringify(finalJson,null,2), callback);
-  callback(null,  finalJson, filename);
+  //callback(null,  finalJson, filename);
 }
 
 
@@ -288,7 +324,9 @@ function processGeneral() {
 
   if ( (preloadVersion!='1607') && (preloadVersion!='1610') ) {
     puts("\nError - incorrect version of preload worksheet.");
-    callback('Error - incorrect version of preload worksheet.');
+		proc_error=true;
+    //callback('Error - incorrect version of preload worksheet.');
+		return;
   }
 
   rawJson['network-name'] = getParam(csvGeneral, 'field2', 'network-name', 'field3');

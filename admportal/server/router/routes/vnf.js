@@ -21,12 +21,15 @@ var finalJson={};
 var platform;
 var req, res;
 var preloadVersion;  // 1607, 1610, etc...
+var proc_error=false;
+var filename;
 
 puts = helpers.puts;
 putd = helpers.putd;
 
 vnf.go = function(lreq,lres,cb,dir){
   puts("Processing VNF workbook");
+	proc_error=false;
   req = lreq;
   res = lres;
   callback = cb;
@@ -51,7 +54,8 @@ function doGeneral() {
     helpers.readCsv(indir, newFileName, gotGeneral);
   }
   else {
-    callback(csvFilename + ' file is missing from upload.');
+    puts('General.csv file is missing from upload.');
+		proc_error=true;
   }
 }
 
@@ -59,6 +63,7 @@ function gotGeneral(err, jsonObj) {
   if (err) {
     puts("\nError!");
     putd(err);
+		proc_error=true;
     callback('General.csv file is missing from upload.');
     return;
   }
@@ -79,14 +84,17 @@ function doAvailZones() {
     helpers.readCsv(indir, newFileName, gotAvailZones);
   }
   else {
+		proc_error=true;
     callback(csvFilename + ' file is missing from upload.');
   }
+	return;
 }
 
 function gotAvailZones(err, jsonObj) {
   if (err) {
     puts("\nError!");
     putd(err);
+		proc_error=true;
     callback('Availability-zones.csv file is missing from upload.');
     return;
   }
@@ -110,14 +118,17 @@ function doNetworks() {
     helpers.readCsv(indir, newFileName, gotNetworks);
   }
   else {
+		proc_error=true;
     callback(csvFilename + ' file is missing from upload.');
   }
+	return;
 }
 
 function gotNetworks(err, jsonObj) {
   if (err) {
     puts("\nError!");
     putd(err);
+		proc_error=true;
     callback('Networks.csv file is missing from upload.');
     return;
   }
@@ -142,14 +153,17 @@ function doVMs() {
     helpers.readCsv(indir, newFileName, gotVMs);
   }
   else {
+		proc_error=true;
     callback(csvFilename + ' file is missing from upload.');
   }
+	return;
 }
 
 function gotVMs(err, jsonObj) {
   if (err) {
     puts("\nError!");
     putd(err);
+		proc_error=true;
     callback('VMs.csv file is missing from upload.');
     return;
   }
@@ -174,14 +188,17 @@ function doVMnetworks() {
     helpers.readCsv(indir, newFileName, gotVMnetworks);
   }
   else {
+		proc_error=true;
     callback(csvFilename + ' file is missing from upload.');
   }
+	return;
 }
 
 function gotVMnetworks(err, jsonObj) {
   if (err) {
     puts("\nError!");
     putd(err);
+		proc_error=true;
     callback('VM-networks.csv file is missing from upload.');
     return;
   }
@@ -206,14 +223,17 @@ function doVMnetworkIPs() {
     helpers.readCsv(indir, newFileName, gotVMnetworkIPs);
   }
   else {
+		proc_error=true;
     callback(csvFilename + ' file is missing from upload.');
   }
+	return;
 }
 
 function gotVMnetworkIPs(err, jsonObj) {
   if (err) {
     puts("\nError!");
     putd(err);
+		proc_error=true;
     callback('VM-network-IPs.csv file is missing from upload.');
     return;
   }
@@ -238,14 +258,17 @@ function doVMnetworkMACs() {
     helpers.readCsv(indir, newFileName, gotVMnetworkMACs);
   }
   else {
+		proc_error=true;
     callback(csvFilename + ' file is missing from upload.');
   }
+	return;
 }
 
 function gotVMnetworkMACs(err, jsonObj) {
   if (err) {
     puts("\nError!");
     putd(err);
+		proc_error=true;
     callback('VM-network-MACs.csv file is missing from upload.');
     return;
   }
@@ -270,14 +293,17 @@ function doTagValues() {
     helpers.readCsv(indir, newFileName, gotTagValues);
   }
   else {
+		proc_error=true;
     callback(csvFilename + ' file is missing from upload.');
   }
+	return;
 }
 
 function gotTagValues(err, jsonObj) {
   if (err) {
     puts("\nError!");
     putd(err);
+		proc_error=true;
     callback('Tag-values.csv file is missing from upload.');
     return;
   }
@@ -315,6 +341,21 @@ function processJson() {
   processVMs();
   processTagValues();
   assembleJson();
+  outputJson();
+
+	puts('proc_error=');
+  putd(proc_error);
+  if ( proc_error ){
+    puts('callback with failure');
+    callback('Error was encountered processing upload.');
+    return;
+  }
+  else
+  {
+    puts('callback with success');
+    callback(null,  finalJson, filename);
+    return;
+  }
 }
 
 // ASSEMBLE AND OUTPUT RESULTS
@@ -350,7 +391,7 @@ function assembleJson() {
 
   finalJson = {"input": vnfInput};
 
-  outputJson();
+  //outputJson();
 }
 
 function outputJson() {
@@ -359,7 +400,7 @@ function outputJson() {
   puts(JSON.stringify(finalJson,null,2));
   puts("\n");
   puts("\n");
-  var unixTime, fullpath_filename, filename;
+  var unixTime, fullpath_filename;
   unixTime = moment().unix();
   if (platform=='portal') {
     fullpath_filename = process.cwd() + "/uploads/" + unixTime + ".vnf_worksheet.json";
@@ -368,8 +409,8 @@ function outputJson() {
     fullpath_filename = "./output.json."+unixTime;
     filename = "output.json." + unixTime;
   }
-  helpers.writeOutput(req, fullpath_filename, JSON.stringify(finalJson,null,2), callback);
-  callback(null,  finalJson, filename);
+  //helpers.writeOutput(req, fullpath_filename, JSON.stringify(finalJson,null,2), callback);
+  //callback(null,  finalJson, filename);
 }
 
 

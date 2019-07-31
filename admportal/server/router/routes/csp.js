@@ -15,13 +15,18 @@ function logout(req,res){
 
 function login (req,res) {
 
+console.log('login');
+var tkn = req.sanitize(req.body._csrf);
+console.log('login:tkn=' + tkn);
+
 	var loggedInAdmin={};
-	var email = req.body.email;
+	var email = req.sanitize(req.body.email);
+	var pswd = req.sanitize(req.body.password);
 	dbRoutes.findAdminUser(email,res,function(adminUser){
 		if(adminUser !== null){
 			
 			// make sure correct password is provided
-			if (req.body.password != adminUser.password) {
+			if (pswd != adminUser.password) {
 				res.render("pages/login", 
 				{
 					result:
@@ -36,6 +41,7 @@ function login (req,res) {
 				
 			var loggedInAdmin = {
 				email:adminUser.email,
+				csrfToken: tkn,
 				password:adminUser.password,
 				privilege:adminUser.privilege
 			}
@@ -57,6 +63,7 @@ function login (req,res) {
 }
 
 function checkAuth(req,res,next){
+
 	var host = req.get('host');
 	var url = req.url;
 	var originalUrl = req.originalUrl;
@@ -64,8 +71,7 @@ function checkAuth(req,res,next){
 	console.log("checkAuth");
 
 	var host = req.headers['host'];
-console.log('host=' + host);
-
+	console.log('host=' + host);
 	console.log("cookie is not null "+JSON.stringify(req.session.loggedInAdmin));
 	if(req.session == null || req.session == undefined 
 		|| req.session.loggedInAdmin == null || req.session.loggedInAdmin == undefined)
@@ -79,6 +85,40 @@ console.log('host=' + host);
 	next();
 }
 
+function checkPriv(req,res,next)
+{
+  var priv = req.session.loggedInAdmin;
+  if(req.session == null || req.session == undefined 
+		|| req.session.loggedInAdmin == null || req.session.loggedInAdmin == undefined)
+  {
+    res.render("pages/err", 
+		{
+			result: {code:'error', msg:'Unexpected null session.'}, 
+			header: process.env.MAIN_MENU
+		});
+    return;
+  }
+  else
+  {
+    if (priv.privilege == 'A')
+    {
+      next();
+      return;
+    }
+    else
+    {
+      res.render("pages/err", 
+			{
+				result: { code:'error', msg:'User does not have permission to run operation.'},
+				header: process.env.MAIN_MENU
+			});
+      return;
+    }
+  }
+}
+
+
 exports.login = login;
 exports.logout = logout;
 exports.checkAuth = checkAuth;
+exports.checkPriv = checkPriv;

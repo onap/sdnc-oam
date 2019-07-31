@@ -262,18 +262,22 @@ console.log('checkDB');
 
 exports.saveUser = function(req,res){
 
-	pool.getConnection(function(err,connection){
+console.log('b4 sani');
+	var email = req.sanitize(req.body.nf_email);
+	var pswd = req.sanitize(req.body.nf_password);
+console.log('after sani');
+
+	pool.getConnection(function(err,connection)
+	{
 		if(err){
 			console.error( String(err) ); // ALARM
 			res.render("pages/signup", {result:{code:'error', msg:"Unable to get database connection. " + String(err)},header:process.env.MAIN_MENU});
 			return;
-    	}
-		//var sql = "SELECT AES_DECRYPT(password, '" + enckey + "') password FROM PORTAL_USERS";
-		var sql = "SELECT email FROM PORTAL_USERS WHERE email='" + req.body.nf_email + "'";
+		}
+		var sql = "SELECT email FROM PORTAL_USERS WHERE email='" + email + "'";
 
-		console.log(sql);
-
-		connection.query(sql, function(err,result){
+		connection.query(sql, function(err,result)
+		{
 			if(err){
 				connection.release();
 				res.render("pages/signup", {result:{code:'error', msg:"Unable to get database connection. " + String(err)},header:process.env.MAIN_MENU});
@@ -287,13 +291,12 @@ exports.saveUser = function(req,res){
 			}
 
 			sql = "INSERT INTO PORTAL_USERS (email,password,privilege) VALUES ("
-            +"'"+ req.body.nf_email + "',"
-            + "AES_ENCRYPT('" + req.body.nf_password + "','" + enckey + "'),"
+            +"'"+ email + "',"
+            + "AES_ENCRYPT('" + pswd + "','" + enckey + "'),"
             +"'A')";
 
-			console.log(sql);
-
-			connection.query(sql, function(err,result){
+			connection.query(sql, function(err,result)
+			{
 				connection.release();
 				
 				if(err){
@@ -360,172 +363,207 @@ exports.deleteUser = function(req,res){
 exports.addUser = function(req,res){
 	
 	var rows={};
-    var resultObj = { code:'', msg:'' };
+	var resultObj = { code:'', msg:'' };
 	var privilegeObj = req.session.loggedInAdmin;
+	var privilege = req.sanitize(req.body.nf_privilege);
+	var email = req.sanitize(req.body.nf_email);
+  var pswd = req.sanitize(req.body.nf_password);
 
-    pool.getConnection(function(err,connection) {
-        if(err){
+
+	pool.getConnection(function(err,connection) 
+	{
+		if(err)
+		{
 			console.error( String(err) ); // ALARM
-            res.render("user/list", {rows: null, result:{code:'error', msg:"Unable to get database connection. "+ String(err),
-				privilege:privilegeObj },header:process.env.MAIN_MENU});
+			res.render("user/list", {rows: null, result:{code:'error', msg:"Unable to get database connection. "+ String(err),
+			privilege:privilegeObj },header:process.env.MAIN_MENU});
 			return;
-        }
+		}
 
-        if( req.body.nf_privilege == "admin" ){
-            var char_priv = 'A';
-        }else if(req.body.nf_privilege == 'readonly'){
-            var char_priv = 'R';
-        }else{
-            var char_priv = 'A';
-        }
+		if( privilege == "admin" ){
+			var char_priv = 'A';
+		}else if(privilege == 'readonly'){
+			var char_priv = 'R';
+		}else{
+			var char_priv = 'R';
+		}
+
+		//connection.query(sqlRequest, function(err,result)
+		var sqlUpdate = "INSERT INTO PORTAL_USERS (email, password, privilege) VALUES ("
+			+"'"+ email + "',"
+			+ "AES_ENCRYPT('" + pswd + "','" + enckey + "'),"
+			+"'"+ char_priv + "')";
 
 
-        //connection.query(sqlRequest, function(err,result){
-        var sqlUpdate = "INSERT INTO PORTAL_USERS (email, password, privilege) VALUES ("
-            +"'"+ req.body.nf_email + "',"
-            + "AES_ENCRYPT('" + req.body.nf_password + "','" + enckey + "'),"
-            +"'"+ char_priv + "')";
-
-		console.log(sqlUpdate);
-
-        connection.query(sqlUpdate,function(err,result){
-
-            if(err){
-                 resultObj = {code:'error', msg:'Add of user failed Error: '+err};
-            }
-
-            // Need DB lookup logic here
-            connection.query("SELECT email,AES_DECRYPT(password, '" + enckey + "') password,privilege FROM PORTAL_USERS", function(err, rows) {
-
-            	connection.release();
-                if(!err) {
-                    if ( rows.length > 0 )
-                    {
+		connection.query(sqlUpdate,function(err,result)
+		{
+			if(err){
+				resultObj = {code:'error', msg:'Add of user failed Error: '+err};
+			}
+			// Need DB lookup logic here
+			connection.query("SELECT email,AES_DECRYPT(password, '" + enckey + "') password,privilege FROM PORTAL_USERS", function(err, rows)
+			{
+				connection.release();
+				if(!err)
+				{
+					if ( rows.length > 0 )
+					{
 						resultObj = {code:'success',msg:'Successfully added user.'};
-                        res.render('user/list', { rows: rows, result:resultObj, privilege:privilegeObj,header:process.env.MAIN_MENU } );
+						res.render('user/list', { rows: rows, result:resultObj, privilege:privilegeObj,header:process.env.MAIN_MENU } );
 						return;
-                    }else{
-                        res.render("user/list", {rows: null, result:{code:'error', msg:'Unexpected no rows returned from database, please try again.',
+					}else{
+						res.render("user/list", {rows: null, result:{code:'error', msg:'Unexpected no rows returned from database, please try again.',
 							privilege:privilegeObj },header:process.env.MAIN_MENU});
 						return;
-                    }
-                } else {
-                    res.render("user/list", {rows: null, result:{code:'error', msg:'Unexpected no rows returned from database. Error: '+ err ,
+					}
+				}
+				else {
+					res.render("user/list", {rows: null, result:{code:'error', msg:'Unexpected no rows returned from database. Error: '+ err ,
 						privilege:privilegeObj },header:process.env.MAIN_MENU});
 					return;
-                }
-            }); //end query
-        });
-
-    }); // end of getConnection
+				}
+			}); //end query
+		});
+	}); // end of getConnection
 }
 
 // updateUser
 exports.updateUser= function(req,res){
 
-    var rows={};
+	var rows={};
 	var resultObj = { code:'', msg:'' };
 	var privilegeObj = req.session.loggedInAdmin;
+	var email = req.sanitize(req.body.uf_email);
+	var key_email = req.sanitize(req.body.uf_key_email)
+  var pswd = req.sanitize(req.body.uf_password);
+  var privilege = req.sanitize(req.body.uf_privilege);
 
-    pool.getConnection(function(err,connection) {
-
-        if(err){
+	pool.getConnection(function(err,connection)
+	{
+		if(err){
 			console.error( String(err) ); // ALARM
-            res.render("user/list", {rows: null, result:{code:'error', msg:"Unable to get database connection. " + String(err),
+			res.render("user/list", {rows: null, result:{code:'error', msg:"Unable to get database connection. " + String(err),
 				privilege:privilegeObj },header:process.env.MAIN_MENU});
 			return;
-        }
-
-		if( req.body.uf_privilege == "admin" ){
-			var char_priv = 'A';
-		}else if(req.body.uf_privilege == 'readonly'){
-			var char_priv = 'R';
-		}else{
-			var char_priv = 'A';
 		}
 
+		if( privilege == "admin" ){
+			var char_priv = 'A';
+		}else if(privilege == 'readonly'){
+			var char_priv = 'R';
+		}else{
+			var char_priv = 'R';
+		}
 
-        //connection.query(sqlRequest, function(err,result){
 		var sqlUpdate = "UPDATE PORTAL_USERS SET "
-			+ "email = '" + req.body.uf_email + "',"
-			+ "password = " + "AES_ENCRYPT('" + req.body.uf_password + "','" + enckey + "'), "
+			+ "email = '" + email + "',"
+			+ "password = " + "AES_ENCRYPT('" + pswd + "','" + enckey + "'), "
 			+ "privilege = '"+ char_priv + "'"
-			+ " WHERE email = '" + req.body.uf_key_email + "'";
+			+ " WHERE email = '" + key_email + "'";
 
-		console.log(sqlUpdate);
-
-        connection.query(sqlUpdate,function(err,result){
-
+		connection.query(sqlUpdate,function(err,result)
+		{
 			if(err){
-				 resultObj = {code:'error', msg:'Update of user failed Error: '+err};
+				resultObj = {code:'error', msg:'Update of user failed Error: '+err};
 			}
-
-            // Need DB lookup logic here
-            connection.query("SELECT email, AES_DECRYPT(password,'" + enckey + "') password, privilege FROM PORTAL_USERS", function(err, rows) {
-            	connection.release();
-                if(!err) {
-                    if ( rows.length > 0 )
-                    {
+			// Need DB lookup logic here
+			connection.query("SELECT email, AES_DECRYPT(password,'" + enckey + "') password, privilege FROM PORTAL_USERS", function(err, rows)
+			{
+				connection.release();
+				if(!err)
+				{
+					if ( rows.length > 0 )
+					{
 						resultObj = {code:'success',msg:'Successfully updated user.'};
-                        res.render('user/list', { rows: rows, result:resultObj, privilege:privilegeObj,header:process.env.MAIN_MENU} );
-            			return;
-                    }else{
-                        res.render("user/list", {rows: null, result:{ code:'error', msg:'Unexpected no rows returned from database.',
+						res.render('user/list', { rows: rows, result:resultObj, privilege:privilegeObj,header:process.env.MAIN_MENU} );
+						return;
+					}else{
+						res.render("user/list", {rows: null, result:{ code:'error', msg:'Unexpected no rows returned from database.',
 							privilege:privilegeObj },header:process.env.MAIN_MENU});
 						return;
-                    }
-                } else {
-                    res.render("user/list", {rows: null, result:{code:'error', msg:'Unexpected no rows returned from database. ' + String(err),
+					}
+				} else {
+					res.render("user/list", {rows: null, result:{code:'error', msg:'Unexpected no rows returned from database. ' + String(err),
 						privilege:privilegeObj },header:process.env.MAIN_MENU});
 					return;
 				}
-            }); //end query
-        });
-    }); // end of getConnection
-};
+			}); //end query
+		});
+	}); // end of getConnection
+}
 
 exports.listUsers = function(req,res,resultObj){
 
 	var privilegeObj = req.session.loggedInAdmin;
-    var rows={};
-    pool.getConnection(function(err,connection) {
+	var rows={};
+	pool.getConnection(function(err,connection)
+	{
     
-        if(err){
+		if(err){
 			console.error( String(err) ); // ALARM
-            res.render("pages/list", {rows: null, result:{code:'error', msg:"Unable to get database connection. " + String(err),
-				privilege:privilegeObj },header:process.env.MAIN_MENU});
+			res.render("pages/list", 
+			{
+				rows: null, 
+				result:{
+					code:'error', 
+					msg:"Unable to get database connection. " + String(err), 
+					privilege:privilegeObj },
+					header:process.env.MAIN_MENU
+			});
 			return;
-        }
+		}
 
-        // Need DB lookup logic here
-	var selectUsers = "SELECT email, AES_DECRYPT(password,'" + enckey + "') password, privilege from PORTAL_USERS";
-	console.log(selectUsers);
-        connection.query(selectUsers, function(err, rows) {
+		// Need DB lookup logic here
+		var selectUsers = "SELECT email, AES_DECRYPT(password,'" 
+			+ enckey + "') password, privilege from PORTAL_USERS";
 
-			connection.release();
-			if(err){
-				 resultObj = {code:'error', msg:'Unable to SELECT users Error: '+err};
+		connection.query(selectUsers, function(err, rows) {
+
+		connection.release();
+		if(err){
+			resultObj = {code:'error', msg:'Unable to SELECT users Error: '+err};
+		}
+		if(!err)
+		{
+			if ( rows.length > 0 )
+			{
+				console.log(JSON.stringify(rows));
+				res.render('user/list', 
+				{
+					rows: rows, 
+					result:resultObj, 
+					privilege:privilegeObj,
+					header:process.env.MAIN_MENU 
+				});
+				return;
 			}
-		
-            if(!err) {
-                if ( rows.length > 0 )
-                {
-                    console.log(JSON.stringify(rows));
-                    res.render('user/list', { rows: rows, result:resultObj, privilege:privilegeObj,header:process.env.MAIN_MENU });
-					return;
-                }
-                else{
-                    res.render("user/list", {rows: null, result:{code:'error', msg:'Unexpected no rows returned from database.',
-						privilege:privilegeObj },header:process.env.MAIN_MENU});
-					return;
-                }
-            } else {
-                    res.render("user/list", {rows: null, result:{code:'error', msg:'Unexpected no rows returned from database. ' + String(err),
-						privilege:privilegeObj },header:process.env.MAIN_MENU});
-					return;
+			else{
+				res.render("user/list", 
+				{
+					rows: null, 
+					result:{
+						code:'error', 
+						msg:'Unexpected no rows returned from database.',
+						privilege:privilegeObj },
+						header:process.env.MAIN_MENU
+				});
+				return;
 			}
-        }); //end query
-    }); // end getConnection
+		}
+		else
+		{
+			res.render("user/list", 
+			{
+				rows: null, 
+				result:{
+					code:'error', 
+					msg:'Unexpected no rows returned from database. ' + String(err),
+					privilege:privilegeObj },header:process.env.MAIN_MENU
+			});
+			return;
+		}
+		}); //end query
+	}); // end getConnection
 }
 
 exports.listSLA = function(req,res,resultObj){
@@ -689,29 +727,29 @@ exports.getMetaTable = function(req,res,sql,rdestination,resultObj,privilegeObj)
 
 exports.getVnfProfile = function(req,res,resultObj,privilegeObj){
 
-    pool.getConnection(function(err,connection) {
-
-        if(err){
-            console.error( String(err) ); // ALARM
-            res.render("pages/err", {result:{code:'error', msg:"Unable to get database connection. "+ String(err)},header:process.env.MAIN_MENU});
-            return;
-        }
-
-        connection.query("SELECT vnf_type,availability_zone_count,equipment_role "
-            + "FROM VNF_PROFILE ORDER BY VNF_TYPE", function(err, rows)
-        {
-            connection.release();
-            if(err) {
-                res.render("mobility/vnfProfile", {result:{code:'error',msg:'Database Error: '+ String(err)},header:process.env.MAIN_MENU});
-                return;
-            }
-            else {
-                res.render('mobility/vnfProfile', { rows: rows, result:resultObj, privilege:privilegeObj,header:process.env.MAIN_MENU } );
-                return;
-            }
-        }); //end query
-console.log('after query');
-    }); // end getConnection
+	pool.getConnection(function(err,connection)
+	{
+		if(err){
+			console.error( String(err) ); // ALARM
+			res.render("pages/err", {result:{code:'error', msg:"Unable to get database connection. "+ String(err)},header:process.env.MAIN_MENU});
+			return;
+		}
+		var sql = "SELECT vnf_type,availability_zone_count,equipment_role FROM VNF_PROFILE ORDER BY VNF_TYPE";
+		console.log(sql);
+		connection.query(sql, function(err, rows)
+		{
+			connection.release();
+			if(err) {
+				res.render("mobility/vnfProfile", {result:{code:'error',msg:'Database Error: '+ String(err)},header:process.env.MAIN_MENU});
+				return;
+			}
+			else {
+				console.log('render vnfProfile');
+				res.render('mobility/vnfProfile', { rows: rows, result:resultObj, privilege:privilegeObj,header:process.env.MAIN_MENU } );
+				return;
+			}
+		}); //end query
+	}); // end getConnection
 }
 
 
@@ -747,103 +785,34 @@ exports.getVnfPreloadData = function(req,res,dbtable,callback){
 
 
 
-exports.getVnfNetworkData = function(req,res,resultObj,privilegeObj){
-
-
-    pool.getConnection(function(err,connection) {
-
-        if(err){
-            console.error( String(err) ); // ALARM
-            res.render("pages/err", {result:{code:'error', msg:"Unable to get database connection. "+ String(err)},header:process.env.MAIN_MENU});
-            return;
-        }
-
-        // Need DB lookup logic here
-        connection.query("SELECT id,svc_request_id,svc_action,status,filename,ts,preload_data "
-            + "FROM PRE_LOAD_VNF_NETWORK_DATA ORDER BY id", function(err, rows)
-        {
-            var msgArray = new Array();
-
-            connection.release();
-            if(err) {
-                msgArray = 'Database Error: '+ String(err);
-                res.render("mobility/vnfPreloadNetworkData", {
-					result:{code:'error',msg:msgArray},
-					preloadImportDirectory: properties.preloadImportDirectory,
-					header:process.env.MAIN_MENU
-				});
-                return;
-            }
-            else {
-                var retData = [];
-                for( r=0; r<rows.length; r++)
-                {
-                    var rowObj = {};
-                    rowObj.row = rows[r];
-                    if ( rows[r].filename.length > 0 )
-                    {
-                        try{
-							var buffer = rows[r].preload_data;
-                            var decode_buffer = decodeURI(buffer);
-                            var filecontent = JSON.parse(decode_buffer);
-                            rowObj.filecontent = filecontent;
-                            rowObj.network_name = filecontent.input["network-topology-information"]["network-topology-identifier"]["network-name"];
-                            rowObj.network_type = filecontent.input["network-topology-information"]["network-topology-identifier"]["network-type"];
-                        }
-                        catch(error){
-                            msgArray.push('File ' + rows[r].filename + ' has invalid JSON. Error:' + error);
-                        }
-                    }
-                    else {
-                        rowObj.filecontent = '';
-                    }
-                    retData.push(rowObj);
-                }
-                if(msgArray.length>0){
-                    resultObj.code = 'failure';
-                    resultObj.msg = msgArray;
-                }
-                res.render('mobility/vnfPreloadNetworkData', { 
-					retData:retData, 
-					result:resultObj, 
-					privilege:privilegeObj,
-					preloadImportDirectory: properties.preloadImportDirectory,
-					header:process.env.MAIN_MENU 
-				});
-                return;
-            }
-        }); //end query
-    }); // end getConnection
-}
-
-exports.getVnfData = function(req,res,resultObj,privilegeObj){
-
-
-    pool.getConnection(function(err,connection) {
-
-        if(err){
-            console.error( String(err) ); // ALARM
-            res.render("pages/err", {result:{code:'error', msg:"Unable to get database connection. "+ String(err)},header:process.env.MAIN_MENU});
-            return;
-        }
-
-        // Need DB lookup logic here
-        connection.query("SELECT id,svc_request_id,svc_action,status,filename,ts,preload_data "
-            + "FROM PRE_LOAD_VNF_DATA ORDER BY id", function(err, rows) 
+exports.getVnfNetworkData = function(req,res,resultObj,privilegeObj)
+{ 
+	pool.getConnection(function(err,connection)
+	{
+		if(err){
+			console.error( String(err) ); // ALARM
+			res.render("pages/err",
+				{result:{code:'error', msg:"Unable to get database connection. "+ String(err)},header:process.env.MAIN_MENU});
+			return;
+		}
+		// Need DB lookup logic here
+		var sql = "SELECT id,svc_request_id,svc_action,status,filename,ts,preload_data FROM PRE_LOAD_VNF_NETWORK_DATA ORDER BY id";
+		console.log(sql);
+		connection.query(sql, function(err, rows)
 		{
 			var msgArray = new Array();
-
-            connection.release();
-            if(err) {
+			connection.release();
+			if(err) {
 				msgArray = 'Database Error: '+ String(err);
-                res.render("mobility/vnfPreloadData", {
+				res.render("mobility/vnfPreloadNetworkData", {
 					result:{code:'error',msg:msgArray},
+					privilege:privilegeObj,
 					preloadImportDirectory: properties.preloadImportDirectory,
 					header:process.env.MAIN_MENU
 				});
-                return;
-            }
-            else {
+				return;
+			}
+			else {
 				var retData = [];
 				for( r=0; r<rows.length; r++)
 				{
@@ -853,35 +822,103 @@ exports.getVnfData = function(req,res,resultObj,privilegeObj){
 					{
 						try{
 							var buffer = rows[r].preload_data;
-                            var s_buffer = decodeURI(buffer);
-							var filecontent = JSON.parse(s_buffer);
+							var decode_buffer = decodeURI(buffer);
+							var filecontent = JSON.parse(decode_buffer);
 							rowObj.filecontent = filecontent;
-							rowObj.vnf_name = filecontent.input["vnf-topology-information"]["vnf-topology-identifier"]["vnf-name"];
-							rowObj.vnf_type = filecontent.input["vnf-topology-information"]["vnf-topology-identifier"]["vnf-type"];
+							rowObj.network_name = filecontent.input["network-topology-information"]["network-topology-identifier"]["network-name"];
+							rowObj.network_type = filecontent.input["network-topology-information"]["network-topology-identifier"]["network-type"];
 						}
 						catch(error){
-                            msgArray.push('File ' + rows[r].filename + ' has invalid JSON. Error:' + error);
+							msgArray.push('File ' + rows[r].filename + ' has invalid JSON. Error:' + error);
 						}
 					}
 					else {
 						rowObj.filecontent = '';
 					}
 					retData.push(rowObj);
-				}
+				}//endloop
 				if(msgArray.length>0){
 					resultObj.code = 'failure';
 					resultObj.msg = msgArray;
 				}
-                res.render('mobility/vnfPreloadData',{ 
-						retData:retData, result:resultObj, 
-						privilege:privilegeObj,
-						header:process.env.MAIN_MENU, 
-						preloadImportDirectory: properties.preloadImportDirectory
+				res.render('mobility/vnfPreloadNetworkData', { 
+					retData:retData, 
+					result:resultObj, 
+					privilege:privilegeObj,
+					preloadImportDirectory: properties.preloadImportDirectory,
+					header:process.env.MAIN_MENU 
 				});
-                return;
-            }
-        }); //end query
-    }); // end getConnection
+				return;
+			}
+		}); //end query
+	}); // end getConnection
+}
+
+exports.getVnfData = function(req,res,resultObj,privilegeObj)
+{
+	pool.getConnection(function(err,connection)
+	{
+		if(err){
+			console.error( String(err) ); // ALARM
+			res.render("pages/err", {result:{code:'error', msg:"Unable to get database connection. "+ String(err)},header:process.env.MAIN_MENU});
+			return;
+		}
+		// Need DB lookup logic here
+		var sql = "SELECT id,svc_request_id,svc_action,status,filename,ts,preload_data FROM PRE_LOAD_VNF_DATA ORDER BY id";
+		console.log(sql);
+		connection.query(sql,function(err, rows) 
+		{
+			var msgArray = new Array();
+			connection.release();
+			if(err) {
+				msgArray = 'Database Error: '+ String(err);
+				res.render("mobility/vnfPreloadData", {
+					result:{code:'error',msg:msgArray},
+					privilege:privilegeObj,
+					preloadImportDirectory: properties.preloadImportDirectory,
+					header:process.env.MAIN_MENU
+				});
+				return;
+			}
+			else {
+				var retData = [];
+				for( r=0; r<rows.length; r++)
+				{
+					var rowObj = {};
+					rowObj.row = rows[r];
+					if ( rows[r].filename.length > 0 )
+					{
+						try{
+							var buffer = rows[r].preload_data;
+							var s_buffer = decodeURI(buffer);
+							var filecontent = JSON.parse(s_buffer);
+							rowObj.filecontent = filecontent;
+							rowObj.vnf_name = filecontent.input["vnf-topology-information"]["vnf-topology-identifier"]["vnf-name"];
+							rowObj.vnf_type = filecontent.input["vnf-topology-information"]["vnf-topology-identifier"]["vnf-type"];
+						}
+						catch(error){
+							msgArray.push('File ' + rows[r].filename + ' has invalid JSON. Error:' + error);
+						}
+					}
+					else {
+						rowObj.filecontent = '';
+					}
+					retData.push(rowObj);
+				}//endloop
+				if(msgArray.length>0){
+					resultObj.code = 'failure';
+					resultObj.msg = msgArray;
+				}
+				res.render('mobility/vnfPreloadData',{ 
+					retData:retData, result:resultObj, 
+					privilege:privilegeObj,
+					header:process.env.MAIN_MENU, 
+					preloadImportDirectory: properties.preloadImportDirectory
+				});
+				return;
+			}
+		}); //end query
+	}); // end getConnection
 }
 
 
@@ -927,28 +964,27 @@ exports.findAdminUser = function(email,res,callback) {
 
 exports.addRow = function(sql,req,res,callback){
 
-    console.log(sql);
+	console.log(sql);
 
-    pool.getConnection(function(err,connection) {
+	pool.getConnection(function(err,connection) {
 
-        if(err){
-            console.error( String(err) ); // ALARM
-            callback(err, 'Unable to get database connection.' + err);
-            return;
-        }
-
-        connection.query(sql, function(err,result){
-            connection.release();
-               if(err){
-                    console.debug('Database operation failed. ' + err );
-                    callback(err,'Database operation failed. ' + err );
-               }
-               else
-               {
-                	callback(null, result.affectedRows);
-               }
-       }); //end query
-    }); // end getConnection
+		if(err){
+			console.error( String(err) ); // ALARM
+			callback(err, 'Unable to get database connection.' + err);
+			return;
+		}
+		connection.query(sql, function(err,result){
+			connection.release();
+			if(err){
+				console.debug('Database operation failed. ' + err );
+				callback(err,'Database operation failed. ' + err );
+			}
+			else
+			{
+				callback(null, result.affectedRows);
+			}
+		}); //end query
+	}); // end getConnection
 }
 
 
