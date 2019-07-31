@@ -9,9 +9,9 @@ module.exports = function(app) {
 	app.use('/odl', require('./routes/odl'));
 	app.use('/sla', require('./routes/sla'));
 	app.use('/user', require('./routes/user'));
-	app.use('/gamma', require('./routes/gamma'));
+	//app.use('/gamma', require('./routes/gamma'));
 	app.use('/mobility', require('./routes/mobility'));
-	app.use('/admin', require('./routes/admin'));
+	//app.use('/admin', require('./routes/admin'));
 	app.use('/preload', require('./routes/preload'));
 	//app.use('/svc-topology-operation', require('./routes/odl'));
 	//app.use('/wklist-delete', require('./routes/odl'));

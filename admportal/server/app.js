@@ -8,6 +8,7 @@ var PropertiesReader = require('properties-reader');
 var properties = PropertiesReader(process.argv[2]); //property file passed
 var morgan = require('morgan');
 var _ = require('lodash');
+var expressSanitizer = require('express-sanitizer');
 //var multer = require('multer');
 //var done=false;
 
@@ -46,6 +47,9 @@ app.use(cookieParser());
 app.use(bodyParser.urlencoded({
   extended: true
 }));
+
+// mount express-sanitizer here
+app.use(expressSanitizer()); // this line needs to follow bodyParser
 
 app.use(accesslog); // http access log
 app.use(express.static(process.cwd() + '/public')); // static files

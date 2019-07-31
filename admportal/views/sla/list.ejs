@@ -40,79 +40,73 @@
 
 <div class="container-fluid">
 	<table id="sla" class="table table-hover table-condensed">
-      <thead>
-        <tr>
-		  <th>Module</th>
-          <th>RPC</th>
-          <th>Version</th>
-          <th>Mode</th>
-          <th>Active</th>
-		  <% if(priv == 'A') { %>
-          <th>Activate/Deactive</th>
-		  <% } %>
-          <th>Display</th>
-          <th>XML code</th>
-		  <% if(priv=='A') { %>
-          <th>Delete</th>
-		  <% } %>
-        </tr>
-      </thead>
-      <tbody>
-      <% var i=0; rows.forEach( function(row) { %> 
-        <tr>
-            <td><%= row.module %></td>
-            <td><%= row.rpc %></td>
-            <td><%= row.version %></td>
-            <td><%= row.mode %></td>
-            <td><%= row.active %></td>
-			<% if ( priv == 'A' ) { 
-            	if (row.active == "Y") { %>
-              		<td><button type="button" class="btn btn-default btn-xs" onclick="toggleState('deactivate','<%= row.module %>','<%= row.rpc %>','<%= row.version %>','<%= row.mode %>');" >Deactivate</button> </td>
-				<% } else { %>
-              		<td><button type="button" class="btn btn-default btn-xs" onclick="toggleState('activate','<%= row.module %>','<%= row.rpc %>','<%= row.version %>','<%= row.mode %>');" >Activate</button></td>
-				<% } %>
-			<% } %>
-            <td>
-				<button type="button" class="btn btn-default btn-xs"
-              	onclick='location.assign("/sla/printAsGv?module=<%= row.module %>&rpc=<%= row.rpc %>&version=<%= row.version %>&mode=<%= row.mode %>");'>Display</button>
-			</td>
-			<td>
-				<button type="button" class="btn btn-default btn-xs"
-              	onclick='location.assign("/sla/printAsXml?module=<%= row.module %>&rpc=<%= row.rpc %>&version=<%= row.version %>&mode=<%= row.mode %>");'>XML code</button>
-            </td>
-			<% if ( priv == 'A' ) { %>
-            <td>
-				<button type="button" class="btn btn-default btn-xs"
+	<thead>
+	<tr>
+		<th>Module</th>
+		<th>RPC</th>
+		<th>Version</th>
+		<th>Mode</th>
+		<th>Active</th>
+		<% if(priv == 'A') { %>
+		<th>Activate/Deactive</th>
+		<% } %>
+		<th>XML code</th>
+		<% if(priv=='A') { %>
+		<th>Delete</th>
+		<% } %>
+	</tr>
+	</thead>
+	<tbody>
+	<% var i=0; rows.forEach( function(row) { %> 
+	<tr>
+		<td><%= row.module %></td>
+		<td><%= row.rpc %></td>
+		<td><%= row.version %></td>
+		<td><%= row.mode %></td>
+		<td><%= row.active %></td>
+		<% if ( priv == 'A' ) { 
+			if (row.active == "Y") { %>
+		<td><button type="button" class="btn btn-default btn-xs" onclick="toggleState('deactivate','<%= row.module %>','<%= row.rpc %>','<%= row.version %>','<%= row.mode %>');" >Deactivate</button> </td>
+		<% } else { %>
+		<td><button type="button" class="btn btn-default btn-xs" onclick="toggleState('activate','<%= row.module %>','<%= row.rpc %>','<%= row.version %>','<%= row.mode %>');" >Activate</button></td>
+		<% } %>
+		<% } %>
+		<td>
+			<button type="button" class="btn btn-default btn-xs"
+				onclick='location.assign("/sla/printAsXml?module=<%= row.module %>&rpc=<%= row.rpc %>&version=<%= row.version %>&mode=<%= row.mode %>");'>XML code</button>
+		</td>
+		<% if ( priv == 'A' ) { %>
+		<td>
+			<button type="button" class="btn btn-default btn-xs"
 				onclick="deleteGraph('<%=row.module %>',
-						'<%=row.rpc %>', '<%=row.version %>','<%=row.mode %>');">Delete</button>
-			</td>
-			<% } %>
-        </tr>
-    <% i++; }); %>
-      </tbody>
-    </table>
+				'<%=row.rpc %>', '<%=row.version %>','<%=row.mode %>');">Delete</button>
+		</td>
+		<% } %>
+	</tr>
+	<% i++; }); %>
+	</tbody>
+	</table>
 
 	<% if(priv == 'A') { %>
 	<div class="actions" style="padding:0px 25px;">
 	<form method="POST" action="/sla/upload" enctype="multipart/form-data">
 		<div class="form-group">
-    		<label for="dest">File input</label>
-    		<input name="filename" type="file" id="dest">
-    		<p class="help-block">Choose a file to upload.</p>
-  		</div>
-		<%
-        if ( priv == 'A' )
-        {
-        %>
-	        <button type="button" class="btn btn-default"
-                    onclick="uploadFile(this.form);">Upload File</button>
-        <% } else { %>
-            <button type="button" class="btn btn-default disabled"
-                    onclick="uploadFile(this.form);">Upload File</button>
-        <% } %>
+			<label for="dest">File input</label>
+			<input name="filename" type="file" id="dest" />
+			<input type="hidden" name="_csrf" value="<%= privilege.csrfToken %>" />
+			<p class="help-block">Choose a file to upload.</p>
+		</div>
+		<% if ( priv == 'A' ) { %>
+		<button type="button" class="btn btn-default"
+			onclick="uploadFile(this.form);">Upload File</button>
+		<% } else { %>
+		<button type="button" class="btn btn-default disabled"
+			onclick="uploadFile(this.form);">Upload File</button>
+		<% } %>
 	</form>
 	</div>
 	<% } %>
+
 </div>
 
 

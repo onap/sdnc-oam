@@ -7,6 +7,12 @@ var os = require('os');
 var async = require('async');
 var OdlInterface = require('./OdlInterface');
 var properties = require(process.env.SDNC_CONFIG_DIR + '/admportal.json');
+var cookieParser = require('cookie-parser')
+var csrf = require('csurf')
+var bodyParser = require('body-parser')
+
+var csrfProtection = csrf({cookie:true});
+var parseForm = bodyParser.urlencoded({ extended: false })
 
 
 
@@ -70,28 +76,33 @@ function createFunctionObj( loptions ) {
 	return function(callback) { OdlInterface.Healthcheck(loptions,callback); };
 }
 
-router.get('/mytree', function(req,res) {
-	res.render('pages/tree');
+//router.get('/mytree', function(req,res) {
+//	res.render('pages/tree');
+//});
+//router.get('/setuplogin', function(req,res) {
+//	res.render('pages/setuplogin');
+//});
+//router.post('/formSetupLogin', function(req,res) {
+//	dbRoutes.saveSetupLogin(req,res);
+//});
+
+router.get('/login', csrfProtection, function(req,res) {
+	var tkn = req.csrfToken();
+	res.render('pages/login', {csrfToken:tkn});
+	return;
 });
-router.get('/setuplogin', function(req,res) {
-	res.render('pages/setuplogin');
+router.post('/formlogin', csrfProtection, function(req,res) {
+	csp.login(req,res);
 });
-router.post('/formSetupLogin', function(req,res) {
-	dbRoutes.saveSetupLogin(req,res);
+
+router.get('/signup', csrfProtection, function(req,res) {
+	var tkn = req.csrfToken();
+	res.render('pages/signup', {csrfToken:tkn});
 });
-router.post('/formSignUp', function(req,res) {
+router.post('/formSignUp', csrfProtection, function(req,res) {
 	dbRoutes.saveUser(req,res);
 });
-router.post('/formlogin', csp.login, function(req,res) {
-});
-router.get('/login', function(req,res) {
-	res.render('pages/login');
-	// handle get
-});
-router.get('/signup', function(req,res) {
-	res.render('pages/signup');
-	// handle get
-});
+
 router.get('/info', function(req,res) {
 	// handle get
 	res.send("login info");
