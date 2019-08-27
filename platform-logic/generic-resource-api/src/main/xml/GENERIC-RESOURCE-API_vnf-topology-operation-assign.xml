@@ -22,77 +22,29 @@
                     <block></block>
                 </outcome>
                 <outcome value='Other'>
-                    <block atomic="true">
-                        <set>
-                            <parameter name="error-message" value="If svc-action is 'assign' then request-action must be 'CreateVnfInstance'" />
-                        </set>
-                        <block atomic='true'>
-                            <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                <parameter name="input.ack-final-indicator" value="Y" />
-                                <parameter name="input.response-code" value="500" />
-                                <parameter name="input.response-message" value="`$error-message`" />
-                                <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                            </configure>
-                            <return status='failure'>
-                                <parameter name='ack-final' value='Y'/>
-                                <parameter name="error-code" value="500" />
-                                <parameter name="error-message" value="`$error-message`" />
-                            </return>
-                        </block>
-                    </block>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="If svc-action is 'assign' then request-action must be 'CreateVnfInstance'" />
+                    </return>
                 </outcome>
             </switch>
             <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
   key='SELECT * from VF_MODEL WHERE customization_uuid = $vnf-topology-operation-input.vnf-information.onap-model-information.model-customization-uuid'
   pfx='db.vf-model'>
                 <outcome value='failure'>
-                    <block atomic="true">
-                        <set>
-                            <parameter name="error-message" value="Error reading VF_MODEL table" />
-                        </set>
-                        <block atomic='true'>
-                            <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                <parameter name="input.ack-final-indicator" value="Y" />
-                                <parameter name="input.response-code" value="500" />
-                                <parameter name="input.response-message" value="`$error-message`" />
-                                <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                            </configure>
-                            <return status='failure'>
-                                <parameter name='ack-final' value='Y'/>
-                                <parameter name="error-code" value="500" />
-                                <parameter name="error-message" value="`$error-message`" />
-                            </return>
-                        </block>
-                    </block>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="Error reading VF_MODEL table" />
+                    </return>
                 </outcome>
                 <outcome value='not-found'>
-                    <block atomic="true">
-                        <set>
-                            <parameter name="error-message" value="`'No model found for VNF customization UUID ' + $vnf-topology-operation-input.vnf-information.onap-model-information.model-customization-uuid`" />
-                        </set>
-                        <block atomic='true'>
-                            <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                <parameter name="input.ack-final-indicator" value="Y" />
-                                <parameter name="input.response-code" value="500" />
-                                <parameter name="input.response-message" value="`$error-message`" />
-                                <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                            </configure>
-                            <return status='failure'>
-                                <parameter name='ack-final' value='Y'/>
-                                <parameter name="error-code" value="500" />
-                                <parameter name="error-message" value="`$error-message`" />
-                            </return>
-                        </block>
-                    </block>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="`'No model found for VNF customization UUID ' + $vnf-topology-operation-input.vnf-information.onap-model-information.model-customization-uuid`" />
+                    </return>
                 </outcome>
             </get-resource>
             <call module='GENERIC-RESOURCE-API' rpc='self-serve-vnf-forking-logic' mode='sync' ></call>
@@ -101,27 +53,11 @@
                     <block atomic="true">
                         <call module='GENERIC-RESOURCE-API' rpc='self-serve-vnf-assign' mode='sync' >
                             <outcome value='failure'>
-                                <block atomic="true">
-                                    <set>
-                                        <parameter name="error-message" value="`'Failed to create self-serve assignment for vnf with vnf-id=' + $vnf-topology-operation-input.vnf-information.vnf-id + ' with error: ' + $error-message`" />
-                                    </set>
-                                    <block atomic='true'>
-                                        <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                            <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                            <parameter name="input.ack-final-indicator" value="Y" />
-                                            <parameter name="input.response-code" value="500" />
-                                            <parameter name="input.response-message" value="`$error-message`" />
-                                            <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                            <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                            <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                        </configure>
-                                        <return status='failure'>
-                                            <parameter name='ack-final' value='Y'/>
-                                            <parameter name="error-code" value="500" />
-                                            <parameter name="error-message" value="`$error-message`" />
-                                        </return>
-                                    </block>
-                                </block>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="`'Failed to create self-serve assignment for vnf with vnf-id=' + $vnf-topology-operation-input.vnf-information.vnf-id + ' with error: ' + $error-message`" />
+                                </return>
                             </outcome>
                         </call>
                         <set>
@@ -132,14 +68,6 @@
                         <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
                             <parameter name='filename' value='/var/tmp/ss-vnfend.log' />
                         </execute>
-                        <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                            <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                            <parameter name="input.ack-final-indicator" value="Y" />
-                            <parameter name="input.response-code" value="200" />
-                            <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                            <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                            <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                        </configure>
                         <return status='success'>
                             <parameter name="ack-final-indicator" value="Y" />
                             <parameter name="error-code" value="200" />
@@ -156,35 +84,19 @@
                                 </set>
                             </outcome>
                             <outcome value='Other'>
-                                <block atomic='true'>
+                                <block>
                                     <set>
                                         <parameter name='vnf-index' value='`$service-data.vnfs.vnf_length`' />
                                     </set>
                                     <for index='idx' start='0' end='`$service-data.vnfs.vnf_length`' >
                                         <switch test='`$vnf-topology-operation-input.vnf-information.vnf-id == $service-data.vnfs.vnf[$idx].vnf-id`'>
                                             <outcome value='true'>
-                                                <block atomic="true">
-                                                    <set>
-                                                        <parameter name="error-message" value="`'VNF id ' + $service-data.vnfs.vnf[$idx].vnf-id
+                                                <return status='failure'>
+                                                    <parameter name='ack-final' value='Y'/>
+                                                    <parameter name="error-code" value="500" />
+                                                    <parameter name="error-message" value="`'VNF id ' + $service-data.vnfs.vnf[$idx].vnf-id
       + ' already exists'`" />
-                                                    </set>
-                                                    <block atomic='true'>
-                                                        <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                            <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                            <parameter name="input.ack-final-indicator" value="Y" />
-                                                            <parameter name="input.response-code" value="500" />
-                                                            <parameter name="input.response-message" value="`$error-message`" />
-                                                            <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                            <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                            <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                        </configure>
-                                                        <return status='failure'>
-                                                            <parameter name='ack-final' value='Y'/>
-                                                            <parameter name="error-code" value="500" />
-                                                            <parameter name="error-message" value="`$error-message`" />
-                                                        </return>
-                                                    </block>
-                                                </block>
+                                                </return>
                                             </outcome>
                                         </switch>
                                     </for>
@@ -204,52 +116,20 @@
 		key="instance-group.id = $vnf-topology-operation-input.vnf-request-input.vnf-network-instance-group-ids[$inst-group-index].vnf-network-instance-group-id"
         pfx='aai.instance-group' local-only='false' >
                                     <outcome value='not-found'>
-                                        <block atomic="true">
-                                            <set>
-                                                <parameter name="error-message" value="`'Cannot find instance group id ' +
+                                        <return status='failure'>
+                                            <parameter name='ack-final' value='Y'/>
+                                            <parameter name="error-code" value="500" />
+                                            <parameter name="error-message" value="`'Cannot find instance group id ' +
       $vnf-topology-operation-input.vnf-request-input.vnf-network-instance-group-ids[$inst-group-index].vnf-network-instance-group-id
       + ' in AAI'`" />
-                                            </set>
-                                            <block atomic='true'>
-                                                <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                    <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                    <parameter name="input.ack-final-indicator" value="Y" />
-                                                    <parameter name="input.response-code" value="500" />
-                                                    <parameter name="input.response-message" value="`$error-message`" />
-                                                    <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                    <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                    <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                </configure>
-                                                <return status='failure'>
-                                                    <parameter name='ack-final' value='Y'/>
-                                                    <parameter name="error-code" value="500" />
-                                                    <parameter name="error-message" value="`$error-message`" />
-                                                </return>
-                                            </block>
-                                        </block>
+                                        </return>
                                     </outcome>
                                     <outcome value='failure'>
-                                        <block atomic="true">
-                                            <set>
-                                                <parameter name="error-message" value="Error retrieving instance-group from AAI" />
-                                            </set>
-                                            <block atomic='true'>
-                                                <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                    <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                    <parameter name="input.ack-final-indicator" value="Y" />
-                                                    <parameter name="input.response-code" value="500" />
-                                                    <parameter name="input.response-message" value="`$error-message`" />
-                                                    <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                    <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                    <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                </configure>
-                                                <return status='failure'>
-                                                    <parameter name='ack-final' value='Y'/>
-                                                    <parameter name="error-code" value="500" />
-                                                    <parameter name="error-message" value="`$error-message`" />
-                                                </return>
-                                            </block>
-                                        </block>
+                                        <return status='failure'>
+                                            <parameter name='ack-final' value='Y'/>
+                                            <parameter name="error-code" value="500" />
+                                            <parameter name="error-message" value="Error retrieving instance-group from AAI" />
+                                        </return>
                                     </outcome>
                                 </get-resource>
                                 <for index='rel-index' start='0' end='`$aai.instance-group.relationship-list.relationship_length`' >
@@ -260,53 +140,20 @@
 		key="collection.collection-id = $aai.instance-group.relationship-list.relationship[$rel-index].relationship-data[0].relationship-value"
         pfx='aai.collection' local-only='false' >
                                                 <outcome value='not-found'>
-                                                    <block atomic="true">
-                                                        <set>
-                                                            <parameter name="error-message" value="`'Unable to find AAI relationship from collection '
-      + $aai.instance-group.relationship-list.relationship[$rel-index].relationship-data[0].relationship-value
-      + ' to service instance'`" />
-                                                        </set>
-                                                        <block atomic='true'>
-                                                            <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                                <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                                <parameter name="input.ack-final-indicator" value="Y" />
-                                                                <parameter name="input.response-code" value="500" />
-                                                                <parameter name="input.response-message" value="`$error-message`" />
-                                                                <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                                <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                                <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                            </configure>
-                                                            <return status='failure'>
-                                                                <parameter name='ack-final' value='Y'/>
-                                                                <parameter name="error-code" value="500" />
-                                                                <parameter name="error-message" value="`$error-message`" />
-                                                            </return>
-                                                        </block>
-                                                    </block>
+                                                    <return status='failure'>
+                                                        <parameter name='ack-final' value='Y'/>
+                                                        <parameter name="error-code" value="500" />
+                                                        <parameter name="error-message" value="`'Cannot find collection ' +
+      $aai.instance-group.relationship-list.relationship[$rel-index].relationship-data[0].relationship-value
+      + ' in AAI'`" />
+                                                    </return>
                                                 </outcome>
                                                 <outcome value='failure'>
-                                                    <block atomic="true">
-                                                        <set>
-                                                            <parameter name="error-message" value="`'Failed to get network service instance '
-      + $network-service-instance + ' from MD-SAL'`" />
-                                                        </set>
-                                                        <block atomic='true'>
-                                                            <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                                <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                                <parameter name="input.ack-final-indicator" value="Y" />
-                                                                <parameter name="input.response-code" value="500" />
-                                                                <parameter name="input.response-message" value="`$error-message`" />
-                                                                <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                                <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                                <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                            </configure>
-                                                            <return status='failure'>
-                                                                <parameter name='ack-final' value='Y'/>
-                                                                <parameter name="error-code" value="500" />
-                                                                <parameter name="error-message" value="`$error-message`" />
-                                                            </return>
-                                                        </block>
-                                                    </block>
+                                                    <return status='failure'>
+                                                        <parameter name='ack-final' value='Y'/>
+                                                        <parameter name="error-code" value="500" />
+                                                        <parameter name="error-message" value="System error retrieving collection from AAI" />
+                                                    </return>
                                                 </outcome>
                                                 <outcome value='success'>
                                                     <block atomic="true">
@@ -328,30 +175,13 @@
                                                         </for>
                                                         <switch test='`$found-network-instance-group`'>
                                                             <outcome value='false'>
-                                                                <block atomic="true">
-                                                                    <set>
-                                                                        <parameter name="error-message" value="`'Could not find network instance group ' +
+                                                                <return status='failure'>
+                                                                    <parameter name='ack-final' value='Y'/>
+                                                                    <parameter name="error-code" value="500" />
+                                                                    <parameter name="error-message" value="`'Could not find network instance group ' +
       $vnf-topology-operation-input.vnf-request-input.vnf-network-instance-group-ids[$inst-group-index].vnf-network-instance-group-id
-      + ' in MD-SAL service instance '
-      + $network-service-instance`" />
-                                                                    </set>
-                                                                    <block atomic='true'>
-                                                                        <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                                            <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                                            <parameter name="input.ack-final-indicator" value="Y" />
-                                                                            <parameter name="input.response-code" value="500" />
-                                                                            <parameter name="input.response-message" value="`$error-message`" />
-                                                                            <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                                            <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                                            <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                                        </configure>
-                                                                        <return status='failure'>
-                                                                            <parameter name='ack-final' value='Y'/>
-                                                                            <parameter name="error-code" value="500" />
-                                                                            <parameter name="error-message" value="`$error-message`" />
-                                                                        </return>
-                                                                    </block>
-                                                                </block>
+      + ' in MD-SAL'`" />
+                                                                </return>
                                                             </outcome>
                                                         </switch>
                                                         <set>
@@ -405,50 +235,18 @@
                                             <block></block>
                                         </outcome>
                                         <outcome value='N'>
-                                            <block atomic="true">
-                                                <set>
-                                                    <parameter name="error-message" value="No vnf-name was received but ecomp-generated-naming is not Y" />
-                                                </set>
-                                                <block>
-                                                    <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                        <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                        <parameter name="input.ack-final-indicator" value="Y" />
-                                                        <parameter name="input.response-code" value="500" />
-                                                        <parameter name="input.response-message" value="`$error-message`" />
-                                                        <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                        <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                        <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                    </configure>
-                                                    <return status='failure'>
-                                                        <parameter name='ack-final' value='Y'/>
-                                                        <parameter name="error-code" value="500" />
-                                                        <parameter name="error-message" value="`$error-message`" />
-                                                    </return>
-                                                </block>
-                                            </block>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="No vnf-name was received but ecomp-generated-naming is not Y" />
+                                            </return>
                                         </outcome>
                                         <outcome value='Other'>
-                                            <block atomic="true">
-                                                <set>
-                                                    <parameter name="error-message" value="No vnf-name was received but ecomp-generated-naming is not Y" />
-                                                </set>
-                                                <block>
-                                                    <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                        <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                        <parameter name="input.ack-final-indicator" value="Y" />
-                                                        <parameter name="input.response-code" value="500" />
-                                                        <parameter name="input.response-message" value="`$error-message`" />
-                                                        <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                        <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                        <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                    </configure>
-                                                    <return status='failure'>
-                                                        <parameter name='ack-final' value='Y'/>
-                                                        <parameter name="error-code" value="500" />
-                                                        <parameter name="error-message" value="`$error-message`" />
-                                                    </return>
-                                                </block>
-                                            </block>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="No vnf-name was received but ecomp-generated-naming is not Y" />
+                                            </return>
                                         </outcome>
                                     </switch>
                                     <switch test='`$db.vf-model.naming-policy`'>
@@ -464,27 +262,11 @@
                                                 </set>
                                                 <call module='GENERIC-RESOURCE-API' rpc='generate-unique-name' mode='sync' >
                                                     <outcome value='failure'>
-                                                        <block atomic="true">
-                                                            <set>
-                                                                <parameter name="error-message" value="`$generate-unique-name-output.error-message`" />
-                                                            </set>
-                                                            <block>
-                                                                <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                                    <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                                    <parameter name="input.ack-final-indicator" value="Y" />
-                                                                    <parameter name="input.response-code" value="500" />
-                                                                    <parameter name="input.response-message" value="`$error-message`" />
-                                                                    <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                                    <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                                    <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                                </configure>
-                                                                <return status='failure'>
-                                                                    <parameter name='ack-final' value='Y'/>
-                                                                    <parameter name="error-code" value="500" />
-                                                                    <parameter name="error-message" value="`$error-message`" />
-                                                                </return>
-                                                            </block>
-                                                        </block>
+                                                        <return status='failure'>
+                                                            <parameter name='ack-final' value='Y'/>
+                                                            <parameter name="error-code" value="500" />
+                                                            <parameter name="error-message" value="`$generate-unique-name-output.error-message`" />
+                                                        </return>
                                                     </outcome>
                                                     <outcome value='success'>
                                                         <set>
@@ -505,27 +287,11 @@
                                                 </set>
                                                 <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' >
                                                     <outcome value='failure'>
-                                                        <block atomic="true">
-                                                            <set>
-                                                                <parameter name="error-message" value="Unable to generate VNF name" />
-                                                            </set>
-                                                            <block>
-                                                                <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                                    <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                                    <parameter name="input.ack-final-indicator" value="Y" />
-                                                                    <parameter name="input.response-code" value="500" />
-                                                                    <parameter name="input.response-message" value="`$error-message`" />
-                                                                    <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                                    <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                                    <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                                </configure>
-                                                                <return status='failure'>
-                                                                    <parameter name='ack-final' value='Y'/>
-                                                                    <parameter name="error-code" value="500" />
-                                                                    <parameter name="error-message" value="`$error-message`" />
-                                                                </return>
-                                                            </block>
-                                                        </block>
+                                                        <return status='failure'>
+                                                            <parameter name='ack-final' value='Y'/>
+                                                            <parameter name="error-code" value="500" />
+                                                            <parameter name="error-message" value="Unable to generate VNF name" />
+                                                        </return>
                                                     </outcome>
                                                     <outcome value='success'>
                                                         <set>
@@ -619,10 +385,7 @@
 		     depth='all'"
         pfx='aai.cloud-region' local-only='false' >
                             <outcome value='not-found'>
-                                <block atomic="true">
-                                    <set>
-                                        <parameter name="error-message" value="Cloud region not found in AAI" />
-                                    </set>
+                                <block>
                                     <block atomic="true">
                                         <set>
                                             <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -630,28 +393,16 @@
                                             <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                         </set>
                                         <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                        <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                            <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                            <parameter name="input.ack-final-indicator" value="Y" />
-                                            <parameter name="input.response-code" value="500" />
-                                            <parameter name="input.response-message" value="`$error-message`" />
-                                            <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                            <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                            <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                        </configure>
-                                        <return status='failure'>
-                                            <parameter name='ack-final' value='Y'/>
-                                            <parameter name="error-code" value="500" />
-                                            <parameter name="error-message" value="`$error-message`" />
-                                        </return>
                                     </block>
+                                    <return status='failure'>
+                                        <parameter name='ack-final' value='Y'/>
+                                        <parameter name="error-code" value="500" />
+                                        <parameter name="error-message" value="Cloud region not found in AAI" />
+                                    </return>
                                 </block>
                             </outcome>
                             <outcome value='failure'>
-                                <block atomic="true">
-                                    <set>
-                                        <parameter name="error-message" value="Error retrieving cloud region from AAI" />
-                                    </set>
+                                <block>
                                     <block atomic="true">
                                         <set>
                                             <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -659,21 +410,12 @@
                                             <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                         </set>
                                         <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                        <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                            <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                            <parameter name="input.ack-final-indicator" value="Y" />
-                                            <parameter name="input.response-code" value="500" />
-                                            <parameter name="input.response-message" value="`$error-message`" />
-                                            <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                            <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                            <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                        </configure>
-                                        <return status='failure'>
-                                            <parameter name='ack-final' value='Y'/>
-                                            <parameter name="error-code" value="500" />
-                                            <parameter name="error-message" value="`$error-message`" />
-                                        </return>
                                     </block>
+                                    <return status='failure'>
+                                        <parameter name='ack-final' value='Y'/>
+                                        <parameter name="error-code" value="500" />
+                                        <parameter name="error-message" value="Error retrieving cloud region from AAI" />
+                                    </return>
                                 </block>
                             </outcome>
                         </get-resource>
@@ -697,10 +439,7 @@
                         </for>
                         <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.aic-clli`'>
                             <outcome value=''>
-                                <block atomic="true">
-                                    <set>
-                                        <parameter name="error-message" value="`'Unable to find aic-clli in AAI for aic-cloud-region ' + $vnf-topology-operation-input.vnf-request-input.aic-cloud-region`" />
-                                    </set>
+                                <block>
                                     <block atomic="true">
                                         <set>
                                             <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -708,21 +447,12 @@
                                             <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                         </set>
                                         <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                        <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                            <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                            <parameter name="input.ack-final-indicator" value="Y" />
-                                            <parameter name="input.response-code" value="500" />
-                                            <parameter name="input.response-message" value="`$error-message`" />
-                                            <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                            <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                            <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                        </configure>
-                                        <return status='failure'>
-                                            <parameter name='ack-final' value='Y'/>
-                                            <parameter name="error-code" value="500" />
-                                            <parameter name="error-message" value="`$error-message`" />
-                                        </return>
                                     </block>
+                                    <return status='failure'>
+                                        <parameter name='ack-final' value='Y'/>
+                                        <parameter name="error-code" value="500" />
+                                        <parameter name="error-message" value="`'Unable to find aic-clli in AAI for aic-cloud-region ' + $vnf-topology-operation-input.vnf-request-input.aic-cloud-region`" />
+                                    </return>
                                 </block>
                             </outcome>
                         </switch>
@@ -730,10 +460,7 @@
   key='SELECT * from VF_TO_NETWORK_ROLE_MAPPING WHERE vf_customization_uuid = $vnf-topology-operation-input.vnf-information.onap-model-information.model-customization-uuid'
   pfx='db.vf-network-role-mapping[]'>
                             <outcome value='failure'>
-                                <block atomic="true">
-                                    <set>
-                                        <parameter name="error-message" value="Error reading VF_TO_NETWORK_ROLE_MAPPING table" />
-                                    </set>
+                                <block>
                                     <block atomic="true">
                                         <set>
                                             <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -741,21 +468,12 @@
                                             <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                         </set>
                                         <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                        <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                            <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                            <parameter name="input.ack-final-indicator" value="Y" />
-                                            <parameter name="input.response-code" value="500" />
-                                            <parameter name="input.response-message" value="`$error-message`" />
-                                            <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                            <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                            <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                        </configure>
-                                        <return status='failure'>
-                                            <parameter name='ack-final' value='Y'/>
-                                            <parameter name="error-code" value="500" />
-                                            <parameter name="error-message" value="`$error-message`" />
-                                        </return>
                                     </block>
+                                    <return status='failure'>
+                                        <parameter name='ack-final' value='Y'/>
+                                        <parameter name="error-code" value="500" />
+                                        <parameter name="error-message" value="Error reading VF_TO_NETWORK_ROLE_MAPPING table" />
+                                    </return>
                                 </block>
                             </outcome>
                             <outcome value='not-found'>
@@ -789,10 +507,7 @@
         pfx='aai.l3-network' local-only='false'
 >
                                             <outcome value='not-found'>
-                                                <block atomic="true">
-                                                    <set>
-                                                        <parameter name="error-message" value="`'Unable to find l3-network in AAI for network role ' + $db.vf-network-role-mapping[$role-index].network-role`" />
-                                                    </set>
+                                                <block>
                                                     <block atomic="true">
                                                         <set>
                                                             <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -800,28 +515,18 @@
                                                             <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                                         </set>
                                                         <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                                        <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                            <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                            <parameter name="input.ack-final-indicator" value="Y" />
-                                                            <parameter name="input.response-code" value="500" />
-                                                            <parameter name="input.response-message" value="`$error-message`" />
-                                                            <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                            <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                            <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                        </configure>
-                                                        <return status='failure'>
-                                                            <parameter name='ack-final' value='Y'/>
-                                                            <parameter name="error-code" value="500" />
-                                                            <parameter name="error-message" value="`$error-message`" />
-                                                        </return>
                                                     </block>
+                                                    <return status='failure'>
+                                                        <parameter name='ack-final' value='Y'/>
+                                                        <parameter name="error-code" value="500" />
+                                                        <parameter name="error-message" value="`'No active l3-network found in AAI with cloud_region_id '
+          + $vnf-topology-operation-input.vnf-request-input.aic-cloud-region + ' and network_role '
+          + $db.vf-network-role-mapping[$network-index].network-role`" />
+                                                    </return>
                                                 </block>
                                             </outcome>
                                             <outcome value='failure'>
-                                                <block atomic="true">
-                                                    <set>
-                                                        <parameter name="error-message" value="Error retrieving l3-network from AAI" />
-                                                    </set>
+                                                <block>
                                                     <block atomic="true">
                                                         <set>
                                                             <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -829,21 +534,12 @@
                                                             <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                                         </set>
                                                         <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                                        <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                            <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                            <parameter name="input.ack-final-indicator" value="Y" />
-                                                            <parameter name="input.response-code" value="500" />
-                                                            <parameter name="input.response-message" value="`$error-message`" />
-                                                            <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                            <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                            <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                        </configure>
-                                                        <return status='failure'>
-                                                            <parameter name='ack-final' value='Y'/>
-                                                            <parameter name="error-code" value="500" />
-                                                            <parameter name="error-message" value="`$error-message`" />
-                                                        </return>
                                                     </block>
+                                                    <return status='failure'>
+                                                        <parameter name='ack-final' value='Y'/>
+                                                        <parameter name="error-code" value="500" />
+                                                        <parameter name="error-message" value="Error retrieving l3-network from AAI" />
+                                                    </return>
                                                 </block>
                                             </outcome>
                                         </get-resource>
@@ -926,10 +622,7 @@
                                         </block>
                                         <switch test='`$l3-network-id`'>
                                             <outcome value='-1'>
-                                                <block atomic="true">
-                                                    <set>
-                                                        <parameter name="error-message" value="`'Unable to find l3-network in AAI for network role ' + $db.vf-network-role-mapping[$role-index].network-role`" />
-                                                    </set>
+                                                <block>
                                                     <block atomic="true">
                                                         <set>
                                                             <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -937,21 +630,12 @@
                                                             <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                                         </set>
                                                         <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                                        <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                            <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                            <parameter name="input.ack-final-indicator" value="Y" />
-                                                            <parameter name="input.response-code" value="500" />
-                                                            <parameter name="input.response-message" value="`$error-message`" />
-                                                            <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                            <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                            <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                        </configure>
-                                                        <return status='failure'>
-                                                            <parameter name='ack-final' value='Y'/>
-                                                            <parameter name="error-code" value="500" />
-                                                            <parameter name="error-message" value="`$error-message`" />
-                                                        </return>
                                                     </block>
+                                                    <return status='failure'>
+                                                        <parameter name='ack-final' value='Y'/>
+                                                        <parameter name="error-code" value="500" />
+                                                        <parameter name="error-message" value="`'Unable to find l3-network in AAI for network role ' + $db.vf-network-role-mapping[$role-index].network-role`" />
+                                                    </return>
                                                 </block>
                                             </outcome>
                                         </switch>
@@ -1049,10 +733,7 @@
     and network_role = $db.vf-network-role-mapping[$role-index].network-role'
   pfx='db.vnf-related-network-role[]'>
                                             <outcome value='failure'>
-                                                <block atomic="true">
-                                                    <set>
-                                                        <parameter name="error-message" value="Error reading VNF_RELATED_NETWORK_ROLE table" />
-                                                    </set>
+                                                <block>
                                                     <block atomic="true">
                                                         <set>
                                                             <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -1060,21 +741,12 @@
                                                             <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                                         </set>
                                                         <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                                        <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                            <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                            <parameter name="input.ack-final-indicator" value="Y" />
-                                                            <parameter name="input.response-code" value="500" />
-                                                            <parameter name="input.response-message" value="`$error-message`" />
-                                                            <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                            <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                            <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                        </configure>
-                                                        <return status='failure'>
-                                                            <parameter name='ack-final' value='Y'/>
-                                                            <parameter name="error-code" value="500" />
-                                                            <parameter name="error-message" value="`$error-message`" />
-                                                        </return>
                                                     </block>
+                                                    <return status='failure'>
+                                                        <parameter name='ack-final' value='Y'/>
+                                                        <parameter name="error-code" value="500" />
+                                                        <parameter name="error-message" value="Error reading VNF_RELATED_NETWORK_ROLE table" />
+                                                    </return>
                                                 </block>
                                             </outcome>
                                             <outcome value='success'>
@@ -1099,14 +771,7 @@
                                                         <parameter name='httpMethod' value='GET' />
                                                         <parameter name="responsePrefix" value="mdsal-ntis" />
                                                         <outcome value='failure'>
-                                                            <block atomic="true">
-                                                                <set>
-                                                                    <parameter name="error-message" value="`
-    'Error retrieving network-topology-identifier-structure for service instance '
-    + $network-service-instance-id
-    + ' and network-id '
-    + $l3-network-id`" />
-                                                                </set>
+                                                            <block>
                                                                 <block atomic="true">
                                                                     <set>
                                                                         <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -1114,21 +779,16 @@
                                                                         <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                                                     </set>
                                                                     <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                                                    <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                                        <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                                        <parameter name="input.ack-final-indicator" value="Y" />
-                                                                        <parameter name="input.response-code" value="500" />
-                                                                        <parameter name="input.response-message" value="`$error-message`" />
-                                                                        <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                                        <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                                        <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                                    </configure>
-                                                                    <return status='failure'>
-                                                                        <parameter name='ack-final' value='Y'/>
-                                                                        <parameter name="error-code" value="500" />
-                                                                        <parameter name="error-message" value="`$error-message`" />
-                                                                    </return>
                                                                 </block>
+                                                                <return status='failure'>
+                                                                    <parameter name='ack-final' value='Y'/>
+                                                                    <parameter name="error-code" value="500" />
+                                                                    <parameter name="error-message" value="`
+    'Error retrieving network-topology-identifier-structure for service instance '
+    + $network-service-instance-id
+    + ' and network-id '
+    + $l3-network-id`" />
+                                                                </return>
                                                             </block>
                                                         </outcome>
                                                     </execute>
@@ -1148,10 +808,7 @@
                                                         <parameter name="start_length" value="1" />
                                                         <parameter name="query" value="/query/owning-entity-fromService-instance" />
                                                         <outcome value='failure'>
-                                                            <block atomic="true">
-                                                                <set>
-                                                                    <parameter name="error-message" value="Error getting owning entity from service instance" />
-                                                                </set>
+                                                            <block>
                                                                 <block atomic="true">
                                                                     <set>
                                                                         <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -1159,28 +816,16 @@
                                                                         <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                                                     </set>
                                                                     <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                                                    <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                                        <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                                        <parameter name="input.ack-final-indicator" value="Y" />
-                                                                        <parameter name="input.response-code" value="500" />
-                                                                        <parameter name="input.response-message" value="`$error-message`" />
-                                                                        <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                                        <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                                        <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                                    </configure>
-                                                                    <return status='failure'>
-                                                                        <parameter name='ack-final' value='Y'/>
-                                                                        <parameter name="error-code" value="500" />
-                                                                        <parameter name="error-message" value="`$error-message`" />
-                                                                    </return>
                                                                 </block>
+                                                                <return status='failure'>
+                                                                    <parameter name='ack-final' value='Y'/>
+                                                                    <parameter name="error-code" value="500" />
+                                                                    <parameter name="error-message" value="Error getting owning entity from service instance" />
+                                                                </return>
                                                             </block>
                                                         </outcome>
                                                         <outcome value='not-found'>
-                                                            <block atomic="true">
-                                                                <set>
-                                                                    <parameter name="error-message" value="Unable to find owning entity from service instance" />
-                                                                </set>
+                                                            <block>
                                                                 <block atomic="true">
                                                                     <set>
                                                                         <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -1188,21 +833,12 @@
                                                                         <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                                                     </set>
                                                                     <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                                                    <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                                        <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                                        <parameter name="input.ack-final-indicator" value="Y" />
-                                                                        <parameter name="input.response-code" value="500" />
-                                                                        <parameter name="input.response-message" value="`$error-message`" />
-                                                                        <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                                        <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                                        <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                                    </configure>
-                                                                    <return status='failure'>
-                                                                        <parameter name='ack-final' value='Y'/>
-                                                                        <parameter name="error-code" value="500" />
-                                                                        <parameter name="error-message" value="`$error-message`" />
-                                                                    </return>
                                                                 </block>
+                                                                <return status='failure'>
+                                                                    <parameter name='ack-final' value='Y'/>
+                                                                    <parameter name="error-code" value="500" />
+                                                                    <parameter name="error-message" value="Unable to find owning entity from service instance" />
+                                                                </return>
                                                             </block>
                                                         </outcome>
                                                     </save>
@@ -1229,10 +865,7 @@
                                                                 <parameter name="query" value="`'/query/getNetworks?networkRole=' + $db.vnf-related-network-role[$rel-network-role-index].related-network-role
   + '&amp;cloudRegionId=' + $vnf-topology-operation-input.vnf-request-input.aic-cloud-region`" />
                                                                 <outcome value='failure'>
-                                                                    <block atomic="true">
-                                                                        <set>
-                                                                            <parameter name="error-message" value="Error calling getNetworks custom query in AAI" />
-                                                                        </set>
+                                                                    <block>
                                                                         <block atomic="true">
                                                                             <set>
                                                                                 <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -1240,29 +873,16 @@
                                                                                 <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                                                             </set>
                                                                             <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                                                            <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                                                <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                                                <parameter name="input.ack-final-indicator" value="Y" />
-                                                                                <parameter name="input.response-code" value="500" />
-                                                                                <parameter name="input.response-message" value="`$error-message`" />
-                                                                                <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                                                <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                                                <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                                            </configure>
-                                                                            <return status='failure'>
-                                                                                <parameter name='ack-final' value='Y'/>
-                                                                                <parameter name="error-code" value="500" />
-                                                                                <parameter name="error-message" value="`$error-message`" />
-                                                                            </return>
                                                                         </block>
+                                                                        <return status='failure'>
+                                                                            <parameter name='ack-final' value='Y'/>
+                                                                            <parameter name="error-code" value="500" />
+                                                                            <parameter name="error-message" value="Error calling getNetworks custom query in AAI" />
+                                                                        </return>
                                                                     </block>
                                                                 </outcome>
                                                                 <outcome value='not-found'>
-                                                                    <block atomic="true">
-                                                                        <set>
-                                                                            <parameter name="error-message" value="`'No l3-network returned from getNetworks custom query for related network role '
-      + $db.vnf-related-network-role[0].related-network-role`" />
-                                                                        </set>
+                                                                    <block>
                                                                         <block atomic="true">
                                                                             <set>
                                                                                 <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -1270,21 +890,13 @@
                                                                                 <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                                                             </set>
                                                                             <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                                                            <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                                                <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                                                <parameter name="input.ack-final-indicator" value="Y" />
-                                                                                <parameter name="input.response-code" value="500" />
-                                                                                <parameter name="input.response-message" value="`$error-message`" />
-                                                                                <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                                                <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                                                <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                                            </configure>
-                                                                            <return status='failure'>
-                                                                                <parameter name='ack-final' value='Y'/>
-                                                                                <parameter name="error-code" value="500" />
-                                                                                <parameter name="error-message" value="`$error-message`" />
-                                                                            </return>
                                                                         </block>
+                                                                        <return status='failure'>
+                                                                            <parameter name='ack-final' value='Y'/>
+                                                                            <parameter name="error-code" value="500" />
+                                                                            <parameter name="error-message" value="`'No l3-network returned from getNetworks custom query for related network role '
+      + $db.vnf-related-network-role[0].related-network-role`" />
+                                                                        </return>
                                                                     </block>
                                                                 </outcome>
                                                             </save>
@@ -1307,10 +919,7 @@
         pfx='aai.vlan-tag' local-only='false'
 >
                                                                                 <outcome value='failure'>
-                                                                                    <block atomic="true">
-                                                                                        <set>
-                                                                                            <parameter name="error-message" value="Error getting vlan-tag object from AAI" />
-                                                                                        </set>
+                                                                                    <block>
                                                                                         <block atomic="true">
                                                                                             <set>
                                                                                                 <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -1318,21 +927,12 @@
                                                                                                 <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                                                                             </set>
                                                                                             <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                                                                            <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                                                                <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                                                                <parameter name="input.ack-final-indicator" value="Y" />
-                                                                                                <parameter name="input.response-code" value="500" />
-                                                                                                <parameter name="input.response-message" value="`$error-message`" />
-                                                                                                <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                                                                <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                                                                <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                                                            </configure>
-                                                                                            <return status='failure'>
-                                                                                                <parameter name='ack-final' value='Y'/>
-                                                                                                <parameter name="error-code" value="500" />
-                                                                                                <parameter name="error-message" value="`$error-message`" />
-                                                                                            </return>
                                                                                         </block>
+                                                                                        <return status='failure'>
+                                                                                            <parameter name='ack-final' value='Y'/>
+                                                                                            <parameter name="error-code" value="500" />
+                                                                                            <parameter name="error-message" value="Error getting vlan-tag object from AAI" />
+                                                                                        </return>
                                                                                     </block>
                                                                                 </outcome>
                                                                                 <outcome value='success'>
@@ -1384,11 +984,7 @@
                             <outcome value=''>
                                 <switch test='`$db.vf-model.avail-zone-max-count &gt; 0`'>
                                     <outcome value='true'>
-                                        <block atomic="true">
-                                            <set>
-                                                <parameter name="error-message" value="`'No availability zones found in AAI for cloud region '
-       + $vnf-topology-operation-input.vnf-request-input.aic-cloud-region`" />
-                                            </set>
+                                        <block>
                                             <block atomic="true">
                                                 <set>
                                                     <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -1396,21 +992,13 @@
                                                     <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                                 </set>
                                                 <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                                <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                    <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                    <parameter name="input.ack-final-indicator" value="Y" />
-                                                    <parameter name="input.response-code" value="500" />
-                                                    <parameter name="input.response-message" value="`$error-message`" />
-                                                    <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                    <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                    <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                </configure>
-                                                <return status='failure'>
-                                                    <parameter name='ack-final' value='Y'/>
-                                                    <parameter name="error-code" value="500" />
-                                                    <parameter name="error-message" value="`$error-message`" />
-                                                </return>
                                             </block>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="`'No availability zones found in AAI for cloud region '
+       + $vnf-topology-operation-input.vnf-request-input.aic-cloud-region`" />
+                                            </return>
                                         </block>
                                     </outcome>
                                     <outcome value='false'>
@@ -1439,10 +1027,7 @@
                                     <parameter name="relationship-list.relationship[0].relationship-data[2].relationship-key" value="availability-zone.availability-zone-name" />
                                     <parameter name="relationship-list.relationship[0].relationship-data[2].relationship-value" value="`$aai.cloud-region.availability-zones.availability-zone[$idx].availability-zone-name`" />
                                     <outcome value='failure'>
-                                        <block atomic="true">
-                                            <set>
-                                                <parameter name="error-message" value="Error updating generic-vnf in AAI" />
-                                            </set>
+                                        <block>
                                             <block atomic="true">
                                                 <set>
                                                     <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -1450,28 +1035,16 @@
                                                     <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                                 </set>
                                                 <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                                <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                    <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                    <parameter name="input.ack-final-indicator" value="Y" />
-                                                    <parameter name="input.response-code" value="500" />
-                                                    <parameter name="input.response-message" value="`$error-message`" />
-                                                    <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                    <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                    <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                </configure>
-                                                <return status='failure'>
-                                                    <parameter name='ack-final' value='Y'/>
-                                                    <parameter name="error-code" value="500" />
-                                                    <parameter name="error-message" value="`$error-message`" />
-                                                </return>
                                             </block>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="Error updating generic-vnf in AAI" />
+                                            </return>
                                         </block>
                                     </outcome>
                                     <outcome value='not-found'>
-                                        <block atomic="true">
-                                            <set>
-                                                <parameter name="error-message" value="`'No generic-vnf found in AAI for vnf ID ' + $service-data.vnfs.vnf[$vnf-index].vnf-id`" />
-                                            </set>
+                                        <block>
                                             <block atomic="true">
                                                 <set>
                                                     <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -1479,21 +1052,12 @@
                                                     <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                                 </set>
                                                 <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                                <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                    <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                    <parameter name="input.ack-final-indicator" value="Y" />
-                                                    <parameter name="input.response-code" value="500" />
-                                                    <parameter name="input.response-message" value="`$error-message`" />
-                                                    <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                    <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                    <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                </configure>
-                                                <return status='failure'>
-                                                    <parameter name='ack-final' value='Y'/>
-                                                    <parameter name="error-code" value="500" />
-                                                    <parameter name="error-message" value="`$error-message`" />
-                                                </return>
                                             </block>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="`'No generic-vnf found in AAI for vnf ID ' + $service-data.vnfs.vnf[$vnf-index].vnf-id`" />
+                                            </return>
                                         </block>
                                     </outcome>
                                 </save>
@@ -1515,10 +1079,7 @@
                                     <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="l3-network.network-id" />
                                     <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$vnf-nw-index].network-id`" />
                                     <outcome value='failure'>
-                                        <block atomic="true">
-                                            <set>
-                                                <parameter name="error-message" value="Error updating generic-vnf in AAI" />
-                                            </set>
+                                        <block>
                                             <block atomic="true">
                                                 <set>
                                                     <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -1526,28 +1087,16 @@
                                                     <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                                 </set>
                                                 <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                                <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                    <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                    <parameter name="input.ack-final-indicator" value="Y" />
-                                                    <parameter name="input.response-code" value="500" />
-                                                    <parameter name="input.response-message" value="`$error-message`" />
-                                                    <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                    <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                    <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                </configure>
-                                                <return status='failure'>
-                                                    <parameter name='ack-final' value='Y'/>
-                                                    <parameter name="error-code" value="500" />
-                                                    <parameter name="error-message" value="`$error-message`" />
-                                                </return>
                                             </block>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="Error updating generic-vnf in AAI" />
+                                            </return>
                                         </block>
                                     </outcome>
                                     <outcome value='not-found'>
-                                        <block atomic="true">
-                                            <set>
-                                                <parameter name="error-message" value="`'No generic-vnf found in AAI for vnf ID ' + $service-data.vnfs.vnf[$vnf-index].vnf-id`" />
-                                            </set>
+                                        <block>
                                             <block atomic="true">
                                                 <set>
                                                     <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -1555,21 +1104,12 @@
                                                     <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                                 </set>
                                                 <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                                <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                    <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                    <parameter name="input.ack-final-indicator" value="Y" />
-                                                    <parameter name="input.response-code" value="500" />
-                                                    <parameter name="input.response-message" value="`$error-message`" />
-                                                    <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                    <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                    <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                </configure>
-                                                <return status='failure'>
-                                                    <parameter name='ack-final' value='Y'/>
-                                                    <parameter name="error-code" value="500" />
-                                                    <parameter name="error-message" value="`$error-message`" />
-                                                </return>
                                             </block>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="`'No generic-vnf found in AAI for vnf ID ' + $service-data.vnfs.vnf[$vnf-index].vnf-id`" />
+                                            </return>
                                         </block>
                                     </outcome>
                                 </save>
@@ -1601,10 +1141,7 @@
                             <parameter name="in-maint" value="true" />
                             <parameter name="selflink" value="`$vnf-object-path`" />
                             <outcome value='failure'>
-                                <block atomic="true">
-                                    <set>
-                                        <parameter name="error-message" value="Error updating selflink in generic-vnf in AAI" />
-                                    </set>
+                                <block>
                                     <block atomic="true">
                                         <set>
                                             <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -1612,28 +1149,16 @@
                                             <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                         </set>
                                         <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                        <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                            <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                            <parameter name="input.ack-final-indicator" value="Y" />
-                                            <parameter name="input.response-code" value="500" />
-                                            <parameter name="input.response-message" value="`$error-message`" />
-                                            <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                            <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                            <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                        </configure>
-                                        <return status='failure'>
-                                            <parameter name='ack-final' value='Y'/>
-                                            <parameter name="error-code" value="500" />
-                                            <parameter name="error-message" value="`$error-message`" />
-                                        </return>
                                     </block>
+                                    <return status='failure'>
+                                        <parameter name='ack-final' value='Y'/>
+                                        <parameter name="error-code" value="500" />
+                                        <parameter name="error-message" value="Error updating selflink in generic-vnf in AAI" />
+                                    </return>
                                 </block>
                             </outcome>
                             <outcome value='not-found'>
-                                <block atomic="true">
-                                    <set>
-                                        <parameter name="error-message" value="`'No generic-vnf found in AAI for vnf ID ' + $service-data.vnfs.vnf[$vnf-index].vnf-id`" />
-                                    </set>
+                                <block>
                                     <block atomic="true">
                                         <set>
                                             <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -1641,21 +1166,12 @@
                                             <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                         </set>
                                         <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                        <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                            <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                            <parameter name="input.ack-final-indicator" value="Y" />
-                                            <parameter name="input.response-code" value="500" />
-                                            <parameter name="input.response-message" value="`$error-message`" />
-                                            <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                            <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                            <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                        </configure>
-                                        <return status='failure'>
-                                            <parameter name='ack-final' value='Y'/>
-                                            <parameter name="error-code" value="500" />
-                                            <parameter name="error-message" value="`$error-message`" />
-                                        </return>
                                     </block>
+                                    <return status='failure'>
+                                        <parameter name='ack-final' value='Y'/>
+                                        <parameter name="error-code" value="500" />
+                                        <parameter name="error-message" value="`'No generic-vnf found in AAI for vnf ID ' + $service-data.vnfs.vnf[$vnf-index].vnf-id`" />
+                                    </return>
                                 </block>
                             </outcome>
                         </update>
@@ -1670,10 +1186,7 @@
       value="`'/aai/v$/network/instance-groups/instance-group/'
         + $vnf-topology-operation-input.vnf-request-input.vnf-network-instance-group-ids[$inst-group-index].vnf-network-instance-group-id`" />
                                     <outcome value='failure'>
-                                        <block atomic="true">
-                                            <set>
-                                                <parameter name="error-message" value="Error updating relationship in generic-vnf in AAI" />
-                                            </set>
+                                        <block>
                                             <block atomic="true">
                                                 <set>
                                                     <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -1681,28 +1194,16 @@
                                                     <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                                 </set>
                                                 <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                                <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                    <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                    <parameter name="input.ack-final-indicator" value="Y" />
-                                                    <parameter name="input.response-code" value="500" />
-                                                    <parameter name="input.response-message" value="`$error-message`" />
-                                                    <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                    <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                    <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                </configure>
-                                                <return status='failure'>
-                                                    <parameter name='ack-final' value='Y'/>
-                                                    <parameter name="error-code" value="500" />
-                                                    <parameter name="error-message" value="`$error-message`" />
-                                                </return>
                                             </block>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="Error updating relationship in generic-vnf in AAI" />
+                                            </return>
                                         </block>
                                     </outcome>
                                     <outcome value='not-found'>
-                                        <block atomic="true">
-                                            <set>
-                                                <parameter name="error-message" value="`'No generic-vnf found in AAI for vnf ID ' + $service-data.vnfs.vnf[$vnf-index].vnf-id`" />
-                                            </set>
+                                        <block>
                                             <block atomic="true">
                                                 <set>
                                                     <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
@@ -1710,21 +1211,12 @@
                                                     <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
                                                 </set>
                                                 <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                                <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                                    <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                                    <parameter name="input.ack-final-indicator" value="Y" />
-                                                    <parameter name="input.response-code" value="500" />
-                                                    <parameter name="input.response-message" value="`$error-message`" />
-                                                    <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                                    <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                                    <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                                </configure>
-                                                <return status='failure'>
-                                                    <parameter name='ack-final' value='Y'/>
-                                                    <parameter name="error-code" value="500" />
-                                                    <parameter name="error-message" value="`$error-message`" />
-                                                </return>
                                             </block>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="`'No generic-vnf found in AAI for vnf ID ' + $service-data.vnfs.vnf[$vnf-index].vnf-id`" />
+                                            </return>
                                         </block>
                                     </outcome>
                                 </save>
@@ -1742,84 +1234,9 @@
                             <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-level-oper-status.last-rpc-action' value='`$vnf-topology-operation-input.sdnc-request-header.svc-action`' />
                             <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-level-oper-status.last-action' value='`$vnf-topology-operation-input.request-information.request-action`' />
                         </set>
-                        <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                            <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/' + 'vnf-data-assign.json'`" />
-                            <parameter name='restapiUrl' value="`$prop.controller.url + $tmp.vnf.url`" />
-                            <parameter name='restapiUser' value='`$prop.controller.user`' />
-                            <parameter name='restapiPassword' value='`$prop.controller.pwd`' />
-                            <parameter name='format' value='json' />
-                            <parameter name='httpMethod' value='PUT' />
-                            <parameter name="responsePrefix" value="vnf-assign" />
-                            <outcome value='failure'>
-                                <block atomic="true">
-                                    <set>
-                                        <parameter name="error-message" value="Error doing PUT of vnf-data" />
-                                    </set>
-                                    <block atomic="true">
-                                        <set>
-                                            <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
-                                            <parameter name='naming-policy-generate-name-input.context-id' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />
-                                            <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
-                                        </set>
-                                        <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                        <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                            <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                            <parameter name="input.ack-final-indicator" value="Y" />
-                                            <parameter name="input.response-code" value="500" />
-                                            <parameter name="input.response-message" value="`$error-message`" />
-                                            <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                            <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                            <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                        </configure>
-                                        <return status='failure'>
-                                            <parameter name='ack-final' value='Y'/>
-                                            <parameter name="error-code" value="500" />
-                                            <parameter name="error-message" value="`$error-message`" />
-                                        </return>
-                                    </block>
-                                </block>
-                            </outcome>
-                            <outcome value='not-found'>
-                                <block atomic="true">
-                                    <set>
-                                        <parameter name="error-message" value="Error doing PUT of vnf-data" />
-                                    </set>
-                                    <block atomic="true">
-                                        <set>
-                                            <parameter name='naming-policy-generate-name-input.naming-type' value='VNF' />
-                                            <parameter name='naming-policy-generate-name-input.context-id' value='`$vnf-topology-operation-input.vnf-information.vnf-id`' />
-                                            <parameter name='naming-policy-generate-name-input.action' value='DELETE' />
-                                        </set>
-                                        <call module='GENERIC-RESOURCE-API' rpc='naming-policy-generate-name' mode='sync' ></call>
-                                        <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                                            <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                                            <parameter name="input.ack-final-indicator" value="Y" />
-                                            <parameter name="input.response-code" value="500" />
-                                            <parameter name="input.response-message" value="`$error-message`" />
-                                            <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                                            <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                                            <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                                        </configure>
-                                        <return status='failure'>
-                                            <parameter name='ack-final' value='Y'/>
-                                            <parameter name="error-code" value="500" />
-                                            <parameter name="error-message" value="`$error-message`" />
-                                        </return>
-                                    </block>
-                                </block>
-                            </outcome>
-                        </execute>
                         <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
                             <parameter name='filename' value='/var/tmp/bgb-vnf.log' />
                         </execute>
-                        <configure activate="true" adaptor="com.att.sdnctl.sli.adaptor.mso.MSOAdaptor" key="__READ_FROM_PARAMETERS__">
-                            <parameter name="notification-url" value="`$vnf-topology-operation-input.sdnc-request-header.svc-notification-url`" />
-                            <parameter name="input.ack-final-indicator" value="Y" />
-                            <parameter name="input.response-code" value="200" />
-                            <parameter name="input.svc-request-id" value="`$vnf-topology-operation-input.sdnc-request-header.svc-request-id`" />
-                            <parameter name="input.service-information.service-type" value="`$vnf-topology-operation-input.service-information.subscription-service-type`" />
-                            <parameter name="input.service-information.service-instance-id" value="`$vnf-topology-operation-input.service-information.service-instance-id`" />
-                        </configure>
                         <return status='success'>
                             <parameter name="ack-final-indicator" value="Y" />
                             <parameter name="error-code" value="200" />
