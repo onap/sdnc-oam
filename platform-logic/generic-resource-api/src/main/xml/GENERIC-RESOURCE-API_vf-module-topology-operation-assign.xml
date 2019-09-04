@@ -1,12 +1,20 @@
 <service-logic
     xmlns='http://www.onap.org/sdnc/svclogic'
-    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='1-4-2-20181108R1'>
     <method rpc='vf-module-topology-operation-assign' mode='sync'>
         <block atomic="true">
             <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
                 <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />
                 <parameter name='contextPrefix' value='prop' />
             </execute>
+            <set>
+                <parameter name="so.ack-final-indicator" value="Y" />
+                <parameter name="so.response-code" value="500" />
+                <parameter name="so.notification-url" value="`$vf-module-topology-operation-input.sdnc-request-header.svc-notification-url`" />
+                <parameter name="so.svc-request-id" value="`$vf-module-topology-operation-input.sdnc-request-header.svc-request-id`" />
+                <parameter name="so.service-type" value="`$vf-module-topology-operation-input.service-information.subscription-service-type`" />
+                <parameter name="so.service-instance-id" value="`$vf-module-topology-operation-input.service-information.service-instance-id`" />
+            </set>
             <switch test='`$vf-module-topology-operation-input.vf-module-request-input.cloud-owner`'>
                 <outcome value=''>
                     <block></block>
@@ -22,29 +30,53 @@
                     <block></block>
                 </outcome>
                 <outcome value='Other'>
-                    <return status='failure'>
-                        <parameter name='ack-final' value='Y'/>
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="If svc-action is 'assign' then request-action must be 'CreateVfModuleInstance'" />
-                    </return>
+                    <block atomic="true">
+                        <set>
+                            <parameter name="error-message" value="If svc-action is 'assign' then request-action must be 'CreateVfModuleInstance'" />
+                        </set>
+                        <block atomic='true'>
+                            <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                            <return status='failure'>
+                                <parameter name='ack-final' value='Y'/>
+                                <parameter name="error-code" value="500" />
+                                <parameter name="error-message" value="`$error-message`" />
+                            </return>
+                        </block>
+                    </block>
                 </outcome>
             </switch>
             <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
   key='SELECT * from VF_MODULE_MODEL WHERE customization_uuid = $vf-module-topology-operation-input.vf-module-information.onap-model-information.model-customization-uuid'
   pfx='db.vf-module-model'>
                 <outcome value='failure'>
-                    <return status='failure'>
-                        <parameter name='ack-final' value='Y'/>
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="Error reading VF_MODULE_MODEL table" />
-                    </return>
+                    <block atomic="true">
+                        <set>
+                            <parameter name="error-message" value="Error reading VF_MODULE_MODEL table" />
+                        </set>
+                        <block atomic='true'>
+                            <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                            <return status='failure'>
+                                <parameter name='ack-final' value='Y'/>
+                                <parameter name="error-code" value="500" />
+                                <parameter name="error-message" value="`$error-message`" />
+                            </return>
+                        </block>
+                    </block>
                 </outcome>
                 <outcome value='not-found'>
-                    <return status='failure'>
-                        <parameter name='ack-final' value='Y'/>
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="`'No model found for VF module customization UUID ' + $vf-module-topology-operation-input.vf-module-information.onap-model-information.model-customization-uuid`" />
-                    </return>
+                    <block atomic="true">
+                        <set>
+                            <parameter name="error-message" value="`'No model found for VF module customization UUID ' + $vf-module-topology-operation-input.vf-module-information.onap-model-information.model-customization-uuid`" />
+                        </set>
+                        <block atomic='true'>
+                            <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                            <return status='failure'>
+                                <parameter name='ack-final' value='Y'/>
+                                <parameter name="error-code" value="500" />
+                                <parameter name="error-message" value="`$error-message`" />
+                            </return>
+                        </block>
+                    </block>
                 </outcome>
             </get-resource>
             <set>
@@ -52,11 +84,19 @@
             </set>
             <switch test='`$service-data.vnfs.vnf_length`'>
                 <outcome value=''>
-                    <return status='failure'>
-                        <parameter name='ack-final' value='Y'/>
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="There are no VNFs defined in MD-SAL" />
-                    </return>
+                    <block atomic="true">
+                        <set>
+                            <parameter name="error-message" value="There are no VNFs defined in MD-SAL" />
+                        </set>
+                        <block atomic='true'>
+                            <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                            <return status='failure'>
+                                <parameter name='ack-final' value='Y'/>
+                                <parameter name="error-code" value="500" />
+                                <parameter name="error-message" value="`$error-message`" />
+                            </return>
+                        </block>
+                    </block>
                 </outcome>
                 <outcome value='Other'>
                     <for index='idx' start='0' end='`$service-data.vnfs.vnf_length`' >
@@ -75,11 +115,19 @@
             </switch>
             <switch test='`$vnf-index`'>
                 <outcome value='-1'>
-                    <return status='failure'>
-                        <parameter name='ack-final' value='Y'/>
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="`'Unable to find VNF ID ' + $vf-module-topology-operation-input.vnf-information.vnf-id + ' in MD-SAL'`" />
-                    </return>
+                    <block atomic="true">
+                        <set>
+                            <parameter name="error-message" value="`'Unable to find VNF ID ' + $vf-module-topology-operation-input.vnf-information.vnf-id + ' in MD-SAL'`" />
+                        </set>
+                        <block atomic='true'>
+                            <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                            <return status='failure'>
+                                <parameter name='ack-final' value='Y'/>
+                                <parameter name="error-code" value="500" />
+                                <parameter name="error-message" value="`$error-message`" />
+                            </return>
+                        </block>
+                    </block>
                 </outcome>
             </switch>
             <call module='GENERIC-RESOURCE-API' rpc='self-serve-vf-module-forking-logic' mode='sync' ></call>
@@ -88,11 +136,19 @@
                     <block atomic="true">
                         <call module='GENERIC-RESOURCE-API' rpc='self-serve-vf-module-assign' mode='sync' >
                             <outcome value='failure'>
-                                <return status='failure'>
-                                    <parameter name='ack-final' value='Y'/>
-                                    <parameter name="error-code" value="500" />
-                                    <parameter name="error-message" value="`'Failed to create self-serve assignment for vf-module with vf-module-id=' + $vf-module-topology-operation-input.vf-module-information.vf-module-id + ' with error: ' + $error-message`" />
-                                </return>
+                                <block atomic="true">
+                                    <set>
+                                        <parameter name="error-message" value="`'Failed to create self-serve assignment for vf-module with vf-module-id=' + $vf-module-topology-operation-input.vf-module-information.vf-module-id + ' with error: ' + $error-message`" />
+                                    </set>
+                                    <block atomic='true'>
+                                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                        <return status='failure'>
+                                            <parameter name='ack-final' value='Y'/>
+                                            <parameter name="error-code" value="500" />
+                                            <parameter name="error-message" value="`$error-message`" />
+                                        </return>
+                                    </block>
+                                </block>
                             </outcome>
                         </call>
                         <set>
@@ -101,11 +157,15 @@
                             <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-level-oper-status.last-rpc-action'
   value='`$vf-module-topology-operation-input.sdnc-request-header.svc-action`' />
                             <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-level-oper-status.last-action'
-  value='`$vf-module-topology-operation-input.sdnc-request-header.request-action`' />
+  value='`$vf-module-topology-operation-input.request-information.request-action`' />
                         </set>
                         <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
                             <parameter name='filename' value='/var/tmp/ss-vnfend.log' />
                         </execute>
+                        <set>
+                            <parameter name="so.response-code" value="200" />
+                        </set>
+                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
                         <return status='success'>
                             <parameter name="ack-final-indicator" value="Y" />
                             <parameter name="error-code" value="200" />
@@ -129,12 +189,20 @@
                                     <for index='idx' start='0' end='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module_length`' >
                                         <switch test='`$vf-module-topology-operation-input.vf-module-information.vf-module-id == $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$idx].vf-module-id`'>
                                             <outcome value='true'>
-                                                <return status='failure'>
-                                                    <parameter name='ack-final' value='Y'/>
-                                                    <parameter name="error-code" value="500" />
-                                                    <parameter name="error-message" value="`'VF module id ' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$idx].vf-module-id
+                                                <block atomic="true">
+                                                    <set>
+                                                        <parameter name="error-message" value="`'VF module id ' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$idx].vf-module-id
        + ' already exists, and status is ' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$idx].vf-module-data.vf-module-level-oper-status.order-status`" />
-                                                </return>
+                                                    </set>
+                                                    <block atomic='true'>
+                                                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                        <return status='failure'>
+                                                            <parameter name='ack-final' value='Y'/>
+                                                            <parameter name="error-code" value="500" />
+                                                            <parameter name="error-message" value="`$error-message`" />
+                                                        </return>
+                                                    </block>
+                                                </block>
                                             </outcome>
                                         </switch>
                                     </for>
@@ -161,18 +229,34 @@
 		     cloud-region.cloud-region-id = $vf-module-topology-operation-input.vf-module-request-input.aic-cloud-region"
         pfx='aai.cloud-region' local-only='false' >
                             <outcome value='not-found'>
-                                <return status='failure'>
-                                    <parameter name='ack-final' value='Y'/>
-                                    <parameter name="error-code" value="500" />
-                                    <parameter name="error-message" value="Cloud region not found in AAI" />
-                                </return>
+                                <block atomic="true">
+                                    <set>
+                                        <parameter name="error-message" value="Cloud region not found in AAI" />
+                                    </set>
+                                    <block atomic='true'>
+                                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                        <return status='failure'>
+                                            <parameter name='ack-final' value='Y'/>
+                                            <parameter name="error-code" value="500" />
+                                            <parameter name="error-message" value="`$error-message`" />
+                                        </return>
+                                    </block>
+                                </block>
                             </outcome>
                             <outcome value='failure'>
-                                <return status='failure'>
-                                    <parameter name='ack-final' value='Y'/>
-                                    <parameter name="error-code" value="500" />
-                                    <parameter name="error-message" value="Error retrieving cloud region from AAI" />
-                                </return>
+                                <block atomic="true">
+                                    <set>
+                                        <parameter name="error-message" value="Error retrieving cloud region from AAI.  Is AAI down?" />
+                                    </set>
+                                    <block atomic='true'>
+                                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                        <return status='failure'>
+                                            <parameter name='ack-final' value='Y'/>
+                                            <parameter name="error-code" value="500" />
+                                            <parameter name="error-message" value="`$error-message`" />
+                                        </return>
+                                    </block>
+                                </block>
                             </outcome>
                         </get-resource>
                         <for index='idx' start='0' end='`$aai.cloud-region.relationship-list.relationship_length`' >
@@ -195,11 +279,19 @@
                         </for>
                         <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.aic-clli`'>
                             <outcome value=''>
-                                <return status='failure'>
-                                    <parameter name='ack-final' value='Y'/>
-                                    <parameter name="error-code" value="500" />
-                                    <parameter name="error-message" value="`'Unable to find aic-clli in AAI for aic-cloud-region ' + $vf-module-topology-operation-input.vf-module-request-input.aic-cloud-region`" />
-                                </return>
+                                <block atomic="true">
+                                    <set>
+                                        <parameter name="error-message" value="`'Unable to find aic-clli in AAI for aic-cloud-region ' + $vf-module-topology-operation-input.vf-module-request-input.aic-cloud-region`" />
+                                    </set>
+                                    <block atomic='true'>
+                                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                        <return status='failure'>
+                                            <parameter name='ack-final' value='Y'/>
+                                            <parameter name="error-code" value="500" />
+                                            <parameter name="error-message" value="`$error-message`" />
+                                        </return>
+                                    </block>
+                                </block>
                             </outcome>
                         </switch>
                         <switch test='`$vf-module-topology-operation-input.vf-module-information.onap-model-information.model-invariant-uuid`'>
@@ -267,8 +359,18 @@
                                 <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-operation-assign-no-preload' mode='sync' >
                                     <outcome value='failure'>
                                         <block atomic="true">
-                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                            <return status='failure'></return>
+                                            <set>
+                                                <parameter name="error-message" value="`'from-preload flag is true but could not find preload information for VF module name ' + $vf-module-topology-operation-input.vf-module-request-input.vf-module-name`" />
+                                            </set>
+                                            <block atomic='true'>
+                                                <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                <return status='failure'>
+                                                    <parameter name='ack-final' value='Y'/>
+                                                    <parameter name="error-code" value="500" />
+                                                    <parameter name="error-message" value="`$error-message`" />
+                                                </return>
+                                            </block>
                                         </block>
                                     </outcome>
                                 </call>
@@ -288,20 +390,36 @@
                                                     <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-operation-assign-no-preload' mode='sync' >
                                                         <outcome value='failure'>
                                                             <block atomic="true">
-                                                                <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                                <return status='failure'></return>
+                                                                <set>
+                                                                    <parameter name="error-message" value="`'from-preload flag is true but could not find preload information for VF module name ' + $vf-module-topology-operation-input.vf-module-request-input.vf-module-name`" />
+                                                                </set>
+                                                                <block atomic='true'>
+                                                                    <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                    <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                    <return status='failure'>
+                                                                        <parameter name='ack-final' value='Y'/>
+                                                                        <parameter name="error-code" value="500" />
+                                                                        <parameter name="error-message" value="`$error-message`" />
+                                                                    </return>
+                                                                </block>
                                                             </block>
                                                         </outcome>
                                                     </call>
                                                 </outcome>
                                                 <outcome value='Other'>
                                                     <block atomic="true">
-                                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                        <return status='failure'>
-                                                            <parameter name='ack-final' value='Y'/>
-                                                            <parameter name="error-code" value="500" />
+                                                        <set>
                                                             <parameter name="error-message" value="Error retrieving preload-information" />
-                                                        </return>
+                                                        </set>
+                                                        <block atomic='true'>
+                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                            <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                            <return status='failure'>
+                                                                <parameter name='ack-final' value='Y'/>
+                                                                <parameter name="error-code" value="500" />
+                                                                <parameter name="error-message" value="`$error-message`" />
+                                                            </return>
+                                                        </block>
                                                     </block>
                                                 </outcome>
                                             </switch>
@@ -311,9 +429,14 @@
                                         <block>
                                             <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-operation-assign-preload' mode='sync' >
                                                 <outcome value='failure'>
-                                                    <block atomic="true">
+                                                    <block atomic='true'>
                                                         <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                        <return status='failure'></return>
+                                                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                        <return status='failure'>
+                                                            <parameter name='ack-final' value='Y'/>
+                                                            <parameter name="error-code" value="500" />
+                                                            <parameter name="error-message" value="`$error-message`" />
+                                                        </return>
                                                     </block>
                                                 </outcome>
                                             </call>
@@ -364,15 +487,21 @@
                                         <switch test='`$vnf-network-index`'>
                                             <outcome value='-1'>
                                                 <block atomic="true">
-                                                    <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                    <return status='failure'>
-                                                        <parameter name='ack-final' value='Y'/>
-                                                        <parameter name="error-code" value="500" />
+                                                    <set>
                                                         <parameter name="error-message" value="`'VNFC network role '
       + $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-names.vnfc-names[$vnfc-index].vnfc-networks.vnfc-network-data[$vnfc-network-index].vnfc-network-role
       + ' is not found in VNF network list'
       `" />
-                                                    </return>
+                                                    </set>
+                                                    <block atomic='true'>
+                                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                        <return status='failure'>
+                                                            <parameter name='ack-final' value='Y'/>
+                                                            <parameter name="error-code" value="500" />
+                                                            <parameter name="error-message" value="`$error-message`" />
+                                                        </return>
+                                                    </block>
                                                 </block>
                                             </outcome>
                                         </switch>
@@ -431,28 +560,40 @@
                                                                                         <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$vnf-network-index].subnets-data.subnet-data[$subnet-data-index].network-start-address`'>
                                                                                             <outcome value=''>
                                                                                                 <block atomic="true">
-                                                                                                    <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                                                                    <return status='failure'>
-                                                                                                        <parameter name='ack-final' value='Y'/>
-                                                                                                        <parameter name="error-code" value="500" />
+                                                                                                    <set>
                                                                                                         <parameter name="error-message" value="`'SDNC subnet id '
       + $service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$vnf-network-index].subnets-data.subnet-data[$subnet-data-index].sdnc-subnet-id
       + ' does not have network-start-address populated'`" />
-                                                                                                    </return>
+                                                                                                    </set>
+                                                                                                    <block atomic='true'>
+                                                                                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                                                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                                                        <return status='failure'>
+                                                                                                            <parameter name='ack-final' value='Y'/>
+                                                                                                            <parameter name="error-code" value="500" />
+                                                                                                            <parameter name="error-message" value="`$error-message`" />
+                                                                                                        </return>
+                                                                                                    </block>
                                                                                                 </block>
                                                                                             </outcome>
                                                                                             <outcome value='Other'>
                                                                                                 <switch test='`$service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$vnf-network-index].subnets-data.subnet-data[$subnet-data-index].cidr-mask`'>
                                                                                                     <outcome value=''>
                                                                                                         <block atomic="true">
-                                                                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                                                                            <return status='failure'>
-                                                                                                                <parameter name='ack-final' value='Y'/>
-                                                                                                                <parameter name="error-code" value="500" />
+                                                                                                            <set>
                                                                                                                 <parameter name="error-message" value="`'SDNC subnet id '
       + $service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$vnf-network-index].subnets-data.subnet-data[$subnet-data-index].sdnc-subnet-id
       + ' does not have cidr-mask populated'`" />
-                                                                                                            </return>
+                                                                                                            </set>
+                                                                                                            <block atomic='true'>
+                                                                                                                <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                                                                <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                                                                <return status='failure'>
+                                                                                                                    <parameter name='ack-final' value='Y'/>
+                                                                                                                    <parameter name="error-code" value="500" />
+                                                                                                                    <parameter name="error-message" value="`$error-message`" />
+                                                                                                                </return>
+                                                                                                            </block>
                                                                                                         </block>
                                                                                                     </outcome>
                                                                                                     <outcome value='Other'>
@@ -494,14 +635,20 @@
                                                                             <switch test='`$subnet-id`'>
                                                                                 <outcome value='-1'>
                                                                                     <block atomic="true">
-                                                                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                                                        <return status='failure'>
-                                                                                            <parameter name='ack-final' value='Y'/>
-                                                                                            <parameter name="error-code" value="500" />
+                                                                                        <set>
                                                                                             <parameter name="error-message" value="`'Not able to find VNF network subnet that contains address '
       + $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-names.vnfc-names[$vnfc-index].vnfc-networks.vnfc-network-data[$vnfc-network-index].vnfc-subnet[$subnet-role-index].vnfc-ip-assignments[$address-family-index].vnfc-subnet-ip[0].vnfc-ip-address
       `" />
-                                                                                        </return>
+                                                                                        </set>
+                                                                                        <block atomic='true'>
+                                                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                                            <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                                            <return status='failure'>
+                                                                                                <parameter name='ack-final' value='Y'/>
+                                                                                                <parameter name="error-code" value="500" />
+                                                                                                <parameter name="error-message" value="`$error-message`" />
+                                                                                            </return>
+                                                                                        </block>
                                                                                     </block>
                                                                                 </outcome>
                                                                             </switch>
@@ -533,13 +680,19 @@
     and network_role = $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-role'
   pfx='db.vnf-related-network-role[]'>
                                             <outcome value='failure'>
-                                                <block>
-                                                    <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                    <return status='failure'>
-                                                        <parameter name='ack-final' value='Y'/>
-                                                        <parameter name="error-code" value="500" />
+                                                <block atomic='true'>
+                                                    <set>
                                                         <parameter name="error-message" value="Error reading VFC_RELATED_NETWORK_ROLE table" />
-                                                    </return>
+                                                    </set>
+                                                    <block atomic='true'>
+                                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                        <return status='failure'>
+                                                            <parameter name='ack-final' value='Y'/>
+                                                            <parameter name="error-code" value="500" />
+                                                            <parameter name="error-message" value="`$error-message`" />
+                                                        </return>
+                                                    </block>
                                                 </block>
                                             </outcome>
                                             <outcome value='success'>
@@ -576,14 +729,20 @@
                                                         </for>
                                                         <switch test='`$found-related-network`'>
                                                             <outcome value='false'>
-                                                                <block>
-                                                                    <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                                    <return status='failure'>
-                                                                        <parameter name='ack-final' value='Y'/>
-                                                                        <parameter name="error-code" value="500" />
+                                                                <block atomic='true'>
+                                                                    <set>
                                                                         <parameter name="error-message" value="`'Unable to find related network '
       + $db.vnf-related-network-role[$db-related-network-index].related-network-role + ' in vnf-networks'`" />
-                                                                    </return>
+                                                                    </set>
+                                                                    <block atomic='true'>
+                                                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                        <return status='failure'>
+                                                                            <parameter name='ack-final' value='Y'/>
+                                                                            <parameter name="error-code" value="500" />
+                                                                            <parameter name="error-message" value="`$error-message`" />
+                                                                        </return>
+                                                                    </block>
                                                                 </block>
                                                             </outcome>
                                                         </switch>
@@ -662,22 +821,25 @@
                             <parameter name="automated-assignment" value="`$automated-assignment`" />
                             <outcome value='failure'>
                                 <block atomic="true">
-                                    <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                    <return status='failure'>
-                                        <parameter name='ack-final' value='Y'/>
-                                        <parameter name="error-code" value="500" />
+                                    <set>
                                         <parameter name="error-message" value="Error updating vf-module in AAI" />
-                                    </return>
+                                    </set>
+                                    <block atomic='true'>
+                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                        <return status='failure'>
+                                            <parameter name='ack-final' value='Y'/>
+                                            <parameter name="error-code" value="500" />
+                                            <parameter name="error-message" value="`$error-message`" />
+                                        </return>
+                                    </block>
                                 </block>
                             </outcome>
                             <outcome value='not-found'>
                                 <block atomic="true">
-                                    <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                    <return status='failure'>
-                                        <parameter name='ack-final' value='Y'/>
-                                        <parameter name="error-code" value="500" />
+                                    <set>
                                         <parameter name="error-message" value="`'No vf-module found in AAI for vf module ID ' + $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id`" />
-                                    </return>
+                                    </set>
                                 </block>
                             </outcome>
                         </update>
@@ -722,22 +884,34 @@
                                                     <parameter name="prov-status" value="`PREPROV`" />
                                                     <outcome value='failure'>
                                                         <block atomic="true">
-                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                            <return status='failure'>
-                                                                <parameter name='ack-final' value='Y'/>
-                                                                <parameter name="error-code" value="500" />
+                                                            <set>
                                                                 <parameter name="error-message" value="Error saving vnfc to AAI" />
-                                                            </return>
+                                                            </set>
+                                                            <block atomic='true'>
+                                                                <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                <return status='failure'>
+                                                                    <parameter name='ack-final' value='Y'/>
+                                                                    <parameter name="error-code" value="500" />
+                                                                    <parameter name="error-message" value="`$error-message`" />
+                                                                </return>
+                                                            </block>
                                                         </block>
                                                     </outcome>
                                                     <outcome value='not-found'>
                                                         <block atomic="true">
-                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                            <return status='failure'>
-                                                                <parameter name='ack-final' value='Y'/>
-                                                                <parameter name="error-code" value="500" />
+                                                            <set>
                                                                 <parameter name="error-message" value="Error saving vnfc to AAI" />
-                                                            </return>
+                                                            </set>
+                                                            <block atomic='true'>
+                                                                <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                <return status='failure'>
+                                                                    <parameter name='ack-final' value='Y'/>
+                                                                    <parameter name="error-code" value="500" />
+                                                                    <parameter name="error-message" value="`$error-message`" />
+                                                                </return>
+                                                            </block>
                                                         </block>
                                                     </outcome>
                                                 </save>
@@ -757,22 +931,34 @@
                                                     <parameter name="prov-status" value="`PREPROV`" />
                                                     <outcome value='failure'>
                                                         <block atomic="true">
-                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                            <return status='failure'>
-                                                                <parameter name='ack-final' value='Y'/>
-                                                                <parameter name="error-code" value="500" />
+                                                            <set>
                                                                 <parameter name="error-message" value="Error saving vnfc to AAI" />
-                                                            </return>
+                                                            </set>
+                                                            <block atomic='true'>
+                                                                <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                <return status='failure'>
+                                                                    <parameter name='ack-final' value='Y'/>
+                                                                    <parameter name="error-code" value="500" />
+                                                                    <parameter name="error-message" value="`$error-message`" />
+                                                                </return>
+                                                            </block>
                                                         </block>
                                                     </outcome>
                                                     <outcome value='not-found'>
                                                         <block atomic="true">
-                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                            <return status='failure'>
-                                                                <parameter name='ack-final' value='Y'/>
-                                                                <parameter name="error-code" value="500" />
+                                                            <set>
                                                                 <parameter name="error-message" value="Error saving vnfc to AAI" />
-                                                            </return>
+                                                            </set>
+                                                            <block atomic='true'>
+                                                                <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                <return status='failure'>
+                                                                    <parameter name='ack-final' value='Y'/>
+                                                                    <parameter name="error-code" value="500" />
+                                                                    <parameter name="error-message" value="`$error-message`" />
+                                                                </return>
+                                                            </block>
                                                         </block>
                                                     </outcome>
                                                 </save>
@@ -797,22 +983,34 @@
         $service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-id`" />
                                             <outcome value='failure'>
                                                 <block atomic="true">
-                                                    <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                    <return status='failure'>
-                                                        <parameter name='ack-final' value='Y'/>
-                                                        <parameter name="error-code" value="500" />
+                                                    <set>
                                                         <parameter name="error-message" value="Error updating vnfc relationships in AAI" />
-                                                    </return>
+                                                    </set>
+                                                    <block atomic='true'>
+                                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                        <return status='failure'>
+                                                            <parameter name='ack-final' value='Y'/>
+                                                            <parameter name="error-code" value="500" />
+                                                            <parameter name="error-message" value="`$error-message`" />
+                                                        </return>
+                                                    </block>
                                                 </block>
                                             </outcome>
                                             <outcome value='not-found'>
                                                 <block atomic="true">
-                                                    <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                    <return status='failure'>
-                                                        <parameter name='ack-final' value='Y'/>
-                                                        <parameter name="error-code" value="500" />
+                                                    <set>
                                                         <parameter name="error-message" value="Not-found error updating vnfc relationships" />
-                                                    </return>
+                                                    </set>
+                                                    <block atomic='true'>
+                                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                        <return status='failure'>
+                                                            <parameter name='ack-final' value='Y'/>
+                                                            <parameter name="error-code" value="500" />
+                                                            <parameter name="error-message" value="`$error-message`" />
+                                                        </return>
+                                                    </block>
                                                 </block>
                                             </outcome>
                                         </save>
@@ -829,22 +1027,34 @@
                                                     <parameter name="port-id" value="0" />
                                                     <outcome value='failure'>
                                                         <block atomic="true">
-                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                            <return status='failure'>
-                                                                <parameter name='ack-final' value='Y'/>
-                                                                <parameter name="error-code" value="500" />
-                                                                <parameter name="error-message" value="Error creating cp object in AAI" />
-                                                            </return>
+                                                            <set>
+                                                                <parameter name="error-message" value="Error saving cp object to AAI" />
+                                                            </set>
+                                                            <block atomic='true'>
+                                                                <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                <return status='failure'>
+                                                                    <parameter name='ack-final' value='Y'/>
+                                                                    <parameter name="error-code" value="500" />
+                                                                    <parameter name="error-message" value="`$error-message`" />
+                                                                </return>
+                                                            </block>
                                                         </block>
                                                     </outcome>
                                                     <outcome value='not-found'>
                                                         <block atomic="true">
-                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                            <return status='failure'>
-                                                                <parameter name='ack-final' value='Y'/>
-                                                                <parameter name="error-code" value="500" />
-                                                                <parameter name="error-message" value="Error creating cp object in AAI" />
-                                                            </return>
+                                                            <set>
+                                                                <parameter name="error-message" value="Error saving cp object to AAI" />
+                                                            </set>
+                                                            <block atomic='true'>
+                                                                <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                <return status='failure'>
+                                                                    <parameter name='ack-final' value='Y'/>
+                                                                    <parameter name="error-code" value="500" />
+                                                                    <parameter name="error-message" value="`$error-message`" />
+                                                                </return>
+                                                            </block>
                                                         </block>
                                                     </outcome>
                                                 </save>
@@ -875,12 +1085,18 @@
                                                                                 <parameter name="is-floating" value="false" />
                                                                                 <outcome value='failure'>
                                                                                     <block atomic="true">
-                                                                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                                                        <return status='failure'>
-                                                                                            <parameter name='ack-final' value='Y'/>
-                                                                                            <parameter name="error-code" value="500" />
+                                                                                        <set>
                                                                                             <parameter name="error-message" value="Error creating l3-interface-ipv4-address-list object in AAI" />
-                                                                                        </return>
+                                                                                        </set>
+                                                                                        <block atomic='true'>
+                                                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                                            <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                                            <return status='failure'>
+                                                                                                <parameter name='ack-final' value='Y'/>
+                                                                                                <parameter name="error-code" value="500" />
+                                                                                                <parameter name="error-message" value="`$error-message`" />
+                                                                                            </return>
+                                                                                        </block>
                                                                                     </block>
                                                                                 </outcome>
                                                                             </save>
@@ -902,22 +1118,34 @@
         $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-names.vnfc-names[$vnfc-index].vnfc-networks.vnfc-network-data[$network-role-index].vnfc-subnet[$subnet-role-index].vnfc-ip-assignments[$address-family-index].subnet-id`" />
                                                                                 <outcome value='failure'>
                                                                                     <block atomic="true">
-                                                                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                                                        <return status='failure'>
-                                                                                            <parameter name='ack-final' value='Y'/>
-                                                                                            <parameter name="error-code" value="500" />
+                                                                                        <set>
                                                                                             <parameter name="error-message" value="Error updating l3-interface-ipv4-address-list relationships in AAI" />
-                                                                                        </return>
+                                                                                        </set>
+                                                                                        <block atomic='true'>
+                                                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                                            <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                                            <return status='failure'>
+                                                                                                <parameter name='ack-final' value='Y'/>
+                                                                                                <parameter name="error-code" value="500" />
+                                                                                                <parameter name="error-message" value="`$error-message`" />
+                                                                                            </return>
+                                                                                        </block>
                                                                                     </block>
                                                                                 </outcome>
                                                                                 <outcome value='not-found'>
                                                                                     <block atomic="true">
-                                                                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                                                        <return status='failure'>
-                                                                                            <parameter name='ack-final' value='Y'/>
-                                                                                            <parameter name="error-code" value="500" />
+                                                                                        <set>
                                                                                             <parameter name="error-message" value="Not-found error updating l3-interface-ipv4-address-list relationships" />
-                                                                                        </return>
+                                                                                        </set>
+                                                                                        <block atomic='true'>
+                                                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                                            <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                                            <return status='failure'>
+                                                                                                <parameter name='ack-final' value='Y'/>
+                                                                                                <parameter name="error-code" value="500" />
+                                                                                                <parameter name="error-message" value="`$error-message`" />
+                                                                                            </return>
+                                                                                        </block>
                                                                                     </block>
                                                                                 </outcome>
                                                                             </save>
@@ -935,12 +1163,18 @@
                                                                                 <parameter name="is-floating" value="false" />
                                                                                 <outcome value='failure'>
                                                                                     <block atomic="true">
-                                                                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                                                        <return status='failure'>
-                                                                                            <parameter name='ack-final' value='Y'/>
-                                                                                            <parameter name="error-code" value="500" />
+                                                                                        <set>
                                                                                             <parameter name="error-message" value="Error creating l3-interface-ipv6-address-list object in AAI" />
-                                                                                        </return>
+                                                                                        </set>
+                                                                                        <block atomic='true'>
+                                                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                                            <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                                            <return status='failure'>
+                                                                                                <parameter name='ack-final' value='Y'/>
+                                                                                                <parameter name="error-code" value="500" />
+                                                                                                <parameter name="error-message" value="`$error-message`" />
+                                                                                            </return>
+                                                                                        </block>
                                                                                     </block>
                                                                                 </outcome>
                                                                             </save>
@@ -962,22 +1196,34 @@
         $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-names.vnfc-names[$vnfc-index].vnfc-networks.vnfc-network-data[$network-role-index].vnfc-subnet[$subnet-role-index].vnfc-ip-assignments[$address-family-index].subnet-id`" />
                                                                                 <outcome value='failure'>
                                                                                     <block atomic="true">
-                                                                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                                                        <return status='failure'>
-                                                                                            <parameter name='ack-final' value='Y'/>
-                                                                                            <parameter name="error-code" value="500" />
+                                                                                        <set>
                                                                                             <parameter name="error-message" value="Error updating l3-interface-ipv6-address-list relationships in AAI" />
-                                                                                        </return>
+                                                                                        </set>
+                                                                                        <block atomic='true'>
+                                                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                                            <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                                            <return status='failure'>
+                                                                                                <parameter name='ack-final' value='Y'/>
+                                                                                                <parameter name="error-code" value="500" />
+                                                                                                <parameter name="error-message" value="`$error-message`" />
+                                                                                            </return>
+                                                                                        </block>
                                                                                     </block>
                                                                                 </outcome>
                                                                                 <outcome value='not-found'>
                                                                                     <block atomic="true">
-                                                                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                                                        <return status='failure'>
-                                                                                            <parameter name='ack-final' value='Y'/>
-                                                                                            <parameter name="error-code" value="500" />
+                                                                                        <set>
                                                                                             <parameter name="error-message" value="Not-found error updating l3-interface-ipv6-address-list relationships" />
-                                                                                        </return>
+                                                                                        </set>
+                                                                                        <block atomic='true'>
+                                                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                                            <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                                            <return status='failure'>
+                                                                                                <parameter name='ack-final' value='Y'/>
+                                                                                                <parameter name="error-code" value="500" />
+                                                                                                <parameter name="error-message" value="`$error-message`" />
+                                                                                            </return>
+                                                                                        </block>
                                                                                     </block>
                                                                                 </outcome>
                                                                             </save>
@@ -1003,22 +1249,34 @@
         $service-data.vnfs.vnf[$vnf-index].vnf-data.vnf-topology.vnf-resource-assignments.vnf-networks.vnf-network[$vnf-network-index].network-id`" />
                                                                 <outcome value='failure'>
                                                                     <block atomic="true">
-                                                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                                        <return status='failure'>
-                                                                            <parameter name='ack-final' value='Y'/>
-                                                                            <parameter name="error-code" value="500" />
+                                                                        <set>
                                                                             <parameter name="error-message" value="Error updating cp relationship to l3-network in AAI" />
-                                                                        </return>
+                                                                        </set>
+                                                                        <block atomic='true'>
+                                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                            <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                            <return status='failure'>
+                                                                                <parameter name='ack-final' value='Y'/>
+                                                                                <parameter name="error-code" value="500" />
+                                                                                <parameter name="error-message" value="`$error-message`" />
+                                                                            </return>
+                                                                        </block>
                                                                     </block>
                                                                 </outcome>
                                                                 <outcome value='not-found'>
                                                                     <block atomic="true">
-                                                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                                        <return status='failure'>
-                                                                            <parameter name='ack-final' value='Y'/>
-                                                                            <parameter name="error-code" value="500" />
+                                                                        <set>
                                                                             <parameter name="error-message" value="Not-found error updating cp relationship to l3-network" />
-                                                                        </return>
+                                                                        </set>
+                                                                        <block atomic='true'>
+                                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                            <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                            <return status='failure'>
+                                                                                <parameter name='ack-final' value='Y'/>
+                                                                                <parameter name="error-code" value="500" />
+                                                                                <parameter name="error-message" value="`$error-message`" />
+                                                                            </return>
+                                                                        </block>
                                                                     </block>
                                                                 </outcome>
                                                             </save>
@@ -1045,22 +1303,34 @@
         $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].related-networks.related-network[$related-network-index].vlan-tags.vlan-interface`" />
                                                                     <outcome value='failure'>
                                                                         <block atomic="true">
-                                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                                            <return status='failure'>
-                                                                                <parameter name='ack-final' value='Y'/>
-                                                                                <parameter name="error-code" value="500" />
+                                                                            <set>
                                                                                 <parameter name="error-message" value="Error updating cp relationship to l3-network and vlan-tag in AAI" />
-                                                                            </return>
+                                                                            </set>
+                                                                            <block atomic='true'>
+                                                                                <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                                <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                                <return status='failure'>
+                                                                                    <parameter name='ack-final' value='Y'/>
+                                                                                    <parameter name="error-code" value="500" />
+                                                                                    <parameter name="error-message" value="`$error-message`" />
+                                                                                </return>
+                                                                            </block>
                                                                         </block>
                                                                     </outcome>
                                                                     <outcome value='not-found'>
                                                                         <block atomic="true">
-                                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                                            <return status='failure'>
-                                                                                <parameter name='ack-final' value='Y'/>
-                                                                                <parameter name="error-code" value="500" />
+                                                                            <set>
                                                                                 <parameter name="error-message" value="Not-found error updating cp relationship to l3-network and vlan-tag" />
-                                                                            </return>
+                                                                            </set>
+                                                                            <block atomic='true'>
+                                                                                <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                                <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                                <return status='failure'>
+                                                                                    <parameter name='ack-final' value='Y'/>
+                                                                                    <parameter name="error-code" value="500" />
+                                                                                    <parameter name="error-message" value="`$error-message`" />
+                                                                                </return>
+                                                                            </block>
                                                                         </block>
                                                                     </outcome>
                                                                 </save>
@@ -1085,23 +1355,35 @@
         $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-id`" />
                                             <outcome value='failure'>
                                                 <block atomic="true">
-                                                    <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                    <return status='failure'>
-                                                        <parameter name='ack-final' value='Y'/>
-                                                        <parameter name="error-code" value="500" />
+                                                    <set>
                                                         <parameter name="error-message" value="Error updating vf-module relationships in AAI" />
-                                                    </return>
+                                                    </set>
+                                                    <block atomic='true'>
+                                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                        <return status='failure'>
+                                                            <parameter name='ack-final' value='Y'/>
+                                                            <parameter name="error-code" value="500" />
+                                                            <parameter name="error-message" value="`$error-message`" />
+                                                        </return>
+                                                    </block>
                                                 </block>
                                             </outcome>
                                             <outcome value='not-found'>
                                                 <block atomic="true">
-                                                    <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                    <return status='failure'>
-                                                        <parameter name='ack-final' value='Y'/>
-                                                        <parameter name="error-code" value="500" />
+                                                    <set>
                                                         <parameter name="error-message" value="`'No l3-network found in AAI for network ID '
       + $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-networks.vm-network[$network-role-index].network-id`" />
-                                                    </return>
+                                                    </set>
+                                                    <block atomic='true'>
+                                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                        <return status='failure'>
+                                                            <parameter name='ack-final' value='Y'/>
+                                                            <parameter name="error-code" value="500" />
+                                                            <parameter name="error-message" value="`$error-message`" />
+                                                        </return>
+                                                    </block>
                                                 </block>
                                             </outcome>
                                         </save>
@@ -1120,22 +1402,34 @@
                                                     <parameter name="is-floating" value="false" />
                                                     <outcome value='failure'>
                                                         <block atomic="true">
-                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                            <return status='failure'>
-                                                                <parameter name='ack-final' value='Y'/>
-                                                                <parameter name="error-code" value="500" />
+                                                            <set>
                                                                 <parameter name="error-message" value="Error saving vip-ipv4-address-list in AAI" />
-                                                            </return>
+                                                            </set>
+                                                            <block atomic='true'>
+                                                                <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                <return status='failure'>
+                                                                    <parameter name='ack-final' value='Y'/>
+                                                                    <parameter name="error-code" value="500" />
+                                                                    <parameter name="error-message" value="`$error-message`" />
+                                                                </return>
+                                                            </block>
                                                         </block>
                                                     </outcome>
                                                     <outcome value='not-found'>
                                                         <block atomic="true">
-                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                            <return status='failure'>
-                                                                <parameter name='ack-final' value='Y'/>
-                                                                <parameter name="error-code" value="500" />
+                                                            <set>
                                                                 <parameter name="error-message" value="Not-found error saving vip-ipv4-address-list" />
-                                                            </return>
+                                                            </set>
+                                                            <block atomic='true'>
+                                                                <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                <return status='failure'>
+                                                                    <parameter name='ack-final' value='Y'/>
+                                                                    <parameter name="error-code" value="500" />
+                                                                    <parameter name="error-message" value="`$error-message`" />
+                                                                </return>
+                                                            </block>
                                                         </block>
                                                     </outcome>
                                                 </save>
@@ -1162,22 +1456,34 @@
         + $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-names.vnfc-names[$vnfc-index].vnfc-name`" />
                                                             <outcome value='failure'>
                                                                 <block atomic="true">
-                                                                    <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                                    <return status='failure'>
-                                                                        <parameter name='ack-final' value='Y'/>
-                                                                        <parameter name="error-code" value="500" />
+                                                                    <set>
                                                                         <parameter name="error-message" value="Error updating vip-ipv4-address-list relationships in AAI" />
-                                                                    </return>
+                                                                    </set>
+                                                                    <block atomic='true'>
+                                                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                        <return status='failure'>
+                                                                            <parameter name='ack-final' value='Y'/>
+                                                                            <parameter name="error-code" value="500" />
+                                                                            <parameter name="error-message" value="`$error-message`" />
+                                                                        </return>
+                                                                    </block>
                                                                 </block>
                                                             </outcome>
                                                             <outcome value='not-found'>
                                                                 <block atomic="true">
-                                                                    <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                                    <return status='failure'>
-                                                                        <parameter name='ack-final' value='Y'/>
-                                                                        <parameter name="error-code" value="500" />
+                                                                    <set>
                                                                         <parameter name="error-message" value="Not-found error updating vip-ipv4-address-list relationships" />
-                                                                    </return>
+                                                                    </set>
+                                                                    <block atomic='true'>
+                                                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                        <return status='failure'>
+                                                                            <parameter name='ack-final' value='Y'/>
+                                                                            <parameter name="error-code" value="500" />
+                                                                            <parameter name="error-message" value="`$error-message`" />
+                                                                        </return>
+                                                                    </block>
                                                                 </block>
                                                             </outcome>
                                                         </save>
@@ -1199,22 +1505,34 @@
         + $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-names.vnfc-names[$vnfc-index].vnfc-networks.vnfc-network-data[$vnfc-network-role-index].connection-point.connection-point-id`" />
                                                                         <outcome value='failure'>
                                                                             <block atomic="true">
-                                                                                <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                                                <return status='failure'>
-                                                                                    <parameter name='ack-final' value='Y'/>
-                                                                                    <parameter name="error-code" value="500" />
+                                                                                <set>
                                                                                     <parameter name="error-message" value="Error updating vip-ipv4-address-list relationship to cp in AAI" />
-                                                                                </return>
+                                                                                </set>
+                                                                                <block atomic='true'>
+                                                                                    <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                                    <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                                    <return status='failure'>
+                                                                                        <parameter name='ack-final' value='Y'/>
+                                                                                        <parameter name="error-code" value="500" />
+                                                                                        <parameter name="error-message" value="`$error-message`" />
+                                                                                    </return>
+                                                                                </block>
                                                                             </block>
                                                                         </outcome>
                                                                         <outcome value='not-found'>
                                                                             <block atomic="true">
-                                                                                <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                                                <return status='failure'>
-                                                                                    <parameter name='ack-final' value='Y'/>
-                                                                                    <parameter name="error-code" value="500" />
+                                                                                <set>
                                                                                     <parameter name="error-message" value="Not-found error updating vip-ipv4-address-list relationship to cp" />
-                                                                                </return>
+                                                                                </set>
+                                                                                <block atomic='true'>
+                                                                                    <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                                    <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                                    <return status='failure'>
+                                                                                        <parameter name='ack-final' value='Y'/>
+                                                                                        <parameter name="error-code" value="500" />
+                                                                                        <parameter name="error-message" value="`$error-message`" />
+                                                                                    </return>
+                                                                                </block>
                                                                             </block>
                                                                         </outcome>
                                                                     </save>
@@ -1237,22 +1555,34 @@
                                                     <parameter name="is-floating" value="false" />
                                                     <outcome value='failure'>
                                                         <block atomic="true">
-                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                            <return status='failure'>
-                                                                <parameter name='ack-final' value='Y'/>
-                                                                <parameter name="error-code" value="500" />
+                                                            <set>
                                                                 <parameter name="error-message" value="Error saving vip-ipv6-address-list in AAI" />
-                                                            </return>
+                                                            </set>
+                                                            <block atomic='true'>
+                                                                <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                <return status='failure'>
+                                                                    <parameter name='ack-final' value='Y'/>
+                                                                    <parameter name="error-code" value="500" />
+                                                                    <parameter name="error-message" value="`$error-message`" />
+                                                                </return>
+                                                            </block>
                                                         </block>
                                                     </outcome>
                                                     <outcome value='not-found'>
                                                         <block atomic="true">
-                                                            <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                            <return status='failure'>
-                                                                <parameter name='ack-final' value='Y'/>
-                                                                <parameter name="error-code" value="500" />
+                                                            <set>
                                                                 <parameter name="error-message" value="Not-found error saving vip-ipv6-address-list" />
-                                                            </return>
+                                                            </set>
+                                                            <block atomic='true'>
+                                                                <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                <return status='failure'>
+                                                                    <parameter name='ack-final' value='Y'/>
+                                                                    <parameter name="error-code" value="500" />
+                                                                    <parameter name="error-message" value="`$error-message`" />
+                                                                </return>
+                                                            </block>
                                                         </block>
                                                     </outcome>
                                                 </save>
@@ -1279,22 +1609,34 @@
         + $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-names.vnfc-names[$vnfc-index].vnfc-name`" />
                                                             <outcome value='failure'>
                                                                 <block atomic="true">
-                                                                    <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                                    <return status='failure'>
-                                                                        <parameter name='ack-final' value='Y'/>
-                                                                        <parameter name="error-code" value="500" />
+                                                                    <set>
                                                                         <parameter name="error-message" value="Error updating vip-ipv6-address-list relationships in AAI" />
-                                                                    </return>
+                                                                    </set>
+                                                                    <block atomic='true'>
+                                                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                        <return status='failure'>
+                                                                            <parameter name='ack-final' value='Y'/>
+                                                                            <parameter name="error-code" value="500" />
+                                                                            <parameter name="error-message" value="`$error-message`" />
+                                                                        </return>
+                                                                    </block>
                                                                 </block>
                                                             </outcome>
                                                             <outcome value='not-found'>
                                                                 <block atomic="true">
-                                                                    <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
-                                                                    <return status='failure'>
-                                                                        <parameter name='ack-final' value='Y'/>
-                                                                        <parameter name="error-code" value="500" />
+                                                                    <set>
                                                                         <parameter name="error-message" value="Not-found error updating vip-ipv6-address-list relationships" />
-                                                                    </return>
+                                                                    </set>
+                                                                    <block atomic='true'>
+                                                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                        <return status='failure'>
+                                                                            <parameter name='ack-final' value='Y'/>
+                                                                            <parameter name="error-code" value="500" />
+                                                                            <parameter name="error-message" value="`$error-message`" />
+                                                                        </return>
+                                                                    </block>
                                                                 </block>
                                                             </outcome>
                                                         </save>
@@ -1316,20 +1658,34 @@
         + $tmp.vf-module-topology.vf-module-assignments.vms.vm[$vm-type-index].vm-names.vnfc-names[$vnfc-index].vnfc-networks.vnfc-network-data[$vnfc-network-role-index].connection-point.connection-point-id`" />
                                                                         <outcome value='failure'>
                                                                             <block atomic="true">
-                                                                                <return status='failure'>
-                                                                                    <parameter name='ack-final' value='Y'/>
-                                                                                    <parameter name="error-code" value="500" />
+                                                                                <set>
                                                                                     <parameter name="error-message" value="Error updating vip-ipv4-address-list relationship to cp in AAI" />
-                                                                                </return>
+                                                                                </set>
+                                                                                <block atomic='true'>
+                                                                                    <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                                    <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                                    <return status='failure'>
+                                                                                        <parameter name='ack-final' value='Y'/>
+                                                                                        <parameter name="error-code" value="500" />
+                                                                                        <parameter name="error-message" value="`$error-message`" />
+                                                                                    </return>
+                                                                                </block>
                                                                             </block>
                                                                         </outcome>
                                                                         <outcome value='not-found'>
                                                                             <block atomic="true">
-                                                                                <return status='failure'>
-                                                                                    <parameter name='ack-final' value='Y'/>
-                                                                                    <parameter name="error-code" value="500" />
+                                                                                <set>
                                                                                     <parameter name="error-message" value="Not-found error updating vip-ipv4-address-list relationship to cp" />
-                                                                                </return>
+                                                                                </set>
+                                                                                <block atomic='true'>
+                                                                                    <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                                                                    <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                                                                    <return status='failure'>
+                                                                                        <parameter name='ack-final' value='Y'/>
+                                                                                        <parameter name="error-code" value="500" />
+                                                                                        <parameter name="error-message" value="`$error-message`" />
+                                                                                    </return>
+                                                                                </block>
                                                                             </block>
                                                                         </outcome>
                                                                     </save>
@@ -1347,11 +1703,18 @@
                         <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-vlan-tagging-assign' mode='sync' >
                             <outcome value='failure'>
                                 <block atomic="true">
-                                    <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
                                     <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
                                         <parameter name='filename' value='/var/tmp/bgb-vlantaggingfailure.log' />
                                     </execute>
-                                    <return status='failure'></return>
+                                    <block atomic='true'>
+                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                        <return status='failure'>
+                                            <parameter name='ack-final' value='Y'/>
+                                            <parameter name="error-code" value="500" />
+                                            <parameter name="error-message" value="`$error-message`" />
+                                        </return>
+                                    </block>
                                 </block>
                             </outcome>
                         </call>
@@ -1408,7 +1771,6 @@ key="INSERT INTO VIPR_CONFIGURATION (vnf_id, vnf_name, ecomp_service_instance_id
                             <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-request-input.'
    value='$vf-module-topology-operation-input.vf-module-request-input.' />
                         </set>
-                        <call module='GENERIC-RESOURCE-API' rpc='gw-vfmodule-update' mode='sync' ></call>
                         <set>
                             <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-level-oper-status.order-status'
   value='PendingCreate' />
@@ -1417,9 +1779,76 @@ key="INSERT INTO VIPR_CONFIGURATION (vnf_id, vnf_name, ecomp_service_instance_id
                             <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-level-oper-status.last-action'
   value='`$vf-module-topology-operation-input.sdnc-request-header.request-action`' />
                         </set>
+                        <set>
+                            <parameter name='vf-module-data.'
+  value='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.' />
+                        </set>
+                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                            <parameter name="source" value="`$prop.restapi.vf-module`"/>
+                            <parameter name="outputPath" value="tmp.part"/>
+                            <parameter name="target" value="{service-instance-id}"/>
+                            <parameter name="replacement" value="`$service-data.service-topology.service-topology-identifier.service-instance-id`"/>
+                        </execute>
+                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                            <parameter name="source" value="`$tmp.part`"/>
+                            <parameter name="outputPath" value="tmp.part"/>
+                            <parameter name="target" value="{vnf-id}"/>
+                            <parameter name="replacement" value="`$service-data.vnfs.vnf[$vnf-index].vnf-id`"/>
+                        </execute>
+                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                            <parameter name="source" value="`$tmp.part`"/>
+                            <parameter name="outputPath" value="tmp.vf-module.url"/>
+                            <parameter name="target" value="{vf-module-id}"/>
+                            <parameter name="replacement" value="`$vf-module-topology-operation-input.vf-module-information.vf-module-id`"/>
+                        </execute>
+                        <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                            <parameter name='templateFileName' value="`$prop.restapi.templateDir + '/' + 'vf-module-assign.json'`" />
+                            <parameter name='restapiUrl' value="`$prop.controller.url + $tmp.vf-module.url`" />
+                            <parameter name='restapiUser' value='`$prop.controller.user`' />
+                            <parameter name='restapiPassword' value='`$prop.controller.pwd`' />
+                            <parameter name='format' value='json' />
+                            <parameter name='httpMethod' value='PUT' />
+                            <parameter name="responsePrefix" value="vf-module-assign" />
+                            <outcome value='failure'>
+                                <block atomic="true">
+                                    <set>
+                                        <parameter name="error-message" value="Error doing PUT of vf-module" />
+                                    </set>
+                                    <block atomic='true'>
+                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                        <return status='failure'>
+                                            <parameter name='ack-final' value='Y'/>
+                                            <parameter name="error-code" value="500" />
+                                            <parameter name="error-message" value="`$error-message`" />
+                                        </return>
+                                    </block>
+                                </block>
+                            </outcome>
+                            <outcome value='not-found'>
+                                <block atomic="true">
+                                    <set>
+                                        <parameter name="error-message" value="Error doing PUT of vf-module" />
+                                    </set>
+                                    <block atomic='true'>
+                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-assign-rollback' mode='sync' ></call>
+                                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
+                                        <return status='failure'>
+                                            <parameter name='ack-final' value='Y'/>
+                                            <parameter name="error-code" value="500" />
+                                            <parameter name="error-message" value="`$error-message`" />
+                                        </return>
+                                    </block>
+                                </block>
+                            </outcome>
+                        </execute>
                         <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
                             <parameter name='filename' value='/var/tmp/bgb-vfmodule.log' />
                         </execute>
+                        <set>
+                            <parameter name="so.response-code" value="200" />
+                        </set>
+                        <call module='GENERIC-RESOURCE-API' rpc='send-so-response' mode='sync' ></call>
                         <return status='success'>
                             <parameter name="ack-final-indicator" value="Y" />
                             <parameter name="error-code" value="200" />
