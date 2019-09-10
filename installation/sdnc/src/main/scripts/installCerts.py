@@ -26,7 +26,7 @@ import time
 import zipfile
 import shutil
 
-Path = "/tmp"
+Path = os.environ['ODL_CERT_PATH']
 
 zipFileList = []
 
