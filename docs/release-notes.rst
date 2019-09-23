@@ -3,6 +3,97 @@
 Release Notes
 =============
 
+Version 1.7.3
+-------------
+:Release Date: 2019-09-30
+
+El Alto release
+
+**Artifact Versions**
+
+
+The following table lists the SDNC docker containers and their versions.
+
++--------------------------------+---------------------------------------------+-----------+
+| Image name                     |  Description                                | Version(s)|
++================================+=============================================+===========+
+| onap/network-discovery         | POMBA : network discovery microservice      | 1.7.3     |
++--------------------------------+---------------------------------------------+-----------+
+| onap/service-decomposition     | POMBA : service decomposition microservice  | 1.7.3     |
++--------------------------------+---------------------------------------------+-----------+
+| onap/sdnc-ansible-server-image | Ansible server                              | 1.7.3     |
++--------------------------------+---------------------------------------------+-----------+
+| onap/sdnc-aaf-image            | SDNC controller image, with AAF integration | 1.7.3     |
++--------------------------------+---------------------------------------------+-----------+
+| onap/sdnc-image                | SDNC controller image, standalone (no AAF)  | 1.7.3     |
++--------------------------------+---------------------------------------------+-----------+
+| onap/sdnc-ueb-listener-image   | SDC listener                                | 1.7.3     |
++--------------------------------+---------------------------------------------+-----------+
+| onap/sdcn-dmaap-listener-image | DMAAP listener                              | 1.7.3     |
++--------------------------------+---------------------------------------------+-----------+
+
+
+**New Features**
+
+The full list of El Alto epics and user stories for SDNC may be found at <https://jira.onap.org/issues/?filter=12044>.
+
+The following list summarizes some of the most significant epics:
+
++------------+-------------------------------------------------------------------------------------+
+| Jira #     | Abstract                                                                            |
++============+=====================================================================================+
+| [SDNC-825] | OpenDaylight Neon upgrade                                                           |
++------------+-------------------------------------------------------------------------------------+
+| [SDNC-858] | Tune OpenDaylight Java settings for NETCONF                                         |
++------------+-------------------------------------------------------------------------------------+
+| [SDNC-822] | Add aggregate-route-policy in GR-API and async changes                              |
++------------+-------------------------------------------------------------------------------------+
+| [SDNC-431] | Implement config DB and REST API                                                    |
++------------+-------------------------------------------------------------------------------------+
+| [SDNC-433] | Receive netconf notification from RAN, update config DB and publish change on DMAAP |
++------------+-------------------------------------------------------------------------------------+
+
+
+
+**Bug Fixes**
+The full list of bug fixes in the SDNC El Alto release may be found at <https://jira.onap.org/issues/?filter=12045>
+
+**Known Issues**
+The full list of known issues in SDNC may be found in the ONAP Jira at <https://jira.onap.org/issues/?filter=11119>
+
+One item of note is that the SDNC admin portal was determined to have a number of security vulnerabilities,
+under Known Security Issues.  As a temporary remediation, the admin portal was disabled in
+Dublin.  These issues have been resolved in El Alto.
+
+**Security Notes**
+
+*Fixed Security Issues*
+
+- CVE-2019-12132 `OJSI-41 <https://jira.onap.org/browse/OJSI-41>`_ SDNC service allows for arbitrary code execution in sla/dgUpload form
+- CVE-2019-12123 `OJSI-42 <https://jira.onap.org/browse/OJSI-42>`_ SDNC service allows for arbitrary code execution in sla/printAsXml form
+- CVE-2019-12113 `OJSI-43 <https://jira.onap.org/browse/OJSI-43>`_ SDNC service allows for arbitrary code execution in sla/printAsGv form
+- `OJSI-91 <https://jira.onap.org/browse/OJSI-91>`_ SDNC exposes unprotected API for user creation
+- `OJSI-98 <https://jira.onap.org/browse/OJSI-98>`_ In default deployment SDNC (sdnc-portal) exposes HTTP port 30201 outside of cluster.
+- CVE-2019-12112 `OJSI-199 <https://jira.onap.org/browse/OJSI-199>`_ SDNC service allows for arbitrary code execution in sla/upload form
+- `OJSI-34 <https://jira.onap.org/browse/OJSI-34>`_ Multiple SQL Injection issues in SDNC
+- `OJSI-99 <https://jira.onap.org/browse/OJSI-99>`_ In default deployment SDNC (sdnc) exposes HTTP port 30202 outside of cluster.
+- `OJSI-100 <https://jira.onap.org/browse/OJSI-100>`_ In default deployment SDNC (sdnc-dgbuilder) exposes HTTP port 30203 outside of cluster.
+- `OJSI-179 <https://jira.onap.org/browse/OJSI-179>`_ dev-sdnc-sdnc exposes JDWP on port 1830 which allows for arbitrary code execution
+- `OJSI-183 <https://jira.onap.org/browse/OJSI-183>`_ SDNC exposes ssh service on port 30208
+
+*Known Security Issues*
+
+
+
+*Known Vulnerabilities in Used Modules*
+
+Quick Links:
+
+- `SDNC project page <https://wiki.onap.org/display/DW/Software+Defined+Network+Controller+Project>`_
+- `Passing Badge information for SDNC <https://bestpractices.coreinfrastructure.org/en/projects/1703>`_
+- `Project Vulnerability Review Table for Casablanca Release <https://wiki.onap.org/pages/viewpage.action?pageId=45307811>`_
+
+
 Version 1.5.4
 -------------
 :Release Date: 2019-06-13
