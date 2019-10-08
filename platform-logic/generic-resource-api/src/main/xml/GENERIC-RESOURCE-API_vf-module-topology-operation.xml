@@ -6,13 +6,33 @@
             <call module='GENERIC-RESOURCE-API' rpc='validate-vf-module-input' mode='sync' ></call>
             <switch test='`$vf-module-topology-operation-input.sdnc-request-header.svc-action`'>
                 <outcome value='assign'>
-                    <block atomic="true">
-                        <set>
-                            <parameter name='skip-mdsal-update' value='Y' />
-                        </set>
-                        <set>
-                            <parameter name='ack-final' value='N' />
-                        </set>
+                    <block>
+                        <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
+                            <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />
+                            <parameter name='contextPrefix' value='prop' />
+                        </execute>
+                        <switch test='`length($vf-module-topology-operation-input.sdnc-request-header.svc-notification-url) == 0`'>
+                            <outcome value='true'>
+                                <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-operation-assign-sync' mode='sync' ></call>
+                            </outcome>
+                            <outcome value='false'>
+                                <switch test='`$vf-module-topology-operation-input.sdnc-request-header.svc-notification-url == $prop.so.ignore-url`'>
+                                    <outcome value='true'>
+                                        <call module='GENERIC-RESOURCE-API' rpc='vf-module-topology-operation-assign-sync' mode='sync' ></call>
+                                    </outcome>
+                                    <outcome value='false'>
+                                        <block atomic="true">
+                                            <set>
+                                                <parameter name='skip-mdsal-update' value='Y' />
+                                            </set>
+                                            <set>
+                                                <parameter name='ack-final' value='N' />
+                                            </set>
+                                        </block>
+                                    </outcome>
+                                </switch>
+                            </outcome>
+                        </switch>
                     </block>
                 </outcome>
                 <outcome value='unassign'>
