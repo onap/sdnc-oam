@@ -3,9 +3,9 @@
 Release Notes
 =============
 
-Version 1.7.3
+Version 1.7.4
 -------------
-:Release Date: 2019-09-30
+:Release Date: 2019-10-24
 
 El Alto release
 
@@ -21,15 +21,15 @@ The following table lists the SDNC docker containers and their versions.
 +--------------------------------+---------------------------------------------+-----------+
 | onap/service-decomposition     | POMBA : service decomposition microservice  | 1.7.3     |
 +--------------------------------+---------------------------------------------+-----------+
-| onap/sdnc-ansible-server-image | Ansible server                              | 1.7.3     |
+| onap/sdnc-ansible-server-image | Ansible server                              | 1.7.4     |
 +--------------------------------+---------------------------------------------+-----------+
-| onap/sdnc-aaf-image            | SDNC controller image, with AAF integration | 1.7.3     |
+| onap/sdnc-aaf-image            | SDNC controller image, with AAF integration | 1.7.4     |
 +--------------------------------+---------------------------------------------+-----------+
-| onap/sdnc-image                | SDNC controller image, standalone (no AAF)  | 1.7.3     |
+| onap/sdnc-image                | SDNC controller image, standalone (no AAF)  | 1.7.4     |
 +--------------------------------+---------------------------------------------+-----------+
-| onap/sdnc-ueb-listener-image   | SDC listener                                | 1.7.3     |
+| onap/sdnc-ueb-listener-image   | SDC listener                                | 1.7.4     |
 +--------------------------------+---------------------------------------------+-----------+
-| onap/sdcn-dmaap-listener-image | DMAAP listener                              | 1.7.3     |
+| onap/sdcn-dmaap-listener-image | DMAAP listener                              | 1.7.4     |
 +--------------------------------+---------------------------------------------+-----------+
 
 
@@ -61,9 +61,29 @@ The full list of bug fixes in the SDNC El Alto release may be found at <https://
 **Known Issues**
 The full list of known issues in SDNC may be found in the ONAP Jira at <https://jira.onap.org/issues/?filter=11119>
 
+One specific issue of concern is the following
+
++------------+---------------------------------------------------------------------------------+
+| Jira #     | Abstract                                                                        |
++============+=================================================================================+
+| [SDNC-949] | GR-API Macro Orchestration fails while waiting on vnf-topology-operation status |
++------------+---------------------------------------------------------------------------------+
+
+This issue is fixed in Gerrit, but not in the released 1.7.4 version of the SDNC docker container.  This issue
+can be manually fixed by installing the following 2 directed graphs via directed graph builder:
+
+- `GENERIC-RESOURCE-API_vf-module-topology-operation.json
+<https://gerrit.onap.org/r/gitweb?p=sdnc/oam.git;a=blob_plain;f=platform-logic/generic-resource-api/src/main/json/GENERIC-RESOURCE-API_vf-module-topology-operation.json;hb=refs/heads/elalto>`_
+- `GENERIC-RESOURCE-API_vnf-topology-operation.json
+<https://gerrit.onap.org/r/gitweb?p=sdnc/oam.git;a=blob_plain;f=platform-logic/generic-resource-api/src/main/json/GENERIC-RESOURCE-API_vnf-topology-operation.json;hb=refs/heads/elalto>`_
+
+
+
 One item of note is that the SDNC admin portal was determined to have a number of security vulnerabilities,
 under Known Security Issues.  As a temporary remediation, the admin portal was disabled in
 Dublin.  These issues have been resolved in El Alto.
+
+
 
 **Security Notes**
 
