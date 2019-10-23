@@ -70,20 +70,32 @@ Dublin.  These issues have been resolved in El Alto.
 *Fixed Security Issues*
 
 - CVE-2019-12132 `OJSI-41 <https://jira.onap.org/browse/OJSI-41>`_ SDNC service allows for arbitrary code execution in sla/dgUpload form
+  Fixed temporarily by disabling admportal.
 - CVE-2019-12123 `OJSI-42 <https://jira.onap.org/browse/OJSI-42>`_ SDNC service allows for arbitrary code execution in sla/printAsXml form
+  Fixed temporarily by disabling admportal.
 - CVE-2019-12113 `OJSI-43 <https://jira.onap.org/browse/OJSI-43>`_ SDNC service allows for arbitrary code execution in sla/printAsGv form
+  Fixed by removing this API endpoint.
 - `OJSI-91 <https://jira.onap.org/browse/OJSI-91>`_ SDNC exposes unprotected API for user creation
+  Fixed temporarily by disabling admportal.
 - `OJSI-98 <https://jira.onap.org/browse/OJSI-98>`_ In default deployment SDNC (sdnc-portal) exposes HTTP port 30201 outside of cluster.
+  Port 30201 now uses HTTPS protocol.
 - CVE-2019-12112 `OJSI-199 <https://jira.onap.org/browse/OJSI-199>`_ SDNC service allows for arbitrary code execution in sla/upload form
+  Fixed temporarily by disabling admportal.
 - `OJSI-34 <https://jira.onap.org/browse/OJSI-34>`_ Multiple SQL Injection issues in SDNC
 - `OJSI-99 <https://jira.onap.org/browse/OJSI-99>`_ In default deployment SDNC (sdnc) exposes HTTP port 30202 outside of cluster.
+  Port 30202 is no longer used.
 - `OJSI-100 <https://jira.onap.org/browse/OJSI-100>`_ In default deployment SDNC (sdnc-dgbuilder) exposes HTTP port 30203 outside of cluster.
+  Port 30203 now uses HTTPS protocol.
 - `OJSI-179 <https://jira.onap.org/browse/OJSI-179>`_ dev-sdnc-sdnc exposes JDWP on port 1830 which allows for arbitrary code execution
+  Ticket has been closed as no one was able to reproduce the issue.
 - `OJSI-183 <https://jira.onap.org/browse/OJSI-183>`_ SDNC exposes ssh service on port 30208
+  Port 30202 is no longer used.
 
 *Known Security Issues*
 
-
+For CVE-2019-12132, CVE-2019-12123 and CVE-2019-12112 only temporary fix has been applied.
+This fix simply prevents admportal from being started and exposed.
+If admportal is to be used in your deployment, please be very cautious and remember to fix those vulnerabilities on your own.
 
 *Known Vulnerabilities in Used Modules*
 
