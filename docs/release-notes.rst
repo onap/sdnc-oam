@@ -72,10 +72,8 @@ One specific issue of concern is the following
 This issue is fixed in Gerrit, but not in the released 1.7.4 version of the SDNC docker container.  This issue
 can be manually fixed by installing the following 2 directed graphs via directed graph builder:
 
-- `GENERIC-RESOURCE-API_vf-module-topology-operation.json
-<https://gerrit.onap.org/r/gitweb?p=sdnc/oam.git;a=blob_plain;f=platform-logic/generic-resource-api/src/main/json/GENERIC-RESOURCE-API_vf-module-topology-operation.json;hb=refs/heads/elalto>`_
-- `GENERIC-RESOURCE-API_vnf-topology-operation.json
-<https://gerrit.onap.org/r/gitweb?p=sdnc/oam.git;a=blob_plain;f=platform-logic/generic-resource-api/src/main/json/GENERIC-RESOURCE-API_vnf-topology-operation.json;hb=refs/heads/elalto>`_
+- `GENERIC-RESOURCE-API_vf-module-topology-operation.json <https://gerrit.onap.org/r/gitweb?p=sdnc/oam.git;a=blob_plain;f=platform-logic/generic-resource-api/src/main/json/GENERIC-RESOURCE-API_vf-module-topology-operation.json;hb=refs/heads/elalto>`_  vf-module-topology-operation directed graph
+- `GENERIC-RESOURCE-API_vnf-topology-operation.json <https://gerrit.onap.org/r/gitweb?p=sdnc/oam.git;a=blob_plain;f=platform-logic/generic-resource-api/src/main/json/GENERIC-RESOURCE-API_vnf-topology-operation.json;hb=refs/heads/elalto>`_ vnf-topology-operation directed graph
 
 
 
