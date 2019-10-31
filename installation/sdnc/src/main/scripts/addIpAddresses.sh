@@ -12,7 +12,7 @@ start=$3
 if [ $# -eq 3 ]
 then
   mysql --user=${MYSQL_USER} --password=${MYSQL_PWD} --host=${MYSQL_HOST} ${MYSQL_DB} <<EOF
-INSERT INTO IPV4_ADDRESS_POOL VALUES('$aicSiteId', '$universe', 'AVAILABLE', '${subnet}.${start}');
+INSERT INTO IPV4_ADDRESS_POOL VALUES('', '$universe', 'AVAILABLE', '${subnet}.${start}');
 EOF
 elif [ $# -eq 4 ]
 then
@@ -22,7 +22,7 @@ then
    while [ $ip -le $stop ]
    do
    mysql --user=${MYSQL_USER} --password=${MYSQL_PWD} --host=${MYSQL_HOST} ${MYSQL_DB} <<EOF
-INSERT INTO IPV4_ADDRESS_POOL VALUES('$aicSiteId', '$universe', 'AVAILABLE','${subnet}.${ip}');
+INSERT INTO IPV4_ADDRESS_POOL VALUES('', '$universe', 'AVAILABLE','${subnet}.${ip}');
 EOF
 ip=$(( ip+1 ))
 done
