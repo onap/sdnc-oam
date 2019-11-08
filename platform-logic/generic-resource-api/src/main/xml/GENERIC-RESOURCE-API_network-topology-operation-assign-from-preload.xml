@@ -74,9 +74,6 @@
                     </return>
                 </outcome>
             </execute>
-            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
-                <parameter name='filename' value='/var/tmp/lmr-nto.log' />
-            </execute>
             <set>
                 <parameter name="tmp.error-message" value=""/>
             </set>
@@ -89,12 +86,6 @@
                     <return status='failure'>
                         <parameter name="error-code" value="500" />
                         <parameter name="error-message" value="'Error searching for l3-network with network-name =' + $tmp.network-instance-name + 'from AnAI'" />
-                    </return>
-                </outcome>
-                <outcome value='success'>
-                    <return status='failure'>
-                        <parameter name="error-code" value="500" />
-                        <parameter name="error-message" value="'Error l3-network with network-name =' + $tmp.network-instance-name + ' already exists in AnAI'" />
                     </return>
                 </outcome>
             </get-resource>
@@ -128,75 +119,9 @@
                 <parameter name="service-data.networks.network[$nidx].network-data.network-information.from-preload" value='true' />
                 <parameter name="service-data.networks.network[$nidx].network-data.network-information.network-type" value='`$tmp.l3-network.network-type`' />
             </set>
-            <switch test='`$tmp.l3-network.service-id`'>
-                <outcome value=''>
-                    <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
-	resource="l3-network" 
-		key="l3-network.network-id = $tmp.l3-network.network-id" >
-                        <!-- Create l3-network object -->
-                        <parameter name="network-id" value="`$tmp.l3-network.network-id`" />
-                        <parameter name="network-name" value="`$tmp.network-instance-name`" />
-                        <parameter name='network-type' value="`$tmp.l3-network.network-type`" />
-                        <parameter name='network-role' value="`$tmp.l3-network.network-role`" />
-                        <parameter name='network-technology' value="`$network-model.network-technology`" />
-                        <parameter name="is-bound-to-vpn" value="`$tmp.l3-network.is-bound-to-vpn-boolean`" />
-                        <parameter name="tenant-id" value="`$network-topology-operation-input.network-request-input.tenant`" />
-                        <parameter name="network-role-instance" value="0" />
-                        <parameter name="orchestration-status" value="PendingCreate" />
-                        <parameter name="physical-network-name" value="`$preload-data.preload-network-topology-information.physical-network-name`" />
-                        <parameter name="is-provider-network" value="`$preload-data.preload-network-topology-information.is-provider-network`" />
-                        <parameter name="is-shared-network" value="`$preload-data.preload-network-topology-information.is-shared-network`" />
-                        <parameter name="is-external-network" value="`$preload-data.preload-network-topology-information.is-external-network`" />
-                        <parameter name="selflink" value="`$tmp.l3-network.self-link`" />
-                        <outcome value='failure'>
-                            <return status='failure'>
-                                <parameter name='error-code' value='500'/>
-                                <parameter name='error-message' value="`'Failed to save l3-network in AnAI with network-id = ' + $tmp.return.generate-l3network-network-id.uuid`"/>
-                            </return>
-                        </outcome>
-                        <outcome value='not-found'>
-                            <return status='failure'>
-                                <parameter name='error-code' value='500'/>
-                                <parameter name='error-message' value="`'Failed to save l3-network in AnAI with network-id = ' + $tmp.return.generate-l3network-network-id.uuid`"/>
-                            </return>
-                        </outcome>
-                    </save>
-                </outcome>
-                <outcome value='Other'>
-                    <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
-	resource="l3-network" 
-		key="l3-network.network-id = $tmp.l3-network.network-id" >
-                        <!-- Create l3-network object -->
-                        <parameter name="network-id" value="`$tmp.l3-network.network-id`" />
-                        <parameter name="network-name" value="`$tmp.network-instance-name`" />
-                        <parameter name='network-type' value="`$network-model.network-type`" />
-                        <parameter name='network-role' value="`$network-model.network-role`" />
-                        <parameter name='network-technology' value="`$network-model.network-technology`" />
-                        <parameter name='is-bound-to-vpn' value="`$network-model.is-bound-to-vpn`" />
-                        <parameter name="service-id" value="`$network-topology-operation-input.service-information.service-id`" />
-                        <parameter name="tenant-id" value="`$network-topology-operation-input.network-request-input.tenant`" />
-                        <parameter name="network-role-instance" value="0" />
-                        <parameter name="orchestration-status" value="PendingCreate" />
-                        <parameter name="physical-network-name" value="`$preload-data.preload-network-topology-information.physical-network-name`" />
-                        <parameter name="is-provider-network" value="`$preload-data.preload-network-topology-information.is-provider-network`" />
-                        <parameter name="is-shared-network" value="`$preload-data.preload-network-topology-information.is-shared-network`" />
-                        <parameter name="is-external-network" value="`$preload-data.preload-network-topology-information.is-external-network`" />
-                        <parameter name="selflink" value="`$tmp.l3-network.self-link`" />
-                        <outcome value='failure'>
-                            <return status='failure'>
-                                <parameter name='error-code' value='500'/>
-                                <parameter name='error-message' value="`'Failed to save l3-network in AnAI with network-id = ' + $tmp.return.generate-l3network-network-id.uuid`"/>
-                            </return>
-                        </outcome>
-                        <outcome value='not-found'>
-                            <return status='failure'>
-                                <parameter name='error-code' value='500'/>
-                                <parameter name='error-message' value="`'Failed to save l3-network in AnAI with network-id = ' + $tmp.return.generate-l3network-network-id.uuid`"/>
-                            </return>
-                        </outcome>
-                    </save>
-                </outcome>
-            </switch>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
+                <parameter name='filename' value='/var/tmp/lmr-nto.log' />
+            </execute>
             <switch test="`$preload-data.preload-network-topology-information.subnets_length`">
                 <outcome value=''>
                     <set>
@@ -944,9 +869,7 @@
                 <parameter name='service-data.networks.network[$nidx].network-data.network-level-oper-status.last-rpc-action' value='`$network-topology-operation-input.sdnc-request-header.svc-action`' />
                 <parameter name='service-data.networks.network[$nidx].network-data.network-level-oper-status.last-action' value='`$network-topology-operation-input.request-information.request-action`' />
             </set>
-            <return status='success'>
-                <parameter name='' value='' />
-            </return>
+            <return status='success' ></return>
         </block>
     </method>
 </service-logic>
