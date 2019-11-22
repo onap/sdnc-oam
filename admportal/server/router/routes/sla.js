@@ -1,6 +1,8 @@
 var express = require('express');
 var router = express.Router();
-var exec = require('child_process').exec;
+
+var spawn = require('child_process').spawn;
+
 //var util = require('util');
 var fs = require('fs');
 var dbRoutes = require('./dbRoutes');
@@ -64,141 +66,77 @@ router.get('/listSLA', csp.checkAuth, csrfProtection, function(req,res) {
 
 router.get('/activate', csp.checkAuth, csrfProtection, function(req,res){
 
-	var _module = req.query.module;
-	var rpc = req.query.rpc;
-	var version = req.query.version;
-	var mode = req.query.mode;
+	var _module = req.sanitize(req.query.module);
+	var rpc = req.sanitize(req.query.rpc);
+	var version = req.sanitize(req.query.version);
+	var mode = req.sanitize(req.query.mode);
 
 	var tasks = [];
-    tasks.push( function(callback) { dbRoutes.global_deactivate(req,res,_module,rpc,mode,callback); } );
-    tasks.push( function(callback) { dbRoutes.activate(req,res,_module,rpc,version,mode,callback); } );
+  tasks.push( function(callback) { dbRoutes.global_deactivate(req,res,_module,rpc,mode,callback); } );
+  tasks.push( function(callback) { dbRoutes.activate(req,res,_module,rpc,version,mode,callback); } );
 	async.series(tasks,  function(err,result){
 
-		 if (  err ) {
-			 dbRoutes.listSLA(req,res,{code:'failure', msg:'Failed to activate, '+ String(err) });
-         }
-		 else {
-			 dbRoutes.listSLA(req,res,{ code:'success', msg:'Successfully activated directed graph.'});
-		 }
+		if (  err ) {
+			dbRoutes.listSLA(req,res,{code:'failure', msg:err });
+		}
+		else {
+			dbRoutes.listSLA(req,res,{ code:'success', msg:'Successfully activated directed graph.'});
+		}
 	});
 });
 
 router.get('/deactivate', csp.checkAuth, csrfProtection, function(req,res){
 
-	var _module = req.query.module;
-	var rpc = req.query.rpc;
-	var version = req.query.version;
-	var mode = req.query.mode;
+	var _module = req.sanitize(req.query.module);
+	var rpc = req.sanitize(req.query.rpc);
+	var version = req.sanitize(req.query.version);
+	var mode = req.sanitize(req.query.mode);
 
 	var tasks = [];
-    tasks.push( function(callback) { dbRoutes.deactivate(req,res,_module,rpc,version,mode,callback); } );
-    async.series(tasks,  function(err,result){
+  tasks.push( function(callback) { dbRoutes.deactivate(req,res,_module,rpc,version,mode,callback); } );
+  async.series(tasks,  function(err,result){
 
-         if (  err ) {
-             dbRoutes.listSLA(req,res,{code:'failure', msg:'There was an error uploading the file. '+ err });
-         }
-         else {
-             dbRoutes.listSLA(req,res,{ code:'success', msg:'Successfully deactivated directed graph.'});
-         }
-    });
+		if (  err ) {
+			dbRoutes.listSLA(req,res,{code:'failure', msg:err });
+		}
+		else {
+			dbRoutes.listSLA(req,res,{code:'success', msg:'Successfully deactivated directed graph.'});
+		}
+	});
 });
 
 router.get('/deleteDG', csp.checkAuth, csrfProtection, function(req,res){
 
-	var _module = req.query.module;
-	var rpc = req.query.rpc;
-	var version = req.query.version;
-	var mode = req.query.mode;
+	var _module = req.sanitize(req.query.module);
+	var rpc = req.sanitize(req.query.rpc);
+	var version = req.sanitize(req.query.version);
+	var mode = req.sanitize(req.query.mode);
 
 	var tasks = [];
-    tasks.push( function(callback) { dbRoutes.deleteDG(req,res,_module,rpc,version,mode,callback); } );
-    async.series(tasks,  function(err,result){
+  tasks.push( function(callback) { dbRoutes.deleteDG(req,res,_module,rpc,version,mode,callback); } );
+  async.series(tasks,  function(err,result){
 
-         if (  err ) {
-             dbRoutes.listSLA(req,res,{ code:'failure', msg:'There was an error uploading the file. '+ err });
-         }
-         else {
-             dbRoutes.listSLA(req,res,{ code:'success', msg:'Successfully deleted directed graph.'});
-         }
-    });
+		if (  err ) {
+			dbRoutes.listSLA(req,res,{code:'failure', msg:'There was an deleting the directed graph. '+ err });
+		}
+		else {
+			dbRoutes.listSLA(req,res,{code:'success', msg:'Successfully deleted directed graph.'});
+		}
+	});
 });
-
-router.post('/dgUpload', upload.single('filename'), csrfProtection, function(req, res, next){
-
-    if(req.file.originalname){
-        if (req.file.originalname == 0) {
-			
-            dbRoutes.listSLA(req,res,{ code:'danger', msg:'There was an error uploading the file, please try again.'});
-        }
-        fs.exists(req.file.path, function(exists) {
-            if(exists) {
-
-                // parse xml
-                try {
-					//dbRoutes.checkSvcLogic(req,res);
-
-                    var file_buf = fs.readFileSync(req.file.path, "utf8");
-
-                    // call Dan's svclogic shell script from here
-					 var currentDB = dbRoutes.getCurrentDB();
-                     var commandToExec = process.cwd()
-                        + "/shell/svclogic.sh load "
-                        + req.file.path + " "
-                        + process.env.SDNC_CONFIG_DIR + "/svclogic.properties." + currentDB;
-
-                    console.log("commandToExec:" + commandToExec);
-                    child = exec(commandToExec ,function (error,stdout,stderr){
-                        if(error){
-                            console.error("error:" + error);
-							//res.type('text/html').status(400).send( error);
-							//return;
-                        }
-                        if(stderr){
-							res.status(400).send(stderr);
-							return;
-                        }
-                        if(stdout){
-							res.status(200).send( new Buffer('Success'));
-							return;
-                        }
-
-                        // remove the grave accents, the sax parser does not like them
-                        //parser.write(file_buf.replace(/\`/g,'').toString('utf8')).close();
-                        //dbRoutes.addDG(_module,version,rpc,mode,file_buf,req,res);
-                        //dbRoutes.listSLA(req,res, resultObj);
-                    });
-                } catch(ex) {
-                    // keep 'em silent
-                    console.error('sax error:'+ex);
-					res.status(400).send(ex);
-					return;
-                }
-
-            } else {
-				res.status(400).send(new Buffer('Cannot find file.'));
-				return;
-			
-            }
-        });
-    }
-    else {
-		res.status(400).send(new Buffer('file does not exist\n'));
-    }
-	return;
-});
-
 
 // POST
 router.post('/upload', csp.checkAuth, upload.single('filename'), csrfProtection, function(req, res, next){
 
-console.log('file:'+ JSON.stringify(req.file));
+	var _lstdout = "";
+	var _lstderr = "";
+	console.log('file:'+ JSON.stringify(req.file));
 
 	if(req.file.originalname)
 	{
 		if (req.file.originalname.size == 0)
 		{
-			dbRoutes.listSLA(req,res,
-			{ code:'danger', msg:'There was an error uploading the file, please try again.'});
+			dbRoutes.listSLA(req,res, {code:'danger', msg:'There was an error uploading the file, please try again.'});
 		}
 		fs.exists(req.file.path, function(exists)
 		{
@@ -207,68 +145,67 @@ console.log('file:'+ JSON.stringify(req.file));
 				// parse xml
 				try 
 				{
-					//dbRoutes.checkSvcLogic(req,res);
-
 					var currentDB = dbRoutes.getCurrentDB();
 					var file_buf = fs.readFileSync(req.file.path, "utf8");
 
 					// call svclogic shell script from here
-					var commandToExec = process.cwd() + "/shell/svclogic.sh load "
-						+ req.file.path + " "
-            + process.env.SDNC_CONFIG_DIR + "/svclogic.properties." + currentDB;
+					var commandToExec = process.cwd() + "/shell/svclogic.sh";
 
+					console.log('filepath: ' + req.file.path);
+          console.log('prop: ' + process.env.SDNC_CONFIG_DIR + "/svclogic.properties." + currentDB);
 					console.log("commandToExec:" + commandToExec);
-					child = exec(commandToExec ,function (error,stdout,stderr)
-					{
-						if(error)
-						{
-							console.error("error:" + error);
-							dbRoutes.listSLA(req,res,{code:'failure',msg:error} );
-							return;
-						}
-						if(stderr){
-							console.error("stderr:" + JSON.stringify(stderr,null,2));
-							var s_stderr = JSON.stringify(stderr);
-            	if ( s_stderr.indexOf("Saving") > -1 )
-            	{
-              	dbRoutes.listSLA(req,res,{code:'success', msg:'File sucessfully uploaded.'});
-            	}else {
-              	dbRoutes.listSLA(req,res,{code:'failure', msg:stderr});
-            	}
-            	return;
-						}
-          	if(stdout){
-							console.log("stderr:" + stdout);
-							dbRoutes.listSLA(req,res,{code:'success', msg:'File sucessfully uploaded.'});
-            	return;
-						}
 
-						// remove the grave accents, the sax parser does not like them
-    					//parser.write(file_buf.replace(/\`/g,'').toString('utf8')).close();
-						//dbRoutes.addDG(_module,version,rpc,mode,file_buf,req,res);
-						//dbRoutes.listSLA(req,res, resultObj);
-				});
-			} catch(ex) {
-				// keep 'em silent
-				console.error("error:" + ex);
-				dbRoutes.listSLA(req,res,{code:'failure',msg:ex} );
+					child = spawn(commandToExec, ['load', req.file.path, process.env.SDNC_CONFIG_DIR + "/svclogic.properties." + currentDB]);
+					child.on('error', function(error){
+						console.log('error: '+error);
+						dbRoutes.listSLA(req,res,{code:'failure', msg:error});
+						return;
+					});
+					child.stdout.on('data', function(data) {
+						console.log('stdout: ' + data);
+						_lstdout = _lstdout.concat(data);
+					});
+					child.stderr.on('data', function(data) {
+						console.log("stderr:" + data);
+						_lstderr = _lstderr.concat(data);
+					});
+					child.on('exit', function(code,signal){
+						console.log('code: ' + code);
+						console.log('stdout: [[' + _lstdout + ']]');
+						console.log('stderr: [[' + _lstderr + ']]');
+						if ( _lstderr.indexOf("Saving") > -1 )
+						{
+							dbRoutes.listSLA(req,res,{code:'success', msg:'File sucessfully uploaded.'});
+						}
+						else
+						{
+							dbRoutes.listSLA(req,res,{code:'failure', msg:_lstderr} );
+						}
+						return;
+					});
+				} catch(ex) {
+					console.log("error: " + ex);
+					dbRoutes.listSLA(req,res,{code:'failure',msg:ex} );
+					return;
+				}
 			}
-		}
-		else {
-			dbRoutes.listSLA(req,res,{ code:'danger', msg:'There was an error uploading the file, please try again.'});
-		}
+			else {
+				dbRoutes.listSLA(req,res,{code:'danger', msg:'There was an error uploading the file, please try again.'});
+				return;
+			}
 		});
 	}
 	else {
-		dbRoutes.listSLA(req,res,{ code:'danger', msg:'There was an error uploading the file, please try again.'});
+		dbRoutes.listSLA(req,res,{code:'danger', msg:'There was an error uploading the file, please try again.'});
+		return;
 	}
 });
 
 router.get('/printAsXml', csp.checkAuth, csrfProtection, function(req,res){
 
 	try {
-		//dbRoutes.checkSvcLogic(req,res);
-
+		var _lstdout = "";
+		var _lstderr = "";
 		var _module = req.query.module;
     var rpc = req.query.rpc;
     var version = req.query.version;
@@ -276,44 +213,50 @@ router.get('/printAsXml', csp.checkAuth, csrfProtection, function(req,res){
 		var currentDB = dbRoutes.getCurrentDB();
 
     // call Dan's svclogic shell script from here
-    var commandToExec = process.cwd()
-       		+ "/shell/svclogic.sh get-source "
-            + _module + " "
-            + rpc + " "
-            + mode + " "
-            + version + " "
-            + process.env.SDNC_CONFIG_DIR + "/svclogic.properties." + currentDB;
-
+    var commandToExec = process.cwd() + "/shell/svclogic.sh";
 		console.log("commandToExec:" + commandToExec);
+		console.log("_mode: " + _module);
+		console.log("rpc: " + rpc);
+		console.log("version: " + version);
+		console.log("currentDB: " +  process.env.SDNC_CONFIG_DIR + "/svclogic.properties." + currentDB);
 
-    child = exec(commandToExec , {maxBuffer: 1024*5000}, function (error,stdout,stderr){
-	  	if(error){
-				console.error("error:" + error);
-        dbRoutes.listSLA(req,res,{code:'failure',msg:error} );
-				return;
-    	}
-    	//if(stderr){
-    	//logger.info("stderr:" + stderr);
-    	//}
-    	if(stdout){
-      	console.log("OUTPUT:" + stdout);
-      	res.render('sla/printasxml', {result:{code:'success', 
-				msg:'Module : ' + _module + '\n' + 
-						'RPC    : ' + rpc + '\n' + 
-						'Mode   : ' + mode + '\n' +
-						'Version: ' + version + '\n\n' + stdout}, header:process.env.MAIN_MENU});
-   		}
+    child = spawn(commandToExec, ['get-source', _module, rpc, mode, version, process.env.SDNC_CONFIG_DIR + "/svclogic.properties." + currentDB], {maxBuffer: 1024*5000});
+		child.on('error', function(error){
+			console.log("error: " + error);
+			dbRoutes.listSLA(req,res,{code:'failure',msg:error} );
+			return;
+		});
+		child.stderr.on('data', function(data){
+			console.log('stderr: ' + data);
+			_lstderr = _lstderr.concat(data);
+		});
+		child.stdout.on('data', function(data){
+			console.log("OUTPUT:" + data);
+			_lstdout = _lstdout.concat(data);
+		});
+		child.on('exit', function(code,signal){
 
-   		// remove the grave accents, the sax parser does not like them
-   		//parser.write(file_buf.replace(/\`/g,'').toString('utf8')).close();
-   		//dbRoutes.addDG(_module,version,rpc,mode,file_buf,req,res);
-   		//dbRoutes.listSLA(req,res, resultObj);
-   });
- } catch(ex) {
+			console.log('code: ' + code);
+			console.log('close:stdout: ' + _lstdout);
+			console.log('close:stderr: ' + _lstderr);
+
+			if ( code != 0 ){
+				dbRoutes.listSLA(req,res,{code:'failure',msg:_lstderr} );
+			}
+			else {
+				res.render('sla/printasxml', {result:{code:'success', 
+					msg:'Module : ' + _module + '\n' + 
+					'RPC    : ' + rpc + '\n' + 
+					'Mode   : ' + mode + '\n' +
+					'Version: ' + version + '\n\n' + _lstdout}, header:process.env.MAIN_MENU});
+			}
+			return;
+		});
+ 	} catch(ex) {
 		console.error("error:" + ex);
 		dbRoutes.listSLA(req,res,{code:'failure',msg:ex} );
+		return;
  }
 });
-
 
 module.exports = router;

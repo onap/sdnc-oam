@@ -15,50 +15,29 @@ function logout(req,res){
 
 function login (req,res) {
 
-console.log('login');
-var tkn = req.sanitize(req.body._csrf);
-console.log('login:tkn=' + tkn);
+	var tkn = req.sanitize(req.body._csrf);
 
 	var loggedInAdmin={};
 	var email = req.sanitize(req.body.email);
 	var pswd = req.sanitize(req.body.password);
-	dbRoutes.findAdminUser(email,res,function(adminUser){
-		if(adminUser !== null){
-			
-			// make sure correct password is provided
-			if (pswd != adminUser.password) {
-				res.render("pages/login", 
-				{
-					result:
-					{
-						code:'error',
-						msg:'Invalid password entered.'
-					},
-					header:process.env.MAIN_MENU 
-				});
-				return;
-			}
-				
-			var loggedInAdmin = {
+	dbRoutes.findAdminUser(email,res,function(adminUser)
+	{
+		// make sure correct password is provided
+		if (pswd != adminUser.password) {
+			res.render("pages/err", { result: { code:'error', msg:'Invalid password entered.' }, header:process.env.MAIN_MENU });
+			return;
+		}
+		var loggedInAdmin = {
 				email:adminUser.email,
 				csrfToken: tkn,
 				password:adminUser.password,
 				privilege:adminUser.privilege
-			}
-            req.session.loggedInAdmin = loggedInAdmin;
-        	console.log("Login Success"+JSON.stringify(loggedInAdmin));
-        	res.redirect('sla/listSLA');
-		}else{
-			res.render("pages/err", 
-			{
-				result:
-				{
-					code:'error',
-					msg:'User ' + attuid + ' is not in the database.  Please see an adminstrator to have them added.'
-				},
-				header:process.env.MAIN_MENU 
-			});
 		}
+		req.session.loggedInAdmin = loggedInAdmin;
+
+		console.log("Login Success"+JSON.stringify(loggedInAdmin));
+		res.redirect('sla/listSLA');
+		return;
 	});
 }
 
@@ -72,17 +51,17 @@ function checkAuth(req,res,next){
 
 	var host = req.headers['host'];
 	console.log('host=' + host);
-	console.log("cookie is not null "+JSON.stringify(req.session.loggedInAdmin));
 	if(req.session == null || req.session == undefined 
 		|| req.session.loggedInAdmin == null || req.session.loggedInAdmin == undefined)
 	{
-		// nothing else to do but log them back in, or they may
-		// be coming from the graph tool
 		console.log("loggedInAdmin not found.session timed out.");
-		res.render('pages/login');
-		return false;
+		res.redirect('/login');
+		//res.render('pages/login');
+		return;
 	}
+	console.log("cookie is:  " + JSON.stringify(req.session.loggedInAdmin));
 	next();
+	return;
 }
 
 function checkPriv(req,res,next)

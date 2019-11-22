@@ -19,6 +19,8 @@ router.use(cookieParser());
 router.get('/getParameters', csp.checkAuth, dbRoutes.checkDB, function(req,res) {
     dbRoutes.getParameters(req,res, {code:'', msg:''}, req.session.loggedInAdmin);
 });
+
+/*
 router.get('/deleteParameter', csp.checkAuth, dbRoutes.checkDB, csrfProtection, function(req,res) {
 
 	var privilegeObj = req.session.loggedInAdmin;
@@ -38,6 +40,7 @@ router.get('/deleteParameter', csp.checkAuth, dbRoutes.checkDB, csrfProtection, 
 		}
 	});
 });
+*/
 
 
 // POST

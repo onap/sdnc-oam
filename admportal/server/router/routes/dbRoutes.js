@@ -262,48 +262,45 @@ console.log('checkDB');
 
 exports.saveUser = function(req,res){
 
-console.log('b4 sani');
+	var tkn = req.csrfToken();
 	var email = req.sanitize(req.body.nf_email);
 	var pswd = req.sanitize(req.body.nf_password);
-console.log('after sani');
 
 	pool.getConnection(function(err,connection)
 	{
 		if(err){
 			console.error( String(err) ); // ALARM
-			res.render("pages/signup", {result:{code:'error', msg:"Unable to get database connection. " + String(err)},header:process.env.MAIN_MENU});
+			res.render("pages/signup", {csrfToken:tkn,result:{code:'error', msg:"Unable to get database connection. " + String(err)},header:process.env.MAIN_MENU});
 			return;
 		}
-		var sql = "SELECT email FROM PORTAL_USERS WHERE email='" + email + "'";
+		var sql = "SELECT email FROM PORTAL_USERS WHERE email=" + connection.escape(email);
 
 		connection.query(sql, function(err,result)
 		{
 			if(err){
 				connection.release();
-				res.render("pages/signup", {result:{code:'error', msg:"Unable to get database connection. " + String(err)},header:process.env.MAIN_MENU});
+				res.render("pages/signup", {csrfToken:tkn, result:{code:'error', msg:"Unable to get database connection. " + String(err)},header:process.env.MAIN_MENU});
 				return;
 			}
 			if (result.length == 1 || result.length > 1)
 			{
 				connection.release();
-				res.render("pages/signup", {result:{code:'error', msg:'User Information already exists.'},header:process.env.MAIN_MENU});
+				res.render("pages/signup", {csrfToken:tkn, result:{code:'error', msg:'User Information already exists.'},header:process.env.MAIN_MENU});
 				return;
 			}
-
 			sql = "INSERT INTO PORTAL_USERS (email,password,privilege) VALUES ("
-            +"'"+ email + "',"
-            + "AES_ENCRYPT('" + pswd + "','" + enckey + "'),"
-            +"'A')";
+            + connection.escape(email) + ","
+            + "AES_ENCRYPT(" + connection.escape(pswd) + ",'" + enckey + "'),'A')";
 
 			connection.query(sql, function(err,result)
 			{
 				connection.release();
 				
 				if(err){
-					res.render("pages/signup", {result:{ code:'error', msg:String(err) },header:process.env.MAIN_MENU});;
+					res.render("pages/signup", {csrfToken:tkn, result:{ code:'error', msg:String(err) },header:process.env.MAIN_MENU});;
 					return;
 				}
-				res.render('pages/signup', {result:{code:'success', msg:'User created.  Please login.'},header:process.env.MAIN_MENU});
+				res.render('pages/signup', {csrfToken:tkn, result:{code:'success', msg:'User created.  Please login.'},header:process.env.MAIN_MENU});
 				return;
 			});
 		});
@@ -317,46 +314,48 @@ exports.deleteUser = function(req,res){
 	var resultObj = { code:'', msg:'' };
 	var privilegeObj = req.session.loggedInAdmin;
 
-    pool.getConnection(function(err,connection) {
-        if(err){
+  pool.getConnection(function(err,connection) {
+
+    if(err){
 			console.error( String(err) ); // ALARM
-            res.render("user/list", {rows: null, result:{code:'error', msg:"Unable to get database connection. Error:" + String(err), 
-				privilege:privilegeObj },header:process.env.MAIN_MENU});
+      res.render("user/list", {rows: null, result:{code:'error', msg:"Unable to get database connection. Error:" + String(err), 
+			privilege:privilegeObj },header:process.env.MAIN_MENU});
 			return;
-        }
+    }
 
-        var sqlUpdate = "DELETE FROM PORTAL_USERS WHERE email='" + req.query.email + "'";
-
+    var sqlUpdate = "DELETE FROM PORTAL_USERS WHERE email=" + connection.escape(req.query.email);
 		console.log(sqlUpdate);
 
-        connection.query(sqlUpdate,function(err,result){
+    connection.query(sqlUpdate,function(err,result){
 
-            if(err){
-                 resultObj = {code:'error', msg:'Delete of user failed Error: '+ String(err) };
-            }
+      if(err){
+        resultObj = {code:'error', msg:'Delete of user failed Error: '+ String(err) };
+      }
 
-            // Need DB lookup logic here
-            connection.query("SELECT email,password,privilege FROM PORTAL_USERS", function(err, rows) {
-            	connection.release();
-                if(!err) {
-                    if ( rows.length > 0 )
-                    {
+      // Need DB lookup logic here
+      connection.query("SELECT email,password,privilege FROM PORTAL_USERS", function(err, rows) {
+        connection.release();
+        if(!err) 
+				{
+          if ( rows.length > 0 )
+          {
 						resultObj = {code:'success',msg:'Successfully deleted user.'};
-                        res.render('user/list', { rows: rows, result:resultObj, privilege:privilegeObj,header:process.env.MAIN_MENU } );
+            res.render('user/list', { rows: rows, result:resultObj, privilege:privilegeObj,header:process.env.MAIN_MENU } );
 						return;
-                    }else{
-                        res.render("user/list", { rows: null, result:{code:'error', msg:'Unexpected no rows returned from database, please try again.',
-							privilege:privilegeObj },header:process.env.MAIN_MENU});
+          }else{
+            res.render("user/list", { rows: null, result:{code:'error', msg:'Unexpected no rows returned from database, please try again.',
+						privilege:privilegeObj },header:process.env.MAIN_MENU});
 						return;
-                    }
-                } else {
-                    res.render("user/list", { rows: null, result:{code:'error', msg:'Unexpected no rows returned from database. Error: ' + String(err),
-							privilege:privilegeObj },header:process.env.MAIN_MENU});
+          }
+        }
+				else {
+          res.render("user/list", { rows: null, result:{code:'error', msg:'Unexpected no rows returned from database. Error: ' + String(err),
+					privilege:privilegeObj },header:process.env.MAIN_MENU});
 					return;
-                }
-            }); //end query
-        });
-    }); // end of getConnection
+       	}
+      }); //end query
+    });
+  }); // end of getConnection
 }
 
 // add User
@@ -390,9 +389,9 @@ exports.addUser = function(req,res){
 
 		//connection.query(sqlRequest, function(err,result)
 		var sqlUpdate = "INSERT INTO PORTAL_USERS (email, password, privilege) VALUES ("
-			+"'"+ email + "',"
-			+ "AES_ENCRYPT('" + pswd + "','" + enckey + "'),"
-			+"'"+ char_priv + "')";
+			+ connection.escape(email) + ","
+			+ "AES_ENCRYPT(" + connection.escape(pswd) + ",'" + enckey + "'),"
+			+ "'" + char_priv + "')";
 
 
 		connection.query(sqlUpdate,function(err,result)
@@ -456,11 +455,12 @@ exports.updateUser= function(req,res){
 		}
 
 		var sqlUpdate = "UPDATE PORTAL_USERS SET "
-			+ "email = '" + email + "',"
-			+ "password = " + "AES_ENCRYPT('" + pswd + "','" + enckey + "'), "
-			+ "privilege = '"+ char_priv + "'"
-			+ " WHERE email = '" + key_email + "'";
+			+ "email = " + connection.escape(email) + ","
+			+ "password = " + "AES_ENCRYPT(" + connection.escape(pswd) + ",'" + enckey + "'), "
+			+ "privilege = '" + char_priv + "'"
+			+ " WHERE email = " + connection.escape(key_email);
 
+		console.log(sqlUpdate);
 		connection.query(sqlUpdate,function(err,result)
 		{
 			if(err){
@@ -596,57 +596,57 @@ exports.listSLA = function(req,res,resultObj){
 
 exports.executeSQL = function(sql,req,res,callback){
 
-    console.log(sql);
+	console.log(sql);
+	pool.getConnection(function(err,connection) {
 
-    pool.getConnection(function(err,connection) {
-
-        if(err){
-            console.error( String(err) ); // ALARM
-            callback(err, 'Unable to get database connection.' + err);
-            return;
-        }
-
-        connection.query(sql, function(err,result){
-            connection.release();
+		if(err){
+      console.error( String(err) ); // ALARM
+      callback(err, 'Unable to get database connection.' + err);
+      return;
+    }
+    connection.query(sql, function(err,result){
+      connection.release();
 			if (err) {
 				callback(err,'Database operation failed. ' + err );
+				return;
 			}
-            else
-            {
-console.log('affectedRows='+result.affectedRows);
-                callback(null, result.affectedRows);
-            }
-       }); //end query
-    }); // end getConnection
+      else
+      {
+				console.log('affectedRows='+result.affectedRows);
+        callback(null, result.affectedRows);
+				return;
+      }
+    }); //end query
+  }); // end getConnection
 }
 
 
 // gamma - deleteParameter
 exports.deleteParameter = function(req,res,callback){
 
-    var sql = "DELETE FROM PARAMETERS WHERE name='" + req.query.name + "'";
+	pool.getConnection(function(err,connection) {
 
-    console.log(sql);
+  	if(err){
+    	console.log( String(err) ); // ALARM
+    	callback(err, 'Unable to get database connection.' + err);
+    	return;
+  	}
+  	var sql = "DELETE FROM PARAMETERS WHERE name=" + connection.escape(req.query.name);
 
-    pool.getConnection(function(err,connection) {
-
-        if(err){
-            console.log( String(err) ); // ALARM
-            callback(err, 'Unable to get database connection.' + err);
-            return;
-        }
-        connection.query(sql, function(err,result){
-            connection.release();
-               if(err){
-                    console.log('Update failed. ' + err );
-                    callback(err,'Update failed. ' + err );
-               }
-               else
-               {
-                    callback(null,'');
-               }
-       }); //end query
-    }); // end getConnection
+  	console.log(sql);
+  	connection.query(sql, function(err,result){
+    	connection.release();
+    	if(err){
+      	callback(err,'Update failed. ' + err );
+				return;
+    	}
+    	else
+    	{
+      	callback(null,'');
+				return;
+    	}
+  	}); //end query
+  }); // end getConnection
 }
 
 
@@ -924,41 +924,41 @@ exports.getVnfData = function(req,res,resultObj,privilegeObj)
 
 exports.findAdminUser = function(email,res,callback) {
 
-
 	var adminUser={};
-	pool.getConnection(function(err,connection) {
-        if(err){
-			console.error( String(err) ); // ALARM
-            res.render("pages/login", {result:{code:'error', msg:"Unable to get database connection. "+ String(err)},header:process.env.MAIN_MENU});
+	pool.getConnection(function(err,connection)
+	{
+		if(err)
+		{
+      res.render("pages/err", {result:{code:'error', msg:err},header:process.env.MAIN_MENU});
 			return;
-        }
+		}
 
 		// Need DB lookup logic here
-		connection.query("SELECT email, AES_DECRYPT(password, '" + enckey + "') password, privilege FROM PORTAL_USERS WHERE email='" + email + "'", function(err, rows) {
+		connection.query("SELECT email, AES_DECRYPT(password, '" + enckey + "') password, privilege FROM PORTAL_USERS WHERE email=" + connection.escape(email), function(err, rows) {
 
 			connection.release();
-        	if(!err) {
-				if ( rows.length > 0 )
-            	{
-                	rows.forEach(function(row){
-                    	adminUser = {
-                        	"email" : row.email,
-                        	"password" : row.password,
-                        	"privilege" : row.privilege };
-                	});
-                	callback(adminUser);
-					return;
-            	}else{
-                	console.log("no rows returned");
-                	res.render("pages/login", {result:{code:'error', msg:'User is not in database.'},header:process.env.MAIN_MENU});
-					return;
-            	}
-            } else {
-                    res.render("pages/err", {result:{code:'error',msg:'Unexpected no rows returned from database. '+ String(err)},header:process.env.MAIN_MENU});
+			if(err)
+			{
+      	res.render("pages/err", {result:{code:'error', msg:err},header:process.env.MAIN_MENU});
+				return;
+			}
+			if ( rows.length > 0 )
+			{
+				rows.forEach(function(row){
+					adminUser = {
+						"email" : row.email,
+						"password" : row.password,
+						"privilege" : row.privilege };
+					});
+				callback(adminUser);
+				return;
+			}
+			else{
+      		res.render("pages/err", {result:{code:'error', msg:'User is not in database.'},header:process.env.MAIN_MENU});
 					return;
 			}
 		}); //end query
-    }); // end getConnection
+  }); // end getConnection
 }
 
 
@@ -1029,6 +1029,121 @@ exports.addVnfProfile = function(row,res,callback){
     }); // end getConnection
 }
 
+exports.deleteVnfProfile = function(req,res,callback){
+
+	var privilegeObj = req.session.loggedInAdmin;
+	var rows={};
+
+	pool.getConnection(function(err,connection) {
+
+		var sql = 'DELETE FROM VNF_PROFILE WHERE vnf_type = ' + connection.escape(req.sanitize(req.query.vnf_type));
+		console.log(sql);
+		if(err){
+			console.error( String(err) ); // ALARM
+			res.render("pages/err", {result:{code:'error', msg:"Unable to get database connection. "+ String(err)},header:process.env.MAIN_MENU});
+			return;
+		}
+
+		//var vt = req.sanitize(req.query.vnf_type);
+		//var vnf_type = { vnf_type: vt };
+		//var vnf_type = connection.escape(vt);
+		//console.log('type='+vnf_type);
+		//connection.query('DELETE FROM VNF_PROFILE WHERE vnf_type = ?', vnf_type, function(err,result)
+		connection.query(sql, function(err,result)
+		{
+			connection.release();
+      if (err) {
+        callback(err,'Database operation failed. ' + err );
+				return;
+      }
+      else
+     	{
+				if (result.affectedRows == 0)
+				{
+					callback('No rows deleted.');
+					return;
+				}
+				console.log('rows deleted: ' + result.affectedRows);
+				callback(null, result.affectedRows);
+				return;
+     	}
+		});
+	}); // end of getConnection
+};
+
+exports.deleteVnfData = function(req,res,callback){
+
+	var privilegeObj = req.session.loggedInAdmin;
+	var rows={};
+
+	pool.getConnection(function(err,connection) {
+
+		var sql = 'DELETE FROM PRE_LOAD_VNF_DATA WHERE id =' + connection.escape(req.sanitize(req.query.id));
+		console.log(sql);
+		if(err){
+			console.error( String(err) ); // ALARM
+			res.render("pages/err", {result:{code:'error', msg:"Unable to get database connection. "+ String(err)},header:process.env.MAIN_MENU});
+			return;
+		}
+
+		connection.query(sql, function(err,result)
+		{
+			connection.release();
+      if (err) {
+        callback(err,'Database operation failed. ' + err );
+				return;
+      }
+      else
+     	{
+				if (result.affectedRows == 0)
+				{
+					callback('No rows deleted.');
+					return;
+				}
+				console.log('rows deleted: ' + result.affectedRows);
+				callback(null, result.affectedRows);
+				return;
+     	}
+		});
+	}); // end of getConnection
+};
+
+exports.deleteVnfNetworkData = function(req,res,callback){
+
+	var privilegeObj = req.session.loggedInAdmin;
+	var rows={};
+
+	pool.getConnection(function(err,connection) {
+
+		var sql = 'DELETE FROM PRE_LOAD_VNF_NETWORK_DATA WHERE id =' + connection.escape(req.sanitize(req.query.id));
+		console.log(sql);
+		if(err){
+			console.error( String(err) ); // ALARM
+			res.render("pages/err", {result:{code:'error', msg:"Unable to get database connection. "+ String(err)},header:process.env.MAIN_MENU});
+			return;
+		}
+
+		connection.query(sql, function(err,result)
+		{
+			connection.release();
+      if (err) {
+        callback(err,'Database operation failed. ' + err );
+				return;
+      }
+      else
+     	{
+				if (result.affectedRows == 0)
+				{
+					callback('No rows deleted.');
+					return;
+				}
+				console.log('rows deleted: ' + result.affectedRows);
+				callback(null, result.affectedRows);
+				return;
+     	}
+		});
+	}); // end of getConnection
+};
 
 // Add to SVC_LOGIC table
 exports.addDG = function(_module, version, rpc, mode, xmlfile, req,res){
@@ -1095,131 +1210,193 @@ exports.addDG = function(_module, version, rpc, mode, xmlfile, req,res){
     }); // end of getConnection
 };
 
+exports.updatePreloadStatus = function(sql,req,res,_module,rpc,version,mode,callback){
+
+	pool.getConnection(function(err,connection) {
+    
+    if(err){
+			console.error( String(err) ); // ALARM
+      callback(err, 'Unable to get database connection.' + err);
+			return;
+    }
+
+		var sql = _sql + " WHERE id = " + connection.escape(req.query.id);
+
+		console.log(sql);
+    connection.query(sql, function(err,result){
+
+    	connection.release();
+			if(err){
+        callback(err, 'Unable to get database connection.' + err);
+				return;
+      }
+      else
+      {
+				if (result.affectedRows == 0)
+				{
+					callback('Unable to update preload status.');
+					return;
+				}
+				callback(null, result.affectedRows);
+				return;
+      }
+    }); //end query
+  }); // end getConnection
+}
+
 exports.activate = function(req,res,_module,rpc,version,mode,callback){
 
-	var sql = "UPDATE SVC_LOGIC SET active=\'Y\' WHERE module=\'"
-            + _module + "' AND rpc=\'"
-            + rpc + "' AND version=\'"
-            +  version + "' AND mode=\'"
-            +  mode + "'";
-
-	console.log('SQL='+sql);
-
-    pool.getConnection(function(err,connection) {
+	pool.getConnection(function(err,connection) {
     
-        if(err){
+    if(err){
 			console.error( String(err) ); // ALARM
-            callback(err, 'Unable to get database connection.' + err);
+      callback(err, 'Unable to get database connection.' + err);
 			return;
-        }
+    }
 
-        connection.query(sql, function(err,result){
+		var sql = "UPDATE SVC_LOGIC SET active=\'Y\' WHERE "
+			+ "module = " + connection.escape(_module) + " AND "
+			+ "rpc = " + connection.escape(rpc) + " AND "
+			+ "version = " + connection.escape(version) + " AND "
+			+ "mode = " + connection.escape(mode);
 
-            connection.release();
+		console.log('SQL='+sql);
+    connection.query(sql, function(err,result){
+
+    	connection.release();
 			if(err){
-            	callback(err, 'Unable to get database connection.' + err);
-        	}
-            else
-            {
-                 callback(null,'');
-            }
-       }); //end query
-    }); // end getConnection
+        callback(err, 'Unable to get database connection.' + err);
+				return;
+      }
+      else
+      {
+				if (result.affectedRows == 0)
+				{
+					callback('Unable to activate directed graph.');
+					return;
+				}
+				console.log('rows deleted: ' + result.affectedRows);
+				callback(null, result.affectedRows);
+				return;
+      }
+    }); //end query
+  }); // end getConnection
 }
 
 
 exports.deactivate = function(req,res,_module,rpc,version,mode,callback){
 
-    var sql = "UPDATE SVC_LOGIC SET active=\'N\' WHERE module=\'"
-            + _module + "' AND rpc=\'"
-            + rpc + "' AND version=\'"
-            +  version + "' AND mode=\'"
-            +  mode + "'";
+	pool.getConnection(function(err,connection) {
 
-	console.log('SQL='+sql);
-
-    pool.getConnection(function(err,connection) {
-
-        if(err){
+		if(err){
 			console.error( String(err) ); // ALARM
-            callback(err, 'Unable to get database connection.' + err);
+      callback(err, 'Unable to get database connection.' + err);
 			return;
-        }
+    }
 
-        connection.query(sql, function(err,result){
+    var sql = "UPDATE SVC_LOGIC SET active=\'N\' WHERE "
+			+ "module = " + connection.escape(_module) + " AND "
+			+ "rpc = " + connection.escape(rpc) + " AND "
+			+ "version = " + connection.escape(version) + " AND "
+			+ "mode = " + connection.escape(mode);
 
-            connection.release();
-            if(err){
-                callback(err, 'Unable to get database connection.' + err);
-            }
-            else
-            {
-                 callback(null,'');
-            }
-       }); //end query
-    }); // end getConnection
+		console.log('SQL='+sql);
+		connection.query(sql, function(err,result){
+
+			connection.release();
+      if(err){
+        callback(err, 'Unable to get database connection.' + err);
+				return;
+      }
+      else
+      {
+				if (result.affectedRows == 0)
+				{
+					callback('Unable to deactivate directed graph.');
+					return;
+				}
+				console.log('rows deleted: ' + result.affectedRows);
+				callback(null, result.affectedRows);
+				return;
+      }
+    }); //end query
+  }); // end getConnection
 }
 
 exports.global_deactivate = function(req,res,_module,rpc,mode,callback){
 
-    var sql = "UPDATE SVC_LOGIC SET active=\'N\' WHERE module=\'"
-            + _module + "' AND rpc=\'"
-            + rpc + "' AND mode=\'"
-            +  mode + "'";
+	pool.getConnection(function(err,connection) {
 
+ 		if(err){
+      callback(err, 'Unable to get database connection.' + err);
+      return;
+    }
 
-    pool.getConnection(function(err,connection) {
+		// deactivate all versions
+    var sql = "UPDATE SVC_LOGIC SET active=\'N\' WHERE "
+			+ "module = " + connection.escape(_module) + " AND "
+			+ "rpc = " + connection.escape(rpc) + " AND "
+			+ "mode = " + connection.escape(mode);
 
-        if(err){
-            callback(err, 'Unable to get database connection.' + err);
-            return;
-        }
+		console.log(sql);
+		connection.query(sql, function(err,result){
 
-        connection.query(sql, function(err,result){
-
-            connection.release();
-            if(err){
-                callback(err, err);
-            }
-            else
-            {
-                 callback(null,'');
-            }
-       }); //end query
-    }); // end getConnection
+			connection.release();
+      if(err){
+        callback(err, err);
+				return;
+			}
+      else
+      {
+				if (result.affectedRows == 0)
+				{
+					callback('Unable to set all versions to deactivate.');
+					return;
+				}
+        callback(null,result.affectedRows);
+				return;
+      }
+    }); //end query
+  }); // end getConnection
 }
 
 
 exports.deleteDG = function(req,res,_module,rpc,version,mode,callback){
 
-	var sql = "DELETE FROM SVC_LOGIC WHERE module=\'"
-            + _module + "' AND rpc=\'"
-            + rpc + "' AND version=\'"
-            +  version + "' AND mode=\'"
-            +  mode + "'";
+	pool.getConnection(function(err,connection) {
 
-	console.log('SQL='+sql);
-
-    pool.getConnection(function(err,connection) {
-
-        if(err){
+		if(err){
 			console.error( String(err) ); // ALARM
-            callback(err, 'Unable to get database connection.' + err);
+      callback(err, 'Unable to get database connection.' + err);
 			return;
-        }
+    }
 
-        connection.query(sql, function(err,result){
+		var sql = "DELETE FROM SVC_LOGIC WHERE "
+			+ "module = " + connection.escape(_module) + " AND "
+			+ "rpc = " + connection.escape(rpc) + " AND "
+			+ "version = " + connection.escape(version) + " AND "
+			+ "mode = " + connection.escape(mode);
 
-            connection.release();
-            if(err){
-                callback(err, 'Unable to get database connection.' + err);
-            }
-            else
-            {
-                 callback(null,'');
-            }
-       }); //end query
-    }); // end getConnection
+		console.log(sql);
+    connection.query(sql, function(err,result){
+
+    	connection.release();
+      if(err){
+      	callback(err, 'Unable to get database connection.' + err);
+				return;
+      }
+      else
+      {
+				if (result.affectedRows == 0)
+				{
+					callback('No rows deleted.');
+					return;
+				}
+        callback(null,result.affectedRows);
+				return;
+      }
+    }); //end query
+  }); // end getConnection
 }
 
 

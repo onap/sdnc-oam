@@ -195,8 +195,7 @@ router.get('/loadVnfNetworkData', csp.checkAuth, csp.checkPriv, function(req,res
 
 	// if successful then update the status
 	tasks.push(function(arg1,callback){
-		dbRoutes.executeSQL("UPDATE PRE_LOAD_VNF_NETWORK_DATA SET status='uploaded',svc_request_id='"
-            + svc_req_id + "',svc_action='reserve' WHERE id="+req.query.id,req,res,callback);
+		dbRoutes.updatePreloadStatus("UPDATE PRE_LOAD_VNF_NETWORK_DATA SET status='uploaded',svc_request_id='" + svc_req_id + "',svc_action='reserve'",req,res,callback);
 	});
 
 	// use the waterfall method of making calls
@@ -220,7 +219,7 @@ router.get('/loadVnfNetworkData', csp.checkAuth, csp.checkPriv, function(req,res
 router.get('/loadVnfData', csp.checkAuth, csp.checkPriv, function(req,res) 
 {
 	var privilegeObj = req.session.loggedInAdmin;
-	var full_path_file_name = process.cwd() + "/uploads/" + req.query.filename
+	var full_path_file_name = process.cwd() + "/uploads/" + req.sanitize(req.query.filename)
   var msgArray = new Array();
 
 	if ( req.query.status != 'pending' )
@@ -234,7 +233,7 @@ router.get('/loadVnfData', csp.checkAuth, csp.checkPriv, function(req,res)
 	var now = new Date();
 	var df = dateFormat(now,"isoDateTime");
 	const rnum = crypto.randomBytes(4);
-	var svc_req_id = req.query.id + "-" + df + "-" + rnum.toString('hex');
+	var svc_req_id = req.sanitize(req.query.id) + "-" + df + "-" + rnum.toString('hex');
 	var tasks = [];
 
 	// first get the contents of the file from the db
@@ -272,8 +271,7 @@ router.get('/loadVnfData', csp.checkAuth, csp.checkPriv, function(req,res)
 
 	// if successful then update the status
 	tasks.push(function(arg1,callback){
-		dbRoutes.executeSQL("UPDATE PRE_LOAD_VNF_DATA SET status='uploaded',svc_request_id='"
-			+ svc_req_id + "',svc_action='reserve' WHERE id="+req.query.id,req,res,callback);
+		dbRoutes.executeSQL("UPDATE PRE_LOAD_VNF_DATA SET status='uploaded',svc_request_id='" + svc_req_id + "',svc_action='reserve'",req,res,callback);
 	});
 
 	// use the waterfall method of making calls
@@ -298,13 +296,12 @@ router.get('/deleteVnfNetworkData', csp.checkAuth, csp.checkPriv, csrfProtection
 
     var privilegeObj = req.session.loggedInAdmin;
     var tasks = [];
-    var sql = 'DELETE FROM PRE_LOAD_VNF_NETWORK_DATA WHERE id=' + req.query.id;
 
     // if status is pending, then we do not have to call
     // ODL, just remove from db
     if (req.query.status == 'pending'){
         tasks.push(function(callback) {
-            dbRoutes.executeSQL(sql,req,res,callback);
+            dbRoutes.deleteVnfNetworkData(req,res,callback);
         });
     } else {
 		// format the request to ODL
@@ -349,17 +346,14 @@ router.get('/deleteVnfNetworkData', csp.checkAuth, csp.checkPriv, csrfProtection
 
 router.get('/deleteVnfData', csp.checkAuth, csp.checkPriv, csrfProtection, function(req,res) {
 
-console.log('deleteVnfData');
-
     var privilegeObj = req.session.loggedInAdmin;
     var tasks = [];
-    var sql = 'DELETE FROM PRE_LOAD_VNF_DATA WHERE id=' + req.query.id;
 
     // if status is pending, then we do not have to call
     // ODL, just remove from db
     if (req.query.status == 'pending'){
         tasks.push(function(callback) {
-            dbRoutes.executeSQL(sql,req,res,callback);
+            dbRoutes.deleteVnfData(req,res,callback);
         });
     } else {
 			var inputString = '{"input":{"vnf-topology-information":{"vnf-topology-identifier":{"service-type":"SDN-MOBILITY","vnf-name": "';
@@ -448,10 +442,9 @@ router.get('/deleteVnfProfile', csp.checkAuth, csp.checkPriv, csrfProtection, fu
     var tasks = [];
     var sql = '';
 
-    sql = "DELETE FROM VNF_PROFILE WHERE vnf_type='" + req.query.vnf_type + "'";
 
     tasks.push(function(callback) {
-        dbRoutes.executeSQL(sql,req,res,callback);
+        dbRoutes.deleteVnfProfile(req,res,callback);
     });
     async.series(tasks, function(err,result)
     {
