@@ -1,0 +1,64 @@
+---
+- hosts: all
+  tasks:
+
+  - name: parameter neIdentifier
+    set_fact:
+      ne_identifier: "{{neIdentifier}}"
+    when: neIdentifier is defined
+
+  - name: parameter swVersionToBeActivated
+    set_fact:
+      sw_version_to_be_activated: "{{swVersionToBeActivated}}"
+    when: swVersionToBeActivated is defined
+
+  - name: compatible with parameter pnfId
+    set_fact:
+      ne_identifier: "{{pnfId}}"
+    when: neIdentifier is not defined and pnfId is defined
+
+  - name: execute activateNESw operation
+    shell: ./swm/activateNESw --swVersionToBeActivated {{sw_version_to_be_activated}} --neIdentifier {{ne_identifier}}
+    ignore_errors: yes
+    register: activate_result
+
+  - name: parse response of activateNESw
+    set_fact:
+      activate_response: "{{ activate_result.stdout | from_json }}"
+
+  - name: build failure message
+    set_fact:
+      activate_failure_msg: "{{ activate_result.stdout }}"
+    when: activate_result is failed
+
+  - name: write failure message to file
+    local_action: copy content="{{activate_failure_msg}}" dest="{{inventory_dir}}/{{inventory_hostname}}_results.txt"
+    when: activate_result is failed
+
+  - name: use result of activateNESw as the result of Playbook
+    fail:
+      msg: "{{activate_failure_msg}}"
+    when: activate_result is failed
+
+  - name: fetch file of Notification notifyActivateNESwStatusChanged
+    fetch:
+      dest: "{{inventory_dir}}"
+      src: "/tmp/notifyActivateNESwStatusChanged-{{activate_response.activateProcessId}}"
+
+  - name: read contents of Notification notifyActivateNESwStatusChanged
+    set_fact:
+      activate_notification: "{{ lookup('file', '{{inventory_dir}}/{{inventory_hostname}}/tmp/notifyActivateNESwStatusChanged-{{activate_response.activateProcessId}}') | from_json }}"
+
+  - name: delete file of Notification notifyActivateNESwStatusChanged
+    local_action: file path="{{inventory_dir}}/{{inventory_hostname}}/tmp/notifyActivateNESwStatusChanged-{{activate_response.activateProcessId}}" state=absent
+
+  - name: build success message
+    set_fact:
+      activate_success_msg:
+        "result": "Success"
+    when: activate_notification.activateOperationStatus == "NE_SWACTIVATION_SUCCESSFUL"
+
+  - name: write success message to file
+    local_action: copy content="{{activate_success_msg}}" dest="{{inventory_dir}}/{{inventory_hostname}}_results.txt"
+    when: activate_notification.activateOperationStatus == "NE_SWACTIVATION_SUCCESSFUL"
+

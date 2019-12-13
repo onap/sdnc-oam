@@ -1,0 +1,64 @@
+---
+- hosts: all
+  tasks:
+
+  - name: parameter neIdentifier
+    set_fact:
+      ne_identifier: "{{neIdentifier}}"
+    when: neIdentifier is defined
+
+  - name: parameter swToBeDownloaded
+    set_fact:
+      sw_to_be_downloaded: "{{swToBeDownloaded}}"
+    when: swToBeDownloaded is defined
+
+  - name: compatible with parameter pnfId
+    set_fact:
+      ne_identifier: "{{pnfId}}"
+    when: neIdentifier is not defined and pnfId is defined
+
+  - name: execute downloadNESw operation
+    shell: ./swm/downloadNESw --neIdentifier {{ne_identifier}} --swToBeDownloaded {{sw_to_be_downloaded}}
+    ignore_errors: yes
+    register: download_result
+
+  - name: parse response of downloadNESw
+    set_fact:
+      download_response: "{{ download_result.stdout | from_json }}"
+
+  - name: build failure message
+    set_fact:
+      download_failure_msg: "{{ download_result.stdout }}"
+    when: download_result is failed
+
+  - name: write failure message to file
+    local_action: copy content="{{download_failure_msg}}" dest="{{inventory_dir}}/{{inventory_hostname}}_results.txt"
+    when: download_result is failed
+
+  - name: use result of downloadNESw as the result of Playbook
+    fail:
+      msg: "{{download_failure_msg}}"
+    when: download_result is failed
+
+  - name: fetch file of Notification notifyDownloadNESwStatusChanged
+    fetch:
+      dest: "{{inventory_dir}}"
+      src: "/tmp/notifyDownloadNESwStatusChanged-{{download_response.downloadProcessId}}"
+
+  - name: read contents of Notification notifyDownloadNESwStatusChanged
+    set_fact:
+      download_notification: "{{ lookup('file', '{{inventory_dir}}/{{inventory_hostname}}/tmp/notifyDownloadNESwStatusChanged-{{download_response.downloadProcessId}}') | from_json }}"
+
+  - name: delete file of Notification notifyDownloadNESwStatusChanged
+    local_action: file path="{{inventory_dir}}/{{inventory_hostname}}/tmp/notifyDownloadNESwStatusChanged-{{download_response.downloadProcessId}}" state=absent
+
+  - name: build success message
+    set_fact:
+      download_success_msg:
+        "result": "Success"
+    when: download_notification.downloadOperationStatus == "NE_SWDOWNLOAD_SUCCESSFUL"
+
+  - name: write success message to file
+    local_action: copy content="{{download_success_msg}}" dest="{{inventory_dir}}/{{inventory_hostname}}_results.txt"
+    when: download_notification.downloadOperationStatus == "NE_SWDOWNLOAD_SUCCESSFUL"
+
