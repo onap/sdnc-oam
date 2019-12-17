@@ -1,0 +1,26 @@
+## Velocity template for creating the payload for creating A1 policy type
+#set($begCntr1=0)
+#set($endCntr1=0)
+#set($entries=$ctx.getAttribute("create-policy-type-input.properties_length"))
+#set($endCntr1=$endCntr1.parseInt($entries))
+#set( $endCntr1 = $endCntr1 - 1)
+{
+  "description": "$ctx.getAttribute("create-policy-type-input.description")",
+  "name": "$ctx.getAttribute("create-policy-type-input.name")",
+  "policy_type_id": $ctx.getAttribute("create-policy-type-input.policy-type-id"),
+  "create_schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "additionalProperties": false,
+    "type": "object",
+    "properties": {#foreach($no1 in [$begCntr1..$endCntr1])
+    "$ctx.getAttribute("create-policy-type-input.properties[$no1].property-name")" : {
+      #set($begCntr2=0)
+      #set($endCntr2=0)
+      #set($entries=$ctx.getAttribute("create-policy-type-input.properties[$no1].policy-statements_length"))
+      #set($endCntr2=$endCntr2.parseInt($entries))
+      #set( $endCntr2 = $endCntr2 - 1)
+      #foreach($no2 in [$begCntr2..$endCntr2])
+        "$ctx.getAttribute("create-policy-type-input.properties[$no1].policy-statements[$no2].policy-statement")" :
+        "$ctx.getAttribute("create-policy-type-input.properties[$no1].policy-statements[$no2].policy-statement-value")"
+         #if( $no2 < $endCntr2), #end#end}#if( $no1 < $endCntr1), #end #end
+}}}
