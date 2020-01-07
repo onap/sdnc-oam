@@ -1,7 +1,7 @@
 <service-logic
     xmlns='http://www.onap.org/sdnc/svclogic'
     xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='LCM' version='${project.version}'>
-    <method rpc='download-ne-sw' mode='sync'>
+    <method rpc='download-n-e-sw' mode='sync'>
         <block>
             <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
                 <parameter name='fileName' value='%SDNC_CONFIG_DIR%/lcm-dg.properties' />
@@ -14,7 +14,7 @@
                 <parameter name='outputPayloadField' value='.Output' />
             </set>
             <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='jsonStringToCtx'>
-                <parameter name='source' value='download-ne-sw-input.payload' />
+                <parameter name='source' value='download-n-e-sw-input.payload' />
                 <parameter name='outputPath' value='payloadJson' />
                 <parameter name='isEscaped' value='true' />
             </execute>
@@ -28,7 +28,7 @@
                         <switch test='`$payloadJson.playbook-name`'>
                             <outcome value=''>
                                 <set>
-                                    <parameter name='playbookname' value='`$prop.lcm.pnf.download-ne-sw.playbookname`'/>
+                                    <parameter name='playbookname' value='`$prop.lcm.pnf.download-n-e-sw.playbookname`'/>
                                 </set>
                             </outcome>
                             <outcome value='Other'>
@@ -43,11 +43,11 @@
                     <block>
                         <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='getAttributeValue'>
                             <parameter name='outputPath' value='playbookname' />
-                            <parameter name='source' value="`'prop.lcm.' + $payloadJson.nf-naming-code + '.download-ne-sw.playbookname'`" />
+                            <parameter name='source' value="`'prop.lcm.' + $payloadJson.nf-naming-code + '.download-n-e-sw.playbookname'`" />
                         </execute>
                         <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 	resource="generic-vnf" 
-		key="generic-vnf.vnf-id = $download-ne-sw-input.action-identifiers.vnf-id" 
+		key="generic-vnf.vnf-id = $download-n-e-sw-input.action-identifiers.vnf-id" 
 		local-only="false" 
 		pfx='aai.generic-vnf'>
                             <outcome value='success'>
@@ -56,7 +56,7 @@
                                         <outcome value=''>
                                             <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='getAttributeValue'>
                                                 <parameter name='outputPath' value='playbookname' />
-                                                <parameter name='source' value="`'prop.lcm.' + $aai.generic-vnf.nf-naming-code + '.download-ne-sw.playbookname'`" />
+                                                <parameter name='source' value="`'prop.lcm.' + $aai.generic-vnf.nf-naming-code + '.download-n-e-sw.playbookname'`" />
                                             </execute>
                                         </outcome>
                                     </switch>
@@ -72,7 +72,7 @@
             <switch test='`$playbookname`'>
                 <outcome value=''>
                     <set>
-                        <parameter name='playbookname' value='`$prop.lcm.download-ne-sw.playbookname`'/>
+                        <parameter name='playbookname' value='`$prop.lcm.download-n-e-sw.playbookname`'/>
                     </set>
                 </outcome>
             </switch>
@@ -98,11 +98,11 @@
                 <parameter name='User' value='`$prop.ansible.user`'/>
                 <parameter name='Password' value='`$prop.ansible.password`'/>
                 <parameter name='LocalParameters' value='`$prop.ansible.lcm.localparameters`'/>
-                <parameter name='EnvParameters' value='`$download-ne-sw-input.payload`'/>
+                <parameter name='EnvParameters' value='`$download-n-e-sw-input.payload`'/>
                 <parameter name='NodeList' value="`$nodelist`"/>
                 <parameter name='Timeout' value='`$prop.ansible.timeout`'/>
                 <parameter name='Version' value='`$prop.ansible.version`'/>
-                <parameter name='Id' value='`$download-ne-sw-input.common-header.request-id`'/>
+                <parameter name='Id' value='`$download-n-e-sw-input.common-header.request-id`'/>
                 <parameter name='PlaybookName' value='`$playbookname`'/>
                 <outcome value='not-found'>
                     <block>
@@ -113,18 +113,18 @@
                         <block>
                             <set>
                                 <parameter name='lcm-dmaap.version' value='`$prop.lcm.dmaap.version`'/>
-                                <parameter name='lcm-dmaap.correlation-id' value="`$download-ne-sw-input.common-header.request-id + '-' + $download-ne-sw-input.common-header.sub-request-id`"/>
+                                <parameter name='lcm-dmaap.correlation-id' value="`$download-n-e-sw-input.common-header.request-id + '-' + $download-n-e-sw-input.common-header.sub-request-id`"/>
                                 <parameter name='lcm-dmaap.partition' value='`$prop.lcm.dmaap.partition`'/>
-                                <parameter name='lcm-dmaap.rpc-name' value='download-ne-sw'/>
+                                <parameter name='lcm-dmaap.rpc-name' value='download-n-e-sw'/>
                                 <parameter name='lcm-dmaap.type' value='`$prop.lcm.dmaap.type`'/>
-                                <parameter name='lcm-dmaap.timestamp' value='`$download-ne-sw-input.common-header.timestamp`'/>
-                                <parameter name='lcm-dmaap.api-ver' value='`$download-ne-sw-input.common-header.api-ver`'/>
-                                <parameter name='lcm-dmaap.originator-id' value='`$download-ne-sw-input.common-header.originator-id`'/>
-                                <parameter name='lcm-dmaap.request-id' value='`$download-ne-sw-input.common-header.request-id`'/>
-                                <parameter name='lcm-dmaap.sub-request-id' value='`$download-ne-sw-input.common-header.sub-request-id`'/>
-                                <parameter name='lcm-dmaap.flags.mode' value='`$download-ne-sw-input.common-header.flags.mode`'/>
-                                <parameter name='lcm-dmaap.flags.force' value='`$download-ne-sw-input.common-header.flags.force`'/>
-                                <parameter name='lcm-dmaap.flags.ttl' value='`$download-ne-sw-input.common-header.flags.ttl`'/>
+                                <parameter name='lcm-dmaap.timestamp' value='`$download-n-e-sw-input.common-header.timestamp`'/>
+                                <parameter name='lcm-dmaap.api-ver' value='`$download-n-e-sw-input.common-header.api-ver`'/>
+                                <parameter name='lcm-dmaap.originator-id' value='`$download-n-e-sw-input.common-header.originator-id`'/>
+                                <parameter name='lcm-dmaap.request-id' value='`$download-n-e-sw-input.common-header.request-id`'/>
+                                <parameter name='lcm-dmaap.sub-request-id' value='`$download-n-e-sw-input.common-header.sub-request-id`'/>
+                                <parameter name='lcm-dmaap.flags.mode' value='`$download-n-e-sw-input.common-header.flags.mode`'/>
+                                <parameter name='lcm-dmaap.flags.force' value='`$download-n-e-sw-input.common-header.flags.force`'/>
+                                <parameter name='lcm-dmaap.flags.ttl' value='`$download-n-e-sw-input.common-header.flags.ttl`'/>
                                 <parameter name='lcm-dmaap.status.code' value='`$org.onap.appc.adapter.ansible.result.code`' />
                                 <parameter name='lcm-dmaap.status.message' value='`$org.onap.appc.adapter.ansible.message`'/>
                             </set>
@@ -155,18 +155,18 @@
                     <block>
                         <set>
                             <parameter name='lcm-dmaap.version' value='`$prop.lcm.dmaap.version`'/>
-                            <parameter name='lcm-dmaap.correlation-id' value="`$download-ne-sw-input.common-header.request-id + '-' + $download-ne-sw-input.common-header.sub-request-id`"/>
+                            <parameter name='lcm-dmaap.correlation-id' value="`$download-n-e-sw-input.common-header.request-id + '-' + $download-n-e-sw-input.common-header.sub-request-id`"/>
                             <parameter name='lcm-dmaap.partition' value='`$prop.lcm.dmaap.partition`'/>
-                            <parameter name='lcm-dmaap.rpc-name' value='download-ne-sw'/>
+                            <parameter name='lcm-dmaap.rpc-name' value='download-n-e-sw'/>
                             <parameter name='lcm-dmaap.type' value='`$prop.lcm.dmaap.type`'/>
-                            <parameter name='lcm-dmaap.timestamp' value='`$download-ne-sw-input.common-header.timestamp`'/>
-                            <parameter name='lcm-dmaap.api-ver' value='`$download-ne-sw-input.common-header.api-ver`'/>
-                            <parameter name='lcm-dmaap.originator-id' value='`$download-ne-sw-input.common-header.originator-id`'/>
-                            <parameter name='lcm-dmaap.request-id' value='`$download-ne-sw-input.common-header.request-id`'/>
-                            <parameter name='lcm-dmaap.sub-request-id' value='`$download-ne-sw-input.common-header.sub-request-id`'/>
-                            <parameter name='lcm-dmaap.flags.mode' value='`$download-ne-sw-input.common-header.flags.mode`'/>
-                            <parameter name='lcm-dmaap.flags.force' value='`$download-ne-sw-input.common-header.flags.force`'/>
-                            <parameter name='lcm-dmaap.flags.ttl' value='`$download-ne-sw-input.common-header.flags.ttl`'/>
+                            <parameter name='lcm-dmaap.timestamp' value='`$download-n-e-sw-input.common-header.timestamp`'/>
+                            <parameter name='lcm-dmaap.api-ver' value='`$download-n-e-sw-input.common-header.api-ver`'/>
+                            <parameter name='lcm-dmaap.originator-id' value='`$download-n-e-sw-input.common-header.originator-id`'/>
+                            <parameter name='lcm-dmaap.request-id' value='`$download-n-e-sw-input.common-header.request-id`'/>
+                            <parameter name='lcm-dmaap.sub-request-id' value='`$download-n-e-sw-input.common-header.sub-request-id`'/>
+                            <parameter name='lcm-dmaap.flags.mode' value='`$download-n-e-sw-input.common-header.flags.mode`'/>
+                            <parameter name='lcm-dmaap.flags.force' value='`$download-n-e-sw-input.common-header.flags.force`'/>
+                            <parameter name='lcm-dmaap.flags.ttl' value='`$download-n-e-sw-input.common-header.flags.ttl`'/>
                             <parameter name='lcm-dmaap.status.code' value='`$org.onap.appc.adapter.ansible.result.code`' />
                             <parameter name='lcm-dmaap.status.message' value='`$org.onap.appc.adapter.ansible.message`'/>
                         </set>
@@ -198,18 +198,18 @@
                             <block>
                                 <set>
                                     <parameter name='lcm-dmaap.version' value='`$prop.lcm.dmaap.version`'/>
-                                    <parameter name='lcm-dmaap.correlation-id' value="`$download-ne-sw-input.common-header.request-id + '-' + $download-ne-sw-input.common-header.sub-request-id`"/>
+                                    <parameter name='lcm-dmaap.correlation-id' value="`$download-n-e-sw-input.common-header.request-id + '-' + $download-n-e-sw-input.common-header.sub-request-id`"/>
                                     <parameter name='lcm-dmaap.partition' value='`$prop.lcm.dmaap.partition`'/>
-                                    <parameter name='lcm-dmaap.rpc-name' value='download-ne-sw'/>
+                                    <parameter name='lcm-dmaap.rpc-name' value='download-n-e-sw'/>
                                     <parameter name='lcm-dmaap.type' value='`$prop.lcm.dmaap.type`'/>
-                                    <parameter name='lcm-dmaap.timestamp' value='`$download-ne-sw-input.common-header.timestamp`'/>
-                                    <parameter name='lcm-dmaap.api-ver' value='`$download-ne-sw-input.common-header.api-ver`'/>
-                                    <parameter name='lcm-dmaap.originator-id' value='`$download-ne-sw-input.common-header.originator-id`'/>
-                                    <parameter name='lcm-dmaap.request-id' value='`$download-ne-sw-input.common-header.request-id`'/>
-                                    <parameter name='lcm-dmaap.sub-request-id' value='`$download-ne-sw-input.common-header.sub-request-id`'/>
-                                    <parameter name='lcm-dmaap.flags.mode' value='`$download-ne-sw-input.common-header.flags.mode`'/>
-                                    <parameter name='lcm-dmaap.flags.force' value='`$download-ne-sw-input.common-header.flags.force`'/>
-                                    <parameter name='lcm-dmaap.flags.ttl' value='`$download-ne-sw-input.common-header.flags.ttl`'/>
+                                    <parameter name='lcm-dmaap.timestamp' value='`$download-n-e-sw-input.common-header.timestamp`'/>
+                                    <parameter name='lcm-dmaap.api-ver' value='`$download-n-e-sw-input.common-header.api-ver`'/>
+                                    <parameter name='lcm-dmaap.originator-id' value='`$download-n-e-sw-input.common-header.originator-id`'/>
+                                    <parameter name='lcm-dmaap.request-id' value='`$download-n-e-sw-input.common-header.request-id`'/>
+                                    <parameter name='lcm-dmaap.sub-request-id' value='`$download-n-e-sw-input.common-header.sub-request-id`'/>
+                                    <parameter name='lcm-dmaap.flags.mode' value='`$download-n-e-sw-input.common-header.flags.mode`'/>
+                                    <parameter name='lcm-dmaap.flags.force' value='`$download-n-e-sw-input.common-header.flags.force`'/>
+                                    <parameter name='lcm-dmaap.flags.ttl' value='`$download-n-e-sw-input.common-header.flags.ttl`'/>
                                     <parameter name='lcm-dmaap.status.code' value='`$org.onap.appc.adapter.ansible.result.code`' />
                                     <parameter name='lcm-dmaap.status.message' value='`$org.onap.appc.adapter.ansible.message`'/>
                                 </set>
@@ -239,18 +239,18 @@
                             <block>
                                 <set>
                                     <parameter name='lcm-dmaap.version' value='`$prop.lcm.dmaap.version`'/>
-                                    <parameter name='lcm-dmaap.correlation-id' value="`$download-ne-sw-input.common-header.request-id + '-' + $download-ne-sw-input.common-header.sub-request-id`"/>
+                                    <parameter name='lcm-dmaap.correlation-id' value="`$download-n-e-sw-input.common-header.request-id + '-' + $download-n-e-sw-input.common-header.sub-request-id`"/>
                                     <parameter name='lcm-dmaap.partition' value='`$prop.lcm.dmaap.partition`'/>
-                                    <parameter name='lcm-dmaap.rpc-name' value='download-ne-sw'/>
+                                    <parameter name='lcm-dmaap.rpc-name' value='download-n-e-sw'/>
                                     <parameter name='lcm-dmaap.type' value='`$prop.lcm.dmaap.type`'/>
-                                    <parameter name='lcm-dmaap.timestamp' value='`$download-ne-sw-input.common-header.timestamp`'/>
-                                    <parameter name='lcm-dmaap.api-ver' value='`$download-ne-sw-input.common-header.api-ver`'/>
-                                    <parameter name='lcm-dmaap.originator-id' value='`$download-ne-sw-input.common-header.originator-id`'/>
-                                    <parameter name='lcm-dmaap.request-id' value='`$download-ne-sw-input.common-header.request-id`'/>
-                                    <parameter name='lcm-dmaap.sub-request-id' value='`$download-ne-sw-input.common-header.sub-request-id`'/>
-                                    <parameter name='lcm-dmaap.flags.mode' value='`$download-ne-sw-input.common-header.flags.mode`'/>
-                                    <parameter name='lcm-dmaap.flags.force' value='`$download-ne-sw-input.common-header.flags.force`'/>
-                                    <parameter name='lcm-dmaap.flags.ttl' value='`$download-ne-sw-input.common-header.flags.ttl`'/>
+                                    <parameter name='lcm-dmaap.timestamp' value='`$download-n-e-sw-input.common-header.timestamp`'/>
+                                    <parameter name='lcm-dmaap.api-ver' value='`$download-n-e-sw-input.common-header.api-ver`'/>
+                                    <parameter name='lcm-dmaap.originator-id' value='`$download-n-e-sw-input.common-header.originator-id`'/>
+                                    <parameter name='lcm-dmaap.request-id' value='`$download-n-e-sw-input.common-header.request-id`'/>
+                                    <parameter name='lcm-dmaap.sub-request-id' value='`$download-n-e-sw-input.common-header.sub-request-id`'/>
+                                    <parameter name='lcm-dmaap.flags.mode' value='`$download-n-e-sw-input.common-header.flags.mode`'/>
+                                    <parameter name='lcm-dmaap.flags.force' value='`$download-n-e-sw-input.common-header.flags.force`'/>
+                                    <parameter name='lcm-dmaap.flags.ttl' value='`$download-n-e-sw-input.common-header.flags.ttl`'/>
                                     <parameter name='lcm-dmaap.status.code' value='`$org.onap.appc.adapter.ansible.result.code`' />
                                     <parameter name='lcm-dmaap.status.message' value='`$org.onap.appc.adapter.ansible.message`'/>
                                 </set>
@@ -296,18 +296,18 @@
                                         </execute>
                                         <set>
                                             <parameter name='lcm-dmaap.version' value='`$prop.lcm.dmaap.version`'/>
-                                            <parameter name='lcm-dmaap.correlation-id' value="`$download-ne-sw-input.common-header.request-id + '-' + $download-ne-sw-input.common-header.sub-request-id`"/>
+                                            <parameter name='lcm-dmaap.correlation-id' value="`$download-n-e-sw-input.common-header.request-id + '-' + $download-n-e-sw-input.common-header.sub-request-id`"/>
                                             <parameter name='lcm-dmaap.partition' value='`$prop.lcm.dmaap.partition`'/>
-                                            <parameter name='lcm-dmaap.rpc-name' value='download-ne-sw'/>
+                                            <parameter name='lcm-dmaap.rpc-name' value='download-n-e-sw'/>
                                             <parameter name='lcm-dmaap.type' value='`$prop.lcm.dmaap.type`'/>
-                                            <parameter name='lcm-dmaap.timestamp' value='`$download-ne-sw-input.common-header.timestamp`'/>
-                                            <parameter name='lcm-dmaap.api-ver' value='`$download-ne-sw-input.common-header.api-ver`'/>
-                                            <parameter name='lcm-dmaap.originator-id' value='`$download-ne-sw-input.common-header.originator-id`'/>
-                                            <parameter name='lcm-dmaap.request-id' value='`$download-ne-sw-input.common-header.request-id`'/>
-                                            <parameter name='lcm-dmaap.sub-request-id' value='`$download-ne-sw-input.common-header.sub-request-id`'/>
-                                            <parameter name='lcm-dmaap.flags.mode' value='`$download-ne-sw-input.common-header.flags.mode`'/>
-                                            <parameter name='lcm-dmaap.flags.force' value='`$download-ne-sw-input.common-header.flags.force`'/>
-                                            <parameter name='lcm-dmaap.flags.ttl' value='`$download-ne-sw-input.common-header.flags.ttl`'/>
+                                            <parameter name='lcm-dmaap.timestamp' value='`$download-n-e-sw-input.common-header.timestamp`'/>
+                                            <parameter name='lcm-dmaap.api-ver' value='`$download-n-e-sw-input.common-header.api-ver`'/>
+                                            <parameter name='lcm-dmaap.originator-id' value='`$download-n-e-sw-input.common-header.originator-id`'/>
+                                            <parameter name='lcm-dmaap.request-id' value='`$download-n-e-sw-input.common-header.request-id`'/>
+                                            <parameter name='lcm-dmaap.sub-request-id' value='`$download-n-e-sw-input.common-header.sub-request-id`'/>
+                                            <parameter name='lcm-dmaap.flags.mode' value='`$download-n-e-sw-input.common-header.flags.mode`'/>
+                                            <parameter name='lcm-dmaap.flags.force' value='`$download-n-e-sw-input.common-header.flags.force`'/>
+                                            <parameter name='lcm-dmaap.flags.ttl' value='`$download-n-e-sw-input.common-header.flags.ttl`'/>
                                             <parameter name='lcm-dmaap.status.code' value='`$org.onap.appc.adapter.ansible.result.code`' />
                                             <parameter name='lcm-dmaap.status.message' value='`$org.onap.appc.adapter.ansible.message`'/>
                                         </set>
@@ -385,18 +385,18 @@
                                         </execute>
                                         <set>
                                             <parameter name='lcm-dmaap.version' value='`$prop.lcm.dmaap.version`'/>
-                                            <parameter name='lcm-dmaap.correlation-id' value="`$download-ne-sw-input.common-header.request-id + '-' + $download-ne-sw-input.common-header.sub-request-id`"/>
+                                            <parameter name='lcm-dmaap.correlation-id' value="`$download-n-e-sw-input.common-header.request-id + '-' + $download-n-e-sw-input.common-header.sub-request-id`"/>
                                             <parameter name='lcm-dmaap.partition' value='`$prop.lcm.dmaap.partition`'/>
-                                            <parameter name='lcm-dmaap.rpc-name' value='download-ne-sw'/>
+                                            <parameter name='lcm-dmaap.rpc-name' value='download-n-e-sw'/>
                                             <parameter name='lcm-dmaap.type' value='`$prop.lcm.dmaap.type`'/>
-                                            <parameter name='lcm-dmaap.timestamp' value='`$download-ne-sw-input.common-header.timestamp`'/>
-                                            <parameter name='lcm-dmaap.api-ver' value='`$download-ne-sw-input.common-header.api-ver`'/>
-                                            <parameter name='lcm-dmaap.originator-id' value='`$download-ne-sw-input.common-header.originator-id`'/>
-                                            <parameter name='lcm-dmaap.request-id' value='`$download-ne-sw-input.common-header.request-id`'/>
-                                            <parameter name='lcm-dmaap.sub-request-id' value='`$download-ne-sw-input.common-header.sub-request-id`'/>
-                                            <parameter name='lcm-dmaap.flags.mode' value='`$download-ne-sw-input.common-header.flags.mode`'/>
-                                            <parameter name='lcm-dmaap.flags.force' value='`$download-ne-sw-input.common-header.flags.force`'/>
-                                            <parameter name='lcm-dmaap.flags.ttl' value='`$download-ne-sw-input.common-header.flags.ttl`'/>
+                                            <parameter name='lcm-dmaap.timestamp' value='`$download-n-e-sw-input.common-header.timestamp`'/>
+                                            <parameter name='lcm-dmaap.api-ver' value='`$download-n-e-sw-input.common-header.api-ver`'/>
+                                            <parameter name='lcm-dmaap.originator-id' value='`$download-n-e-sw-input.common-header.originator-id`'/>
+                                            <parameter name='lcm-dmaap.request-id' value='`$download-n-e-sw-input.common-header.request-id`'/>
+                                            <parameter name='lcm-dmaap.sub-request-id' value='`$download-n-e-sw-input.common-header.sub-request-id`'/>
+                                            <parameter name='lcm-dmaap.flags.mode' value='`$download-n-e-sw-input.common-header.flags.mode`'/>
+                                            <parameter name='lcm-dmaap.flags.force' value='`$download-n-e-sw-input.common-header.flags.force`'/>
+                                            <parameter name='lcm-dmaap.flags.ttl' value='`$download-n-e-sw-input.common-header.flags.ttl`'/>
                                             <parameter name='lcm-dmaap.status.code' value='`$org.onap.appc.adapter.ansible.result.code`' />
                                             <parameter name='lcm-dmaap.status.message' value='`$org.onap.appc.adapter.ansible.message`'/>
                                         </set>
