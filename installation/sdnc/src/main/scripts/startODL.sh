@@ -171,6 +171,7 @@ then
 fi
 
 cp /opt/opendaylight/current/certs/* /tmp
+cp -r /opt/app/osaaf/local/. /tmp
 
 nohup python ${SDNC_BIN}/installCerts.py &
 
