@@ -1,0 +1,229 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>
+    <method rpc='msa-update-network-to-aai' mode='sync'>
+        <block atomic='true'>
+            <switch test="`$networks.network-id`">
+                <outcome value='otn-topology'>
+                    <block atomic='true'>
+                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='network-resource'  
+     key='network-resource.network-id = $networks.network-id' >
+                            <parameter name='network-id' value='`$networks.network-id`' />
+                            <parameter name='network-type' value='`$networks.network-types`' />
+                        </save>
+                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='esr-thirdparty-sdnc:relationship-list' 
+      key='esr-thirdparty-sdnc.thirdparty-sdnc-id = $prop.sdncRestApi.thirdpartySdnc.id' 
+      force="true" pfx="tmp.AnAI-data">
+                            <parameter name="relationship-list.relationship[0].related-to" value="network-resource" />
+                            <parameter name="relationship-list.relationship[0].related-link" value="`'/network/network-resources/network-resource/' + $networks.network-id`" />
+                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="network-resource.network-id" />
+                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$networks.network-id`" />
+                        </save>
+                        <set>
+                            <parameter name='controller_id' value="`$prop.sdncRestApi.type + '_' + $prop.sdncRestApi.thirdpartySdnc.url`" />
+                        </set>
+                        <for index='nidx' start='0' end='`$networks.node_length`' >
+                            <set>
+                                <parameter name='node.' value='`$networks.node[$nidx].`' />
+                            </set>
+                            <switch test="`$node.node-type`">
+                                <outcome value='SWITCH'>
+                                    <block atomic='true'>
+                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
+                                            <parameter name="ctx-destination" value="pnfname"/>
+                                        </execute>
+                                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf'
+key='pnf.pnf-name = $pnfname' >
+                                            <parameter name='pnf-name' value='`$pnfname`' />
+                                            <parameter name='pnf-id' value='`$node.node-id`' />
+                                            <parameter name='operational-status' value='`$node.node-status`' />
+                                            <parameter name='in-maint' value='true' />
+                                            <parameter name='equip-type' value='`$node.node-type`' />
+                                        </save>
+                                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf:relationship-list' 
+      key='pnf.pnf-name = $pnfname' force="true" pfx="tmp.AnAI-data">
+                                            <parameter name="relationship-list.relationship[0].related-to" value="network-resource" />
+                                            <parameter name="relationship-list.relationship[0].related-link" value="`'/network/network-resources/network-resource/' + $networks.network-id`" />
+                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="network-resource.network-id" />
+                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$networks.network-id`" />
+                                        </save>
+                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                                            <parameter name="original_string" value='`$node.node-id`'/>
+                                            <parameter name="regex" value="-"/>
+                                            <parameter name="ctx_memory_result_key" value="param-prefix1"/>
+                                        </execute>
+                                        <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                            <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/cxf/openroadm/v2/networks/openroadm-network/nodes/' + $param-prefix1[0]`"/>
+                                            <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`"/>
+                                            <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`"/>
+                                            <parameter name="format" value="json"/>
+                                            <parameter name="httpMethod" value="get"/>
+                                            <parameter name="responsePrefix" value="cllires"/>
+                                            <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.msa.jks"/>
+                                            <parameter name="trustStorePassword" value="adminadmin"/>
+                                            <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                                            <parameter name="keyStorePassword" value="adminadmin"/>
+                                            <outcome value='failure'>
+                                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                                    <parameter name="file" value="/opt/opendaylight/current/data/log/optical-service-delete.log" />
+                                                    <parameter name="level" value="info" />
+                                                    <parameter name="field1" value="Getting clli failed"/>
+                                                </record>
+                                            </outcome>
+                                            <outcome value='success'>
+                                                <block atomic='true'>
+                                                    <set>
+                                                        <parameter name='clli' value='`$cllires.supporting-node[0].node-ref`' />
+                                                    </set>
+                                                </block>
+                                            </outcome>
+                                        </execute>
+                                        <for index='tpidx' start='0' end='`$node.termination-point_length`' >
+                                            <set>
+                                                <parameter name='speed-value' value='' />
+                                                <parameter name='available-capacity' value='' />
+                                                <parameter name='network-interface-type' value='' />
+                                            </set>
+                                            <set>
+                                                <parameter name='tp.' value='`$node.termination-point[$tpidx].`' />
+                                            </set>
+                                            <switch test="`$tp.tp-type`">
+                                                <outcome value='XPONDER-NETWORK'>
+                                                    <block atomic='true'>
+                                                        <set>
+                                                            <parameter name='network-interface-type' value='NNI' />
+                                                        </set>
+                                                    </block>
+                                                </outcome>
+                                                <outcome value='XPONDER-CLIENT'>
+                                                    <block atomic='true'>
+                                                        <set>
+                                                            <parameter name='network-interface-type' value='UNI' />
+                                                        </set>
+                                                    </block>
+                                                </outcome>
+                                                <outcome value='Other'></outcome>
+                                            </switch>
+                                            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
+                                                <parameter name="ctx-destination" value="interfaceName"/>
+                                            </execute>
+                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface' 
+      key='pnf.pnf-name = $pnfname
+      AND p-interface.interface-name = $interfaceName' >
+                                                <parameter name='interface-name' value='`$interfaceName`' />
+                                                <parameter name='port-description' value='`$tp.tp-id`' />
+                                                <parameter name='network-ref' value='`$tp.network-ref`' />
+                                                <parameter name='interface-type' value='`$tp.tp-type`' />
+                                                <parameter name='in-maint' value="true" />
+                                                <parameter name='network-interface-type' value='`$network-interface-type`' />
+                                                <parameter name='speed-units' value="Gbps" />
+                                                <parameter name='speed-value' value='100' />
+                                                <parameter name='available-capacity' value='100' />
+                                            </save>
+                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='custom-query' 
+      key="format='resource'"
+      force="true"
+      local-only="false"
+      pfx="data">
+                                                <parameter name='interface-name' value='`$interfaceName`' />
+                                                <parameter name='port-description' value='`$tp.tp-id`' />
+                                            </save>
+                                            <save plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL" key="INSERT INTO TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE VALUES ( $interfaceName , $tp.tp-id , $pnfname , $node.node-id , '100' , $clli , null );"></save>
+                                        </for>
+                                    </block>
+                                </outcome>
+                                <outcome value='Other'></outcome>
+                            </switch>
+                        </for>
+                        <for index='lidx' start='0' end='`$networks.link_length`' >
+                            <set>
+                                <parameter name='link.' value='`$networks.link[$lidx].`' />
+                            </set>
+                            <switch test="`$link.link-type`">
+                                <outcome value='OTN-LINK'>
+                                    <block atomic='true'>
+                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+                                            <parameter name="source" value="`$link.link-id`"/>
+                                            <parameter name="outputPath" value="tmp.link-id"/>
+                                            <parameter name="target" value="#"/>
+                                            <parameter name="replacement" value="_"/>
+                                        </execute>
+                                        <set>
+                                            <parameter name='interface1' value="`$link.source.source-tp`" />
+                                            <parameter name='interface2' value="`$link.destination.dest-tp`" />
+                                            <parameter name='pnf1' value="`$link.source.source-node`" />
+                                            <parameter name='pnf2' value="`$link.destination.dest-node`" />
+                                        </set>
+                                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                            <parameter name="file" value="/opt/opendaylight/current/data/log/optical-service-create.log" />
+                                            <parameter name="level" value="info" />
+                                            <parameter name="field1" value="`$pnf1`"/>
+                                            <parameter name="field2" value="`$interface1`"/>
+                                            <parameter name="field3" value="`$pnf2`"/>
+                                            <parameter name="field4" value="`$interface2`"/>
+                                        </record>
+                                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='logical-link'
+key='logical-link.link-name = $tmp.link-id' >
+                                            <parameter name='link-name' value='`$tmp.link-id`' />
+                                            <parameter name='link-type' value='`$link.link-type`' />
+                                            <parameter name='in-maint' value='true' />
+                                            <parameter name='speed-value' value='100' />
+                                            <parameter name='speed-units' value='Gbps' />
+                                            <parameter name='operational-status' value='`$link.administrative-state`' />
+                                            <parameter name='available-capacity' value='100' />
+                                        </save>
+                                        <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' 
+key='SELECT pnf_name, interface_name 
+from TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE 
+WHERE pnf_id = $link.source.source-node
+AND interface_id = $link.source.source-tp' 
+pfx='db.source'>
+                                            <outcome value='success'>
+                                                <set>
+                                                    <parameter name='pnfname1' value='`$db.source.pnf-name`' />
+                                                    <parameter name='pinterface1' value='`$db.source.interface-name`' />
+                                                </set>
+                                            </outcome>
+                                        </get-resource>
+                                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                            <parameter name="file" value="/opt/opendaylight/current/data/log/svclogic.log" />
+                                            <parameter name="level" value="info" />
+                                            <parameter name="field1" value="print direct name"/>
+                                            <parameter name="field2" value="`$pnfname1`"/>
+                                        </record>
+                                        <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' 
+key='SELECT pnf_name, interface_name 
+from TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE 
+WHERE pnf_id = $link.destination.dest-node
+AND interface_id = $link.destination.dest-tp' 
+pfx='db1.destination'>
+                                            <outcome value='success'>
+                                                <set>
+                                                    <parameter name='pnfname2' value='`$db1.destination.pnf-name`' />
+                                                    <parameter name='pinterface2' value='`$db1.destination.interface-name`' />
+                                                </set>
+                                            </outcome>
+                                        </get-resource>
+                                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='logical-link:relationship-list' 
+      key='logical-link.link-name = $tmp.link-id' force="true" pfx="tmp.AnAI-data">
+                                            <parameter name="relationship-list.relationship[0].related-to" value="p-interface" />
+                                            <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $pnfname1 + '/p-interfaces/p-interface/' + $pinterface1 `" />
+                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="pnf.pnf-name" />
+                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$pnfname1`" />
+                                            <parameter name="relationship-list.relationship[1].related-to" value="p-interface" />
+                                            <parameter name="relationship-list.relationship[1].related-link" value="`'/network/pnfs/pnf/' + $pnfname2 + '/p-interfaces/p-interface/' + $pinterface2 `" />
+                                            <parameter name="relationship-list.relationship[1].relationship-data[0].relationship-key" value="pnf.pnf-name" />
+                                            <parameter name="relationship-list.relationship[1].relationship-data[0].relationship-value" value="`$pnfname2`" />
+                                        </save>
+                                    </block>
+                                </outcome>
+                                <outcome value='Other'></outcome>
+                            </switch>
+                        </for>
+                    </block>
+                </outcome>
+                <outcome value='Other'></outcome>
+            </switch>
+        </block>
+    </method>
+</service-logic>

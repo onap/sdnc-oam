@@ -1,0 +1,904 @@
+[
+    {
+        "id": "8b4dcfe.e866f3",
+        "type": "service-logic",
+        "name": "DataChange ${project.version}",
+        "module": "DataChange",
+        "version": "${project.version}",
+        "comments": "",
+        "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>",
+        "outputs": 1,
+        "x": 401,
+        "y": 62,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "adc1d56c.b72ff"
+            ]
+        ]
+    },
+    {
+        "id": "adc1d56c.b72ff",
+        "type": "method",
+        "name": "method msa-update-network-to-aai",
+        "xml": "<method rpc='msa-update-network-to-aai' mode='sync'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 144,
+        "y": 136,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "106658a8.d884c7"
+            ]
+        ]
+    },
+    {
+        "id": "106658a8.d884c7",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 382.00003814697266,
+        "y": 136.00001335144043,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "4b7c5962.7cf4f8"
+            ]
+        ]
+    },
+    {
+        "id": "8e1c9818.33b57",
+        "type": "dgstart",
+        "name": "DGSTART",
+        "outputs": 1,
+        "x": 123,
+        "y": 64,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "8b4dcfe.e866f3"
+            ]
+        ]
+    },
+    {
+        "id": "4b7c5962.7cf4f8",
+        "type": "switchNode",
+        "name": "switch network-id",
+        "xml": "<switch test=\"`$networks.network-id`\">\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 178.5104522705078,
+        "y": 247.0000114440918,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "b84da364.adfac",
+                "3a113c69.68266c"
+            ]
+        ]
+    },
+    {
+        "id": "b84da364.adfac",
+        "type": "other",
+        "name": "other: Do Nothing",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 443.5104064941406,
+        "y": 469.99993896484375,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3a113c69.68266c",
+        "type": "outcome",
+        "name": "otn-topology",
+        "xml": "<outcome value='otn-topology'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 410,
+        "y": 247,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "5112d334.33a61c"
+            ]
+        ]
+    },
+    {
+        "id": "5112d334.33a61c",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 605,
+        "y": 247,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "4a7e5696.0715b",
+                "d2e8624a.31b89",
+                "22d90846.8bc5b8",
+                "6c4d9e05.4fa72",
+                "1587342a.1379dc"
+            ]
+        ]
+    },
+    {
+        "id": "4a7e5696.0715b",
+        "type": "save",
+        "name": "save network-resource",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='network-resource'  \n     key='network-resource.network-id = $networks.network-id' >\n<parameter name='network-id' value='`$networks.network-id`' />\n<parameter name='network-type' value='`$networks.network-types`' />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 897,
+        "y": 100,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d2e8624a.31b89",
+        "type": "save",
+        "name": "save network-resource relation with esr-thirdparty-sdnc",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='esr-thirdparty-sdnc:relationship-list' \n      key='esr-thirdparty-sdnc.thirdparty-sdnc-id = $prop.sdncRestApi.thirdpartySdnc.id' \n      force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"network-resource\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/network-resources/network-resource/' + $networks.network-id`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"network-resource.network-id\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$networks.network-id`\" />",
+        "comments": "",
+        "outputs": 1,
+        "x": 987,
+        "y": 159,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "22d90846.8bc5b8",
+        "type": "for",
+        "name": "for each node",
+        "xml": "<for index='nidx' start='0' end='`$networks.node_length`' >\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 831,
+        "y": 301,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "f56585e4.72bcc",
+                "b3dc81c8.6f70f8"
+            ]
+        ]
+    },
+    {
+        "id": "f56585e4.72bcc",
+        "type": "set",
+        "name": "set node",
+        "xml": "<set>\n<parameter name='node.' value='`$networks.node[$nidx].`' />\n",
+        "comments": "",
+        "x": 1013,
+        "y": 300,
+        "z": "d8656b08.07aab8",
+        "wires": []
+    },
+    {
+        "id": "b3dc81c8.6f70f8",
+        "type": "switchNode",
+        "name": "switch node-type",
+        "xml": "<switch test=\"`$node.node-type`\">\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1034,
+        "y": 400,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "ac532b61.57fca8",
+                "a021c2b4.589bc"
+            ]
+        ]
+    },
+    {
+        "id": "ac532b61.57fca8",
+        "type": "outcome",
+        "name": "SWITCH",
+        "xml": "<outcome value='SWITCH'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1219,
+        "y": 401,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "8591e2ec.94b2d8"
+            ]
+        ]
+    },
+    {
+        "id": "a021c2b4.589bc",
+        "type": "other",
+        "name": "other : Do Nothing",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1262,
+        "y": 524,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8591e2ec.94b2d8",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 1390,
+        "y": 402,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "8d6438ce.9a465",
+                "7c327396.cf8004",
+                "92a0366b.9648d8",
+                "506cbe9f.0da148",
+                "9a96883c.2c0c6",
+                "76be62e9.bf594c"
+            ]
+        ]
+    },
+    {
+        "id": "8d6438ce.9a465",
+        "type": "execute",
+        "name": "execute",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >\n<parameter name=\"ctx-destination\" value=\"pnfname\"/>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1569,
+        "y": 194,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7c327396.cf8004",
+        "type": "save",
+        "name": "save pnf details to AAI",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf'\nkey='pnf.pnf-name = $pnfname' >\n    <parameter name='pnf-name' value='`$pnfname`' />\n    <parameter name='pnf-id' value='`$node.node-id`' />\n    <parameter name='operational-status' value='`$node.node-status`' />\n    <parameter name='in-maint' value='true' />\n    <parameter name='equip-type' value='`$node.node-type`' />\n    \n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1624,
+        "y": 250,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "92a0366b.9648d8",
+        "type": "save",
+        "name": "save pnf relationship to network-resource in AAI",
+        "xml": "\n<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf:relationship-list' \n      key='pnf.pnf-name = $pnfname' force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"network-resource\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/network-resources/network-resource/' + $networks.network-id`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"network-resource.network-id\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$networks.network-id`\" />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1727,
+        "y": 314,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "506cbe9f.0da148",
+        "type": "for",
+        "name": "for each termination point",
+        "xml": "<for index='tpidx' start='0' end='`$node.termination-point_length`' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1595,
+        "y": 575,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "a9a91cea.c7d998",
+                "3e218bee.5222ec",
+                "763d8580.7328c4",
+                "a8ff331a.025d",
+                "8e2b2ac1.d11b2",
+                "6bb4981.68f2ee8",
+                "9bf5664b.07737"
+            ]
+        ]
+    },
+    {
+        "id": "a9a91cea.c7d998",
+        "type": "set",
+        "name": "set termination point",
+        "xml": "<set>\n<parameter name='tp.' value='`$node.termination-point[$tpidx].`' />\n",
+        "comments": "",
+        "x": 1865,
+        "y": 606,
+        "z": "d8656b08.07aab8",
+        "wires": []
+    },
+    {
+        "id": "a8ff331a.025d",
+        "type": "save",
+        "name": "save p-interface to AAI",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface' \n      key='pnf.pnf-name = $pnfname\n      AND p-interface.interface-name = $interfaceName' >      \n<parameter name='interface-name' value='`$interfaceName`' />\n<parameter name='port-description' value='`$tp.tp-id`' />\n<parameter name='network-ref' value='`$tp.network-ref`' />\n<parameter name='interface-type' value='`$tp.tp-type`' />\n<parameter name='in-maint' value=\"true\" />\n<parameter name='network-interface-type' value='`$network-interface-type`' />\n<parameter name='speed-units' value=\"Gbps\" />\n<parameter name='speed-value' value='100' />\n<parameter name='available-capacity' value='100' />\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1862,
+        "y": 814,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "763d8580.7328c4",
+        "type": "execute",
+        "name": "execute",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >\n<parameter name=\"ctx-destination\" value=\"interfaceName\"/>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1839,
+        "y": 752,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3e218bee.5222ec",
+        "type": "switchNode",
+        "name": "switch tp-type",
+        "xml": "<switch test=\"`$tp.tp-type`\">\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1852,
+        "y": 674,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "88cb4971.2e8588",
+                "43b07fb6.69d3f",
+                "818ba69d.e74cf8"
+            ]
+        ]
+    },
+    {
+        "id": "88cb4971.2e8588",
+        "type": "outcome",
+        "name": "XPONDER-NETWORK",
+        "xml": "<outcome value='XPONDER-NETWORK'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2090,
+        "y": 630,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "4bf140e7.df7828"
+            ]
+        ]
+    },
+    {
+        "id": "43b07fb6.69d3f",
+        "type": "outcome",
+        "name": "XPONDER-CLIENT",
+        "xml": "<outcome value='XPONDER-CLIENT'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2080,
+        "y": 707,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "d2a50717.2a1d9"
+            ]
+        ]
+    },
+    {
+        "id": "818ba69d.e74cf8",
+        "type": "other",
+        "name": "other  : Do Nothing",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2090,
+        "y": 780,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "6c4d9e05.4fa72",
+        "type": "for",
+        "name": "for each link",
+        "xml": "<for index='lidx' start='0' end='`$networks.link_length`' >\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 792,
+        "y": 575,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "575b0050.f3102",
+                "f4b57e4d.f91c18"
+            ]
+        ]
+    },
+    {
+        "id": "575b0050.f3102",
+        "type": "set",
+        "name": "set link",
+        "xml": "<set>\n<parameter name='link.' value='`$networks.link[$lidx].`' />\n",
+        "comments": "",
+        "x": 987,
+        "y": 521,
+        "z": "d8656b08.07aab8",
+        "wires": []
+    },
+    {
+        "id": "f4b57e4d.f91c18",
+        "type": "switchNode",
+        "name": "switch link-type",
+        "xml": "<switch test=\"`$link.link-type`\">\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 954,
+        "y": 661,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "c7be7986.f3d7",
+                "b81cc555.59f47"
+            ]
+        ]
+    },
+    {
+        "id": "c7be7986.f3d7",
+        "type": "outcome",
+        "name": "OTN-LINK",
+        "xml": "<outcome value='OTN-LINK'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1167,
+        "y": 657,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "b99bdbf4.fe7ab8"
+            ]
+        ]
+    },
+    {
+        "id": "b81cc555.59f47",
+        "type": "other",
+        "name": "other : Do Nothing",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1119,
+        "y": 761,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b99bdbf4.fe7ab8",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 1168,
+        "y": 1158,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "eb78e1a4.f6c888",
+                "9c6cd27.ce7a0b",
+                "8d15fb9d.87f2c8",
+                "df343460.1e46a",
+                "d885100b.8f343",
+                "3c142cb3.61690c",
+                "14cce7fe.30486",
+                "4284a26f.1ce334"
+            ]
+        ]
+    },
+    {
+        "id": "eb78e1a4.f6c888",
+        "type": "execute",
+        "name": "execute",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >\n    <parameter name=\"source\" value=\"`$link.link-id`\"/>\n    <parameter name=\"outputPath\" value=\"tmp.link-id\"/>\n    <parameter name=\"target\" value=\"#\"/>\n    <parameter name=\"replacement\" value=\"_\"/>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1428,
+        "y": 1017,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9c6cd27.ce7a0b",
+        "type": "save",
+        "name": "save logical-link details to AAI",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='logical-link'\nkey='logical-link.link-name = $tmp.link-id' >\n    <parameter name='link-name' value='`$tmp.link-id`' />\n    <parameter name='link-type' value='`$link.link-type`' />\n    <parameter name='in-maint' value='true' />\n    <parameter name='speed-value' value='100' />\n    <parameter name='speed-units' value='Gbps' />\n    <parameter name='operational-status' value='`$link.administrative-state`' />\n    <parameter name='available-capacity' value='100' />\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1517,
+        "y": 1157,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "4bf140e7.df7828",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 2304,
+        "y": 631,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "dd7793ee.4f994"
+            ]
+        ]
+    },
+    {
+        "id": "d2a50717.2a1d9",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 2291,
+        "y": 710,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "765312cb.e91374"
+            ]
+        ]
+    },
+    {
+        "id": "dd7793ee.4f994",
+        "type": "set",
+        "name": "set network-interface-type as NNI",
+        "xml": "<set>\n<parameter name='network-interface-type' value='NNI' />\n",
+        "comments": "",
+        "x": 2545,
+        "y": 630,
+        "z": "d8656b08.07aab8",
+        "wires": []
+    },
+    {
+        "id": "765312cb.e91374",
+        "type": "set",
+        "name": "set network-interface-type as UNI",
+        "xml": "<set>\n<parameter name='network-interface-type' value='UNI' />\n",
+        "comments": "",
+        "x": 2548,
+        "y": 708,
+        "z": "d8656b08.07aab8",
+        "wires": []
+    },
+    {
+        "id": "8e2b2ac1.d11b2",
+        "type": "set",
+        "name": "set speed-value as null",
+        "xml": "<set>\n<parameter name='speed-value' value='' />\n<parameter name='available-capacity' value='' />\n<parameter name='network-interface-type' value='' />\n",
+        "comments": "",
+        "x": 1874,
+        "y": 523,
+        "z": "d8656b08.07aab8",
+        "wires": []
+    },
+    {
+        "id": "8d15fb9d.87f2c8",
+        "type": "set",
+        "name": "set link-parameters",
+        "xml": "<set>\n<parameter name='interface1' value=\"`$link.source.source-tp`\" />\n<parameter name='interface2' value=\"`$link.destination.dest-tp`\" />\n<parameter name='pnf1' value=\"`$link.source.source-node`\" />\n<parameter name='pnf2' value=\"`$link.destination.dest-node`\" />\n",
+        "comments": "",
+        "x": 1489,
+        "y": 1066,
+        "z": "d8656b08.07aab8",
+        "wires": []
+    },
+    {
+        "id": "df343460.1e46a",
+        "type": "save",
+        "name": "save logical-link relationship to p-interface",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='logical-link:relationship-list' \n      key='logical-link.link-name = $tmp.link-id' force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"p-interface\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/pnfs/pnf/' + $pnfname1 + '/p-interfaces/p-interface/' + $pinterface1 `\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"pnf.pnf-name\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$pnfname1`\" /> \n<parameter name=\"relationship-list.relationship[1].related-to\" value=\"p-interface\" />\n<parameter name=\"relationship-list.relationship[1].related-link\" value=\"`'/network/pnfs/pnf/' + $pnfname2 + '/p-interfaces/p-interface/' + $pinterface2 `\" />\n<parameter name=\"relationship-list.relationship[1].relationship-data[0].relationship-key\" value=\"pnf.pnf-name\" />\n<parameter name=\"relationship-list.relationship[1].relationship-data[0].relationship-value\" value=\"`$pnfname2`\" /> ",
+        "comments": "",
+        "outputs": 1,
+        "x": 1500,
+        "y": 1528,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "6bb4981.68f2ee8",
+        "type": "save",
+        "name": "save pnf & p-interface in DB",
+        "xml": "<save plugin=\"org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource\" resource=\"SQL\" key=\"INSERT INTO TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE VALUES ( $interfaceName , $tp.tp-id , $pnfname , $node.node-id , '100' , $clli , null );\">\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1788,
+        "y": 998,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d885100b.8f343",
+        "type": "get-resource",
+        "name": "get source pnf-name and interface-name UUID from DB",
+        "xml": "<get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' \nkey='SELECT pnf_name, interface_name \nfrom TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE \nWHERE pnf_id = $link.source.source-node\nAND interface_id = $link.source.source-tp' \npfx='db.source'>\n    \n    \n    \n    \n    \n    \n    \n    \n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1613,
+        "y": 1308,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "4c55d475.77aecc"
+            ]
+        ]
+    },
+    {
+        "id": "3c142cb3.61690c",
+        "type": "record",
+        "name": "record",
+        "xml": "<record plugin=\"org.onap.ccsdk.sli.core.sli.recording.FileRecorder\">\n<parameter name=\"file\" value=\"/opt/opendaylight/current/data/log/svclogic.log\" />\n<parameter name=\"level\" value=\"info\" />\n<parameter name=\"field1\" value=\"print direct name\"/>\n<parameter name=\"field2\" value=\"`$pnfname1`\"/>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1468,
+        "y": 1366,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "4c55d475.77aecc",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1931,
+        "y": 1312,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "2acd3a80.9f5afe"
+            ]
+        ]
+    },
+    {
+        "id": "2acd3a80.9f5afe",
+        "type": "set",
+        "name": "set",
+        "xml": "<set>\n<parameter name='pnfname1' value='`$db.source.pnf-name`' />\n<parameter name='pinterface1' value='`$db.source.interface-name`' />\n\n\n\n\n\n",
+        "comments": "",
+        "x": 2085,
+        "y": 1304,
+        "z": "d8656b08.07aab8",
+        "wires": []
+    },
+    {
+        "id": "14cce7fe.30486",
+        "type": "get-resource",
+        "name": "get destination pnf-name and interface-name UUID from DB",
+        "xml": "<get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' \nkey='SELECT pnf_name, interface_name \nfrom TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE \nWHERE pnf_id = $link.destination.dest-node\nAND interface_id = $link.destination.dest-tp' \npfx='db1.destination'>\n    \n    \n    \n    \n    \n    \n    \n    \n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1584,
+        "y": 1443,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "2b2056ba.68c06a"
+            ]
+        ]
+    },
+    {
+        "id": "2b2056ba.68c06a",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1917,
+        "y": 1436,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "190b0926.27e49f"
+            ]
+        ]
+    },
+    {
+        "id": "190b0926.27e49f",
+        "type": "set",
+        "name": "set",
+        "xml": "<set>\n<parameter name='pnfname2' value='`$db1.destination.pnf-name`' />\n<parameter name='pinterface2' value='`$db1.destination.interface-name`' />\n\n\n\n\n\n",
+        "comments": "",
+        "x": 2077,
+        "y": 1438,
+        "z": "d8656b08.07aab8",
+        "wires": []
+    },
+    {
+        "id": "4284a26f.1ce334",
+        "type": "record",
+        "name": "record",
+        "xml": "<record plugin=\"org.onap.ccsdk.sli.core.sli.recording.FileRecorder\">\n<parameter name=\"file\" value=\"/opt/opendaylight/current/data/log/optical-service-create.log\" />\n<parameter name=\"level\" value=\"info\" />\n\n<parameter name=\"field1\" value=\"`$pnf1`\"/>\n<parameter name=\"field2\" value=\"`$interface1`\"/>\n<parameter name=\"field3\" value=\"`$pnf2`\"/>\n<parameter name=\"field4\" value=\"`$interface2`\"/>\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1459,
+        "y": 1109,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9a96883c.2c0c6",
+        "type": "execute",
+        "name": "split node-id",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >\n<parameter name=\"original_string\" value='`$node.node-id`'/>\n<parameter name=\"regex\" value=\"-\"/>\n<parameter name=\"ctx_memory_result_key\" value=\"param-prefix1\"/>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1627,
+        "y": 370,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "76be62e9.bf594c",
+        "type": "execute",
+        "name": "execute",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n    <parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.url + '/cxf/openroadm/v2/networks/openroadm-network/nodes/' + $param-prefix1[0]`\"/>  \n    <parameter name=\"restapiUser\" value=\"`$prop.sdncRestApi.thirdpartySdnc.user`\"/>  \n    <parameter name=\"restapiPassword\" value=\"`$prop.sdncRestApi.thirdpartySdnc.password`\"/>  \n    <parameter name=\"format\" value=\"json\"/>  \n    <parameter name=\"httpMethod\" value=\"get\"/>  \n    <parameter name=\"responsePrefix\" value=\"cllires\"/>\n    <parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.msa.jks\"/>  \n    <parameter name=\"trustStorePassword\" value=\"adminadmin\"/>  \n    <parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>  \n    <parameter name=\"keyStorePassword\" value=\"adminadmin\"/>\n    \n    \n    \n    \n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1626,
+        "y": 429,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "c6fee13e.a22228",
+                "4241c0e7.e68e5"
+            ]
+        ]
+    },
+    {
+        "id": "b707b093.cd8c68",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 1941,
+        "y": 444,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "bfdcc473.e8754"
+            ]
+        ]
+    },
+    {
+        "id": "bfdcc473.e8754",
+        "type": "set",
+        "name": "set",
+        "xml": "<set>\n<parameter name='clli' value='`$cllires.supporting-node[0].node-ref`' />\n",
+        "comments": "",
+        "x": 2123,
+        "y": 439,
+        "z": "d8656b08.07aab8",
+        "wires": []
+    },
+    {
+        "id": "4241c0e7.e68e5",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1804,
+        "y": 376,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "8f6ab8.a5f3cd48"
+            ]
+        ]
+    },
+    {
+        "id": "c6fee13e.a22228",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1770,
+        "y": 445,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            [
+                "b707b093.cd8c68"
+            ]
+        ]
+    },
+    {
+        "id": "8f6ab8.a5f3cd48",
+        "type": "record",
+        "name": "record",
+        "xml": "<record plugin=\"org.onap.ccsdk.sli.core.sli.recording.FileRecorder\">\n<parameter name=\"file\" value=\"/opt/opendaylight/current/data/log/optical-service-delete.log\" />\n<parameter name=\"level\" value=\"info\" />\n<parameter name=\"field1\" value=\"Getting clli failed\"/>\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1945,
+        "y": 370,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9bf5664b.07737",
+        "type": "save",
+        "name": "save",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='custom-query' \n      key=\"format='resource'\"\n      force=\"true\"\n      local-only=\"false\"\n      pfx=\"data\">      \n<parameter name='interface-name' value='`$interfaceName`' />\n<parameter name='port-description' value='`$tp.tp-id`' />",
+        "comments": "",
+        "outputs": 1,
+        "x": 1803.5,
+        "y": 886,
+        "z": "d8656b08.07aab8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1587342a.1379dc",
+        "type": "set",
+        "name": "set controller_id",
+        "xml": "<set>\n<parameter name='controller_id' value=\"`$prop.sdncRestApi.type + '_' + $prop.sdncRestApi.thirdpartySdnc.url`\" />\n\n\n\n",
+        "comments": "",
+        "x": 860,
+        "y": 218,
+        "z": "d8656b08.07aab8",
+        "wires": []
+    }
+]
