@@ -1,0 +1,95 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='optical-service' version='${project.version}'>
+    <method rpc='optical-service-create-sync-success' mode='sync'>
+        <block atomic='true'>
+            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                <parameter name="file" value="/opt/opendaylight/current/data/log/optical-service-create.log" />
+                <parameter name="level" value="info" />
+                <parameter name="field1" value="Inside sync success"/>
+            </record>
+            <set>
+                <parameter name='available-bandwidth-aend' value='0' />
+                <parameter name='available-bandwidth-zend' value='0' />
+            </set>
+            <save plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' 
+resource='SQL' 
+key='UPDATE TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE SET rate = $available-bandwidth-aend WHERE 
+interface_name = $optical-service-create-input.payload.service-aend.port-id'
+force='true' pfx='save-result'></save>
+            <save plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' 
+resource='SQL' 
+key='UPDATE TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE SET rate = $available-bandwidth-zend WHERE 
+interface_name = $optical-service-create-input.payload.service-zend.port-id'
+force='true' pfx='save-result'></save>
+            <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' 
+force='true'
+resource='p-interface'
+key = 'pnf.pnf-name = $a-end-pnf-name
+      AND p-interface.interface-name = $optical-service-create-input.payload.service-aend.port-id'
+      local-only='false'>
+                <parameter name='available-capacity' value='`$available-bandwidth-aend`' />
+            </update>
+            <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' 
+force='true'
+resource='p-interface'
+key = 'pnf.pnf-name = $z-end-pnf-name
+      AND p-interface.interface-name = $optical-service-create-input.payload.service-zend.port-id'
+      local-only='false'>
+                <parameter name='available-capacity' value='`$available-bandwidth-zend`' />
+            </update>
+            <switch test='`$optical-service-create-input.payload.domain-type`'>
+                <outcome value='MSA'>
+                    <block>
+                        <save plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL" key="INSERT INTO REQUEST_DETAILS (request_id, controller_id, status, service_rate, service_instance_id, service_type, global_customer_id, notification_url) VALUES ( $optical-service-create-input.request-id , $controller-id , 'CREATING' , $optical-service-create-input.payload.service-rate ,  $optical-service-create-input.service-id , $optical-service-create-input.service-type , $optical-service-create-input.global-customer-id , $optical-service-create-input.notification-url );"></save>
+                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance'  
+     key='customer.global-customer-id = $optical-service-create-input.global-customer-id AND
+     service-subscription.service-type = $optical-service-create-input.service-type AND
+     service-instance.service-instance-id = $optical-service-create-input.service-id' >
+                            <parameter name='service-instance-id' value='`$optical-service-create-input.service-id`' />
+                            <parameter name='service-instance-name' value='`$optical-service-create-input.payload.service-name`' />
+                            <parameter name='service-type' value='Domain-Service' />
+                            <parameter name='orchestration-status' value='CREATING' />
+                            <parameter name='service-rate' value='`$optical-service-create-input.payload.service-rate`' />
+                            <parameter name='service-layer' value='`$optical-service-create-input.payload.service-layer`' />
+                        </save>
+                    </block>
+                </outcome>
+                <outcome value='TAPI'>
+                    <block>
+                        <save plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL" key="INSERT INTO REQUEST_DETAILS (request_id, controller_id, status, service_rate, service_instance_id, service_type, global_customer_id, notification_url) VALUES ( $optical-service-create-input.request-id , $controller-id , 'CREATED' , $optical-service-create-input.payload.service-rate ,  $optical-service-create-input.service-id , $optical-service-create-input.service-type , $optical-service-create-input.global-customer-id , $optical-service-create-input.notification-url );"></save>
+                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance'  
+     key='customer.global-customer-id = $optical-service-create-input.global-customer-id AND
+     service-subscription.service-type = $optical-service-create-input.service-type AND
+     service-instance.service-instance-id = $optical-service-create-input.service-id' >
+                            <parameter name='service-instance-id' value='`$optical-service-create-input.service-id`' />
+                            <parameter name='service-instance-name' value='`$optical-service-create-input.payload.service-name`' />
+                            <parameter name='service-type' value='Domain-Service' />
+                            <parameter name='orchestration-status' value='CREATED' />
+                            <parameter name='service-rate' value='`$optical-service-create-input.payload.service-rate`' />
+                            <parameter name='service-layer' value='`$optical-service-create-input.payload.service-layer`' />
+                        </save>
+                    </block>
+                </outcome>
+            </switch>
+            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list'  
+     key='customer.global-customer-id = $optical-service-create-input.global-customer-id AND
+     service-subscription.service-type = $optical-service-create-input.service-type AND
+     service-instance.service-instance-id = $optical-service-create-input.service-id' force="true" pfx="tmp.AnAI-data">
+                <parameter name="relationship-list.relationship[0].related-to" value="p-interface" />
+                <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $a-end-pnf-name + '/p-interfaces/p-interface/' + $optical-service-create-input.payload.service-aend.port-id `" />
+                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="pnf.pnf-name" />
+                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$a-end-pnf-name`" />
+                <parameter name="relationship-list.relationship[1].related-to" value="p-interface" />
+                <parameter name="relationship-list.relationship[1].related-link" value="`'/network/pnfs/pnf/' + $z-end-pnf-name + '/p-interfaces/p-interface/' + $optical-service-create-input.payload.service-zend.port-id `" />
+                <parameter name="relationship-list.relationship[1].relationship-data[0].relationship-key" value="pnf.pnf-name" />
+                <parameter name="relationship-list.relationship[1].relationship-data[0].relationship-value" value="`$z-end-pnf-name`" />
+            </save>
+            <return status='success'>
+                <parameter name='error-code' value='200' />
+                <parameter name='error-message' value='Service Creation in Progress' />
+                <parameter name='ack-final-indicator' value='N' />
+            </return>
+        </block>
+    </method>
+</service-logic>

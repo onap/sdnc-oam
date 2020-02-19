@@ -1,0 +1,95 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='optical-service' version='${project.version}'>
+    <method rpc='service-create-msa' mode='sync'>
+        <block atomic='true'>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                <parameter name="original_string" value='`$aend-nodeid`'/>
+                <parameter name="regex" value="-"/>
+                <parameter name="ctx_memory_result_key" value="param-prefix"/>
+            </execute>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                <parameter name="original_string" value='`$zend-nodeid`'/>
+                <parameter name="regex" value="-"/>
+                <parameter name="ctx_memory_result_key" value="param-prefix1"/>
+            </execute>
+            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                <parameter name="file" value="/opt/opendaylight/current/data/log/optical-service-create.log" />
+                <parameter name="level" value="info" />
+                <parameter name="field1" value="Logical link name"/>
+                <parameter name="field2" value="`$logical-link-check`"/>
+                <parameter name="field3" value="`$a-end-pnf-name`"/>
+                <parameter name="field4" value="`$z-end-pnf-name`"/>
+            </record>
+            <set>
+                <parameter name='notification-url' value="`$prop.controller.url + '/' + $prop.sdnc.async.url`" />
+                <parameter name='service-aend-nodeid' value='`$param-prefix[0]`' />
+                <parameter name='service-zend-nodeid' value='`$param-prefix1[0]`' />
+            </set>
+            <switch test='`$optical-service-create-input.payload.service-protocol`'>
+                <outcome value='Ethernet'>
+                    <block atomic='true'>
+                        <switch test='`$optical-service-create-input.payload.coding-func`'>
+                            <outcome value='10GBASE-R'>
+                                <set>
+                                    <parameter name='mapping-mode-aend' value='mapping-mode' />
+                                    <parameter name='mapping-mode-zend' value='mapping-mode' />
+                                    <parameter name='mapping-mode.value' value='GFP-F' />
+                                </set>
+                            </outcome>
+                            <outcome value='Other'></outcome>
+                        </switch>
+                    </block>
+                </outcome>
+                <outcome value='Other'></outcome>
+            </switch>
+            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/optical-service-create-msa.json'`" />
+                <parameter name="restapiUrl" value="`$controller-ip + '/cxf/openroadm/openroadm-services'`"/>
+                <parameter name='restapiUser' value='admin' />
+                <parameter name='restapiPassword' value='admin' />
+                <parameter name="httpMethod" value="POST"/>
+                <parameter name="responsePrefix" value="service-create-response"/>
+                <parameter name='contentType' value='application/json' />
+                <parameter name='format' value='json' />
+                <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.msa.jks"/>
+                <parameter name="trustStorePassword" value="adminadmin"/>
+                <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                <parameter name="keyStorePassword" value="adminadmin"/>
+                <outcome value='failure'>
+                    <block atomic='true'>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                            <parameter name="file" value="/opt/opendaylight/current/data/log/optical-service-create.log" />
+                            <parameter name="level" value="info" />
+                            <parameter name="field1" value="Failure"/>
+                        </record>
+                        <return status='failure'>
+                            <parameter name='error-code' value='500' />
+                            <parameter name='error-message' value='Could not connect to Controller' />
+                        </return>
+                    </block>
+                </outcome>
+                <outcome value='success'>
+                    <block atomic='true'>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                            <parameter name="file" value="/opt/opendaylight/current/data/log/optical-service-create.log" />
+                            <parameter name="level" value="info" />
+                            <parameter name="field1" value="Successfully sent the request"/>
+                        </record>
+                        <switch test='`$service-create-response.configuration-response-common.response-code`'>
+                            <outcome value='200'>
+                                <call module='optical-service' rpc='optical-service-create-sync-success' mode='sync' ></call>
+                            </outcome>
+                            <outcome value='Other'>
+                                <return status='failure'>
+                                    <parameter name='error-code' value='`$service-create-response.configuration-response-common.response-code`' />
+                                    <parameter name='error-message' value='`$service-create-response.configuration-response-common.response-message`' />
+                                </return>
+                            </outcome>
+                        </switch>
+                    </block>
+                </outcome>
+            </execute>
+        </block>
+    </method>
+</service-logic>
