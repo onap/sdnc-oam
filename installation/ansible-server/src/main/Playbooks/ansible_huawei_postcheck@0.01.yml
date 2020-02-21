@@ -1,16 +1,29 @@
 ---
 - hosts: all
   tasks:
+
+  - name: parameter neIdentifier
+    set_fact:
+      ne_identifier: "{{neIdentifier}}"
+    when: neIdentifier is defined
+
+  - name: compatible with parameter pnfName
+    set_fact:
+      ne_identifier: "{{pnfName}}"
+    when: neIdentifier is not defined and pnfName is defined
+
   - name: create a temporary file for additional data
-    file: 
-      path: /tmp/tmp-{{Id}}
-      state: touch
+    tempfile: 
+      state: file
+    register: additionalDataFile
 
   - name: prepare additional data
-    shell: echo {{additionalData}} > /tmp/tmp-{{Id}}
+    copy:
+      content: "{{additionalData}}"
+      dest: "{{additionalDataFile.path}}"
 
   - name: execute post-check operation
-    shell: ./swm/upgrade-post-check {{pnfId}} {{oldSwVersion}} {{targetSwVersion}} {{ruleName}} /tmp/tmp-{{Id}}
+    shell: ./swm/upgrade-post-check {{ne_identifier}} {{oldSwVersion}} {{targetSwVersion}} {{ruleName}} {{additionalDataFile.path}}
     ignore_errors: yes
     register: postcheck_result
 
@@ -20,8 +33,9 @@
 
   - name: remove the temporary file
     file:
-      path: /tmp/tmp-{{Id}}
+      path: "{{additionalDataFile.path}}"
       state: absent
+    when: additionalDataFile.path is defined
 
   - name: build error message
     set_fact:

@@ -18,28 +18,8 @@
                 <parameter name='outputPath' value='payloadJson' />
                 <parameter name='isEscaped' value='true' />
             </execute>
-            <switch test='`$payloadJson.pnf-flag`'>
-                <outcome value='true'>
-                    <block>
-                        <set>
-                            <parameter name='nodelist' value="`'[' + $quote + $payloadJson.ipaddress-v4-oam +  $quote + ']'`"/>
-                            <parameter name='outputPayloadField' value="`'.' + $payloadJson.ipaddress-v4-oam + '.Output'`"/>
-                        </set>
-                        <switch test='`$payloadJson.playbook-name`'>
-                            <outcome value=''>
-                                <set>
-                                    <parameter name='playbookname' value='`$prop.lcm.pnf.download-n-e-sw.playbookname`'/>
-                                </set>
-                            </outcome>
-                            <outcome value='Other'>
-                                <set>
-                                    <parameter name='playbookname' value='`$payloadJson.playbook-name`'/>
-                                </set>
-                            </outcome>
-                        </switch>
-                    </block>
-                </outcome>
-                <outcome value='Other'>
+            <switch test="`$download-n-e-sw-input.action-identifiers.pnf-name`">
+                <outcome value=''>
                     <block>
                         <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='getAttributeValue'>
                             <parameter name='outputPath' value='playbookname' />
@@ -66,6 +46,34 @@
                                 </block>
                             </outcome>
                         </get-resource>
+                    </block>
+                </outcome>
+                <outcome value='Other'>
+                    <block>
+                        <set>
+                            <parameter name='nodelist' value="`'[' + $quote + $payloadJson.ipaddress-v4-oam +  $quote + ']'`"/>
+                            <parameter name='outputPayloadField' value="`'.' + $payloadJson.ipaddress-v4-oam + '.Output'`"/>
+                        </set>
+                        <switch test='`$payloadJson.playbook-name`'>
+                            <outcome value=''>
+                                <set>
+                                    <parameter name='playbookname' value='`$prop.lcm.pnf.download-n-e-sw.playbookname`'/>
+                                </set>
+                            </outcome>
+                            <outcome value='Other'>
+                                <set>
+                                    <parameter name='playbookname' value='`$payloadJson.playbook-name`'/>
+                                </set>
+                            </outcome>
+                        </switch>
+                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='updateJsonObjectString'>
+                            <parameter name='source' value='download-n-e-sw-input.payload' />
+                            <parameter name='outputPath' value='download-n-e-sw-input.payload' />
+                            <parameter name='add.pnf-flag' value='true' />
+                            <parameter name='add.pnfName' value="`$download-n-e-sw-input.action-identifiers.pnf-name`" />
+                            <parameter name='delete.ipaddress-v4-oam' value="" />
+                            <parameter name='delete.playbook-name' value="" />
+                        </execute>
                     </block>
                 </outcome>
             </switch>
