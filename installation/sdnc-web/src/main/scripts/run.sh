@@ -23,5 +23,47 @@
  
 /opt/bitnami/nginx/sbin/configure.sh
 
+echo "starting sdnc-web"
+echo "================="
+echo " WEBPROTOCOL: $WEBPROTOCOL"
+echo " WEBPORT: $WEBPORT"
+echo " SDNRPROTOCOL: $SDNRPROTOCOL"
+echo " SDNRHOST: $SDNRHOST"
+echo " SDNRPORT: $SDNRPORT"
+echo " LOCALDNS: $LOCALDNS"
+echo " SSL_CERT_DIR: $SSL_CERT_DIR"
+echo -n " SSL_CERTIFICATE: $SSL_CERTIFICATE"
+if [ -f "$SSL_CERTIFICATE" ]; then
+echo " (exists)"
+else
+echo " (missing)"
+fi
+echo -n " SSL_CERTIFICATE_KEY: $SSL_CERTIFICATE_KEY"
+if [ -f "$SSL_CERTIFICATE_KEY" ]; then
+echo " (exists)"
+else
+echo " (missing)"
+fi
+echo ""
+
+if [ ! -z "$DEBUG" ]; then
+
+  if [ -f "/opt/bitnami/nginx/conf/server_blocks/http_site.conf" ]; then
+    echo "content of /opt/bitnami/nginx/conf/server_blocks/http_site.conf"
+    echo "==============================================================="
+    cat /opt/bitnami/nginx/conf/server_blocks/http_site.conf
+    echo "==============================================================="
+  fi
+
+  if [ -f "/opt/bitnami/nginx/conf/server_blocks/https_site.conf" ]; then
+    echo "content of /opt/bitnami/nginx/conf/server_blocks/https_site.conf"
+    echo "==============================================================="
+    cat /opt/bitnami/nginx/conf/server_blocks/https_site.conf
+    echo "==============================================================="
+  fi
+
+  #tail -f /opt/bitnami/nginx/logs/* &
+fi
+
 # Call the base images' run.sh to start NGINX
 bash /run.sh
