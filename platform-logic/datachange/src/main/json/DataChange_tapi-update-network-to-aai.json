@@ -1,0 +1,2028 @@
+[
+    {
+        "id": "935a3170.617d58",
+        "type": "service-logic",
+        "name": "DataChange ${project.version}",
+        "module": "DataChange",
+        "version": "${project.version}",
+        "comments": "",
+        "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>",
+        "outputs": 1,
+        "x": 328.5,
+        "y": 96,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "b0347539.62863"
+            ]
+        ]
+    },
+    {
+        "id": "b0347539.62863",
+        "type": "method",
+        "name": "method tapi-update-network-to-aai",
+        "xml": "<method rpc='tapi-update-network-to-aai' mode='sync'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 142.5,
+        "y": 154,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "c7d276d1.b2201"
+            ]
+        ]
+    },
+    {
+        "id": "c7d276d1.b2201",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 366.5,
+        "y": 199,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "9d541262.2259c",
+                "9085ed80.90f39",
+                "a234d204.9ad8d",
+                "cd55a1ab.6e1058",
+                "42993030.f025",
+                "68ba4fb8.0ba9e",
+                "6381672e.4b66e8"
+            ]
+        ]
+    },
+    {
+        "id": "b010e3f2.4096b",
+        "type": "dgstart",
+        "name": "DGSTART",
+        "outputs": 1,
+        "x": 77.5,
+        "y": 97,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "935a3170.617d58"
+            ]
+        ]
+    },
+    {
+        "id": "42993030.f025",
+        "type": "set",
+        "name": "set network-id",
+        "xml": "<set>\n<parameter name='tmp.network-id' value=\"`$prop.sdncRestApi.thirdpartySdnc.id + '-TAPI-' + $topology.uuid`\" />\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "x": 638,
+        "y": 107,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "9d541262.2259c",
+        "type": "save",
+        "name": "save network-resource in AAI",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='network-resource'  \n     key='network-resource.network-id = $tmp.network-id' >\n<parameter name='network-id' value='`$tmp.network-id`' />",
+        "comments": "",
+        "outputs": 1,
+        "x": 652,
+        "y": 208,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9085ed80.90f39",
+        "type": "save",
+        "name": "save network-resource relation with esr-thirdparty-sdnc",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='esr-thirdparty-sdnc:relationship-list' \n      key='esr-thirdparty-sdnc.thirdparty-sdnc-id = $prop.sdncRestApi.thirdpartySdnc.id' \n      force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"network-resource\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/network-resources/network-resource/' + $tmp.network-id`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"network-resource.network-id\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$tmp.network-id`\" />",
+        "comments": "",
+        "outputs": 1,
+        "x": 720,
+        "y": 253,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a234d204.9ad8d",
+        "type": "for",
+        "name": "for each node",
+        "xml": "<for index='nidx' start='0' end='`$topology.node_length`' >",
+        "comments": "",
+        "outputs": 1,
+        "x": 511,
+        "y": 410,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "50a0e2c1.af46dc",
+                "b0afae25.cb087",
+                "e9e2ecad.80a61"
+            ]
+        ]
+    },
+    {
+        "id": "50a0e2c1.af46dc",
+        "type": "set",
+        "name": "set node",
+        "xml": "<set>\n<parameter name='node.' value='`$topology.node[$nidx].`' />\n",
+        "comments": "",
+        "x": 734,
+        "y": 332,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "b0afae25.cb087",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 730,
+        "y": 384,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "4e4155b0.3e1144"
+            ]
+        ]
+    },
+    {
+        "id": "fd732489.b8daa",
+        "type": "switchNode",
+        "name": "switch name_length",
+        "xml": "<switch test='`$node.name_length`'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1174,
+        "y": 381,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "3bb8d7e2.eaee28",
+                "80a53d1e.bbca58"
+            ]
+        ]
+    },
+    {
+        "id": "3bb8d7e2.eaee28",
+        "type": "outcomeTrue",
+        "name": "NULL Do nothing",
+        "xml": "<outcome value=''>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1439,
+        "y": 345,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "80a53d1e.bbca58",
+        "type": "outcomeTrue",
+        "name": "Other",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1398,
+        "y": 467,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "52f17a63.9bfd44"
+            ]
+        ]
+    },
+    {
+        "id": "52f17a63.9bfd44",
+        "type": "for",
+        "name": "for each name ",
+        "xml": "<for index='na-idx' start='0' end='`$node.name_length`' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1612,
+        "y": 470,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "1eee1e7b.5435f2"
+            ]
+        ]
+    },
+    {
+        "id": "1eee1e7b.5435f2",
+        "type": "switchNode",
+        "name": "switch name-value = name",
+        "xml": "<switch test=\"`$node.name[$na-idx].value-name == 'name'`\">\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1522,
+        "y": 532,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "1cf3cb4d.a6fb3d"
+            ]
+        ]
+    },
+    {
+        "id": "1cf3cb4d.a6fb3d",
+        "type": "outcomeTrue",
+        "name": "true",
+        "xml": "<outcome value='true'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1728,
+        "y": 529,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "38316d9c.01edfa"
+            ]
+        ]
+    },
+    {
+        "id": "38316d9c.01edfa",
+        "type": "set",
+        "name": "set node-name",
+        "xml": "<set>\n<parameter name='node-name' value=\"`$node.name[$na-idx].value`\"/>\n",
+        "comments": "",
+        "x": 1898,
+        "y": 525,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "6555285e.9ebd6",
+        "type": "save",
+        "name": "save pnf in AAI",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf'\nkey='pnf.pnf-name = $node.uuid' >\n    <parameter name='pnf-name' value='`$node.uuid`' />\n    <parameter name='pnf-id' value='`$node-name`' />\n    <parameter name='in-maint' value='true' />\n    \n                         \n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1172,
+        "y": 512,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "81aa1acf.f68a58",
+        "type": "save",
+        "name": "save pnf relationship to network-resource in AAI",
+        "xml": "\n<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf:relationship-list' \n      key='pnf.pnf-name = $node.uuid' force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"network-resource\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/network-resources/network-resource/' + $tmp.network-id`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"network-resource.network-id\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$tmp.network-id`\" />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1193,
+        "y": 580,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "e9e2ecad.80a61",
+        "type": "for",
+        "name": "for each termination point",
+        "xml": "<for index='tpidx' start='0' end='`$node.node-edge-point_length`' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 460,
+        "y": 746,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "c89d18fe.055318",
+                "ac9bd5ab.d519c"
+            ]
+        ]
+    },
+    {
+        "id": "ac9bd5ab.d519c",
+        "type": "set",
+        "name": "set termination point",
+        "xml": "<set>\n<parameter name='tp.' value='`$node.node-edge-point[$tpidx].`' />\n",
+        "comments": "",
+        "x": 688,
+        "y": 696,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "6f66e8cb.64f95",
+        "type": "switchNode",
+        "name": "switch name_length",
+        "xml": "<switch test='`$tp.name_length`'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1213,
+        "y": 768,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "ee3c6985.76e71",
+                "bfda0f7b.b56b18"
+            ]
+        ]
+    },
+    {
+        "id": "ee3c6985.76e71",
+        "type": "outcomeTrue",
+        "name": "If NULL Do nothing",
+        "xml": "<outcome value=''>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1477,
+        "y": 632,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "bfda0f7b.b56b18",
+        "type": "outcomeTrue",
+        "name": "Other",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1442,
+        "y": 767,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "9320404b.db2348"
+            ]
+        ]
+    },
+    {
+        "id": "9320404b.db2348",
+        "type": "for",
+        "name": "for each name ",
+        "xml": "<for index='na-idx' start='0' end='`$tp.name_length`' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1614,
+        "y": 768,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "aef7823d.d8a618",
+                "35cc269a.e40662"
+            ]
+        ]
+    },
+    {
+        "id": "aef7823d.d8a618",
+        "type": "switchNode",
+        "name": "switch name-value = name",
+        "xml": "<switch test=\"`$tp.name[$na-idx].value-name == 'name'`\">\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1829,
+        "y": 619,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "35fb5cff.eb7ef4"
+            ]
+        ]
+    },
+    {
+        "id": "35fb5cff.eb7ef4",
+        "type": "outcomeTrue",
+        "name": "true",
+        "xml": "<outcome value='true'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2043,
+        "y": 661,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "9d15562e.3da29"
+            ]
+        ]
+    },
+    {
+        "id": "9d15562e.3da29",
+        "type": "set",
+        "name": "set equipment identifier (tp-name)",
+        "xml": "<set>\n<parameter name='tp-name' value=\"`$tp.name[$na-idx].value`\"/>\n",
+        "comments": "",
+        "x": 2265,
+        "y": 659,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "6381672e.4b66e8",
+        "type": "for",
+        "name": " for each link",
+        "xml": "<for index='lidx' start='0' end='`$topology.link_length`' >\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 314,
+        "y": 945,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "c58ed545.369738",
+                "719956b2.0cd3",
+                "7e813e06.d7a0a8",
+                "b416801f.d4ff5",
+                "10707cde.2f4863"
+            ]
+        ]
+    },
+    {
+        "id": "c58ed545.369738",
+        "type": "set",
+        "name": "set link",
+        "xml": "<set>\n<parameter name='link.' value='`$topology.link[$lidx].`' />\n",
+        "comments": "",
+        "x": 472,
+        "y": 869,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "cd55a1ab.6e1058",
+        "type": "record",
+        "name": "record",
+        "xml": "<record plugin=\"org.onap.ccsdk.sli.core.sli.recording.FileRecorder\">\n<parameter name=\"file\" value=\"/opt/opendaylight/current/data/log/svclogic.log\" />\n<parameter name=\"level\" value=\"info\" />\n<parameter name=\"field1\" value=\"`$topology.name[0].value`\"/>\n<parameter name=\"field2\" value=\"`$prop.sdncRestApi.thirdpartySdnc.id`\"/>\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 604,
+        "y": 154,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ac455a91.e52088",
+        "type": "record",
+        "name": "record",
+        "xml": "<record plugin=\"org.onap.ccsdk.sli.core.sli.recording.FileRecorder\">\n<parameter name=\"file\" value=\"/opt/opendaylight/current/data/log/svclogic.log\" />\n<parameter name=\"level\" value=\"info\" />\n<parameter name=\"field1\" value='`$node.name_length`'/>\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1155,
+        "y": 446,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "719956b2.0cd3",
+        "type": "set",
+        "name": "set link-name",
+        "xml": "<set>\n<parameter name='link.name' value=\"`$link.uuid`\" />\n",
+        "comments": "",
+        "x": 512,
+        "y": 1005,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "7e813e06.d7a0a8",
+        "type": "save",
+        "name": "save link in AAI",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='logical-link'\nkey='logical-link.link-name = $link.name' >\n    <parameter name='link-name' value='`$link.name`' />\n    <parameter name='link-type' value='OTN-LINK' />\n    <parameter name='in-maint' value='true' />\n    <parameter name='operational-status' value='`$link.operational-state`' />\n    \n",
+        "comments": "",
+        "outputs": 1,
+        "x": 504,
+        "y": 1097,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b416801f.d4ff5",
+        "type": "save",
+        "name": "save logical-link relationship to p-interface",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='logical-link:relationship-list' \n      key='logical-link.link-name = $link.name' force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"p-interface\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/pnfs/pnf/' + $pnf1 + '/p-interfaces/p-interface/' + $interface1 `\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"pnf.pnf-name\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$pnf1`\" /> \n<parameter name=\"relationship-list.relationship[1].related-to\" value=\"p-interface\" />\n<parameter name=\"relationship-list.relationship[1].related-link\" value=\"`'/network/pnfs/pnf/' + $pnf2 + '/p-interfaces/p-interface/' + $interface2 `\" />\n<parameter name=\"relationship-list.relationship[1].relationship-data[0].relationship-key\" value=\"pnf.pnf-name\" />\n<parameter name=\"relationship-list.relationship[1].relationship-data[0].relationship-value\" value=\"`$pnf2`\" /> ",
+        "comments": "",
+        "outputs": 1,
+        "x": 536,
+        "y": 1175,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "35cc269a.e40662",
+        "type": "switchNode",
+        "name": "switch name-value=rate",
+        "xml": "<switch test=\"`$tp.name[$na-idx].value-name == 'rate'`\">",
+        "comments": "",
+        "outputs": 1,
+        "x": 1869,
+        "y": 778,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "1b3ff34.e74448d"
+            ]
+        ]
+    },
+    {
+        "id": "ec747020.3cd26",
+        "type": "set",
+        "name": "set speed-value",
+        "xml": "<set>\n<parameter name='tp-speed' value=\"`$tp.name[$na-idx].value`\"/>",
+        "comments": "",
+        "x": 2267,
+        "y": 783,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "1b3ff34.e74448d",
+        "type": "outcomeTrue",
+        "name": "true",
+        "xml": "<outcome value='true'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2085,
+        "y": 777,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "ec747020.3cd26"
+            ]
+        ]
+    },
+    {
+        "id": "72dab98.9c32948",
+        "type": "switchNode",
+        "name": "switch speed-value",
+        "xml": "<switch test='`$tp-speed`'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1206,
+        "y": 976,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "7c1acbf6.52a7b4",
+                "e680c1d4.8d26b",
+                "637bc8ed.78c8f8",
+                "546b1c73.cde174",
+                "ff2067e8.34ff3",
+                "137d910.c7ebc6f",
+                "3a380053.5e28e8",
+                "c59da1dd.0a3a6",
+                "d7b0999b.5401d8",
+                "9ef45078.45166",
+                "a8b7220d.93d588"
+            ]
+        ]
+    },
+    {
+        "id": "7c1acbf6.52a7b4",
+        "type": "other",
+        "name": "other",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1379,
+        "y": 848,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "c6b4b57e.be0f4"
+            ]
+        ]
+    },
+    {
+        "id": "3f789e8e.088bd2",
+        "type": "set",
+        "name": "set interface-type as NNI",
+        "xml": "<set>\n<parameter name='netinttype' value='NNI' />",
+        "comments": "",
+        "x": 1713,
+        "y": 978,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "c6b4b57e.be0f4",
+        "type": "set",
+        "name": "set interface type as UNI",
+        "xml": "<set>\n<parameter name='netinttype' value='UNI' />\n",
+        "comments": "",
+        "x": 1570,
+        "y": 849,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "4ff9fdea.07798c",
+        "type": "record",
+        "name": "record",
+        "xml": "<record plugin=\"org.onap.ccsdk.sli.core.sli.recording.FileRecorder\">\n<parameter name=\"file\" value=\"/opt/opendaylight/current/data/log/svclogic.log\" />\n<parameter name=\"level\" value=\"info\" />\n<parameter name=\"field1\" value=\"speed-values\"/>\n<parameter name=\"field2\" value=\"`$tp-speed`\"/>\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1239,
+        "y": 842,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c89d18fe.055318",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 650,
+        "y": 809,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "7215b4d0.41eff4"
+            ]
+        ]
+    },
+    {
+        "id": "7215b4d0.41eff4",
+        "type": "switchNode",
+        "name": "switch protocol-name",
+        "xml": "<switch test='`$tp.layer-protocol-name`'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 816,
+        "y": 760,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "2a45d6ca.fdcd6a",
+                "9e6c2d7a.6a9"
+            ]
+        ]
+    },
+    {
+        "id": "2a45d6ca.fdcd6a",
+        "type": "outcome",
+        "name": "ODU",
+        "xml": "<outcome value='ODU'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 853,
+        "y": 835,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "dbc08438.6ccc88"
+            ]
+        ]
+    },
+    {
+        "id": "9e6c2d7a.6a9",
+        "type": "other",
+        "name": "other : Do nothing",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1011,
+        "y": 701,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "4e4155b0.3e1144",
+        "type": "switchNode",
+        "name": "switch protocol-name",
+        "xml": "<switch test='`$node.layer-protocol-name[0]`'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 748,
+        "y": 444,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "7222169b.377ed8",
+                "491fb5e5.6c1c64"
+            ]
+        ]
+    },
+    {
+        "id": "7222169b.377ed8",
+        "type": "outcome",
+        "name": "ODU",
+        "xml": "<outcome value='ODU'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 916,
+        "y": 393,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "7f13a4a.2f87fdc"
+            ]
+        ]
+    },
+    {
+        "id": "491fb5e5.6c1c64",
+        "type": "other",
+        "name": "other : Do nothing",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 839,
+        "y": 561,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7f13a4a.2f87fdc",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 969,
+        "y": 453,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "fd732489.b8daa",
+                "ac455a91.e52088",
+                "6555285e.9ebd6",
+                "81aa1acf.f68a58"
+            ]
+        ]
+    },
+    {
+        "id": "dbc08438.6ccc88",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 994,
+        "y": 833,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "6f66e8cb.64f95",
+                "4ff9fdea.07798c",
+                "72dab98.9c32948",
+                "e75de0f2.fdaed",
+                "f6aff657.ff10f8",
+                "caaa66fd.e0cba",
+                "38a93e32.54219a",
+                "500637ea.435bb8",
+                "8c9dedce.28c178"
+            ]
+        ]
+    },
+    {
+        "id": "10707cde.2f4863",
+        "type": "set",
+        "name": "set link paramaters",
+        "xml": "<set>\n<parameter name='interface1' value=\"`$link.node-edge-point[0].node-edge-point-uuid`\" />\n<parameter name='interface2' value=\"`$link.node-edge-point[1].node-edge-point-uuid`\" />\n<parameter name='pnf1' value=\"`$link.node-edge-point[0].node-uuid`\" />\n<parameter name='pnf2' value=\"`$link.node-edge-point[1].node-uuid`\" />\n",
+        "comments": "",
+        "x": 537,
+        "y": 926,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "68ba4fb8.0ba9e",
+        "type": "set",
+        "name": "set",
+        "xml": "<set>\n<parameter name='controller_id' value=\"`$prop.sdncRestApi.type + '_' + $prop.sdncRestApi.thirdpartySdnc.url`\" />\n\n\n\n",
+        "comments": "",
+        "x": 572,
+        "y": 305,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "e680c1d4.8d26b",
+        "type": "outcome",
+        "name": "ODU0",
+        "xml": "<outcome value='ODU0'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1401,
+        "y": 912,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "3f789e8e.088bd2"
+            ]
+        ]
+    },
+    {
+        "id": "637bc8ed.78c8f8",
+        "type": "outcome",
+        "name": "ODU1",
+        "xml": "<outcome value='ODU1'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1401,
+        "y": 950,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "3f789e8e.088bd2"
+            ]
+        ]
+    },
+    {
+        "id": "546b1c73.cde174",
+        "type": "outcome",
+        "name": "ODU2",
+        "xml": "<outcome value='ODU2'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1394,
+        "y": 988,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "3f789e8e.088bd2"
+            ]
+        ]
+    },
+    {
+        "id": "38a93e32.54219a",
+        "type": "for",
+        "name": "for each connection-point",
+        "xml": "<for index='cepx' start='0' end='`$tp.cep-list.connection-end-point_length`' >\n    \n    \n    \n    \n",
+        "comments": "",
+        "outputs": 1,
+        "x": 753.75,
+        "y": 2695.25,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "e2073ad2.b58ea8",
+                "9baa5127.75eb5"
+            ]
+        ]
+    },
+    {
+        "id": "500637ea.435bb8",
+        "type": "save",
+        "name": "save pnf & p-interface in DB",
+        "xml": "<save plugin=\"org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource\" resource=\"SQL\" key=\"INSERT INTO TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE VALUES ( $tp.uuid , $tp-name , $node.uuid , $node-name , $controller_id , $tp-speed , null , $ce );\">\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 715.75,
+        "y": 2829.5498046875,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "e2073ad2.b58ea8",
+        "type": "record",
+        "name": "record",
+        "xml": "<record plugin=\"org.onap.ccsdk.sli.core.sli.recording.FileRecorder\">\n<parameter name=\"file\" value=\"/opt/opendaylight/current/data/log/svclogic.log\" />\n<parameter name=\"level\" value=\"info\" />\n<parameter name=\"field1\" value=\"For every uuid\"/>\n<parameter name=\"field2\" value=\"`$tp.cep-list.connection-end-point[$cepx].uuid`\"/>\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 965.61669921875,
+        "y": 2616.0166015625,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9baa5127.75eb5",
+        "type": "switchNode",
+        "name": "switch",
+        "xml": "<switch test='`$tp.cep-list.connection-end-point_length`'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 971.61669921875,
+        "y": 2720.0166015625,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "d3741b24.f41a38",
+                "fbbf0be.c3047f8",
+                "5c2bdcbd.9ea0e4",
+                "7cb8cac.25fb634"
+            ]
+        ]
+    },
+    {
+        "id": "4519c61a.330528",
+        "type": "set",
+        "name": "set cep-uuid ",
+        "xml": "<set>\n<parameter name='ce' value=\"`$ce + $tp.cep-list.connection-end-point[0].uuid`\" />\n",
+        "comments": "",
+        "x": 1520.61669921875,
+        "y": 2625.0166015625,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "7cb8cac.25fb634",
+        "type": "other",
+        "name": "0",
+        "xml": "<outcome value='0'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1144.61669921875,
+        "y": 2579.0166015625,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "467d498d.a66ab8"
+            ]
+        ]
+    },
+    {
+        "id": "d3741b24.f41a38",
+        "type": "other",
+        "name": "1",
+        "xml": "<outcome value='1'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1149.783447265625,
+        "y": 2657.433349609375,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "322831f2.c2967e"
+            ]
+        ]
+    },
+    {
+        "id": "fbbf0be.c3047f8",
+        "type": "other",
+        "name": "2",
+        "xml": "<outcome value='2'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1117.61669921875,
+        "y": 2721.0166015625,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "2bf1c373.508c94"
+            ]
+        ]
+    },
+    {
+        "id": "cbf030b5.5d4338",
+        "type": "set",
+        "name": "set cep-uuid ",
+        "xml": "<set>\n<parameter name='some1' value=\"`$tp.cep-list.connection-end-point[0].uuid`\" />\n<parameter name='ce' value=\"`$some1 + ',' + $tp.cep-list.connection-end-point[1].uuid`\" />\n\n",
+        "comments": "",
+        "x": 1479.783447265625,
+        "y": 2699.433349609375,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "5c2bdcbd.9ea0e4",
+        "type": "other",
+        "name": "3",
+        "xml": "<outcome value='3'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1130.666748046875,
+        "y": 2843.216796875,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "f57bea8c.8d2af8"
+            ]
+        ]
+    },
+    {
+        "id": "ef6bffe9.2ced08",
+        "type": "set",
+        "name": "set",
+        "xml": "<set>\n<parameter name='some1' value=\"`$tp.cep-list.connection-end-point[0].uuid`\" />\n<parameter name='cep' value=\"`$some1 + ',' + $tp.cep-list.connection-end-point[1].uuid`\" />\n<parameter name='ce' value=\"`$cep + ',' + $tp.cep-list.connection-end-point[2].uuid`\" />\n",
+        "comments": "",
+        "x": 1488.61669921875,
+        "y": 2847.0166015625,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "322831f2.c2967e",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 1309.4833984375,
+        "y": 2643.38330078125,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "4519c61a.330528"
+            ]
+        ]
+    },
+    {
+        "id": "2bf1c373.508c94",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 1296.4833984375,
+        "y": 2719.38330078125,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "cbf030b5.5d4338",
+                "d43dd35.5a18fb"
+            ]
+        ]
+    },
+    {
+        "id": "f57bea8c.8d2af8",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 1319.4833984375,
+        "y": 2851.38330078125,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "ef6bffe9.2ced08"
+            ]
+        ]
+    },
+    {
+        "id": "d43dd35.5a18fb",
+        "type": "record",
+        "name": "record",
+        "xml": "<record plugin=\"org.onap.ccsdk.sli.core.sli.recording.FileRecorder\">\n<parameter name=\"file\" value=\"/opt/opendaylight/current/data/log/svclogic.log\" />\n<parameter name=\"level\" value=\"info\" />\n<parameter name=\"field1\" value=\"Length\"/>\n<parameter name=\"field2\" value=\"`$tp.cep-list.connection-end-point_length`\"/>\n\n<parameter name=\"field3\" value=\"`$some1`\"/>\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1488.4833984375,
+        "y": 2752.38330078125,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d03ef92d.fe74c8",
+        "type": "set",
+        "name": "set cep-uuid ",
+        "xml": "<set>\n<parameter name='ce' value='' />\n",
+        "comments": "",
+        "x": 1506.783447265625,
+        "y": 2561.433349609375,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "467d498d.a66ab8",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 1305.4833984375,
+        "y": 2572.88330078125,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "d03ef92d.fe74c8"
+            ]
+        ]
+    },
+    {
+        "id": "e75de0f2.fdaed",
+        "type": "save",
+        "name": "save p-interface in AAI",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid' >      \n<parameter name='interface-name' value='`$tp.uuid`' />\n<parameter name='port-description' value='`$tp-name`' />\n<parameter name='operational-status' value='`$tp.administrative-state`' />\n<parameter name='in-maint' value=\"true\" />\n<parameter name='network-interface-type' value='`$netinttype`' />\n<parameter name='speed-units' value=\"Gbps\" />\n<parameter name='speed-value' value='`$tp-speed`' />\n<parameter name='available-capacity' value='`$tp-speed`' />\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1171,
+        "y": 1217,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ff2067e8.34ff3",
+        "type": "outcome",
+        "name": "ODU3",
+        "xml": "<outcome value='ODU3'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1398,
+        "y": 1022,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "3f789e8e.088bd2"
+            ]
+        ]
+    },
+    {
+        "id": "137d910.c7ebc6f",
+        "type": "outcome",
+        "name": "ODU4",
+        "xml": "<outcome value='ODU4'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1396,
+        "y": 1061,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "3f789e8e.088bd2"
+            ]
+        ]
+    },
+    {
+        "id": "f6aff657.ff10f8",
+        "type": "get-resource",
+        "name": "get-resource",
+        "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\"\nresource=\"p-interface\"\n key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid'  \n      pfx='aai.service' local-only='false'>",
+        "comments": "",
+        "outputs": 1,
+        "x": 1089.566650390625,
+        "y": 1354.566650390625,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "12efb7be.6d223"
+            ]
+        ]
+    },
+    {
+        "id": "12efb7be.6d223",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1307.75,
+        "y": 1363.75,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "87e62e83.a861a"
+            ]
+        ]
+    },
+    {
+        "id": "87e62e83.a861a",
+        "type": "set",
+        "name": "set",
+        "xml": "<set>\n<parameter name='interface-type' value='`$aai.service.network-interface-type`' />\n<parameter name='rate-param' value='`$aai.service.speed-value`' />\n\n",
+        "comments": "",
+        "x": 1460.75,
+        "y": 1362.75,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "caaa66fd.e0cba",
+        "type": "switchNode",
+        "name": "switch",
+        "xml": "<switch test='`$interface-type`'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1054.75,
+        "y": 1470.75,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "62e0ec7.acc3f94",
+                "b8317d0d.95e438"
+            ]
+        ]
+    },
+    {
+        "id": "62e0ec7.acc3f94",
+        "type": "outcome",
+        "name": "UNI : Do Nothing",
+        "xml": "<outcome value='UNI'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1216.75,
+        "y": 1436.75,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b8317d0d.95e438",
+        "type": "outcome",
+        "name": "NNI",
+        "xml": "<outcome value='NNI'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1192.75,
+        "y": 1573.75,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "4eb8450f.7429b4"
+            ]
+        ]
+    },
+    {
+        "id": "4eb8450f.7429b4",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 1391.75,
+        "y": 1466.75,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "3796a832.dd7c9",
+                "f32c42b.ef627c",
+                "113f1be5.7b839c",
+                "d298a5ec.4701a8"
+            ]
+        ]
+    },
+    {
+        "id": "3796a832.dd7c9",
+        "type": "save",
+        "name": "save p-interface in AAI",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='bandwidth-attribute' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba' >      \n<parameter name='bwa-id' value='`$random-ba`' />\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1628.75,
+        "y": 1490.7499389648438,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8c9dedce.28c178",
+        "type": "set",
+        "name": "set cep-uuid ",
+        "xml": "<set>\n<parameter name='ce' value='' />\n<parameter name='some' value='' />\n",
+        "comments": "",
+        "x": 744.75,
+        "y": 2613.25,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "f32c42b.ef627c",
+        "type": "set",
+        "name": "set",
+        "xml": "<set>\n<parameter name='random-ba' value=\"`$node.uuid + '_' + $tp.uuid`\" />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "x": 1608.75,
+        "y": 1408.25,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "113f1be5.7b839c",
+        "type": "execute",
+        "name": "execute",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >\n<parameter name=\"ctx-destination\" value=\"uuid\"/>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1615.75,
+        "y": 1325.75,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d298a5ec.4701a8",
+        "type": "switchNode",
+        "name": "switch rate in NNI",
+        "xml": "<switch test='`$rate-param`'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1080.75,
+        "y": 1966.75,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "4b3e2ceb.2eb48c",
+                "721cd7f0.663828",
+                "91cb4231.18cc9",
+                "7a32a1a.1876ce",
+                "8e655d43.d52e48"
+            ]
+        ]
+    },
+    {
+        "id": "4b3e2ceb.2eb48c",
+        "type": "outcome",
+        "name": "ODU0",
+        "xml": "<outcome value='ODU0'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1748.933349609375,
+        "y": 1552.933349609375,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "9c235584.62579"
+            ]
+        ]
+    },
+    {
+        "id": "721cd7f0.663828",
+        "type": "outcome",
+        "name": "ODU1",
+        "xml": "<outcome value='ODU1'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1705.933349609375,
+        "y": 1815.933349609375,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "b7bd314d.9cf0d"
+            ]
+        ]
+    },
+    {
+        "id": "91cb4231.18cc9",
+        "type": "outcome",
+        "name": "ODU2",
+        "xml": "<outcome value='ODU2'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1659.933349609375,
+        "y": 2045.933349609375,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "b7e44f5e.25e06"
+            ]
+        ]
+    },
+    {
+        "id": "7a32a1a.1876ce",
+        "type": "outcome",
+        "name": "ODU3",
+        "xml": "<outcome value='ODU3'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1751.933349609375,
+        "y": 2416.933349609375,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "ca6f1330.654d"
+            ]
+        ]
+    },
+    {
+        "id": "8e655d43.d52e48",
+        "type": "outcome",
+        "name": "ODU4",
+        "xml": "<outcome value='ODU4'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1736.933349609375,
+        "y": 2642.933349609375,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "c8a60ea.86b8df"
+            ]
+        ]
+    },
+    {
+        "id": "9c235584.62579",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 1893.933349609375,
+        "y": 1429.7333984375,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "b06987be.8600c8",
+                "2152e5a8.234e4a",
+                "fee249b2.2732e8",
+                "8d5bc0c.88ed84",
+                "227e1b10.a2fb2c",
+                "3bb8f50c.9c58ca"
+            ]
+        ]
+    },
+    {
+        "id": "b06987be.8600c8",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu0",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu0' >      \n<parameter name='ab-id' value='`$odu0`' />\n<parameter name='odu-type' value=\"ODU0\" />\n<parameter name='number' value='1' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2181.933349609375,
+        "y": 1277.7333984375,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2152e5a8.234e4a",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu1",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu1' >      \n<parameter name='ab-id' value='`$odu1`' />\n<parameter name='odu-type' value=\"ODU1\" />\n<parameter name='number' value='0' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2175.25,
+        "y": 1332.75,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "fee249b2.2732e8",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu2",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu2' >      \n<parameter name='ab-id' value='`$odu2`' />\n<parameter name='odu-type' value=\"ODU2\" />\n<parameter name='number' value='0' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2163.25,
+        "y": 1406.75,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8d5bc0c.88ed84",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu3",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu3' >      \n<parameter name='ab-id' value='`$odu3`' />\n<parameter name='odu-type' value=\"ODU3\" />\n<parameter name='number' value='0' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2162.25,
+        "y": 1480.75,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "227e1b10.a2fb2c",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu4",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu4' >      \n<parameter name='ab-id' value='`$odu4`' />\n<parameter name='odu-type' value=\"ODU4\" />\n<parameter name='number' value='0' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2181.25,
+        "y": 1583.75,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b7bd314d.9cf0d",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 1888.25,
+        "y": 1815.75,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "6ef755ed.99548c",
+                "dd2f7629.777398",
+                "66e62552.4aa394",
+                "8609ccb1.2d8bd",
+                "87595d0e.b05d38",
+                "ce9a967c.b09018"
+            ]
+        ]
+    },
+    {
+        "id": "6ef755ed.99548c",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu0",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu0' >      \n<parameter name='ab-id' value='`$odu0`' />\n<parameter name='odu-type' value=\"ODU0\" />\n<parameter name='number' value='2' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2213.25,
+        "y": 1662.75,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "dd2f7629.777398",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu1",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu1' >      \n<parameter name='ab-id' value='`$odu1`' />\n<parameter name='odu-type' value=\"ODU1\" />\n<parameter name='number' value='1' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2196.566650390625,
+        "y": 1733.7666015625,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "66e62552.4aa394",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu2",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu2' >      \n<parameter name='ab-id' value='`$odu2`' />\n<parameter name='odu-type' value=\"ODU2\" />\n<parameter name='number' value='0' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2192.566650390625,
+        "y": 1788.7666015625,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8609ccb1.2d8bd",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu3",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu3' >      \n<parameter name='ab-id' value='`$odu3`' />\n<parameter name='odu-type' value=\"ODU3\" />\n<parameter name='number' value='0' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2207.566650390625,
+        "y": 1853.7666015625,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "87595d0e.b05d38",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu4",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu4' >      \n<parameter name='ab-id' value='`$odu4`' />\n<parameter name='odu-type' value=\"ODU4\" />\n<parameter name='number' value='0' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2202.566650390625,
+        "y": 1922.7666015625,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b7e44f5e.25e06",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 1901.25,
+        "y": 2121.25,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "b6290079.3768d8",
+                "aeacf8f2.125a18",
+                "3a3745a4.09acaa",
+                "20f621b2.75d936",
+                "d5c969cd.0b6938",
+                "fa7682f.bf183"
+            ]
+        ]
+    },
+    {
+        "id": "b6290079.3768d8",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu0",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu0' >      \n<parameter name='ab-id' value='`$odu0`' />\n<parameter name='odu-type' value=\"ODU0\" />\n<parameter name='number' value='8' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2226.25,
+        "y": 1968.25,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "aeacf8f2.125a18",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu1",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu1' >      \n<parameter name='ab-id' value='`$odu1`' />\n<parameter name='odu-type' value=\"ODU1\" />\n<parameter name='number' value='4' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2209.566650390625,
+        "y": 2039.2666015625,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3a3745a4.09acaa",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu2",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu2' >      \n<parameter name='ab-id' value='`$odu2`' />\n<parameter name='odu-type' value=\"ODU2\" />\n<parameter name='number' value='1' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2205.566650390625,
+        "y": 2094.2666015625,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "20f621b2.75d936",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu3",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu3' >      \n<parameter name='ab-id' value='`$odu3`' />\n<parameter name='odu-type' value=\"ODU3\" />\n<parameter name='number' value='0' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2220.566650390625,
+        "y": 2159.2666015625,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d5c969cd.0b6938",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu4",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu4' >      \n<parameter name='ab-id' value='`$odu4`' />\n<parameter name='odu-type' value=\"ODU4\" />\n<parameter name='number' value='0' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2215.566650390625,
+        "y": 2228.2666015625,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ca6f1330.654d",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 1921.25,
+        "y": 2442.25,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "2be58a1d.aed496",
+                "89903ba4.c414c8",
+                "41154fca.298178",
+                "e906813f.b5869",
+                "96b9d670.d50be8",
+                "82c447b3.e8f528"
+            ]
+        ]
+    },
+    {
+        "id": "2be58a1d.aed496",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu0",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu0' >      \n<parameter name='ab-id' value='`$odu0`' />\n<parameter name='odu-type' value=\"ODU0\" />\n<parameter name='number' value='40' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2280.25,
+        "y": 2293.25,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "89903ba4.c414c8",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu1",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu1' >      \n<parameter name='ab-id' value='`$odu1`' />\n<parameter name='odu-type' value=\"ODU1\" />\n<parameter name='number' value='20' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2277.566650390625,
+        "y": 2360.2666015625,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "41154fca.298178",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu2",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu2' >      \n<parameter name='ab-id' value='`$odu2`' />\n<parameter name='odu-type' value=\"ODU2\" />\n<parameter name='number' value='5' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2225.566650390625,
+        "y": 2415.2666015625,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "e906813f.b5869",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu3",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu3' >      \n<parameter name='ab-id' value='`$odu3`' />\n<parameter name='odu-type' value=\"ODU3\" />\n<parameter name='number' value='1' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2240.566650390625,
+        "y": 2480.2666015625,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "96b9d670.d50be8",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu4",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu4' >      \n<parameter name='ab-id' value='`$odu4`' />\n<parameter name='odu-type' value=\"ODU4\" />\n<parameter name='number' value='0' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2235.566650390625,
+        "y": 2549.2666015625,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c8a60ea.86b8df",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 1945.25,
+        "y": 2776.25,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "2e6514f0.94b6c4",
+                "b0455458.6d62f",
+                "6ee00e0.0c53cf4",
+                "1a460df7.cad502",
+                "62cd4705.4d3d4",
+                "6816d709.9fbb6"
+            ]
+        ]
+    },
+    {
+        "id": "2e6514f0.94b6c4",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu0",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu0' >      \n<parameter name='ab-id' value='`$odu0`' />\n<parameter name='odu-type' value=\"ODU0\" />\n<parameter name='number' value='80' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2306.25,
+        "y": 2623.25,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b0455458.6d62f",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu1",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu1' >      \n<parameter name='ab-id' value='`$odu1`' />\n<parameter name='odu-type' value=\"ODU1\" />\n<parameter name='number' value='40' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2291.566650390625,
+        "y": 2694.2666015625,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "6ee00e0.0c53cf4",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu2",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu2' >      \n<parameter name='ab-id' value='`$odu2`' />\n<parameter name='odu-type' value=\"ODU2\" />\n<parameter name='number' value='10' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2249.566650390625,
+        "y": 2749.2666015625,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1a460df7.cad502",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu3",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu3' >      \n<parameter name='ab-id' value='`$odu3`' />\n<parameter name='odu-type' value=\"ODU3\" />\n<parameter name='number' value='2' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2264.566650390625,
+        "y": 2814.2666015625,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "62cd4705.4d3d4",
+        "type": "save",
+        "name": "save available-bandwidth in AAI for odu4",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' \n      key='pnf.pnf-name = $node.uuid\n      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu4' >      \n<parameter name='ab-id' value='`$odu4`' />\n<parameter name='odu-type' value=\"ODU4\" />\n<parameter name='number' value='1' />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2259.566650390625,
+        "y": 2883.2666015625,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3a380053.5e28e8",
+        "type": "outcome",
+        "name": "OTU0",
+        "xml": "<outcome value='OTU0'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1392.75,
+        "y": 1096.75,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "3f789e8e.088bd2"
+            ]
+        ]
+    },
+    {
+        "id": "d7b0999b.5401d8",
+        "type": "outcome",
+        "name": "OTU1",
+        "xml": "<outcome value='OTU1'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1389.75,
+        "y": 1134.75,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "3f789e8e.088bd2"
+            ]
+        ]
+    },
+    {
+        "id": "c59da1dd.0a3a6",
+        "type": "outcome",
+        "name": "OTU2",
+        "xml": "<outcome value='OTU2'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1396.75,
+        "y": 1181.75,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "3f789e8e.088bd2"
+            ]
+        ]
+    },
+    {
+        "id": "9ef45078.45166",
+        "type": "outcome",
+        "name": "OTU3",
+        "xml": "<outcome value='OTU3'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1396.75,
+        "y": 1229.75,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "3f789e8e.088bd2"
+            ]
+        ]
+    },
+    {
+        "id": "a8b7220d.93d588",
+        "type": "outcome",
+        "name": "OTU4",
+        "xml": "<outcome value='OTU4'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1392.75,
+        "y": 1276.75,
+        "z": "12d97b5.248ff85",
+        "wires": [
+            [
+                "3f789e8e.088bd2"
+            ]
+        ]
+    },
+    {
+        "id": "3bb8f50c.9c58ca",
+        "type": "set",
+        "name": "set",
+        "xml": "<set>\n<parameter name='random-ba' value=\"`$node.uuid + '_' + $tp.uuid`\" />\n<parameter name='odu0' value=\"`$random-ba + '-ODU0'`\" />\n<parameter name='odu1' value=\"`$random-ba + '-ODU1'`\" />\n<parameter name='odu2' value=\"`$random-ba + '-ODU2'`\" />\n<parameter name='odu3' value=\"`$random-ba + '-ODU3'`\" />\n<parameter name='odu4' value=\"`$random-ba + '-ODU4'`\" />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "x": 1938,
+        "y": 1294.25,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "ce9a967c.b09018",
+        "type": "set",
+        "name": "set",
+        "xml": "<set>\n<parameter name='random-ba' value=\"`$node.uuid + '_' + $tp.uuid`\" />\n<parameter name='odu0' value=\"`$random-ba + '-ODU0'`\" />\n<parameter name='odu1' value=\"`$random-ba + '-ODU1'`\" />\n<parameter name='odu2' value=\"`$random-ba + '-ODU2'`\" />\n<parameter name='odu3' value=\"`$random-ba + '-ODU3'`\" />\n<parameter name='odu4' value=\"`$random-ba + '-ODU4'`\" />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "x": 1883,
+        "y": 1658,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "fa7682f.bf183",
+        "type": "set",
+        "name": "set",
+        "xml": "<set>\n<parameter name='random-ba' value=\"`$node.uuid + '_' + $tp.uuid`\" />\n<parameter name='odu0' value=\"`$random-ba + '-ODU0'`\" />\n<parameter name='odu1' value=\"`$random-ba + '-ODU1'`\" />\n<parameter name='odu2' value=\"`$random-ba + '-ODU2'`\" />\n<parameter name='odu3' value=\"`$random-ba + '-ODU3'`\" />\n<parameter name='odu4' value=\"`$random-ba + '-ODU4'`\" />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "x": 1984,
+        "y": 1989.75,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "82c447b3.e8f528",
+        "type": "set",
+        "name": "set",
+        "xml": "<set>\n<parameter name='random-ba' value=\"`$node.uuid + '_' + $tp.uuid`\" />\n<parameter name='odu0' value=\"`$random-ba + '-ODU0'`\" />\n<parameter name='odu1' value=\"`$random-ba + '-ODU1'`\" />\n<parameter name='odu2' value=\"`$random-ba + '-ODU2'`\" />\n<parameter name='odu3' value=\"`$random-ba + '-ODU3'`\" />\n<parameter name='odu4' value=\"`$random-ba + '-ODU4'`\" />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "x": 2034,
+        "y": 2288.5,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    },
+    {
+        "id": "6816d709.9fbb6",
+        "type": "set",
+        "name": "set",
+        "xml": "<set>\n<parameter name='random-ba' value=\"`$node.uuid + '_' + $tp.uuid`\" />\n<parameter name='odu0' value=\"`$random-ba + '-ODU0'`\" />\n<parameter name='odu1' value=\"`$random-ba + '-ODU1'`\" />\n<parameter name='odu2' value=\"`$random-ba + '-ODU2'`\" />\n<parameter name='odu3' value=\"`$random-ba + '-ODU3'`\" />\n<parameter name='odu4' value=\"`$random-ba + '-ODU4'`\" />\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "x": 2060,
+        "y": 2616,
+        "z": "12d97b5.248ff85",
+        "wires": []
+    }
+]
