@@ -1,0 +1,540 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>
+    <method rpc='tapi-update-network-to-aai' mode='sync'>
+        <block atomic='true'>
+            <set>
+                <parameter name='tmp.network-id' value="`$prop.sdncRestApi.thirdpartySdnc.id + '-TAPI-' + $topology.uuid`" />
+            </set>
+            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                <parameter name="file" value="/opt/opendaylight/current/data/log/svclogic.log" />
+                <parameter name="level" value="info" />
+                <parameter name="field1" value="`$topology.name[0].value`"/>
+                <parameter name="field2" value="`$prop.sdncRestApi.thirdpartySdnc.id`"/>
+            </record>
+            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='network-resource'  
+     key='network-resource.network-id = $tmp.network-id' >
+                <parameter name='network-id' value='`$tmp.network-id`' />
+            </save>
+            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='esr-thirdparty-sdnc:relationship-list' 
+      key='esr-thirdparty-sdnc.thirdparty-sdnc-id = $prop.sdncRestApi.thirdpartySdnc.id' 
+      force="true" pfx="tmp.AnAI-data">
+                <parameter name="relationship-list.relationship[0].related-to" value="network-resource" />
+                <parameter name="relationship-list.relationship[0].related-link" value="`'/network/network-resources/network-resource/' + $tmp.network-id`" />
+                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="network-resource.network-id" />
+                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$tmp.network-id`" />
+            </save>
+            <set>
+                <parameter name='controller_id' value="`$prop.sdncRestApi.type + '_' + $prop.sdncRestApi.thirdpartySdnc.url`" />
+            </set>
+            <for index='nidx' start='0' end='`$topology.node_length`' >
+                <set>
+                    <parameter name='node.' value='`$topology.node[$nidx].`' />
+                </set>
+                <block atomic='true'>
+                    <switch test='`$node.layer-protocol-name[0]`'>
+                        <outcome value='ODU'>
+                            <block>
+                                <switch test='`$node.name_length`'>
+                                    <outcome value=''></outcome>
+                                    <outcome value='Other'>
+                                        <for index='na-idx' start='0' end='`$node.name_length`' >
+                                            <switch test="`$node.name[$na-idx].value-name == 'name'`">
+                                                <outcome value='true'>
+                                                    <set>
+                                                        <parameter name='node-name' value="`$node.name[$na-idx].value`"/>
+                                                    </set>
+                                                </outcome>
+                                            </switch>
+                                        </for>
+                                    </outcome>
+                                </switch>
+                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                    <parameter name="file" value="/opt/opendaylight/current/data/log/svclogic.log" />
+                                    <parameter name="level" value="info" />
+                                    <parameter name="field1" value='`$node.name_length`'/>
+                                </record>
+                                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf'
+key='pnf.pnf-name = $node.uuid' >
+                                    <parameter name='pnf-name' value='`$node.uuid`' />
+                                    <parameter name='pnf-id' value='`$node-name`' />
+                                    <parameter name='in-maint' value='true' />
+                                </save>
+                                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf:relationship-list' 
+      key='pnf.pnf-name = $node.uuid' force="true" pfx="tmp.AnAI-data">
+                                    <parameter name="relationship-list.relationship[0].related-to" value="network-resource" />
+                                    <parameter name="relationship-list.relationship[0].related-link" value="`'/network/network-resources/network-resource/' + $tmp.network-id`" />
+                                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="network-resource.network-id" />
+                                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$tmp.network-id`" />
+                                </save>
+                            </block>
+                        </outcome>
+                        <outcome value='Other'></outcome>
+                    </switch>
+                </block>
+                <for index='tpidx' start='0' end='`$node.node-edge-point_length`' >
+                    <set>
+                        <parameter name='tp.' value='`$node.node-edge-point[$tpidx].`' />
+                    </set>
+                    <block atomic='true'>
+                        <switch test='`$tp.layer-protocol-name`'>
+                            <outcome value='Other'></outcome>
+                            <outcome value='ODU'>
+                                <block atomic='true'>
+                                    <switch test='`$tp.name_length`'>
+                                        <outcome value=''></outcome>
+                                        <outcome value='Other'>
+                                            <for index='na-idx' start='0' end='`$tp.name_length`' >
+                                                <switch test="`$tp.name[$na-idx].value-name == 'name'`">
+                                                    <outcome value='true'>
+                                                        <set>
+                                                            <parameter name='tp-name' value="`$tp.name[$na-idx].value`"/>
+                                                        </set>
+                                                    </outcome>
+                                                </switch>
+                                                <switch test="`$tp.name[$na-idx].value-name == 'rate'`">
+                                                    <outcome value='true'>
+                                                        <set>
+                                                            <parameter name='tp-speed' value="`$tp.name[$na-idx].value`"/>
+                                                        </set>
+                                                    </outcome>
+                                                </switch>
+                                            </for>
+                                        </outcome>
+                                    </switch>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                        <parameter name="file" value="/opt/opendaylight/current/data/log/svclogic.log" />
+                                        <parameter name="level" value="info" />
+                                        <parameter name="field1" value="speed-values"/>
+                                        <parameter name="field2" value="`$tp-speed`"/>
+                                    </record>
+                                    <switch test='`$tp-speed`'>
+                                        <outcome value='Other'>
+                                            <set>
+                                                <parameter name='netinttype' value='UNI' />
+                                            </set>
+                                        </outcome>
+                                        <outcome value='ODU0'>
+                                            <set>
+                                                <parameter name='netinttype' value='NNI' />
+                                            </set>
+                                        </outcome>
+                                        <outcome value='ODU1'>
+                                            <set>
+                                                <parameter name='netinttype' value='NNI' />
+                                            </set>
+                                        </outcome>
+                                        <outcome value='ODU2'>
+                                            <set>
+                                                <parameter name='netinttype' value='NNI' />
+                                            </set>
+                                        </outcome>
+                                        <outcome value='ODU3'>
+                                            <set>
+                                                <parameter name='netinttype' value='NNI' />
+                                            </set>
+                                        </outcome>
+                                        <outcome value='ODU4'>
+                                            <set>
+                                                <parameter name='netinttype' value='NNI' />
+                                            </set>
+                                        </outcome>
+                                        <outcome value='OTU0'>
+                                            <set>
+                                                <parameter name='netinttype' value='NNI' />
+                                            </set>
+                                        </outcome>
+                                        <outcome value='OTU1'>
+                                            <set>
+                                                <parameter name='netinttype' value='NNI' />
+                                            </set>
+                                        </outcome>
+                                        <outcome value='OTU2'>
+                                            <set>
+                                                <parameter name='netinttype' value='NNI' />
+                                            </set>
+                                        </outcome>
+                                        <outcome value='OTU3'>
+                                            <set>
+                                                <parameter name='netinttype' value='NNI' />
+                                            </set>
+                                        </outcome>
+                                        <outcome value='OTU4'>
+                                            <set>
+                                                <parameter name='netinttype' value='NNI' />
+                                            </set>
+                                        </outcome>
+                                    </switch>
+                                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid' >
+                                        <parameter name='interface-name' value='`$tp.uuid`' />
+                                        <parameter name='port-description' value='`$tp-name`' />
+                                        <parameter name='operational-status' value='`$tp.administrative-state`' />
+                                        <parameter name='in-maint' value="true" />
+                                        <parameter name='network-interface-type' value='`$netinttype`' />
+                                        <parameter name='speed-units' value="Gbps" />
+                                        <parameter name='speed-value' value='`$tp-speed`' />
+                                        <parameter name='available-capacity' value='`$tp-speed`' />
+                                    </save>
+                                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+resource="p-interface"
+ key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid'  
+      pfx='aai.service' local-only='false'>
+                                        <outcome value='success'>
+                                            <set>
+                                                <parameter name='interface-type' value='`$aai.service.network-interface-type`' />
+                                                <parameter name='rate-param' value='`$aai.service.speed-value`' />
+                                            </set>
+                                        </outcome>
+                                    </get-resource>
+                                    <switch test='`$interface-type`'>
+                                        <outcome value='UNI'></outcome>
+                                        <outcome value='NNI'>
+                                            <block atomic='true'>
+                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
+                                                    <parameter name="ctx-destination" value="uuid"/>
+                                                </execute>
+                                                <set>
+                                                    <parameter name='random-ba' value="`$node.uuid + '_' + $tp.uuid`" />
+                                                </set>
+                                                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='bandwidth-attribute' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba' >
+                                                    <parameter name='bwa-id' value='`$random-ba`' />
+                                                </save>
+                                                <switch test='`$rate-param`'>
+                                                    <outcome value='ODU0'>
+                                                        <block atomic='true'>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu0' >
+                                                                <parameter name='ab-id' value='`$odu0`' />
+                                                                <parameter name='odu-type' value="ODU0" />
+                                                                <parameter name='number' value='1' />
+                                                            </save>
+                                                            <set>
+                                                                <parameter name='random-ba' value="`$node.uuid + '_' + $tp.uuid`" />
+                                                                <parameter name='odu0' value="`$random-ba + '-ODU0'`" />
+                                                                <parameter name='odu1' value="`$random-ba + '-ODU1'`" />
+                                                                <parameter name='odu2' value="`$random-ba + '-ODU2'`" />
+                                                                <parameter name='odu3' value="`$random-ba + '-ODU3'`" />
+                                                                <parameter name='odu4' value="`$random-ba + '-ODU4'`" />
+                                                            </set>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu1' >
+                                                                <parameter name='ab-id' value='`$odu1`' />
+                                                                <parameter name='odu-type' value="ODU1" />
+                                                                <parameter name='number' value='0' />
+                                                            </save>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu2' >
+                                                                <parameter name='ab-id' value='`$odu2`' />
+                                                                <parameter name='odu-type' value="ODU2" />
+                                                                <parameter name='number' value='0' />
+                                                            </save>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu3' >
+                                                                <parameter name='ab-id' value='`$odu3`' />
+                                                                <parameter name='odu-type' value="ODU3" />
+                                                                <parameter name='number' value='0' />
+                                                            </save>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu4' >
+                                                                <parameter name='ab-id' value='`$odu4`' />
+                                                                <parameter name='odu-type' value="ODU4" />
+                                                                <parameter name='number' value='0' />
+                                                            </save>
+                                                        </block>
+                                                    </outcome>
+                                                    <outcome value='ODU1'>
+                                                        <block atomic='true'>
+                                                            <set>
+                                                                <parameter name='random-ba' value="`$node.uuid + '_' + $tp.uuid`" />
+                                                                <parameter name='odu0' value="`$random-ba + '-ODU0'`" />
+                                                                <parameter name='odu1' value="`$random-ba + '-ODU1'`" />
+                                                                <parameter name='odu2' value="`$random-ba + '-ODU2'`" />
+                                                                <parameter name='odu3' value="`$random-ba + '-ODU3'`" />
+                                                                <parameter name='odu4' value="`$random-ba + '-ODU4'`" />
+                                                            </set>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu0' >
+                                                                <parameter name='ab-id' value='`$odu0`' />
+                                                                <parameter name='odu-type' value="ODU0" />
+                                                                <parameter name='number' value='2' />
+                                                            </save>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu1' >
+                                                                <parameter name='ab-id' value='`$odu1`' />
+                                                                <parameter name='odu-type' value="ODU1" />
+                                                                <parameter name='number' value='1' />
+                                                            </save>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu2' >
+                                                                <parameter name='ab-id' value='`$odu2`' />
+                                                                <parameter name='odu-type' value="ODU2" />
+                                                                <parameter name='number' value='0' />
+                                                            </save>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu3' >
+                                                                <parameter name='ab-id' value='`$odu3`' />
+                                                                <parameter name='odu-type' value="ODU3" />
+                                                                <parameter name='number' value='0' />
+                                                            </save>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu4' >
+                                                                <parameter name='ab-id' value='`$odu4`' />
+                                                                <parameter name='odu-type' value="ODU4" />
+                                                                <parameter name='number' value='0' />
+                                                            </save>
+                                                        </block>
+                                                    </outcome>
+                                                    <outcome value='ODU2'>
+                                                        <block atomic='true'>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu0' >
+                                                                <parameter name='ab-id' value='`$odu0`' />
+                                                                <parameter name='odu-type' value="ODU0" />
+                                                                <parameter name='number' value='8' />
+                                                            </save>
+                                                            <set>
+                                                                <parameter name='random-ba' value="`$node.uuid + '_' + $tp.uuid`" />
+                                                                <parameter name='odu0' value="`$random-ba + '-ODU0'`" />
+                                                                <parameter name='odu1' value="`$random-ba + '-ODU1'`" />
+                                                                <parameter name='odu2' value="`$random-ba + '-ODU2'`" />
+                                                                <parameter name='odu3' value="`$random-ba + '-ODU3'`" />
+                                                                <parameter name='odu4' value="`$random-ba + '-ODU4'`" />
+                                                            </set>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu1' >
+                                                                <parameter name='ab-id' value='`$odu1`' />
+                                                                <parameter name='odu-type' value="ODU1" />
+                                                                <parameter name='number' value='4' />
+                                                            </save>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu2' >
+                                                                <parameter name='ab-id' value='`$odu2`' />
+                                                                <parameter name='odu-type' value="ODU2" />
+                                                                <parameter name='number' value='1' />
+                                                            </save>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu3' >
+                                                                <parameter name='ab-id' value='`$odu3`' />
+                                                                <parameter name='odu-type' value="ODU3" />
+                                                                <parameter name='number' value='0' />
+                                                            </save>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu4' >
+                                                                <parameter name='ab-id' value='`$odu4`' />
+                                                                <parameter name='odu-type' value="ODU4" />
+                                                                <parameter name='number' value='0' />
+                                                            </save>
+                                                        </block>
+                                                    </outcome>
+                                                    <outcome value='ODU3'>
+                                                        <block atomic='true'>
+                                                            <set>
+                                                                <parameter name='random-ba' value="`$node.uuid + '_' + $tp.uuid`" />
+                                                                <parameter name='odu0' value="`$random-ba + '-ODU0'`" />
+                                                                <parameter name='odu1' value="`$random-ba + '-ODU1'`" />
+                                                                <parameter name='odu2' value="`$random-ba + '-ODU2'`" />
+                                                                <parameter name='odu3' value="`$random-ba + '-ODU3'`" />
+                                                                <parameter name='odu4' value="`$random-ba + '-ODU4'`" />
+                                                            </set>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu0' >
+                                                                <parameter name='ab-id' value='`$odu0`' />
+                                                                <parameter name='odu-type' value="ODU0" />
+                                                                <parameter name='number' value='40' />
+                                                            </save>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu1' >
+                                                                <parameter name='ab-id' value='`$odu1`' />
+                                                                <parameter name='odu-type' value="ODU1" />
+                                                                <parameter name='number' value='20' />
+                                                            </save>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu2' >
+                                                                <parameter name='ab-id' value='`$odu2`' />
+                                                                <parameter name='odu-type' value="ODU2" />
+                                                                <parameter name='number' value='5' />
+                                                            </save>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu3' >
+                                                                <parameter name='ab-id' value='`$odu3`' />
+                                                                <parameter name='odu-type' value="ODU3" />
+                                                                <parameter name='number' value='1' />
+                                                            </save>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu4' >
+                                                                <parameter name='ab-id' value='`$odu4`' />
+                                                                <parameter name='odu-type' value="ODU4" />
+                                                                <parameter name='number' value='0' />
+                                                            </save>
+                                                        </block>
+                                                    </outcome>
+                                                    <outcome value='ODU4'>
+                                                        <block atomic='true'>
+                                                            <set>
+                                                                <parameter name='random-ba' value="`$node.uuid + '_' + $tp.uuid`" />
+                                                                <parameter name='odu0' value="`$random-ba + '-ODU0'`" />
+                                                                <parameter name='odu1' value="`$random-ba + '-ODU1'`" />
+                                                                <parameter name='odu2' value="`$random-ba + '-ODU2'`" />
+                                                                <parameter name='odu3' value="`$random-ba + '-ODU3'`" />
+                                                                <parameter name='odu4' value="`$random-ba + '-ODU4'`" />
+                                                            </set>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu0' >
+                                                                <parameter name='ab-id' value='`$odu0`' />
+                                                                <parameter name='odu-type' value="ODU0" />
+                                                                <parameter name='number' value='80' />
+                                                            </save>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu1' >
+                                                                <parameter name='ab-id' value='`$odu1`' />
+                                                                <parameter name='odu-type' value="ODU1" />
+                                                                <parameter name='number' value='40' />
+                                                            </save>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu2' >
+                                                                <parameter name='ab-id' value='`$odu2`' />
+                                                                <parameter name='odu-type' value="ODU2" />
+                                                                <parameter name='number' value='10' />
+                                                            </save>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu3' >
+                                                                <parameter name='ab-id' value='`$odu3`' />
+                                                                <parameter name='odu-type' value="ODU3" />
+                                                                <parameter name='number' value='2' />
+                                                            </save>
+                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='available-bandwidth' 
+      key='pnf.pnf-name = $node.uuid
+      AND p-interface.interface-name = $tp.uuid AND bandwidth-attribute.bwa-id = $random-ba AND available-bandwidth.ab-id = $odu4' >
+                                                                <parameter name='ab-id' value='`$odu4`' />
+                                                                <parameter name='odu-type' value="ODU4" />
+                                                                <parameter name='number' value='1' />
+                                                            </save>
+                                                        </block>
+                                                    </outcome>
+                                                </switch>
+                                            </block>
+                                        </outcome>
+                                    </switch>
+                                    <set>
+                                        <parameter name='ce' value='' />
+                                        <parameter name='some' value='' />
+                                    </set>
+                                    <for index='cepx' start='0' end='`$tp.cep-list.connection-end-point_length`' >
+                                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                            <parameter name="file" value="/opt/opendaylight/current/data/log/svclogic.log" />
+                                            <parameter name="level" value="info" />
+                                            <parameter name="field1" value="For every uuid"/>
+                                            <parameter name="field2" value="`$tp.cep-list.connection-end-point[$cepx].uuid`"/>
+                                        </record>
+                                        <switch test='`$tp.cep-list.connection-end-point_length`'>
+                                            <outcome value='0'>
+                                                <block atomic='true'>
+                                                    <set>
+                                                        <parameter name='ce' value='' />
+                                                    </set>
+                                                </block>
+                                            </outcome>
+                                            <outcome value='1'>
+                                                <block atomic='true'>
+                                                    <set>
+                                                        <parameter name='ce' value="`$ce + $tp.cep-list.connection-end-point[0].uuid`" />
+                                                    </set>
+                                                </block>
+                                            </outcome>
+                                            <outcome value='2'>
+                                                <block atomic='true'>
+                                                    <set>
+                                                        <parameter name='some1' value="`$tp.cep-list.connection-end-point[0].uuid`" />
+                                                        <parameter name='ce' value="`$some1 + ',' + $tp.cep-list.connection-end-point[1].uuid`" />
+                                                    </set>
+                                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                                        <parameter name="file" value="/opt/opendaylight/current/data/log/svclogic.log" />
+                                                        <parameter name="level" value="info" />
+                                                        <parameter name="field1" value="Length"/>
+                                                        <parameter name="field2" value="`$tp.cep-list.connection-end-point_length`"/>
+                                                        <parameter name="field3" value="`$some1`"/>
+                                                    </record>
+                                                </block>
+                                            </outcome>
+                                            <outcome value='3'>
+                                                <block atomic='true'>
+                                                    <set>
+                                                        <parameter name='some1' value="`$tp.cep-list.connection-end-point[0].uuid`" />
+                                                        <parameter name='cep' value="`$some1 + ',' + $tp.cep-list.connection-end-point[1].uuid`" />
+                                                        <parameter name='ce' value="`$cep + ',' + $tp.cep-list.connection-end-point[2].uuid`" />
+                                                    </set>
+                                                </block>
+                                            </outcome>
+                                        </switch>
+                                    </for>
+                                    <save plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL" key="INSERT INTO TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE VALUES ( $tp.uuid , $tp-name , $node.uuid , $node-name , $controller_id , $tp-speed , null , $ce );"></save>
+                                </block>
+                            </outcome>
+                        </switch>
+                    </block>
+                </for>
+            </for>
+            <for index='lidx' start='0' end='`$topology.link_length`' >
+                <set>
+                    <parameter name='link.' value='`$topology.link[$lidx].`' />
+                </set>
+                <set>
+                    <parameter name='interface1' value="`$link.node-edge-point[0].node-edge-point-uuid`" />
+                    <parameter name='interface2' value="`$link.node-edge-point[1].node-edge-point-uuid`" />
+                    <parameter name='pnf1' value="`$link.node-edge-point[0].node-uuid`" />
+                    <parameter name='pnf2' value="`$link.node-edge-point[1].node-uuid`" />
+                </set>
+                <set>
+                    <parameter name='link.name' value="`$link.uuid`" />
+                </set>
+                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='logical-link'
+key='logical-link.link-name = $link.name' >
+                    <parameter name='link-name' value='`$link.name`' />
+                    <parameter name='link-type' value='OTN-LINK' />
+                    <parameter name='in-maint' value='true' />
+                    <parameter name='operational-status' value='`$link.operational-state`' />
+                </save>
+                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='logical-link:relationship-list' 
+      key='logical-link.link-name = $link.name' force="true" pfx="tmp.AnAI-data">
+                    <parameter name="relationship-list.relationship[0].related-to" value="p-interface" />
+                    <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $pnf1 + '/p-interfaces/p-interface/' + $interface1 `" />
+                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="pnf.pnf-name" />
+                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$pnf1`" />
+                    <parameter name="relationship-list.relationship[1].related-to" value="p-interface" />
+                    <parameter name="relationship-list.relationship[1].related-link" value="`'/network/pnfs/pnf/' + $pnf2 + '/p-interfaces/p-interface/' + $interface2 `" />
+                    <parameter name="relationship-list.relationship[1].relationship-data[0].relationship-key" value="pnf.pnf-name" />
+                    <parameter name="relationship-list.relationship[1].relationship-data[0].relationship-value" value="`$pnf2`" />
+                </save>
+            </for>
+        </block>
+    </method>
+</service-logic>
