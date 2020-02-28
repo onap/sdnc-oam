@@ -1,0 +1,69 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='optical-service' version='${project.version}'>
+    <method rpc='aai-delete-service-handling' mode='sync'>
+        <block atomic='true'>
+            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                <parameter name="file" value="/opt/opendaylight/current/data/log/async-notif.log" />
+                <parameter name="level" value="info" />
+                <parameter name="field1" value="Inside Revert PInterface details"/>
+            </record>
+            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+resource="service-instance"
+ key='customer.global-customer-id = $output.global-customer-id AND
+     service-subscription.service-type = $output.service-type AND
+     service-instance.service-instance-id = $output.service-instance-id' 
+pfx='aai.service'      local-only='false'></get-resource>
+            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                <parameter name="file" value="/opt/opendaylight/current/data/log/async-notif.log" />
+                <parameter name="level" value="info" />
+                <parameter name="field1" value="Inside Revert PInterface details"/>
+                <parameter name="field2" value="`$aai.service.orchestration-status`"/>
+                <parameter name="field3" value="`$aai.service.relationship-list.relationship_length`"/>
+            </record>
+            <for index='idx' start='0' end='`$aai.service.relationship-list.relationship_length`' >
+                <block atomic='true'>
+                    <set>
+                        <parameter name='pnf-name' value='`$aai.service.relationship-list.relationship[$idx].relationship-data[0].relationship-value`' />
+                        <parameter name='pinterface-name' value='`$aai.service.relationship-list.relationship[$idx].relationship-data[1].relationship-value`' />
+                    </set>
+                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                        <parameter name="file" value="/opt/opendaylight/current/data/log/async-notif.log" />
+                        <parameter name="level" value="info" />
+                        <parameter name="field1" value="Inside Revert PInterface details"/>
+                        <parameter name="field2" value="`$pnf-name`"/>
+                        <parameter name="field3" value="`$pinterface-name`"/>
+                    </record>
+                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+resource="p-interface"
+     key='pnf.pnf-name = $pnf-name AND
+     p-interface.interface-name = $pinterface-name ' 
+pfx='p.in.details'      local-only='false'></get-resource>
+                    <set>
+                        <parameter name='new-rate' value='`$p.in.details.speed-value`' />
+                    </set>
+                    <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' 
+force='true'
+resource='p-interface'
+     key='pnf.pnf-name = $pnf-name AND
+     p-interface.interface-name = $pinterface-name '
+      local-only='false'>
+                        <parameter name='available-capacity' value='`$new-rate`' />
+                    </update>
+                    <save plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' 
+resource='SQL' 
+key='UPDATE TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE SET rate = $new-rate WHERE interface_name = $pinterface-name '
+force='true' pfx='save-result'></save>
+                </block>
+            </for>
+            <delete plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+resource="service-instance"
+key='customer.global-customer-id = $output.global-customer-id AND
+service-subscription.service-type = $output.service-type AND
+service-instance.service-instance-id = $output.service-instance-id'></delete>
+            <delete plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource'
+    resource="SQL"
+    key="DELETE FROM REQUEST_DETAILS WHERE request_id = $request-id"></delete>
+        </block>
+    </method>
+</service-logic>

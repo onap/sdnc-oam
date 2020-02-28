@@ -1,0 +1,67 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='optical-service' version='${project.version}'>
+    <method rpc='delete-service-async' mode='sync'>
+        <block atomic='true'>
+            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                <parameter name="file" value="/opt/opendaylight/current/data/log/async-notif.log" />
+                <parameter name="level" value="info" />
+                <parameter name="field1" value="Inside Delete Service Async"/>
+            </record>
+            <switch test='`$response-code`'>
+                <outcome value='200'>
+                    <block atomic='true'>
+                        <set>
+                            <parameter name='response-message' value='SUCCESS' />
+                        </set>
+                        <call module='optical-service' rpc='aai-delete-service-handling' mode='sync' ></call>
+                    </block>
+                </outcome>
+                <outcome value='Other'>
+                    <block atomic='true'>
+                        <set>
+                            <parameter name='response-message' value='FAILURE' />
+                        </set>
+                        <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' 
+force='true'
+resource='service-instance'
+     key='customer.global-customer-id = $output.global-customer-id AND
+     service-subscription.service-type = $output.service-type AND
+     service-instance.service-instance-id = $output.service-instance-id' 
+      local-only='false'>
+                            <parameter name='orchestration-status' value='CREATED' />
+                        </update>
+                        <save plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' 
+resource='SQL' 
+key='UPDATE REQUEST_DETAILS SET status = "CREATED" WHERE request_id = $request-id'
+force='true' pfx='save-result'></save>
+                    </block>
+                </outcome>
+            </switch>
+            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/async-response-so.json'`" />
+                <parameter name="restapiUrl" value="`$output.notification-url`"/>
+                <parameter name="restapiUser" value="`$prop.so.username`" />
+                <parameter name="restapiPassword" value="`$prop.so.password`"/>
+                <parameter name="httpMethod" value="POST"/>
+                <parameter name="responsePrefix" value="so-response"/>
+                <parameter name='contentType' value='application/json' />
+                <parameter name='format' value='json' />
+                <outcome value='failure'>
+                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                        <parameter name="file" value="/opt/opendaylight/current/data/log/async-notif.log" />
+                        <parameter name="level" value="info" />
+                        <parameter name="field1" value="Send to SO fails for service delete"/>
+                    </record>
+                </outcome>
+                <outcome value='success'>
+                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                        <parameter name="file" value="/opt/opendaylight/current/data/log/async-notif.log" />
+                        <parameter name="level" value="info" />
+                        <parameter name="field1" value="Send to SO fails for service delete"/>
+                    </record>
+                </outcome>
+            </execute>
+        </block>
+    </method>
+</service-logic>

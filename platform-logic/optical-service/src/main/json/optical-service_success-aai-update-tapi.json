@@ -1,0 +1,156 @@
+[
+    {
+        "id": "257d2596.c5ecca",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 571,
+        "y": 662,
+        "z": "2ef02d36.ca2f92",
+        "wires": [
+            [
+                "5432b538.633ffc",
+                "7695aa94.c622d4",
+                "ebe3ff74.b36dd"
+            ]
+        ]
+    },
+    {
+        "id": "1cc69ab0.52e865",
+        "type": "dgstart",
+        "name": "DGSTART",
+        "outputs": 1,
+        "x": 101.5,
+        "y": 597,
+        "z": "2ef02d36.ca2f92",
+        "wires": [
+            [
+                "d088abd2.9587b8"
+            ]
+        ]
+    },
+    {
+        "id": "d088abd2.9587b8",
+        "type": "service-logic",
+        "name": "optical-service ${project.version}",
+        "module": "optical-service",
+        "version": "${project.version}",
+        "comments": "",
+        "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='optical-service' version='${project.version}'>",
+        "outputs": 1,
+        "x": 249.5,
+        "y": 654,
+        "z": "2ef02d36.ca2f92",
+        "wires": [
+            [
+                "ddbd4624.086548"
+            ]
+        ]
+    },
+    {
+        "id": "ddbd4624.086548",
+        "type": "method",
+        "name": "method success-aai-update-tapi",
+        "xml": "<method rpc='success-aai-update-tapi' mode='sync'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 439.5,
+        "y": 589,
+        "z": "2ef02d36.ca2f92",
+        "wires": [
+            [
+                "257d2596.c5ecca"
+            ]
+        ]
+    },
+    {
+        "id": "5432b538.633ffc",
+        "type": "save",
+        "name": "save",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list'  \n     key='customer.global-customer-id = $optical-service-create-input.global-customer-id AND\n     service-subscription.service-type = $optical-service-create-input.service-type AND\n     service-instance.service-instance-id = $optical-service-create-input.service-id' force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"p-interface\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/pnfs/pnf/' + $aend-node-uuid + '/p-interfaces/p-interface/' + $aend-nep `\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"pnf.pnf-name\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$aend-node-uuid`\" /> \n<parameter name=\"relationship-list.relationship[1].related-to\" value=\"p-interface\" />\n<parameter name=\"relationship-list.relationship[1].related-link\" value=\"`'/network/pnfs/pnf/' + $zend-node-uuid + '/p-interfaces/p-interface/' + $zend-nep `\" />\n<parameter name=\"relationship-list.relationship[1].relationship-data[0].relationship-key\" value=\"pnf.pnf-name\" />\n<parameter name=\"relationship-list.relationship[1].relationship-data[0].relationship-value\" value=\"`$zend-node-uuid`\" />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 729,
+        "y": 607,
+        "z": "2ef02d36.ca2f92",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7695aa94.c622d4",
+        "type": "get-resource",
+        "name": "Get service from AAI",
+        "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\"\nresource=\"service-instance\"\nkey='customer.global-customer-id = $optical-service-create-input.global-customer-id AND\n     service-subscription.service-type = $optical-service-create-input.service-type AND\n     service-instance.service-instance-id = $optical-service-create-input.service-id'  \npfx='aai.service'      local-only='false'>\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 788,
+        "y": 661,
+        "z": "2ef02d36.ca2f92",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ebe3ff74.b36dd",
+        "type": "for",
+        "name": "for",
+        "xml": "<for index='idy' start='0' end='`$aai.service.relationship-list.relationship_length`' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 700,
+        "y": 733,
+        "z": "2ef02d36.ca2f92",
+        "wires": [
+            [
+                "50909009.4a074"
+            ]
+        ]
+    },
+    {
+        "id": "50909009.4a074",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 847,
+        "y": 733,
+        "z": "2ef02d36.ca2f92",
+        "wires": [
+            [
+                "65d0b7bd.e13a18",
+                "9f8f4fb.cc3cbb"
+            ]
+        ]
+    },
+    {
+        "id": "65d0b7bd.e13a18",
+        "type": "set",
+        "name": "set",
+        "xml": "<set>\n<parameter name='pnf-name' value='`$aai.service.relationship-list.relationship[$idx].relationship-data[0].relationship-value`' />\n<parameter name='pinterface-name' value='`$aai.service.relationship-list.relationship[$idx].relationship-data[1].relationship-value`' />\n\n",
+        "comments": "",
+        "x": 991,
+        "y": 637,
+        "z": "2ef02d36.ca2f92",
+        "wires": []
+    },
+    {
+        "id": "9f8f4fb.cc3cbb",
+        "type": "call",
+        "name": "call call-bandwidth-update-pinterface",
+        "xml": "<call module='optical-service' rpc='call-bandwidth-update-pinterface' mode='sync' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1127,
+        "y": 732,
+        "z": "2ef02d36.ca2f92",
+        "wires": [
+            []
+        ]
+    }
+]

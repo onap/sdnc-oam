@@ -1,0 +1,103 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='optical-service' version='${project.version}'>
+    <method rpc='delete-bandwidth-update-odu1' mode='sync'>
+        <block atomic="true">
+            <switch test='`$optical-service-create-input.payload.service-rate`'>
+                <outcome value='ODU0'>
+                    <for index='idx' start='0' end='pin.bandwidth-attributes.bandwidth-attribute[0].available-bandwidth-map.available-bandwidth_length' >
+                        <set>
+                            <parameter name='new-rate' value='' />
+                        </set>
+                        <set>
+                            <parameter name='odu-name' value='`pin.bandwidth-attributes.bandwidth-attribute[0].available-bandwidth-map.available-bandwidth[$idx].odu-type`' />
+                            <parameter name='odu-number' value='`pin.bandwidth-attributes.bandwidth-attribute[0].available-bandwidth-map.available-bandwidth[$idx].number`' />
+                        </set>
+                        <switch test='`$odu-name`'>
+                            <outcome value='ODU0'>
+                                <block>
+                                    <set>
+                                        <parameter name='mul' value='`$odu-number * 1.25`' />
+                                        <parameter name='add' value='`$new-rate + $mul + 1.25`' />
+                                        <parameter name='new-odu-number' value='`$add / 1.25`' />
+                                    </set>
+                                    <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' 
+force='true'
+resource='available-bandwidth'
+     key='pnf.pnf-name = $pnf-name AND
+     p-interface.interface-name = $pinterface-name AND
+     bandwidth-attribute.id = $pin.bandwidth-attributes.bandwidth-attribute[0].id AND
+     available-bandwidth.id = $pin.bandwidth-attributes.bandwidth-attribute[0].available-bandwidth-map.available-bandwidth[0].id' 
+      local-only='false'>
+                                        <parameter name='number' value='`$new-odu-number`' />
+                                    </update>
+                                </block>
+                            </outcome>
+                            <outcome value='ODU1'>
+                                <block>
+                                    <set>
+                                        <parameter name='new-odu-number' value='`$new-rate / 2.5`' />
+                                    </set>
+                                    <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' 
+force='true'
+resource='available-bandwidth'
+     key='pnf.pnf-name = $pnf-name AND
+     p-interface.interface-name = $pinterface-name AND
+     bandwidth-attribute.id = $pin.bandwidth-attributes.bandwidth-attribute[0].id AND
+     available-bandwidth.id = $pin.bandwidth-attributes.bandwidth-attribute[0].available-bandwidth-map.available-bandwidth[0].id' 
+      local-only='false'>
+                                        <parameter name='number' value='`$new-odu-number`' />
+                                    </update>
+                                </block>
+                            </outcome>
+                        </switch>
+                    </for>
+                </outcome>
+                <outcome value='ODU1'>
+                    <for index='idx' start='0' end='pin.bandwidth-attributes.bandwidth-attribute[0].available-bandwidth-map.available-bandwidth_length' >
+                        <set>
+                            <parameter name='odu-name' value='`pin.bandwidth-attributes.bandwidth-attribute[0].available-bandwidth-map.available-bandwidth[$idx].odu-type`' />
+                            <parameter name='odu-number' value='`pin.bandwidth-attributes.bandwidth-attribute[0].available-bandwidth-map.available-bandwidth[$idx].number`' />
+                        </set>
+                        <switch test='`$odu-name`'>
+                            <outcome value='ODU0'>
+                                <block>
+                                    <set>
+                                        <parameter name='new-odu-number' value='0' />
+                                    </set>
+                                    <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' 
+force='true'
+resource='available-bandwidth'
+     key='pnf.pnf-name = $pnf-name AND
+     p-interface.interface-name = $pinterface-name AND
+     bandwidth-attribute.id = $pin.bandwidth-attributes.bandwidth-attribute[0].id AND
+     available-bandwidth.id = $pin.bandwidth-attributes.bandwidth-attribute[0].available-bandwidth-map.available-bandwidth[0].id' 
+      local-only='false'>
+                                        <parameter name='number' value='`$new-odu-number`' />
+                                    </update>
+                                </block>
+                            </outcome>
+                            <outcome value='ODU1'>
+                                <block>
+                                    <set>
+                                        <parameter name='new-odu-number' value='1' />
+                                    </set>
+                                    <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' 
+force='true'
+resource='available-bandwidth'
+     key='pnf.pnf-name = $pnf-name AND
+     p-interface.interface-name = $pinterface-name AND
+     bandwidth-attribute.id = $pin.bandwidth-attributes.bandwidth-attribute[0].id AND
+     available-bandwidth.id = $pin.bandwidth-attributes.bandwidth-attribute[0].available-bandwidth-map.available-bandwidth[0].id' 
+      local-only='false'>
+                                        <parameter name='number' value='`$new-odu-number`' />
+                                    </update>
+                                </block>
+                            </outcome>
+                        </switch>
+                    </for>
+                </outcome>
+            </switch>
+        </block>
+    </method>
+</service-logic>

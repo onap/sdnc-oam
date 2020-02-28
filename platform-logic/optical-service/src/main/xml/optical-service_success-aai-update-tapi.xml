@@ -1,0 +1,36 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='optical-service' version='${project.version}'>
+    <method rpc='success-aai-update-tapi' mode='sync'>
+        <block atomic="true">
+            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list'  
+     key='customer.global-customer-id = $optical-service-create-input.global-customer-id AND
+     service-subscription.service-type = $optical-service-create-input.service-type AND
+     service-instance.service-instance-id = $optical-service-create-input.service-id' force="true" pfx="tmp.AnAI-data">
+                <parameter name="relationship-list.relationship[0].related-to" value="p-interface" />
+                <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $aend-node-uuid + '/p-interfaces/p-interface/' + $aend-nep `" />
+                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="pnf.pnf-name" />
+                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$aend-node-uuid`" />
+                <parameter name="relationship-list.relationship[1].related-to" value="p-interface" />
+                <parameter name="relationship-list.relationship[1].related-link" value="`'/network/pnfs/pnf/' + $zend-node-uuid + '/p-interfaces/p-interface/' + $zend-nep `" />
+                <parameter name="relationship-list.relationship[1].relationship-data[0].relationship-key" value="pnf.pnf-name" />
+                <parameter name="relationship-list.relationship[1].relationship-data[0].relationship-value" value="`$zend-node-uuid`" />
+            </save>
+            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+resource="service-instance"
+key='customer.global-customer-id = $optical-service-create-input.global-customer-id AND
+     service-subscription.service-type = $optical-service-create-input.service-type AND
+     service-instance.service-instance-id = $optical-service-create-input.service-id'  
+pfx='aai.service'      local-only='false'></get-resource>
+            <for index='idy' start='0' end='`$aai.service.relationship-list.relationship_length`' >
+                <block atomic='true'>
+                    <set>
+                        <parameter name='pnf-name' value='`$aai.service.relationship-list.relationship[$idx].relationship-data[0].relationship-value`' />
+                        <parameter name='pinterface-name' value='`$aai.service.relationship-list.relationship[$idx].relationship-data[1].relationship-value`' />
+                    </set>
+                    <call module='optical-service' rpc='call-bandwidth-update-pinterface' mode='sync' ></call>
+                </block>
+            </for>
+        </block>
+    </method>
+</service-logic>
