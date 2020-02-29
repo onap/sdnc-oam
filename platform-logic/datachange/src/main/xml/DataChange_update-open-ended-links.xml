@@ -1,0 +1,31 @@
+<service-logic
+        xmlns='http://www.onap.org/sdnc/svclogic'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>
+    <method rpc='update-open-ended-links' mode='sync'>
+        <block atomic="true">
+            <for index='pnfOtn0idx' start='0' end='`$network-resource-otn[0].relationship_list[0].pnfs_length`' >
+                <set>
+                    <parameter name='pnf-otn0.' value='`$network-resource-otn[0].pnf[$pnfOtn0idx].`' />
+                </set>
+                <for index='tidx' start='0' end='`$pnf-otn0.termination-points_length`' >
+                    <set>
+                        <parameter name='tp-otn0.' value='`$pnf-otn0.termination-point[$tidx].`' />
+                    </set>
+                    <for index='pnfOtn1idx' start='0' end='`$network-resource-otn[1].pnfs_length`' >
+                        <set>
+                            <parameter name='pnf-otn1.' value='`$network-resource-otn[1].pnf[$pnfOtn1idx].`' />
+                        </set>
+                        <for index='tpidx' start='0' end='`$pnf-otn1.termination-points_length`' >
+                            <set>
+                                <parameter name='tp-otn1.' value='`$pnf-otn1.termination-point[$tpidx].`' />
+                            </set>
+                            <switch test='`$tp-otn0.inter-domain-plug-id`'>
+                                <outcome value='`$tp-otn1.inter-domain-plug-id`'></outcome>
+                            </switch>
+                        </for>
+                    </for>
+                </for>
+            </for>
+        </block>
+    </method>
+</service-logic>

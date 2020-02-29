@@ -1,0 +1,248 @@
+[
+  {
+    "id": "a4730fa5.b2b538",
+    "type": "dgstart",
+    "name": "DGSTART",
+    "outputs": 1,
+    "x": 133,
+    "y": 60,
+    "z": "2d51e841.8826c",
+    "wires": [
+      [
+        "963c0a3f.e2aab8"
+      ]
+    ]
+  },
+  {
+    "id": "963c0a3f.e2aab8",
+    "type": "service-logic",
+    "name": "DataChange ${project.version}",
+    "module": "DataChange",
+    "version": "${project.version}",
+    "comments": "",
+    "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>",
+    "outputs": 1,
+    "x": 175,
+    "y": 139.888916015625,
+    "z": "2d51e841.8826c",
+    "wires": [
+      [
+        "f069c04b.7272a8"
+      ]
+    ]
+  },
+  {
+    "id": "f069c04b.7272a8",
+    "type": "method",
+    "name": "method update-open-ended-links",
+    "xml": "<method rpc='update-open-ended-links' mode='sync'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 304,
+    "y": 216.22222900390625,
+    "z": "2d51e841.8826c",
+    "wires": [
+      [
+        "5fe0240b.9f5e84"
+      ]
+    ]
+  },
+  {
+    "id": "600f4f1f.93dc48",
+    "type": "set",
+    "name": "set src-ltpId dst-ltpId",
+    "xml": "<set>\n<parameter name='src-ltpId' value=\"`'nodeId-' + $oof.vpn.access-node-id + '-ltpId-' + $oof.vpn.src-access-ltp-id`\" />\n<parameter name='dst-ltpId' value=\"`'nodeId-' + $oof.vpn.access-node-id + '-ltpId-' + $oof.vpn.dst-access-ltp-id`\" />",
+    "comments": "",
+    "x": 2588.5001220703125,
+    "y": 2407.545135498047,
+    "z": "2d51e841.8826c",
+    "wires": []
+  },
+  {
+    "id": "b48d925b.b73e18",
+    "type": "save",
+    "name": "save srcLTP relationship in AAI",
+    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding:relationship-list' \n      key='vpn-binding.vpn-id = $tmp.vpnName' \n      force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"p-interface\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/pnfs/pnf/' + $oof.vpn.access-node-id + '/p-interfaces/p-interface/' + $src-ltpId`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"p-interface.interface-name\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$src-ltpId`\" />\n\n\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2622.0001220703125,
+    "y": 2447.545135498047,
+    "z": "2d51e841.8826c",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "e4fffbf8.efdc1",
+    "type": "save",
+    "name": "save dstLTP relationship in AAI",
+    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding:relationship-list' \n      key='vpn-binding.vpn-id = $tmp.vpnName' \n      force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"p-interface\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/pnfs/pnf/' + $oof.vpn.access-node-id + '/p-interfaces/p-interface/' + $dst-ltpId`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"p-interface.interface-name\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$dst-ltpId`\" />",
+    "comments": "",
+    "outputs": 1,
+    "x": 2622.0001220703125,
+    "y": 2487.545135498047,
+    "z": "2d51e841.8826c",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "5fe0240b.9f5e84",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">\n",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 555,
+    "y": 239,
+    "z": "2d51e841.8826c",
+    "wires": [
+      [
+        "e3e022a3.d7815"
+      ]
+    ]
+  },
+  {
+    "id": "e3e022a3.d7815",
+    "type": "for",
+    "name": "for each node in network-resource-otn[0]",
+    "xml": "<for index='pnfOtn0idx' start='0' end='`$network-resource-otn[0].relationship_list[0].pnfs_length`' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 829.8953247070312,
+    "y": 228.33984375,
+    "z": "2d51e841.8826c",
+    "wires": [
+      [
+        "95238e02.60d8e",
+        "aaa3b88e.ecf4b"
+      ]
+    ]
+  },
+  {
+    "id": "95238e02.60d8e",
+    "type": "set",
+    "name": "set pnf-otn0",
+    "xml": "<set>\n<parameter name='pnf-otn0.' value='`$network-resource-otn[0].pnf[$pnfOtn0idx].`' />",
+    "comments": "",
+    "x": 1158.1175537109375,
+    "y": 136.2287139892578,
+    "z": "2d51e841.8826c",
+    "wires": []
+  },
+  {
+    "id": "aaa3b88e.ecf4b",
+    "type": "for",
+    "name": "for each termination point",
+    "xml": "<for index='tidx' start='0' end='`$pnf-otn0.termination-points_length`' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1095.450927734375,
+    "y": 342.1175537109375,
+    "z": "2d51e841.8826c",
+    "wires": [
+      [
+        "6d31d864.7f7f2",
+        "fbd8f174.133788"
+      ]
+    ]
+  },
+  {
+    "id": "6d31d864.7f7f2",
+    "type": "set",
+    "name": "set termination point tp-otn0",
+    "xml": "<set>\n<parameter name='tp-otn0.' value='`$pnf-otn0.termination-point[$tidx].`' />\n",
+    "comments": "",
+    "x": 1379.1177978515625,
+    "y": 263.0065612792969,
+    "z": "2d51e841.8826c",
+    "wires": []
+  },
+  {
+    "id": "fbd8f174.133788",
+    "type": "for",
+    "name": "for each node in network-resource-otn[1]",
+    "xml": "<for index='pnfOtn1idx' start='0' end='`$network-resource-otn[1].pnfs_length`' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1427,
+    "y": 343,
+    "z": "2d51e841.8826c",
+    "wires": [
+      [
+        "de6951ff.1a3c3",
+        "3ac0b4a7.d9327c"
+      ]
+    ]
+  },
+  {
+    "id": "de6951ff.1a3c3",
+    "type": "set",
+    "name": "set pnf-otn1",
+    "xml": "<set>\n<parameter name='pnf-otn1.' value='`$network-resource-otn[1].pnf[$pnfOtn1idx].`' />",
+    "comments": "",
+    "x": 1705,
+    "y": 343,
+    "z": "2d51e841.8826c",
+    "wires": []
+  },
+  {
+    "id": "3ac0b4a7.d9327c",
+    "type": "for",
+    "name": "for each termination point",
+    "xml": "<for index='tpidx' start='0' end='`$pnf-otn1.termination-points_length`' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1716,
+    "y": 419,
+    "z": "2d51e841.8826c",
+    "wires": [
+      [
+        "5c7953b9.9f8e9c",
+        "9108ee4e.0edce8"
+      ]
+    ]
+  },
+  {
+    "id": "5c7953b9.9f8e9c",
+    "type": "set",
+    "name": "set termination point tp-otn1",
+    "xml": "<set>\n<parameter name='tp-otn1.' value='`$pnf-otn1.termination-point[$tpidx].`' />\n",
+    "comments": "",
+    "x": 1999.6668701171875,
+    "y": 339.8890075683594,
+    "z": "2d51e841.8826c",
+    "wires": []
+  },
+  {
+    "id": "9108ee4e.0edce8",
+    "type": "switchNode",
+    "name": "switch tp-otn0.inter-domain-plug-id",
+    "xml": "<switch test='`$tp-otn0.inter-domain-plug-id`'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2020,
+    "y": 409,
+    "z": "2d51e841.8826c",
+    "wires": [
+      [
+        "57a4c151.2a15a"
+      ]
+    ]
+  },
+  {
+    "id": "57a4c151.2a15a",
+    "type": "outcome",
+    "name": "tp-otn1.inter-domain-plug-id",
+    "xml": "<outcome value='`$tp-otn1.inter-domain-plug-id`'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2341,
+    "y": 401,
+    "z": "2d51e841.8826c",
+    "wires": [
+      []
+    ]
+  }
+]
