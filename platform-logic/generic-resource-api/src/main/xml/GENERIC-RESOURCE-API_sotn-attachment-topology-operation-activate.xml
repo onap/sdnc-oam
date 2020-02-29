@@ -1,6 +1,6 @@
 <service-logic
-        xmlns='http://www.onap.org/sdnc/svclogic'
-        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
     <method rpc='sotn-attachment-topology-operation-activate' mode='sync'>
         <block atomic="true">
             <set>
@@ -48,8 +48,8 @@
                                             <return status='failure'>
                                                 <parameter name='ack-final' value='Y'/>
                                                 <parameter name="error-code" value="500" />
-                                                <parameter name="error-message"
-                                                           value="`'Existing connection-attachment-allotted-resource with order status of ' + $connection-attachment-ar.allotted-resource-data.allotted-resource-oper-status.order-status + '.'`" />
+                                                <parameter name="error-message" 
+    value="`'Existing connection-attachment-allotted-resource with order status of ' + $connection-attachment-ar.allotted-resource-data.allotted-resource-oper-status.order-status + '.'`" />
                                             </return>
                                         </outcome>
                                     </switch>
@@ -382,11 +382,11 @@
                                     <set>
                                         <parameter name='oof.vpn.' value='`$oof.vpns[$vidx].`' />
                                     </set>
-                                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
-                                                  resource="pnf"
-                                                  key="pnf.pnf-name = $oof.vpn.access-node-id
+                                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+		resource="pnf" 
+		key="pnf.pnf-name = $oof.vpn.access-node-id 
 		AND depth = '0'"
-                                                  pfx='tmp.aai.pnf' local-only='false' >
+        pfx='tmp.aai.pnf' local-only='false' >
                                         <outcome value='success'>
                                             <set>
                                                 <parameter name='tmp.thirdparty-sdnc-id' value="`$tmp.aai.pnf.relationship-list.relationship[0].relationship-data[0].relationship-value`" />
@@ -407,11 +407,11 @@
                                             </return>
                                         </outcome>
                                     </get-resource>
-                                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
-                                                  resource="esr-thirdparty-sdnc"
-                                                  key="esr-thirdparty-sdnc.thirdparty-sdnc-id = $tmp.thirdparty-sdnc-id AND
+                                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+		resource="esr-thirdparty-sdnc" 
+		key="esr-thirdparty-sdnc.thirdparty-sdnc-id = $tmp.thirdparty-sdnc-id AND 
 		     depth = '1'"
-                                                  pfx='tmp.aai.esr-thirdparty-sdnc' local-only='false' >
+        pfx='tmp.aai.esr-thirdparty-sdnc' local-only='false' >
                                         <outcome value='success'>
                                             <set>
                                                 <parameter name='prop.sdncRestApi.thirdpartySdnc.url' value="`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].service-url`" />
@@ -457,6 +457,7 @@
                                             </return>
                                         </outcome>
                                     </execute>
+                                    <call module='GENERIC-RESOURCE-API' rpc='sotn-create-otn-tunnel' mode='sync' ></call>
                                     <set>
                                         <parameter name='ietf-eth-tran-service_etht-svc.globals.etht-svc-bandwidth-profiles[0].bandwidth-profile-type' value='ietf-eth-tran-types:mef-10-bwp' />
                                         <parameter name='ietf-eth-tran-service_etht-svc.etht-svc-instances[0].etht-svc-type' value='ietf-eth-tran-types:p2p-svc' />
@@ -531,8 +532,8 @@
                                     <set>
                                         <parameter name='tmp.vpnName' value="`$oof.vpn.access-node-id + '-' + $ietf-eth-tran-service_etht-svc.etht-svc-instances[0].etht-svc-name`" />
                                     </set>
-                                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding'
-                                          key='vpn-binding.vpn-id = $tmp.vpnName' >
+                                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding' 
+      key='vpn-binding.vpn-id = $tmp.vpnName' >
                                         <parameter name='vpn-id' value='`$tmp.vpnName`' />
                                         <parameter name='vpn-name' value='`$tmp.vpnName`' />
                                         <parameter name='access-provider-id' value='`$oof.vpn.access-provider-id`' />
@@ -548,9 +549,9 @@
                                         <parameter name='model-invariant-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-invariant-uuid`' />
                                         <parameter name='model-version-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-uuid`' />
                                     </save>
-                                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding:relationship-list'
-                                          key='vpn-binding.vpn-id = $tmp.vpnName'
-                                          force="true" pfx="tmp.AnAI-data">
+                                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding:relationship-list' 
+      key='vpn-binding.vpn-id = $tmp.vpnName' 
+      force="true" pfx="tmp.AnAI-data">
                                         <parameter name="relationship-list.relationship[0].related-to" value="connectivity" />
                                         <parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $mdsal-psd.service-data.networks.network[0].network-id`" />
                                         <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />
@@ -560,17 +561,17 @@
                                         <parameter name='src-ltpId' value="`'nodeId-' + $oof.vpn.access-node-id + '-ltpId-' + $oof.vpn.src-access-ltp-id`" />
                                         <parameter name='dst-ltpId' value="`'nodeId-' + $oof.vpn.access-node-id + '-ltpId-' + $oof.vpn.dst-access-ltp-id`" />
                                     </set>
-                                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding:relationship-list'
-                                          key='vpn-binding.vpn-id = $tmp.vpnName'
-                                          force="true" pfx="tmp.AnAI-data">
+                                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding:relationship-list' 
+      key='vpn-binding.vpn-id = $tmp.vpnName' 
+      force="true" pfx="tmp.AnAI-data">
                                         <parameter name="relationship-list.relationship[0].related-to" value="p-interface" />
                                         <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $oof.vpn.access-node-id + '/p-interfaces/p-interface/' + $src-ltpId`" />
                                         <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="p-interface.interface-name" />
                                         <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$src-ltpId`" />
                                     </save>
-                                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding:relationship-list'
-                                          key='vpn-binding.vpn-id = $tmp.vpnName'
-                                          force="true" pfx="tmp.AnAI-data">
+                                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding:relationship-list' 
+      key='vpn-binding.vpn-id = $tmp.vpnName' 
+      force="true" pfx="tmp.AnAI-data">
                                         <parameter name="relationship-list.relationship[0].related-to" value="p-interface" />
                                         <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $oof.vpn.access-node-id + '/p-interfaces/p-interface/' + $dst-ltpId`" />
                                         <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="p-interface.interface-name" />
@@ -637,13 +638,13 @@
  + $connection-attachment-topology-operation-input.service-information.service-instance-id
  + '/service-data/service-topology/'`"/>
             </set>
-            <update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
-                    resource="allotted-resource"
-                    key="customer.global-customer-id = $connection-attachment-topology-operation-input.service-information.global-customer-id AND
+            <update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+		resource="allotted-resource" 
+		key="customer.global-customer-id = $connection-attachment-topology-operation-input.service-information.global-customer-id AND
 			service-subscription.service-type = $connection-attachment-topology-operation-input.service-information.subscription-service-type AND
 			service-instance.service-instance-id = $connection-attachment-topology-operation-input.service-information.service-instance-id AND
 			allotted-resource.id = $tmp.ar.allotted-resource-id"
-                    pfx='pfx' local-only='false' force='false'>
+        pfx='pfx' local-only='false' force='false'>
                 <parameter name="description" value="`$connection-attachment-topology-operation-input.allotted-resource-information.allotted-resource-type`" />
                 <parameter name="selflink" value="`$tmp.ar.self-link`" />
                 <parameter name="model-invariant-id" value="`$connection-attachment-topology-operation-input.allotted-resource-information.onap-model-information.model-invariant-uuid`" />

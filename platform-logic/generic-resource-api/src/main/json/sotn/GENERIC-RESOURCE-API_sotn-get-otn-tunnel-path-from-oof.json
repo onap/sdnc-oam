@@ -1,0 +1,1239 @@
+[
+  {
+    "id": "ca266b03.5b0c68",
+    "type": "dgstart",
+    "name": "DGSTART",
+    "outputs": 1,
+    "x": 91.4998779296875,
+    "y": 34,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "9db70ac2.5a0448"
+      ]
+    ]
+  },
+  {
+    "id": "9db70ac2.5a0448",
+    "type": "service-logic",
+    "name": "GENERIC-RESOURCE-API ${project.version}",
+    "module": "GENERIC-RESOURCE-API",
+    "version": "${project.version}",
+    "comments": "",
+    "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>",
+    "outputs": 1,
+    "x": 216.4998779296875,
+    "y": 360.00001525878906,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "f6e8674b.eb6ef8"
+      ]
+    ]
+  },
+  {
+    "id": "f6e8674b.eb6ef8",
+    "type": "method",
+    "name": "sotn-get-otn-tunnel-path-from-oof",
+    "xml": "<method rpc='sotn-get-otn-tunnel-path-from-oof' mode='sync'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 280.5,
+    "y": 453,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "d8a649df.dd5438"
+      ]
+    ]
+  },
+  {
+    "id": "4cb8a9dc.c82628",
+    "type": "execute",
+    "name": "execute RestApiCallNode getPath from OOF",
+    "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n<parameter name=\"templateFileName\" value=\"`$prop.restapi.templateDir + '/' + $prop.restapi.oof-getpath.templatefile`\" />\n<parameter name=\"restapiUrl\" value=\"`$prop.restapi.connection-oof-url`\" />\n<parameter name=\"restapiUser\" value=\"`$prop.oof.user`\" />\n<parameter name=\"restapiPassword\" value=\"`$prop.oof.password`\" />\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"post\"/>\n<parameter name=\"responsePrefix\" value=\"otn-oof\"/>\n<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>\n<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>\n<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>\n<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>\n<parameter name='customHttpHeaders' value=\"`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`\" />",
+    "comments": "",
+    "outputs": 1,
+    "x": 763.4729614257812,
+    "y": 111.99600219726562,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "c9ad9647.3c4fa8",
+        "65b028f1.fd8198"
+      ]
+    ]
+  },
+  {
+    "id": "c9ad9647.3c4fa8",
+    "type": "success",
+    "name": "success",
+    "xml": "<outcome value='success'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1003.4731025695801,
+    "y": 135.9959716796875,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "43f1fecc.bf7f"
+      ]
+    ]
+  },
+  {
+    "id": "b1305a70.64e458",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error executing OOF api\" />\n",
+    "comments": "",
+    "x": 1142.4731369018555,
+    "y": 84.99606323242188,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "65b028f1.fd8198",
+    "type": "failure",
+    "name": "failure",
+    "xml": "<outcome value='failure'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1002.4728889465332,
+    "y": 84.99606227874756,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "b1305a70.64e458"
+      ]
+    ]
+  },
+  {
+    "id": "13911536.3440bb",
+    "type": "comment",
+    "name": "OTN tunnel path computation",
+    "info": "TODO: check input parameters -- they should be\nthe source and destination of ETH node+tp.",
+    "comments": "",
+    "x": 734.9767608642578,
+    "y": 68.00000190734863,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "7480efc5.dbe2e",
+    "type": "for",
+    "name": "for vidx..otn-oof.otn-links_length[]",
+    "xml": "<for index='vidx' start='0' end='`$otn-oof.otn-links_length`' >",
+    "comments": "",
+    "outputs": 1,
+    "x": 754.4727783203125,
+    "y": 421.2457275390625,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "b98c91e0.3766f"
+      ]
+    ]
+  },
+  {
+    "id": "689331c8.a7329",
+    "type": "comment",
+    "name": "Loop through OTN links",
+    "info": "",
+    "comments": "",
+    "x": 837.9730834960938,
+    "y": 500.74609375,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "b98c91e0.3766f",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">",
+    "atomic": "true",
+    "outputs": 1,
+    "x": 859,
+    "y": 612.2864990234375,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "3a76e5ee.5f99aa",
+        "a8939d2.521b76"
+      ]
+    ]
+  },
+  {
+    "id": "3a76e5ee.5f99aa",
+    "type": "get-resource",
+    "name": "get-resource cross-link",
+    "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"logical-link\" \n\t\tkey=\"logical-link.link-name = $otn-oof.link-name \n\t\tAND depth = '0'\"\n        pfx='tmp.aai.cross-link' local-only='false' >\n\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1126,
+    "y": 532.2864685058594,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "74ae6f25.c8093",
+        "d101f4ee.f9f8d8",
+        "7558125c.21685c"
+      ]
+    ]
+  },
+  {
+    "id": "74ae6f25.c8093",
+    "type": "success",
+    "name": "success",
+    "xml": "<outcome value='success'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1356.5,
+    "y": 477.2864685058594,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "a0d35b9e.4c4448"
+      ]
+    ]
+  },
+  {
+    "id": "d101f4ee.f9f8d8",
+    "type": "not-found",
+    "name": "not-found",
+    "xml": "<outcome value='not-found'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1367.5,
+    "y": 534.2864685058594,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "aab3f9be.7515c8"
+      ]
+    ]
+  },
+  {
+    "id": "7558125c.21685c",
+    "type": "other",
+    "name": "other",
+    "xml": "<outcome value='Other'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1361.5,
+    "y": 584.2864685058594,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "c5929dad.e1e45"
+      ]
+    ]
+  },
+  {
+    "id": "aab3f9be.7515c8",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`\" />\n\n",
+    "comments": "",
+    "x": 1528.5,
+    "y": 523.2864685058594,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "c5929dad.e1e45",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`\" />\n\n",
+    "comments": "",
+    "x": 1526.5,
+    "y": 579.2864685058594,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "51d46963.f916e8",
+    "type": "set",
+    "name": "set src-ltpId and dst-ltpId",
+    "xml": "<set>\n<parameter name='tmp.cross-link.src-ltpId' value=\"`$tmp.aai.cross-link.relationship-list.relationship[0].relationship-data[0].relationship-value`\" />\n<parameter name='tmp.cross-link.dst-ltpId' value=\"`$tmp.aai.cross-link.relationship-list.relationship[1].relationship-data[0].relationship-value`\" />\n",
+    "comments": "",
+    "x": 2318,
+    "y": 396.2864685058594,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "c5a99f90.0d85b",
+    "type": "comment",
+    "name": "get cross-domain-link information",
+    "info": "",
+    "comments": "",
+    "x": 1127,
+    "y": 493.2864685058594,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "a8939d2.521b76",
+    "type": "set",
+    "name": "set otn-oof.link-name",
+    "xml": "<set>\n<parameter name='otn-oof.link-name' value='`$otn-oof.solutions[$vidx].`' />",
+    "comments": "",
+    "x": 1108.5,
+    "y": 442.2864685058594,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "43f1fecc.bf7f",
+    "type": "block",
+    "name": "block",
+    "xml": "<block>\n",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 1148.5001487731934,
+    "y": 133.74145698547363,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "d8a649df.dd5438",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">",
+    "atomic": "true",
+    "outputs": 1,
+    "x": 521.4687614440918,
+    "y": 379.74163722991943,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "4cb8a9dc.c82628",
+        "7480efc5.dbe2e"
+      ]
+    ]
+  },
+  {
+    "id": "a0d35b9e.4c4448",
+    "type": "switchNode",
+    "name": "test cross-domain-link",
+    "xml": "<switch test='`$tmp.aai.cross-link.link-role`'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1562,
+    "y": 476,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "9c05dfa6.ba207"
+      ]
+    ]
+  },
+  {
+    "id": "9c05dfa6.ba207",
+    "type": "outcome",
+    "name": "outcome cross-domain-link",
+    "xml": "<outcome value='cross-domain-link'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1809,
+    "y": 477,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "ff68def.188c12"
+      ]
+    ]
+  },
+  {
+    "id": "1ed1e43f.527cac",
+    "type": "break",
+    "name": "break",
+    "xml": "<break>\n",
+    "comments": "",
+    "x": 2154,
+    "y": 955,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "ff68def.188c12",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">",
+    "atomic": "true",
+    "outputs": 1,
+    "x": 2028,
+    "y": 479,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "1ed1e43f.527cac",
+        "51d46963.f916e8",
+        "44b19c4e.886594",
+        "5702d427.f65a4c"
+      ]
+    ]
+  },
+  {
+    "id": "2017012b.18bf6e",
+    "type": "comment",
+    "name": "setup variables",
+    "info": "",
+    "comments": "",
+    "x": 2286,
+    "y": 335,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "44b19c4e.886594",
+    "type": "get-resource",
+    "name": "get-resource src tp",
+    "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"p-interface\" \n\t\tkey=\"p-interface.interface-name = $tmp.src-ltpId \n\t\tAND depth = '0'\"\n        pfx='tmp.aai.src-tp' local-only='false' >\n\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2315,
+    "y": 485,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "675b31ba.fc29c",
+        "e7ba827c.7802e",
+        "3d3ce0b1.c355d"
+      ]
+    ]
+  },
+  {
+    "id": "675b31ba.fc29c",
+    "type": "success",
+    "name": "success",
+    "xml": "<outcome value='success'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2548.5,
+    "y": 446,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "8f945f43.0f6a1",
+        "35d184a7.0348bc"
+      ]
+    ]
+  },
+  {
+    "id": "e7ba827c.7802e",
+    "type": "not-found",
+    "name": "not-found",
+    "xml": "<outcome value='not-found'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2545.5,
+    "y": 504,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "9bcbfa8e.5a3ae8"
+      ]
+    ]
+  },
+  {
+    "id": "3d3ce0b1.c355d",
+    "type": "other",
+    "name": "other",
+    "xml": "<outcome value='Other'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2548.5,
+    "y": 556,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "c82ee5b.1546f18"
+      ]
+    ]
+  },
+  {
+    "id": "9bcbfa8e.5a3ae8",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`\" />\n\n",
+    "comments": "",
+    "x": 2730.5,
+    "y": 508,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "c82ee5b.1546f18",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`\" />\n\n",
+    "comments": "",
+    "x": 2718.5,
+    "y": 559,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "8f945f43.0f6a1",
+    "type": "set",
+    "name": "set tmp.src-pnf-name",
+    "xml": "<set>\n<parameter name='tmp.src-pnf-name' value=\"`$tmp.aai.src-tp.relationship-list.relationship[0].relationship-data[0].relationship-value`\" />\n",
+    "comments": "",
+    "x": 2749,
+    "y": 393,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "35d184a7.0348bc",
+    "type": "get-resource",
+    "name": "get-resource src pnf",
+    "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"pnf\" \n\t\tkey=\"pnf.pnf-name = $tmp.src-pnf-name \n\t\tAND depth = '0'\"\n        pfx='tmp.aai.src-pnf' local-only='false' >\n\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2739,
+    "y": 448,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "9ea9cbf0.fa9328",
+        "aa8e1680.d1d798",
+        "dd38a5b5.866808"
+      ]
+    ]
+  },
+  {
+    "id": "9ea9cbf0.fa9328",
+    "type": "success",
+    "name": "success",
+    "xml": "<outcome value='success'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 3022.5,
+    "y": 401,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "899a7ec6.41ab2"
+      ]
+    ]
+  },
+  {
+    "id": "aa8e1680.d1d798",
+    "type": "not-found",
+    "name": "not-found",
+    "xml": "<outcome value='not-found'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 3014.5,
+    "y": 456,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "56667146.5a8cd"
+      ]
+    ]
+  },
+  {
+    "id": "dd38a5b5.866808",
+    "type": "other",
+    "name": "other",
+    "xml": "<outcome value='Other'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 3019.5,
+    "y": 513,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "49c4c4a9.a9af7c"
+      ]
+    ]
+  },
+  {
+    "id": "56667146.5a8cd",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`\" />\n\n",
+    "comments": "",
+    "x": 3182.5,
+    "y": 459,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "49c4c4a9.a9af7c",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`\" />\n\n",
+    "comments": "",
+    "x": 3171.5,
+    "y": 514,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "3a58b291.1cf89e",
+    "type": "set",
+    "name": "set domain A node ttp-id",
+    "xml": "<set>\n<parameter name='tmp.src-ttp-id' value=\"`$tmp.aai.src-pnf.relationship-list.relationship[$vidx].relationship-data[0].relationship-value`\" />\n",
+    "comments": "",
+    "x": 4234,
+    "y": 262,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "6baf1c09.23f524",
+    "type": "get-resource",
+    "name": "get-resource src TTP",
+    "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"tunnel-termination-point\" \n\t\tkey=\"tunnel-termination-point.ttp-id = $tmp.src-ttp-id \n\t\tAND depth = '0'\"\n        pfx='tmp.aai.src-ttp' local-only='false' >\n\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 4223,
+    "y": 333,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "e53fa55a.80c878"
+      ]
+    ]
+  },
+  {
+    "id": "e53fa55a.80c878",
+    "type": "success",
+    "name": "success",
+    "xml": "<outcome value='success'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 4414.5,
+    "y": 330,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "fb4eb6f8.67d008"
+      ]
+    ]
+  },
+  {
+    "id": "fb4eb6f8.67d008",
+    "type": "set",
+    "name": "set domain A node ttp-id",
+    "xml": "<set>\n<parameter name='domain-A.ttp-id' value=\"`$tmp.aai.src-ttp.ttp-id`\" />\n",
+    "comments": "",
+    "x": 4627,
+    "y": 329,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "151d93fd.7167ec",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">",
+    "atomic": "true",
+    "outputs": 1,
+    "x": 4019,
+    "y": 512,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "fb4c025e.b4687",
+        "2b826247.b8392e"
+      ]
+    ]
+  },
+  {
+    "id": "a6f18660.f8abe8",
+    "type": "outcome",
+    "name": "tunnel-termination-point",
+    "xml": "<outcome value='tunnel-termination-point'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 3815.16845703125,
+    "y": 325.48150634765625,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "45ebcf03.0e118"
+      ]
+    ]
+  },
+  {
+    "id": "1ff26720.4f6889",
+    "type": "for",
+    "name": "for each relationship",
+    "xml": "<for silentFailure='true' index='vidx' start='0' end='`$tmp.aai.src-pnf.relationship-list.relationship_length`' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 3381.882568359375,
+    "y": 398.65972900390625,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "89b5166.0c594e8"
+      ]
+    ]
+  },
+  {
+    "id": "89b5166.0c594e8",
+    "type": "switchNode",
+    "name": "switch related-to",
+    "xml": "<switch test='`$tmp.aai.src-pnf.relationship-list.relationship[$vidx].related-to`'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 3607.882568359375,
+    "y": 398.65972900390625,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "a6f18660.f8abe8",
+        "376f0574.e1601a"
+      ]
+    ]
+  },
+  {
+    "id": "899a7ec6.41ab2",
+    "type": "block",
+    "name": "block",
+    "xml": "<block>\n",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 3166.88232421875,
+    "y": 398.6556701660156,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "1ff26720.4f6889",
+        "29ff2ed5.ef4af2"
+      ]
+    ]
+  },
+  {
+    "id": "29ff2ed5.ef4af2",
+    "type": "set",
+    "name": "set domain A node-id and tpn",
+    "xml": "<set>\n<parameter name='domain-A.node-id' value=\"`$tmp.aai.src-pnf.pnf-id`\" />\n<parameter name='domain-A.tpn' value='1' />\n",
+    "comments": "",
+    "x": 3426,
+    "y": 309,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "376f0574.e1601a",
+    "type": "outcome",
+    "name": "network-resource",
+    "xml": "<outcome value='network-resource'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 3806,
+    "y": 511,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "151d93fd.7167ec"
+      ]
+    ]
+  },
+  {
+    "id": "fb4c025e.b4687",
+    "type": "set",
+    "name": "set domain A network-id",
+    "xml": "<set>\n<parameter name='tmp.domain-A.network-id' value=\"`$tmp.aai.src-pnf.relationship-list.relationship[$vidx].relationship-data[0].relationship-value`\" />\n",
+    "comments": "",
+    "x": 4254,
+    "y": 442,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "45ebcf03.0e118",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">",
+    "atomic": "true",
+    "outputs": 1,
+    "x": 4017,
+    "y": 321,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "3a58b291.1cf89e",
+        "6baf1c09.23f524"
+      ]
+    ]
+  },
+  {
+    "id": "2b826247.b8392e",
+    "type": "get-resource",
+    "name": "get-resource src network-resource",
+    "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"network-resource\" \n\t\tkey=\"network-resource.network-id = $tmp.domain-A.network-id \n\t\tAND depth = '0'\"\n        pfx='tmp.aai.src-network-resource' local-only='false' >\n\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 4262,
+    "y": 523,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "f37dd233.a3308"
+      ]
+    ]
+  },
+  {
+    "id": "f37dd233.a3308",
+    "type": "success",
+    "name": "success",
+    "xml": "<outcome value='success'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 4494.5,
+    "y": 519,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "5f1b14c5.d2a03c"
+      ]
+    ]
+  },
+  {
+    "id": "5f1b14c5.d2a03c",
+    "type": "set",
+    "name": "set domain A network-id, topo-id, client-id, etc",
+    "xml": "<set>\n<parameter name='domain-A.network-id' value=\"`$tmp.aai.src-network-resource.network-id`\" />\n<parameter name='domain-A.provider-id' value=\"`$tmp.aai.src-network-resource.provider-id`\" />\n<parameter name='domain-A.client-id' value=\"`$tmp.aai.src-network-resource.client-id`\" />\n<parameter name='domain-A.te-topo-id' value=\"`$tmp.aai.src-network-resource.te-topo-id`\" />\n<parameter name='domain-A.network-type' value=\"`$tmp.aai.src-network-resource.network-type`\" />\n\n\n",
+    "comments": "",
+    "x": 4736,
+    "y": 513,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "5702d427.f65a4c",
+    "type": "get-resource",
+    "name": "get-resource dst tp",
+    "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"p-interface\" \n\t\tkey=\"p-interface.interface-name = $tmp.dst-ltpId \n\t\tAND depth = '0'\"\n        pfx='tmp.aai.dst-tp' local-only='false' >\n\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2269,
+    "y": 851,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "a50293a4.5e79e",
+        "b4058651.f77518",
+        "b61d9ed.988616"
+      ]
+    ]
+  },
+  {
+    "id": "a50293a4.5e79e",
+    "type": "success",
+    "name": "success",
+    "xml": "<outcome value='success'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2502.5,
+    "y": 812,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "46502cec.4be0b4",
+        "a897aaea.70dd38"
+      ]
+    ]
+  },
+  {
+    "id": "b4058651.f77518",
+    "type": "not-found",
+    "name": "not-found",
+    "xml": "<outcome value='not-found'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2499.5,
+    "y": 870,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "da3111af.853e5"
+      ]
+    ]
+  },
+  {
+    "id": "b61d9ed.988616",
+    "type": "other",
+    "name": "other",
+    "xml": "<outcome value='Other'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2502.5,
+    "y": 922,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "c09ee4e6.15ed68"
+      ]
+    ]
+  },
+  {
+    "id": "c09ee4e6.15ed68",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`\" />\n\n",
+    "comments": "",
+    "x": 2672.5,
+    "y": 925,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "da3111af.853e5",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`\" />\n\n",
+    "comments": "",
+    "x": 2684.5,
+    "y": 874,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "a897aaea.70dd38",
+    "type": "get-resource",
+    "name": "get-resource dst pnf",
+    "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"pnf\" \n\t\tkey=\"pnf.pnf-name = $tmp.dst-pnf-name \n\t\tAND depth = '0'\"\n        pfx='tmp.aai.dst-pnf' local-only='false' >\n\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2693,
+    "y": 814,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "b6f4d1fe.0b8da",
+        "46d13a0d.575974",
+        "94eeb806.b26748"
+      ]
+    ]
+  },
+  {
+    "id": "46502cec.4be0b4",
+    "type": "set",
+    "name": "set tmp.dst-pnf-name",
+    "xml": "<set>\n<parameter name='tmp.dst-pnf-name' value=\"`$tmp.aai.dst-tp.relationship-list.relationship[0].relationship-data[0].relationship-value`\" />\n",
+    "comments": "",
+    "x": 2703,
+    "y": 759,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "94eeb806.b26748",
+    "type": "other",
+    "name": "other",
+    "xml": "<outcome value='Other'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2973.5,
+    "y": 879,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "efc946ae.7bf158"
+      ]
+    ]
+  },
+  {
+    "id": "46d13a0d.575974",
+    "type": "not-found",
+    "name": "not-found",
+    "xml": "<outcome value='not-found'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2968.5,
+    "y": 822,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "feb7d1d7.3486e"
+      ]
+    ]
+  },
+  {
+    "id": "b6f4d1fe.0b8da",
+    "type": "success",
+    "name": "success",
+    "xml": "<outcome value='success'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2976.5,
+    "y": 767,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "100cc1d.c89dc3e"
+      ]
+    ]
+  },
+  {
+    "id": "feb7d1d7.3486e",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`\" />\n\n",
+    "comments": "",
+    "x": 3136.5,
+    "y": 825,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "efc946ae.7bf158",
+    "type": "returnFailure",
+    "name": "return failure",
+    "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`\" />\n\n",
+    "comments": "",
+    "x": 3125.5,
+    "y": 880,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "100cc1d.c89dc3e",
+    "type": "block",
+    "name": "block",
+    "xml": "<block>\n",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 3120.88232421875,
+    "y": 764.6556701660156,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "3e2a3b9f.7272c4",
+        "b6c39e63.6b538"
+      ]
+    ]
+  },
+  {
+    "id": "3e2a3b9f.7272c4",
+    "type": "for",
+    "name": "for each relationship",
+    "xml": "<for silentFailure='true' index='vidx' start='0' end='`$tmp.aai.dst-pnf.relationship-list.relationship_length`' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 3335.882568359375,
+    "y": 764.6597290039062,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "c77ddef5.18c3e"
+      ]
+    ]
+  },
+  {
+    "id": "c77ddef5.18c3e",
+    "type": "switchNode",
+    "name": "switch related-to",
+    "xml": "<switch test='`$tmp.aai.dst-pnf.relationship-list.relationship[$vidx].related-to`'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 3561.882568359375,
+    "y": 764.6597290039062,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "3576c9a1.155776",
+        "131550c4.86635f"
+      ]
+    ]
+  },
+  {
+    "id": "b6c39e63.6b538",
+    "type": "set",
+    "name": "set domain B node-id and tpn",
+    "xml": "<set>\n<parameter name='domain-B.node-id' value=\"`$tmp.aai.dst-pnf.pnf-id`\" />\n<parameter name='domain-B.tpn' value='1' />\n",
+    "comments": "",
+    "x": 3380,
+    "y": 675,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "3f07ba63.1a2cc6",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">",
+    "atomic": "true",
+    "outputs": 1,
+    "x": 3973,
+    "y": 878,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "68ee333a.5e149c",
+        "57b260c0.16164"
+      ]
+    ]
+  },
+  {
+    "id": "3576c9a1.155776",
+    "type": "outcome",
+    "name": "tunnel-termination-point",
+    "xml": "<outcome value='tunnel-termination-point'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 3769.16845703125,
+    "y": 691.4815063476562,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "63e95b18.c47c14"
+      ]
+    ]
+  },
+  {
+    "id": "131550c4.86635f",
+    "type": "outcome",
+    "name": "network-resource",
+    "xml": "<outcome value='network-resource'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 3760,
+    "y": 877,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "3f07ba63.1a2cc6"
+      ]
+    ]
+  },
+  {
+    "id": "63e95b18.c47c14",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">",
+    "atomic": "true",
+    "outputs": 1,
+    "x": 3971,
+    "y": 687,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "e883466f.992618",
+        "f5edbf24.92d52"
+      ]
+    ]
+  },
+  {
+    "id": "e883466f.992618",
+    "type": "set",
+    "name": "set domain B node ttp-id",
+    "xml": "<set>\n<parameter name='tmp.dst-ttp-id' value=\"`$tmp.aai.dst-pnf.relationship-list.relationship[$vidx].relationship-data[0].relationship-value`\" />\n",
+    "comments": "",
+    "x": 4188,
+    "y": 628,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "f5edbf24.92d52",
+    "type": "get-resource",
+    "name": "get-resource dst TTP",
+    "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"tunnel-termination-point\" \n\t\tkey=\"tunnel-termination-point.ttp-id = $tmp.dst-ttp-id \n\t\tAND depth = '0'\"\n        pfx='tmp.aai.dst-ttp' local-only='false' >\n\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 4177,
+    "y": 699,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "70320551.17869c"
+      ]
+    ]
+  },
+  {
+    "id": "70320551.17869c",
+    "type": "success",
+    "name": "success",
+    "xml": "<outcome value='success'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 4368.5,
+    "y": 696,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "78931a0a.3bac14"
+      ]
+    ]
+  },
+  {
+    "id": "78931a0a.3bac14",
+    "type": "set",
+    "name": "set domain B node ttp-id",
+    "xml": "<set>\n<parameter name='domain-B.ttp-id' value=\"`$tmp.aai.dst-ttp.ttp-id`\" />\n",
+    "comments": "",
+    "x": 4581,
+    "y": 695,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "68ee333a.5e149c",
+    "type": "set",
+    "name": "set domain B network-id",
+    "xml": "<set>\n<parameter name='tmp.domain-B.network-id' value=\"`$tmp.aai.dst-pnf.relationship-list.relationship[$vidx].relationship-data[0].relationship-value`\" />\n",
+    "comments": "",
+    "x": 4208,
+    "y": 808,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  },
+  {
+    "id": "57b260c0.16164",
+    "type": "get-resource",
+    "name": "get-resource dst network-resource",
+    "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"network-resource\" \n\t\tkey=\"network-resource.network-id = $tmp.domain-B.network-id \n\t\tAND depth = '0'\"\n        pfx='tmp.aai.dst-network-resource' local-only='false' >\n\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 4216,
+    "y": 889,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "acb8778c.80c2b8"
+      ]
+    ]
+  },
+  {
+    "id": "acb8778c.80c2b8",
+    "type": "success",
+    "name": "success",
+    "xml": "<outcome value='success'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 4448.5,
+    "y": 885,
+    "z": "cb55ab48.d781c8",
+    "wires": [
+      [
+        "24fd155e.59dcba"
+      ]
+    ]
+  },
+  {
+    "id": "24fd155e.59dcba",
+    "type": "set",
+    "name": "set domain B network-id, topo-id, client-id, etc",
+    "xml": "<set>\n<parameter name='domain-B.network-id' value=\"`$tmp.aai.dst-network-resource.network-id`\" />\n<parameter name='domain-B.provider-id' value=\"`$tmp.aai.dst-network-resource.provider-id`\" />\n<parameter name='domain-B.client-id' value=\"`$tmp.aai.dst-network-resource.client-id`\" />\n<parameter name='domain-B.te-topo-id' value=\"`$tmp.aai.dst-network-resource.te-topo-id`\" />\n<parameter name='domain-B.network-type' value=\"`$tmp.aai.dst-network-resource.network-type`\" />\n\n\n",
+    "comments": "",
+    "x": 4690,
+    "y": 879,
+    "z": "cb55ab48.d781c8",
+    "wires": []
+  }
+]
