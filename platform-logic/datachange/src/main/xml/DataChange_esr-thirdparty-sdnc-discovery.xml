@@ -1,6 +1,6 @@
 <service-logic
-    xmlns='http://www.onap.org/sdnc/svclogic'
-    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>
+        xmlns='http://www.onap.org/sdnc/svclogic'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>
     <method rpc='esr-thirdparty-sdnc-discovery' mode='sync'>
         <block atomic="true">
             <switch test="`$prop.sdncRestApi.vendor == 'ZTE'`">
@@ -64,6 +64,60 @@
                                                                         <call module='DataChange' rpc='update-network-to-aai' mode='sync' ></call>
                                                                     </block>
                                                                 </for>
+                                                                <switch test='`$topology.networks.network_length`'>
+                                                                    <outcome value='2'>
+                                                                        <switch test='`$topology.networks.network[0].network-types`'>
+                                                                            <outcome value='ethernet-topology'>
+                                                                                <switch test='`$topology.networks.network[1].network-types`'>
+                                                                                    <outcome value='otn-topology'>
+                                                                                        <block>
+                                                                                            <set>
+                                                                                                <parameter name='network-eth.' value='`$topology.networks.network[0].`' />
+                                                                                                <parameter name='network-otn.' value='`$topology.networks.network[1].`' />
+                                                                                            </set>
+                                                                                            <call module='DataChange' rpc='update-tp-ttp-relationship' mode='sync' ></call>
+                                                                                        </block>
+                                                                                    </outcome>
+                                                                                    <outcome value='Other'>
+                                                                                        <return status='failure'>
+                                                                                            <parameter name='error-code' value='' />
+                                                                                            <parameter name='error-message' value='' />
+                                                                                        </return>
+                                                                                    </outcome>
+                                                                                </switch>
+                                                                            </outcome>
+                                                                            <outcome value='otn-topology'>
+                                                                                <switch test='`$topology.networks.network[1].network-types`'>
+                                                                                    <outcome value='ethernet-topology'>
+                                                                                        <block>
+                                                                                            <set>
+                                                                                                <parameter name='network.eth' value='`$topology.networks.network[1].`' />
+                                                                                                <parameter name='network.otn' value='`$topology.networks.network[0].`' />
+                                                                                            </set>
+                                                                                            <call module='DataChange' rpc='update-tp-ttp-relationship' mode='sync' ></call>
+                                                                                        </block>
+                                                                                    </outcome>
+                                                                                    <outcome value='Other'>
+                                                                                        <return status='failure'>
+                                                                                            <parameter name='error-code' value='' />
+                                                                                            <parameter name='error-message' value='' />
+                                                                                        </return>
+                                                                                    </outcome>
+                                                                                </switch>
+                                                                            </outcome>
+                                                                        </switch>
+                                                                    </outcome>
+                                                                </switch>
+                                                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                              resource="network-resource"
+                                                                              key="depth = 'all'"
+                                                                              pfx='tmp.aai.network-resources' local-only='false' >
+                                                                    <outcome value='success'>
+                                                                        <call module='DataChange' rpc='update-open-ended-links' mode='sync' ></call>
+                                                                    </outcome>
+                                                                    <outcome value='not-found'></outcome>
+                                                                    <outcome value='Other'></outcome>
+                                                                </get-resource>
                                                             </block>
                                                         </outcome>
                                                     </execute>
@@ -98,6 +152,60 @@
                                                                         <call module='DataChange' rpc='update-network-to-aai' mode='sync' ></call>
                                                                     </block>
                                                                 </for>
+                                                                <switch test='`$topology.networks.network_length`'>
+                                                                    <outcome value='2'>
+                                                                        <switch test='`$topology.networks.network[0].network-types`'>
+                                                                            <outcome value='ethernet-topology'>
+                                                                                <switch test='`$topology.networks.network[1].network-types`'>
+                                                                                    <outcome value='otn-topology'>
+                                                                                        <block>
+                                                                                            <set>
+                                                                                                <parameter name='network-eth.' value='`$topology.networks.network[0].`' />
+                                                                                                <parameter name='network-otn.' value='`$topology.networks.network[1].`' />
+                                                                                            </set>
+                                                                                            <call module='DataChange' rpc='update-tp-ttp-relationship' mode='sync' ></call>
+                                                                                        </block>
+                                                                                    </outcome>
+                                                                                    <outcome value='Other'>
+                                                                                        <return status='failure'>
+                                                                                            <parameter name='error-code' value='' />
+                                                                                            <parameter name='error-message' value='' />
+                                                                                        </return>
+                                                                                    </outcome>
+                                                                                </switch>
+                                                                            </outcome>
+                                                                            <outcome value='otn-topology'>
+                                                                                <switch test='`$topology.networks.network[1].network-types`'>
+                                                                                    <outcome value='ethernet-topology'>
+                                                                                        <block>
+                                                                                            <set>
+                                                                                                <parameter name='network.eth' value='`$topology.networks.network[1].`' />
+                                                                                                <parameter name='network.otn' value='`$topology.networks.network[0].`' />
+                                                                                            </set>
+                                                                                            <call module='DataChange' rpc='update-tp-ttp-relationship' mode='sync' ></call>
+                                                                                        </block>
+                                                                                    </outcome>
+                                                                                    <outcome value='Other'>
+                                                                                        <return status='failure'>
+                                                                                            <parameter name='error-code' value='' />
+                                                                                            <parameter name='error-message' value='' />
+                                                                                        </return>
+                                                                                    </outcome>
+                                                                                </switch>
+                                                                            </outcome>
+                                                                        </switch>
+                                                                    </outcome>
+                                                                </switch>
+                                                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                              resource="network-resource"
+                                                                              key="depth = 'all'"
+                                                                              pfx='tmp.aai.network-resources' local-only='false' >
+                                                                    <outcome value='success'>
+                                                                        <call module='DataChange' rpc='update-open-ended-links' mode='sync' ></call>
+                                                                    </outcome>
+                                                                    <outcome value='not-found'></outcome>
+                                                                    <outcome value='Other'></outcome>
+                                                                </get-resource>
                                                             </block>
                                                         </outcome>
                                                     </execute>
