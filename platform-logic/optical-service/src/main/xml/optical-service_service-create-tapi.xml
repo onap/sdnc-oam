@@ -1,0 +1,406 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='optical-service' version='${project.version}'>
+    <method rpc='service-create-tapi' mode='sync'>
+        <block atomic="true">
+            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                <parameter name="file" value="/opt/opendaylight/current/data/log/service-create-tapi.log" />
+                <parameter name="level" value="info" />
+                <parameter name="field1" value="Inside optical service create tapi"/>
+            </record>
+            <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
+                <parameter name='fileName' value='/opt/onap/sdnc/data/properties/optical-service-dg.properties' />
+                <parameter name='contextPrefix' value='prop' />
+            </execute>
+            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+key='SELECT *
+from TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE
+WHERE interface_name = $optical-service-create-input.payload.service-aend.port-id'
+pfx='db-aend'>
+                <outcome value='success'>
+                    <set>
+                        <parameter name='aend-node-uuid' value='`$db-aend.pnf-name`' />
+                        <parameter name='aend-pnf-name' value='`$db-aend.pnf-id`' />
+                        <parameter name='aend-cep-list' value='`$db-aend.connection-point`' />
+                        <parameter name='aend-nep' value='`$db-aend.interface-name`' />
+                        <parameter name='aend-rate' value='`$db-aend.rate`' />
+                    </set>
+                </outcome>
+            </get-resource>
+            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+key='SELECT *
+from TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE
+WHERE interface_name = $optical-service-create-input.payload.service-zend.port-id'
+pfx='db-zend'>
+                <outcome value='success'>
+                    <set>
+                        <parameter name='zend-node-uuid' value='`$db-zend.pnf-name`' />
+                        <parameter name='zend-pnf-name' value='`$db-zend.pnf-id`' />
+                        <parameter name='zend-cep-list' value='`$db-zend.connection-point`' />
+                        <parameter name='zend-nep' value='`$db-zend.interface-name`' />
+                        <parameter name='zend-rate' value='`$db-zend.rate`' />
+                    </set>
+                </outcome>
+            </get-resource>
+            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+resource="p-interface"
+ key="pnf.pnf-name = $aend-node-uuid AND
+     p-interface.interface-name = $aend-nep"
+pfx='aend'      local-only='false'></get-resource>
+            <switch test='`$aend.network-interface-type`'>
+                <outcome value='UNI'>
+                    <block atomic='true'>
+                        <set>
+                            <parameter name='aend-cep' value='`$aend-cep-list`' />
+                            <parameter name='aend-new' value='' />
+                            <parameter name='aend-new-rate' value='0' />
+                        </set>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                            <parameter name="file" value="/opt/opendaylight/current/data/log/service-create-tapi.log" />
+                            <parameter name="level" value="info" />
+                            <parameter name="field1" value="Aend uni"/>
+                        </record>
+                        <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                            <parameter name="restapiUrl" value="` $controller-ip + $prop.tapi.cep.details.url + $aend-cep`" />
+                            <parameter name="restapiUser" value="admin"/>
+                            <parameter name="restapiPassword" value="admin"/>
+                            <parameter name="httpMethod" value="GET"/>
+                            <parameter name="responsePrefix" value="aend-cep-response"/>
+                            <parameter name='contentType' value='application/json' />
+                            <parameter name='format' value='json' />
+                            <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.tapi.jks"/>
+                            <parameter name="trustStorePassword" value="adminadmin"/>
+                            <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                            <parameter name="keyStorePassword" value="adminadmin"/>
+                            <outcome value='failure'>
+                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                    <parameter name="file" value="/opt/opendaylight/current/data/log/service-create-tapi.log" />
+                                    <parameter name="level" value="info" />
+                                    <parameter name="field1" value="Failed to get Aend cep details"/>
+                                </record>
+                            </outcome>
+                            <outcome value='success'>
+                                <block atomic="true">
+                                    <set>
+                                        <parameter name='aend-local-id' value="`'/OTN/' + $aend-pnf-name + '/' + $aend-cep-response.sip[0].name[2].value + ':' + $aend-cep-response.sip[0].name[1].value`" />
+                                    </set>
+                                </block>
+                            </outcome>
+                        </execute>
+                    </block>
+                </outcome>
+                <outcome value='Other'>
+                    <block atomic='true'>
+                        <set>
+                            <parameter name='aend-new' value='' />
+                            <parameter name='aend-local-id' value='' />
+                        </set>
+                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                            <parameter name="original_string" value='`$aend-cep-list`'/>
+                            <parameter name="regex" value=","/>
+                            <parameter name="ctx_memory_result_key" value="param-prefix"/>
+                        </execute>
+                        <for index='idx' start='0' end='`$param-prefix_length`' >
+                            <block atomic="true">
+                                <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                    <parameter name="restapiUrl" value="` $controller-ip + $prop.tapi.cep.details.url + $param-prefix[$idx]`" />
+                                    <parameter name="restapiUser" value="admin"/>
+                                    <parameter name="restapiPassword" value="admin"/>
+                                    <parameter name="httpMethod" value="GET"/>
+                                    <parameter name="responsePrefix" value="aend-cep-response"/>
+                                    <parameter name='contentType' value='application/json' />
+                                    <parameter name='format' value='json' />
+                                    <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.tapi.jks"/>
+                                    <parameter name="trustStorePassword" value="adminadmin"/>
+                                    <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                                    <parameter name="keyStorePassword" value="adminadmin"/>
+                                    <outcome value='failure'>
+                                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                            <parameter name="file" value="/opt/opendaylight/current/data/log/service-create-tapi.log" />
+                                            <parameter name="level" value="info" />
+                                            <parameter name="field1" value="Failed to get Aend cep details"/>
+                                        </record>
+                                    </outcome>
+                                    <outcome value='success'>
+                                        <block atomic="true">
+                                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                                <parameter name="file" value="/opt/opendaylight/current/data/log/service-create-tapi.log" />
+                                                <parameter name="level" value="info" />
+                                                <parameter name="field1" value="Sucessfully retrieved aend cep"/>
+                                            </record>
+                                            <switch test='`$aend-cep-response.sip[0].name[2].value == $optical-service-create-input.payload.service-rate`'>
+                                                <outcome value='true'>
+                                                    <block atomic='true'>
+                                                        <set>
+                                                            <parameter name='aend-local-id' value="`$aend-local-id + '/OTN/' + $aend-pnf-name + '/' + $aend-cep-response.sip[0].name[2].value + ':' + $aend-cep-response.sip[0].name[1].value`" />
+                                                            <parameter name='aend-cep' value='`$param-prefix[$idx]`'/>
+                                                        </set>
+                                                        <break/>
+                                                    </block>
+                                                </outcome>
+                                                <outcome value='false'>
+                                                    <return status='failure'>
+                                                        <parameter name='error-code' value='500' />
+                                                        <parameter name='error-message' value='No service interface points could be found for A end ' />
+                                                        <parameter name='ack-final-indicator' value="Y" />
+                                                    </return>
+                                                </outcome>
+                                            </switch>
+                                        </block>
+                                    </outcome>
+                                </execute>
+                            </block>
+                        </for>
+                        <switch test='`$param-prefix_length == 1`'>
+                            <outcome value='true'>
+                                <set>
+                                    <parameter name='zend-new' value="`$zend-new`" />
+                                </set>
+                            </outcome>
+                            <outcome value='false'>
+                                <for index='idy' start='0' end='`$param-prefix_length`' >
+                                    <switch test='`$idy`'>
+                                        <outcome value='`$param-prefix_length - 1`'>
+                                            <set>
+                                                <parameter name='aend-new' value="`$aend-new + $param-prefix[$idy]`" />
+                                            </set>
+                                        </outcome>
+                                        <outcome value='Other'>
+                                            <set>
+                                                <parameter name='aend-new' value="`$aend-new + $param-prefix[$idy] + ','`" />
+                                            </set>
+                                        </outcome>
+                                        <outcome value='`$idx`'>
+                                            <set>
+                                                <parameter name='aend-new' value='`$aend-new`' />
+                                            </set>
+                                        </outcome>
+                                    </switch>
+                                </for>
+                            </outcome>
+                        </switch>
+                    </block>
+                </outcome>
+            </switch>
+            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+resource="p-interface"
+ key="pnf.pnf-name = $zend-node-uuid AND
+     p-interface.interface-name = $zend-nep"
+pfx='zend'      local-only='false'></get-resource>
+            <switch test='`$zend.network-interface-type`'>
+                <outcome value='UNI'>
+                    <block atomic='true'>
+                        <set>
+                            <parameter name='zend-cep' value='`$zend-cep-list`' />
+                            <parameter name='zend-new' value='' />
+                            <parameter name='zend-new-rate' value='0' />
+                        </set>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                            <parameter name="file" value="/opt/opendaylight/current/data/log/service-create-tapi.log" />
+                            <parameter name="level" value="info" />
+                            <parameter name="field1" value="Zend uni"/>
+                        </record>
+                        <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                            <parameter name="restapiUrl" value="` $controller-ip + $prop.tapi.cep.details.url + $zend-cep`" />
+                            <parameter name="restapiUser" value="admin"/>
+                            <parameter name="restapiPassword" value="admin"/>
+                            <parameter name="httpMethod" value="GET"/>
+                            <parameter name="responsePrefix" value="zend-cep-response"/>
+                            <parameter name='contentType' value='application/json' />
+                            <parameter name='format' value='json' />
+                            <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.tapi.jks"/>
+                            <parameter name="trustStorePassword" value="adminadmin"/>
+                            <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                            <parameter name="keyStorePassword" value="adminadmin"/>
+                            <outcome value='failure'>
+                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                    <parameter name="file" value="/opt/opendaylight/current/data/log/service-create-tapi.log" />
+                                    <parameter name="level" value="info" />
+                                    <parameter name="field1" value="Failed to get Aend cep details"/>
+                                </record>
+                            </outcome>
+                            <outcome value='success'>
+                                <block atomic="true">
+                                    <set>
+                                        <parameter name='zend-local-id' value="`'/OTN/' + $zend-pnf-name + '/' + $zend-cep-response.sip[0].name[2].value + ':' + $zend-cep-response.sip[0].name[1].value`" />
+                                    </set>
+                                </block>
+                            </outcome>
+                        </execute>
+                    </block>
+                </outcome>
+                <outcome value='Other'>
+                    <block atomic='true'>
+                        <set>
+                            <parameter name='zend-new' value='' />
+                            <parameter name='zend-local-id' value='' />
+                        </set>
+                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                            <parameter name="original_string" value='`$zend-cep-list`'/>
+                            <parameter name="regex" value=","/>
+                            <parameter name="ctx_memory_result_key" value="param-prefix1"/>
+                        </execute>
+                        <for index='idk' start='0' end='`$param-prefix1_length`' >
+                            <block atomic="true">
+                                <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                    <parameter name="restapiUrl" value="` $controller-ip + $prop.tapi.cep.details.url + $param-prefix1[$idk]`" />
+                                    <parameter name="restapiUser" value="admin"/>
+                                    <parameter name="restapiPassword" value="admin"/>
+                                    <parameter name="httpMethod" value="GET"/>
+                                    <parameter name="responsePrefix" value="zend-cep-response"/>
+                                    <parameter name='contentType' value='application/json' />
+                                    <parameter name='format' value='json' />
+                                    <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.tapi.jks"/>
+                                    <parameter name="trustStorePassword" value="adminadmin"/>
+                                    <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                                    <parameter name="keyStorePassword" value="adminadmin"/>
+                                    <outcome value='failure'>
+                                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                            <parameter name="file" value="/opt/opendaylight/current/data/log/service-create-tapi.log" />
+                                            <parameter name="level" value="info" />
+                                            <parameter name="field1" value="Failed to get zend cep details"/>
+                                        </record>
+                                    </outcome>
+                                    <outcome value='success'>
+                                        <block atomic="true">
+                                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                                <parameter name="file" value="/opt/opendaylight/current/data/log/service-create-tapi.log" />
+                                                <parameter name="level" value="info" />
+                                                <parameter name="field1" value="Sucessfully retrieved zend cep"/>
+                                            </record>
+                                            <switch test='`$zend-cep-response.sip[0].name[2].value == $optical-service-create-input.payload.service-rate`'>
+                                                <outcome value='true'>
+                                                    <block>
+                                                        <set>
+                                                            <parameter name='zend-local-id' value="`$zend-local-id + '/OTN/' + $zend-pnf-name + '/' + $zend-cep-response.sip[0].name[2].value + ':' + $zend-cep-response.sip[0].name[1].value`" />
+                                                            <parameter name='zend-cep' value='`$param-prefix1[$idk]`'/>
+                                                        </set>
+                                                        <break/>
+                                                    </block>
+                                                </outcome>
+                                                <outcome value='false'>
+                                                    <return status='failure'>
+                                                        <parameter name='error-code' value='500' />
+                                                        <parameter name='error-message' value='No service interface points could be found for Z end ' />
+                                                        <parameter name='ack-final-indicator' value="Y" />
+                                                    </return>
+                                                </outcome>
+                                            </switch>
+                                        </block>
+                                    </outcome>
+                                </execute>
+                            </block>
+                        </for>
+                        <switch test='`$param-prefix1_length == 1`'>
+                            <outcome value='true'>
+                                <set>
+                                    <parameter name='zend-new' value="`$zend-new`" />
+                                </set>
+                            </outcome>
+                            <outcome value='false'>
+                                <for index='idl' start='0' end='`$param-prefix1_length`' >
+                                    <switch test='`$idl`'>
+                                        <outcome value='`$param-prefix1_length - 1`'>
+                                            <set>
+                                                <parameter name='zend-new' value="`$zend-new + $param-prefix1[$idl]`" />
+                                            </set>
+                                        </outcome>
+                                        <outcome value='Other'>
+                                            <set>
+                                                <parameter name='zend-new' value="`$zend-new + $param-prefix1[$idl] + ','`" />
+                                            </set>
+                                        </outcome>
+                                        <outcome value='`$idk`'>
+                                            <set>
+                                                <parameter name='zend-new' value='`$zend-new`' />
+                                            </set>
+                                        </outcome>
+                                    </switch>
+                                </for>
+                            </outcome>
+                        </switch>
+                    </block>
+                </outcome>
+            </switch>
+            <set>
+                <parameter name='service-name' value="`$optical-service-create-input.payload.service-name`" />
+                <parameter name='svc-action' value="CREATE" />
+            </set>
+            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                <parameter name="file" value="/opt/opendaylight/current/data/log/service-create-tapi.log" />
+                <parameter name="level" value="info" />
+                <parameter name="field1" value="A end local-id"/>
+                <parameter name="field2" value="`$aend-local-id`"/>
+                <parameter name="field3" value="Z end local-id"/>
+                <parameter name="field4" value="`$zend-local-id`"/>
+                <parameter name="field5" value="Service name"/>
+                <parameter name="field6" value="`$service-name`"/>
+            </record>
+            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/optical-service-create-tapi.json'`" />
+                <parameter name="restapiUrl" value="`$controller-ip + '/cxf/tapi/v2/connectivities/tapi-services'`"/>
+                <parameter name="restapiUser" value="admin"/>
+                <parameter name="restapiPassword" value="admin"/>
+                <parameter name="httpMethod" value="POST"/>
+                <parameter name="responsePrefix" value="tapi-service-response"/>
+                <parameter name='contentType' value='application/json' />
+                <parameter name='format' value='json' />
+                <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.tapi.jks"/>
+                <parameter name="trustStorePassword" value="adminadmin"/>
+                <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                <parameter name="keyStorePassword" value="adminadmin"/>
+                <outcome value='failure'>
+                    <block atomic='true'>
+                        <return status='failure'>
+                            <parameter name='error-code' value='500' />
+                            <parameter name='error-message' value='Service creation failed' />
+                            <parameter name='ack-final-indicator' value="Y" />
+                        </return>
+                    </block>
+                </outcome>
+                <outcome value='success'>
+                    <block atomic='true'>
+                        <save plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL" key="INSERT INTO REQUEST_DETAILS (request_id, controller_id, status, service_rate, service_instance_id, service_type, global_customer_id, notification_url) VALUES ( $optical-service-create-input.request-id , $controller-id , 'CREATED' , $optical-service-create-input.payload.service-rate ,  $optical-service-create-input.service-id , $optical-service-create-input.service-type , $optical-service-create-input.global-customer-id , null );"></save>
+                        <save plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' 
+resource='SQL' 
+key='UPDATE TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE SET connection_point = $aend-new WHERE interface_name = $aend-nep'
+force='true' pfx='save-result'></save>
+                        <save plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' 
+resource='SQL' 
+key='UPDATE TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE SET connection_point = $zend-new WHERE interface_name = $zend-nep'
+force='true' pfx='save-result'></save>
+                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance'  
+     key='customer.global-customer-id = $optical-service-create-input.global-customer-id AND
+     service-subscription.service-type = $optical-service-create-input.service-type AND
+     service-instance.service-instance-id = $optical-service-create-input.service-id' >
+                            <parameter name='service-instance-id' value='`$optical-service-create-input.service-id`' />
+                            <parameter name='service-instance-name' value='`$optical-service-create-input.payload.service-name`' />
+                            <parameter name='service-type' value='Domain-Service' />
+                            <parameter name='orchestration-status' value='CREATED' />
+                            <parameter name='service-rate' value='`$optical-service-create-input.payload.service-rate`' />
+                            <parameter name='service-layer' value='ODU' />
+                        </save>
+                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list'  
+     key='customer.global-customer-id = $optical-service-create-input.global-customer-id AND
+     service-subscription.service-type = $optical-service-create-input.service-type AND
+     service-instance.service-instance-id = $optical-service-create-input.service-id' force="true" pfx="tmp.AnAI-data">
+                            <parameter name="relationship-list.relationship[0].related-to" value="p-interface" />
+                            <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $aend-node-uuid + '/p-interfaces/p-interface/' + $optical-service-create-input.payload.service-aend.port-id `" />
+                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="pnf.pnf-name" />
+                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$aend-node-uuid`" />
+                            <parameter name="relationship-list.relationship[1].related-to" value="p-interface" />
+                            <parameter name="relationship-list.relationship[1].related-link" value="`'/network/pnfs/pnf/' + $zend-node-uuid + '/p-interfaces/p-interface/' + $optical-service-create-input.payload.service-zend.port-id `" />
+                            <parameter name="relationship-list.relationship[1].relationship-data[0].relationship-key" value="pnf.pnf-name" />
+                            <parameter name="relationship-list.relationship[1].relationship-data[0].relationship-value" value="`$zend-node-uuid`" />
+                        </save>
+                        <return status='success'>
+                            <parameter name='error-code' value='200' />
+                            <parameter name='error-message' value='Service created successfully' />
+                            <parameter name='ack-final-indicator' value="Y" />
+                        </return>
+                    </block>
+                </outcome>
+            </execute>
+        </block>
+    </method>
+</service-logic>

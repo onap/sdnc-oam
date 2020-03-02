@@ -1,0 +1,258 @@
+[
+    {
+        "id": "168f1b9b.e0d8a4",
+        "type": "dgstart",
+        "name": "DGSTART",
+        "outputs": 1,
+        "x": 290,
+        "y": 256.6666564941406,
+        "z": "5b091ac8.c4f784",
+        "wires": [
+            [
+                "69efd249.69fbdc"
+            ]
+        ]
+    },
+    {
+        "id": "69efd249.69fbdc",
+        "type": "service-logic",
+        "name": "optical-service ${project.version}",
+        "module": "optical-service",
+        "version": "${project.version}",
+        "comments": "",
+        "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='optical-service' version='${project.version}'>",
+        "outputs": 1,
+        "x": 477,
+        "y": 205.66665649414062,
+        "z": "5b091ac8.c4f784",
+        "wires": [
+            [
+                "7c805408.44c49c"
+            ]
+        ]
+    },
+    {
+        "id": "7c805408.44c49c",
+        "type": "method",
+        "name": "method",
+        "xml": "<method rpc='aai-delete-service-handling' mode='sync'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 331,
+        "y": 379.6666564941406,
+        "z": "5b091ac8.c4f784",
+        "wires": [
+            [
+                "9d8283a.657188"
+            ]
+        ]
+    },
+    {
+        "id": "9d8283a.657188",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 504,
+        "y": 378.6666564941406,
+        "z": "5b091ac8.c4f784",
+        "wires": [
+            [
+                "f165a108.8a699",
+                "940496d9.dec278",
+                "32c002b0.0f4fce",
+                "2caf6515.aa94aa",
+                "a8c5a8ab.1bde18",
+                "a1d8c39f.8281b"
+            ]
+        ]
+    },
+    {
+        "id": "f165a108.8a699",
+        "type": "record",
+        "name": "record",
+        "xml": "<record plugin=\"org.onap.ccsdk.sli.core.sli.recording.FileRecorder\">\n<parameter name=\"file\" value=\"/opt/opendaylight/current/data/log/async-notif.log\" />\n<parameter name=\"level\" value=\"info\" />\n<parameter name=\"field1\" value=\"Inside Revert PInterface details\"/>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 735,
+        "y": 265.6666564941406,
+        "z": "5b091ac8.c4f784",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "940496d9.dec278",
+        "type": "get-resource",
+        "name": "Get service from AAI",
+        "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\"\nresource=\"service-instance\"\n key='customer.global-customer-id = $output.global-customer-id AND\n     service-subscription.service-type = $output.service-type AND\n     service-instance.service-instance-id = $output.service-instance-id' \npfx='aai.service'      local-only='false'>\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 754,
+        "y": 381.6666564941406,
+        "z": "5b091ac8.c4f784",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "32c002b0.0f4fce",
+        "type": "record",
+        "name": "record",
+        "xml": "<record plugin=\"org.onap.ccsdk.sli.core.sli.recording.FileRecorder\">\n<parameter name=\"file\" value=\"/opt/opendaylight/current/data/log/async-notif.log\" />\n<parameter name=\"level\" value=\"info\" />\n<parameter name=\"field1\" value=\"Inside Revert PInterface details\"/>\n<parameter name=\"field2\" value=\"`$aai.service.orchestration-status`\"/>\n<parameter name=\"field3\" value=\"`$aai.service.relationship-list.relationship_length`\"/>\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 764,
+        "y": 447.6666564941406,
+        "z": "5b091ac8.c4f784",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2caf6515.aa94aa",
+        "type": "for",
+        "name": "for",
+        "xml": "<for index='idx' start='0' end='`$aai.service.relationship-list.relationship_length`' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 737,
+        "y": 510.6666564941406,
+        "z": "5b091ac8.c4f784",
+        "wires": [
+            [
+                "c68f711c.1667a"
+            ]
+        ]
+    },
+    {
+        "id": "1e030001.bace",
+        "type": "set",
+        "name": "set",
+        "xml": "<set>\n<parameter name='pnf-name' value='`$aai.service.relationship-list.relationship[$idx].relationship-data[0].relationship-value`' />\n<parameter name='pinterface-name' value='`$aai.service.relationship-list.relationship[$idx].relationship-data[1].relationship-value`' />\n\n",
+        "comments": "",
+        "x": 1147,
+        "y": 197.66665649414062,
+        "z": "5b091ac8.c4f784",
+        "wires": []
+    },
+    {
+        "id": "e3a487a2.2e5338",
+        "type": "record",
+        "name": "record",
+        "xml": "<record plugin=\"org.onap.ccsdk.sli.core.sli.recording.FileRecorder\">\n<parameter name=\"file\" value=\"/opt/opendaylight/current/data/log/async-notif.log\" />\n<parameter name=\"level\" value=\"info\" />\n<parameter name=\"field1\" value=\"Inside Revert PInterface details\"/>\n<parameter name=\"field2\" value=\"`$pnf-name`\"/>\n<parameter name=\"field3\" value=\"`$pinterface-name`\"/>\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1170,
+        "y": 266.6666564941406,
+        "z": "5b091ac8.c4f784",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a8c5a8ab.1bde18",
+        "type": "delete",
+        "name": "delete service instance AAI",
+        "xml": "<delete plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\"\nresource=\"service-instance\"\nkey='customer.global-customer-id = $output.global-customer-id AND\nservice-subscription.service-type = $output.service-type AND\nservice-instance.service-instance-id = $output.service-instance-id'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 757,
+        "y": 586.6666564941406,
+        "z": "5b091ac8.c4f784",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c68f711c.1667a",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 921,
+        "y": 514.6666564941406,
+        "z": "5b091ac8.c4f784",
+        "wires": [
+            [
+                "1e030001.bace",
+                "e3a487a2.2e5338",
+                "2c623e61.ef3c52",
+                "46559965.50bc28",
+                "c493aa8c.c04b68",
+                "d87c55e6.d344b8"
+            ]
+        ]
+    },
+    {
+        "id": "a1d8c39f.8281b",
+        "type": "delete",
+        "name": "delete from db",
+        "xml": "<delete plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource'\n    resource=\"SQL\"\n    key=\"DELETE FROM REQUEST_DETAILS WHERE request_id = $request-id\">",
+        "comments": "",
+        "outputs": 1,
+        "x": 694,
+        "y": 643.6666564941406,
+        "z": "5b091ac8.c4f784",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c493aa8c.c04b68",
+        "type": "get-resource",
+        "name": "get p-interface total capacity",
+        "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\"\nresource=\"p-interface\"\n     key='pnf.pnf-name = $pnf-name AND\n     p-interface.interface-name = $pinterface-name ' \npfx='p.in.details'      local-only='false'>\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1266.8887939453125,
+        "y": 322.77777099609375,
+        "z": "5b091ac8.c4f784",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d87c55e6.d344b8",
+        "type": "set",
+        "name": "set",
+        "xml": "<set>\n<parameter name='new-rate' value='`$p.in.details.speed-value`' />\n",
+        "comments": "",
+        "x": 1207.111083984375,
+        "y": 413,
+        "z": "5b091ac8.c4f784",
+        "wires": []
+    },
+    {
+        "id": "2c623e61.ef3c52",
+        "type": "update",
+        "name": "update p-interface capacity AAI",
+        "xml": "<update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' \nforce='true'\nresource='p-interface'\n     key='pnf.pnf-name = $pnf-name AND\n     p-interface.interface-name = $pinterface-name '\n      local-only='false'>\n<parameter name='available-capacity' value='`$new-rate`' />\n\n\n\n\n\n\n\n\n\n    \n    \n    \n    \n    \n    \n    \n    \n   \n    \n    \n    \n\n \n \n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1174,
+        "y": 518.6666564941406,
+        "z": "5b091ac8.c4f784",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "46559965.50bc28",
+        "type": "save",
+        "name": "update pinterface rate DB",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' \nresource='SQL' \nkey='UPDATE TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE SET rate = $new-rate WHERE interface_name = $pinterface-name '\nforce='true' pfx='save-result'>",
+        "comments": "",
+        "outputs": 1,
+        "x": 1165,
+        "y": 586.6666564941406,
+        "z": "5b091ac8.c4f784",
+        "wires": [
+            []
+        ]
+    }
+]

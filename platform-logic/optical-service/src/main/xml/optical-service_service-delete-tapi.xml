@@ -1,0 +1,152 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='optical-service' version='${project.version}'>
+    <method rpc='service-delete-tapi' mode='sync'>
+        <block atomic="true">
+            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                <parameter name="file" value="/opt/opendaylight/current/data/log/service-create-tapi.log" />
+                <parameter name="level" value="info" />
+                <parameter name="field1" value="Inside optical service delete tapi"/>
+            </record>
+            <set>
+                <parameter name='request-id' value='`$optical-service-delete-input.request-id`' />
+            </set>
+            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                <parameter name="restapiUrl" value="` $controller-ip + $prop.tapi.get.services.url + $optical-service-delete-input.payload.service-name`" />
+                <parameter name="restapiUser" value="admin"/>
+                <parameter name="restapiPassword" value="admin"/>
+                <parameter name="httpMethod" value="GET"/>
+                <parameter name="responsePrefix" value="services-response"/>
+                <parameter name='contentType' value='application/json' />
+                <parameter name='format' value='json' />
+                <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.tapi.jks"/>
+                <parameter name="trustStorePassword" value="adminadmin"/>
+                <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                <parameter name="keyStorePassword" value="adminadmin"/>
+                <outcome value='failure'></outcome>
+                <outcome value='success'>
+                    <block atomic='true'>
+                        <set>
+                            <parameter name='aend-nep' value="`$services-response.service[0].end-point[0].connection-end-point[0].node-edge-point-uuid`" />
+                            <parameter name='zend-nep' value="`$services-response.service[0].end-point[1].connection-end-point[0].node-edge-point-uuid`" />
+                            <parameter name='aend-cep' value="`$services-response.service[0].end-point[0].connection-end-point[0].connection-end-point-uuid`" />
+                            <parameter name='zend-cep' value="`$services-response.service[0].end-point[1].connection-end-point[0].connection-end-point-uuid`" />
+                        </set>
+                        <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+key='SELECT *
+from TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE
+WHERE interface_name = $aend-nep'
+pfx='db-aend'></get-resource>
+                        <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+key='SELECT *
+from TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE
+WHERE interface_name = $zend-nep'
+pfx='db-zend'></get-resource>
+                        <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                            <parameter name="restapiUrl" value="` $controller-ip + $prop.tapi.delete.service.url + $optical-service-delete-input.payload.service-name`" />
+                            <parameter name="restapiUser" value="admin"/>
+                            <parameter name="restapiPassword" value="admin"/>
+                            <parameter name="httpMethod" value="DELETE"/>
+                            <parameter name="responsePrefix" value="tapi-service-response"/>
+                            <parameter name='contentType' value='application/json' />
+                            <parameter name='format' value='json' />
+                            <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.tapi.jks"/>
+                            <parameter name="trustStorePassword" value="adminadmin"/>
+                            <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                            <parameter name="keyStorePassword" value="adminadmin"/>
+                            <outcome value='failure'>
+                                <block atomic='true'>
+                                    <return status='failure'>
+                                        <parameter name='error-code' value='500' />
+                                        <parameter name='error-message' value='Service Deletion failed' />
+                                        <parameter name='ack-final-indicator' value="Y" />
+                                    </return>
+                                </block>
+                            </outcome>
+                            <outcome value='success'>
+                                <block atomic='true'>
+                                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+resource="p-interface"
+ key="pnf.pnf-name = $db-aend.pnf-name AND
+     p-interface.interface-name = $aend-nep"
+pfx='aend'      local-only='false'></get-resource>
+                                    <switch test='`$aend.network-interface-type`'>
+                                        <outcome value='UNI'>
+                                            <set>
+                                                <parameter name='aend-new' value='`$aend-cep`' />
+                                            </set>
+                                        </outcome>
+                                        <outcome value='Other'>
+                                            <switch test='`$db-aend.connection-point`'>
+                                                <outcome value=''>
+                                                    <set>
+                                                        <parameter name='aend-new' value="`$aend-cep`" />
+                                                    </set>
+                                                </outcome>
+                                                <outcome value='Other'>
+                                                    <set>
+                                                        <parameter name='aend-new' value="`$db-aend.connection-point + ',' + $aend-cep`" />
+                                                    </set>
+                                                </outcome>
+                                            </switch>
+                                        </outcome>
+                                    </switch>
+                                    <save plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' 
+resource='SQL' 
+key='UPDATE TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE SET connection_point = $aend-new WHERE interface_name = $aend-nep'
+force='true' pfx='save-result'></save>
+                                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+resource="p-interface"
+ key="pnf.pnf-name = $db-zend.pnf-name AND
+     p-interface.interface-name = $zend-nep"
+pfx='zend'      local-only='false'></get-resource>
+                                    <switch test='`$zend.network-interface-type`'>
+                                        <outcome value='UNI'>
+                                            <set>
+                                                <parameter name='zend-new' value='`$zend-cep`' />
+                                            </set>
+                                        </outcome>
+                                        <outcome value='Other'>
+                                            <switch test='`$db-zend.connection-point`'>
+                                                <outcome value=''>
+                                                    <set>
+                                                        <parameter name='zend-new' value="`$zend-cep`" />
+                                                    </set>
+                                                </outcome>
+                                                <outcome value='Other'>
+                                                    <set>
+                                                        <parameter name='zend-new' value="`$db-zend.connection-point + ',' + $zend-cep`" />
+                                                    </set>
+                                                </outcome>
+                                            </switch>
+                                        </outcome>
+                                    </switch>
+                                    <save plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' 
+resource='SQL' 
+key='UPDATE TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE SET connection_point = $zend-new WHERE interface_name = $zend-nep'
+force='true' pfx='save-result'></save>
+                                    <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' 
+key='SELECT * from REQUEST_DETAILS WHERE request_id = $request-id '
+pfx='output'></get-resource>
+                                    <delete plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+resource="service-instance"
+key='customer.global-customer-id = $output.global-customer-id AND
+service-subscription.service-type = $output.service-type AND
+service-instance.service-instance-id = $output.service-instance-id'></delete>
+                                    <delete plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource'
+    resource="SQL"
+    key="DELETE FROM REQUEST_DETAILS WHERE request_id = $request-id"></delete>
+                                    <return status='success'>
+                                        <parameter name='error-code' value='200' />
+                                        <parameter name='error-message' value='Service deleted successfully' />
+                                        <parameter name='ack-final-indicator' value="Y" />
+                                    </return>
+                                </block>
+                            </outcome>
+                        </execute>
+                    </block>
+                </outcome>
+            </execute>
+        </block>
+    </method>
+</service-logic>

@@ -1,0 +1,47 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='optical-service' version='${project.version}'>
+    <method rpc='call-bandwidth-update-pinterface' mode='sync'>
+        <block atomic="true">
+            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                <parameter name="file" value="/opt/opendaylight/current/data/log/test.log" />
+                <parameter name="level" value="info" />
+                <parameter name="field1" value="`$div`"/>
+            </record>
+            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+resource="p-interface"
+ key="pnf.pnf-name = $pnf-name AND
+     p-interface.interface-name = $pinterface-name AND depth = 'all'"
+pfx='pin'      local-only='false'></get-resource>
+            <switch test='`$pin.network-interface-type`'>
+                <outcome value='Other'>
+                    <block atomic="true">
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                            <parameter name="file" value="/opt/opendaylight/current/data/log/service-create-tapi.log" />
+                            <parameter name="level" value="info" />
+                            <parameter name="field1" value="Port is NNI"/>
+                        </record>
+                        <call module='optical-service' rpc='bandwidth-update' mode='sync' ></call>
+                    </block>
+                </outcome>
+                <outcome value='UNI'>
+                    <block atomic="true">
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                            <parameter name="file" value="/opt/opendaylight/current/data/log/service-create-tapi.log" />
+                            <parameter name="level" value="info" />
+                            <parameter name="field1" value="Port is UNI"/>
+                        </record>
+                        <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' 
+force='true'
+resource='available-bandwidth'
+     key='pnf.pnf-name = $pnf-name AND
+     p-interface.interface-name = $pinterface-name' 
+      local-only='false'>
+                            <parameter name='available-capacity' value='0' />
+                        </update>
+                    </block>
+                </outcome>
+            </switch>
+        </block>
+    </method>
+</service-logic>

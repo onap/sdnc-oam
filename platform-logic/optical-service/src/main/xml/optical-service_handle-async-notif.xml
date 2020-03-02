@@ -1,0 +1,44 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='optical-service' version='${project.version}'>
+    <method rpc='handle-async-notif' mode='sync'>
+        <block atomic='true'>
+            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                <parameter name="file" value="/opt/opendaylight/current/data/log/async-notif.log" />
+                <parameter name="level" value="info" />
+                <parameter name="field1" value="Reached async graph"/>
+                <parameter name="field2" value="`$request-id`"/>
+            </record>
+            <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
+                <parameter name='fileName' value='/opt/onap/sdnc/data/properties/optical-service-dg.properties' />
+                <parameter name='contextPrefix' value='prop' />
+            </execute>
+            <switch test='`$ack-final-indicator`'>
+                <outcome value='N'>
+                    <block atomic='true'>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                            <parameter name="file" value="/opt/opendaylight/current/data/log/async-notif.log" />
+                            <parameter name="level" value="info" />
+                            <parameter name="field1" value="Ack indicator in 'N'"/>
+                        </record>
+                    </block>
+                </outcome>
+                <outcome value='Y'>
+                    <block atomic='true'>
+                        <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' 
+key='SELECT * from REQUEST_DETAILS WHERE request_id = $request-id '
+pfx='output'></get-resource>
+                        <switch test='`$output.status`'>
+                            <outcome value='CREATING'>
+                                <call module='optical-service' rpc='create-service-async' mode='sync' ></call>
+                            </outcome>
+                            <outcome value='DELETING'>
+                                <call module='optical-service' rpc='delete-service-async' mode='sync' ></call>
+                            </outcome>
+                        </switch>
+                    </block>
+                </outcome>
+            </switch>
+        </block>
+    </method>
+</service-logic>
