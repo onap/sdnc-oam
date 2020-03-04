@@ -1,0 +1,285 @@
+[
+  {
+    "id": "3dae3829.6d50d8",
+    "type": "dgstart",
+    "name": "DGSTART",
+    "outputs": 1,
+    "x": 140,
+    "y": 83,
+    "z": "5fc7c3fb.48a444",
+    "wires": [
+      [
+        "de2fffb7.c073f8"
+      ]
+    ]
+  },
+  {
+    "id": "de2fffb7.c073f8",
+    "type": "service-logic",
+    "name": "DataChange ${project.version}",
+    "module": "DataChange",
+    "version": "${project.version}",
+    "comments": "",
+    "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>",
+    "outputs": 1,
+    "x": 182,
+    "y": 162.888916015625,
+    "z": "5fc7c3fb.48a444",
+    "wires": [
+      [
+        "8d7f08d3.c67fe8"
+      ]
+    ]
+  },
+  {
+    "id": "8d7f08d3.c67fe8",
+    "type": "method",
+    "name": "method update-network-links-to-aai",
+    "xml": "<method rpc='update-network-links-to-aai' mode='sync'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 196,
+    "y": 239.22222900390625,
+    "z": "5fc7c3fb.48a444",
+    "wires": [
+      [
+        "89a3239d.9a961"
+      ]
+    ]
+  },
+  {
+    "id": "89a3239d.9a961",
+    "type": "block",
+    "name": "block : atomic",
+    "xml": "<block atomic=\"true\">\n",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 207.33343505859375,
+    "y": 316.7779235839844,
+    "z": "5fc7c3fb.48a444",
+    "wires": [
+      [
+        "f779b713.8cfdc8"
+      ]
+    ]
+  },
+  {
+    "id": "705ccc82.ecc094",
+    "type": "update",
+    "name": "save logical-link",
+    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='logical-link' \n      key='logical-link.link-name = $unique-linkId' >\n<parameter name='link-name' value='`$unique-linkId`' />\n<parameter name='link-id' value='`$link.link-id`' />\n\n\n\n\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 580.1111450195312,
+    "y": 168.11109924316406,
+    "z": "5fc7c3fb.48a444",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "f779b713.8cfdc8",
+    "type": "for",
+    "name": "for each link",
+    "xml": "<for index='pidx' start='0' end='`$network.link_length`' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 235.88885498046875,
+    "y": 410.33331298828125,
+    "z": "5fc7c3fb.48a444",
+    "wires": [
+      [
+        "705ccc82.ecc094",
+        "45a55196.a54ca",
+        "d54d8abb.5beac",
+        "5271a41c.d8700c"
+      ]
+    ]
+  },
+  {
+    "id": "45a55196.a54ca",
+    "type": "set",
+    "name": "set network link's local variables",
+    "xml": "<set>\n<parameter name='link.' value='`$network.link[$pidx].`' />\n<parameter name='unique-networkId' value='`$tmp.network-id`' />\n<parameter name='unique-linkId' value=\"`'networkId-' + $unique-networkId + '-linkId-' + $link.link-id`\" />\n<parameter name='src-tpId' value=\"`'networkId-' + $unique-networkId + '-nodeId-' + $link.source.source-node + '-ltpId-' + $link.source.source-tp`\" />\n<parameter name='dst-tpId' value=\"`'networkId-' + $unique-networkId + '-nodeId-' + $link.destination.dest-node + '-ltpId-' + $link.destination.dest-tp`\" />\n\n",
+    "comments": "",
+    "x": 581.111083984375,
+    "y": 109.22221374511719,
+    "z": "5fc7c3fb.48a444",
+    "wires": []
+  },
+  {
+    "id": "d54d8abb.5beac",
+    "type": "save",
+    "name": "save source and dest TP",
+    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='logical-link:relationship-list' \n      key='logical-link.link-name = $unique-linkId' force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"p-interface\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/p-interfaces/p-interface/' + $src-tpId`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"p-interface.interface-name\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$src-tpId`\" />\n\n<parameter name=\"relationship-list.relationship[1].related-to\" value=\"p-interface\" />\n<parameter name=\"relationship-list.relationship[1].related-link\" value=\"`'/p-interfaces/p-interface/' + $dst-tpId`\" />\n<parameter name=\"relationship-list.relationship[1].relationship-data[0].relationship-key\" value=\"p-interface.interface-name\" />\n<parameter name=\"relationship-list.relationship[1].relationship-data[0].relationship-value\" value=\"`$dst-tpId`\" />",
+    "comments": "",
+    "outputs": 1,
+    "x": 596.7779541015625,
+    "y": 234.44447326660156,
+    "z": "5fc7c3fb.48a444",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "5271a41c.d8700c",
+    "type": "for",
+    "name": "for each label-restriction",
+    "xml": "<for index='tidx' start='0' end='`$link.te.te-link-attributes.label-restriction_length`' >\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 533.4444580078125,
+    "y": 375.111083984375,
+    "z": "5fc7c3fb.48a444",
+    "wires": [
+      [
+        "1b0f5546.e78123",
+        "443c3267.dc2134",
+        "b1de45a9.d99468"
+      ]
+    ]
+  },
+  {
+    "id": "1b0f5546.e78123",
+    "type": "set",
+    "name": "set label-restriction's local variables",
+    "xml": "<set>\n<parameter name='label-restriction.' value='`$link.te.te-link-attributes.label-restriction[$tidx].`' />\n<parameter name='unique-lrId' value=\"`$unique-linkId + '-lrId-' + $label-restriction.index`\" />\n",
+    "comments": "",
+    "x": 805.111328125,
+    "y": 299.00006103515625,
+    "z": "5fc7c3fb.48a444",
+    "wires": []
+  },
+  {
+    "id": "759b3331.b0b62c",
+    "type": "success",
+    "name": "success",
+    "xml": "<outcome value='success'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 982.4998779296875,
+    "y": 371.7460632324219,
+    "z": "5fc7c3fb.48a444",
+    "wires": [
+      [
+        "1a522f6e.2f6589"
+      ]
+    ]
+  },
+  {
+    "id": "b709b603.7fa938",
+    "type": "failure",
+    "name": "failure",
+    "xml": "<outcome value='failure'>\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 990.178466796875,
+    "y": 430.96038818359375,
+    "z": "5fc7c3fb.48a444",
+    "wires": [
+      [
+        "5fd30b98.524afc"
+      ]
+    ]
+  },
+  {
+    "id": "1a522f6e.2f6589",
+    "type": "block",
+    "name": "block",
+    "xml": "<block>\n",
+    "atomic": "false",
+    "comments": "",
+    "outputs": 1,
+    "x": 1102,
+    "y": 318,
+    "z": "5fc7c3fb.48a444",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "61d66d0d.d0e254",
+    "type": "set",
+    "name": "set src-ltpId dst-ltpId",
+    "xml": "<set>\n<parameter name='src-ltpId' value=\"`'nodeId-' + $oof.vpn.access-node-id + '-ltpId-' + $oof.vpn.src-access-ltp-id`\" />\n<parameter name='dst-ltpId' value=\"`'nodeId-' + $oof.vpn.access-node-id + '-ltpId-' + $oof.vpn.dst-access-ltp-id`\" />",
+    "comments": "",
+    "x": 2595.5001220703125,
+    "y": 2430.545135498047,
+    "z": "5fc7c3fb.48a444",
+    "wires": []
+  },
+  {
+    "id": "d454df86.50acb",
+    "type": "save",
+    "name": "save srcLTP relationship in AAI",
+    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding:relationship-list' \n      key='vpn-binding.vpn-id = $tmp.vpnName' \n      force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"p-interface\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/pnfs/pnf/' + $oof.vpn.access-node-id + '/p-interfaces/p-interface/' + $src-ltpId`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"p-interface.interface-name\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$src-ltpId`\" />\n\n\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 2629.0001220703125,
+    "y": 2470.545135498047,
+    "z": "5fc7c3fb.48a444",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "f86402c5.f4d968",
+    "type": "save",
+    "name": "save dstLTP relationship in AAI",
+    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding:relationship-list' \n      key='vpn-binding.vpn-id = $tmp.vpnName' \n      force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"p-interface\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/pnfs/pnf/' + $oof.vpn.access-node-id + '/p-interfaces/p-interface/' + $dst-ltpId`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"p-interface.interface-name\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$dst-ltpId`\" />",
+    "comments": "",
+    "outputs": 1,
+    "x": 2629.0001220703125,
+    "y": 2510.545135498047,
+    "z": "5fc7c3fb.48a444",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "5fd30b98.524afc",
+    "type": "update",
+    "name": "save label-restriction",
+    "xml": "<update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='label-restriction' \n      key='logical-link.link-name = $unique-linkId\n      AND label-restriction.id = $unique-lrId' >      \n<parameter name='id' value='`$unique-lrId`' />\n<parameter name='label-start' value='`$label-restriction.label-start`' />\n<parameter name='label-end' value='`$label-restriction.label-end`' />\n<parameter name='range-bitmap' value='`$label-restriction.range-bitmap`' />\n<parameter name='label-step' value='`$label-restriction.label-step`' />\n<parameter name='inclusive-exclusive' value='`$label-restriction.inclusive-exclusive`' />\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 1114,
+    "y": 507,
+    "z": "5fc7c3fb.48a444",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "443c3267.dc2134",
+    "type": "save",
+    "name": "save link relationship to label-restriction in AAI",
+    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='logical-link:relationship-list' \n      key='logical-link.link-name = $unique-linkId' force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[$tidx].related-to\" value=\"label-restriction\" />\n<parameter name=\"relationship-list.relationship[$tidx].related-link\" value=\"`'/network/label-restrictions/label-restriction/' + $unique-lrId`\" />\n<parameter name=\"relationship-list.relationship[$tidx].relationship-data[0].relationship-key\" value=\"label-restriction.id\" />\n<parameter name=\"relationship-list.relationship[$tidx].relationship-data[0].relationship-value\" value=\"`$unique-lrId`\" />\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 770,
+    "y": 533,
+    "z": "5fc7c3fb.48a444",
+    "wires": [
+      []
+    ]
+  },
+  {
+    "id": "b1de45a9.d99468",
+    "type": "update",
+    "name": "save label-restriction",
+    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='label-restriction' \n      key='logical-link.link-name = $unique-linkId\n      AND label-restriction.id = $unique-lrId' >      \n<parameter name='id' value='`$unique-lrId`' />\n<parameter name='label-start' value='`$label-restriction.label-start`' />\n<parameter name='label-end' value='`$label-restriction.label-end`' />\n<parameter name='range-bitmap' value='`$label-restriction.range-bitmap`' />\n<parameter name='label-step' value='`$label-restriction.label-step`' />\n<parameter name='inclusive-exclusive' value='`$label-restriction.inclusive-exclusive`' />\n\n",
+    "comments": "",
+    "outputs": 1,
+    "x": 795.815185546875,
+    "y": 425.55560302734375,
+    "z": "5fc7c3fb.48a444",
+    "wires": [
+      [
+        "759b3331.b0b62c",
+        "b709b603.7fa938"
+      ]
+    ]
+  }
+]
