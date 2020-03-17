@@ -1,5 +1,4 @@
-#FROM onap/ccsdk-ansible-server-image:${ccsdk.docker.version}
-FROM onap/ccsdk-ansible-server-image:0.4-STAGING-latest
+FROM onap/ccsdk-ansible-server-image:${ccsdk.docker.version}
 
 LABEL maintainer="SDN-C Team (sdnc@lists.openecomp.org)"
 
