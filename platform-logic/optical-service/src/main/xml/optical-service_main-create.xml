@@ -1,0 +1,71 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='optical-service' version='${project.version}'>
+    <method rpc='main-create' mode='sync'>
+        <block atomic='true'>
+            <call module='optical-service' rpc='optical-validate-input-params' mode='sync' ></call>
+            <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
+                <parameter name='fileName' value='/opt/onap/sdnc/data/properties/optical-service-dg.properties' />
+                <parameter name='contextPrefix' value='prop' />
+            </execute>
+            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+key='SELECT controller_id
+from TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE
+WHERE interface_name = $optical-service-create-input.payload.service-aend.port-id'
+pfx='controllerid'>
+                <outcome value='success'>
+                    <set>
+                        <parameter name='controller-id' value='`$controllerid.controller-id`' />
+                    </set>
+                </outcome>
+            </get-resource>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                <parameter name="original_string" value='`$controller-id`'/>
+                <parameter name="regex" value="_"/>
+                <parameter name="ctx_memory_result_key" value="param-prefix"/>
+            </execute>
+            <set>
+                <parameter name='controller-ip' value='`$param-prefix[1]`' />
+                <parameter name='domain-type' value='`$param-prefix[0]`' />
+            </set>
+            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+key='SELECT *
+from TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE
+WHERE interface_name = $optical-service-create-input.payload.service-aend.port-id'
+pfx='db-aend'>
+                <outcome value='success'>
+                    <set>
+                        <parameter name='aend-nodeid' value='`$db-aend.pnf-id`' />
+                        <parameter name='a-end-pnf-name' value='`$db-aend.pnf-name`' />
+                        <parameter name='aend-clli' value='`$db-aend.clli`' />
+                    </set>
+                </outcome>
+            </get-resource>
+            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+key='SELECT *
+from TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE
+WHERE interface_name = $optical-service-create-input.payload.service-zend.port-id'
+pfx='db-zend'>
+                <outcome value='success'>
+                    <set>
+                        <parameter name='zend-nodeid' value='`$db-zend.pnf-id`' />
+                        <parameter name='z-end-pnf-name' value='`$db-zend.pnf-name`' />
+                        <parameter name='zend-clli' value='`$db-zend.clli`' />
+                    </set>
+                </outcome>
+            </get-resource>
+            <switch test='`$domain-type`'>
+                <outcome value='MSA'>
+                    <block atomic='true'>
+                        <call module='optical-service' rpc='service-create-msa' mode='sync' ></call>
+                    </block>
+                </outcome>
+                <outcome value='TAPI'>
+                    <block atomic='true'>
+                        <call module='optical-service' rpc='service-create-tapi' mode='sync' ></call>
+                    </block>
+                </outcome>
+            </switch>
+        </block>
+    </method>
+</service-logic>

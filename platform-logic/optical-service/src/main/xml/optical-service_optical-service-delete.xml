@@ -8,113 +8,271 @@
                 <parameter name='contextPrefix' value='prop' />
             </execute>
             <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
-key='SELECT controller_id
+key='SELECT *
 from REQUEST_DETAILS
 WHERE request_id = $optical-service-delete-input.request-id'
-pfx='controllerid'>
+pfx='detail-db'>
                 <outcome value='success'>
                     <set>
-                        <parameter name='controller-id' value='`$controllerid.controller-id`' />
+                        <parameter name='domain-req' value='`$detail-db.domain-requests`' />
                     </set>
                 </outcome>
             </get-resource>
             <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
-                <parameter name="original_string" value='`$controller-id`'/>
-                <parameter name="regex" value="_"/>
-                <parameter name="ctx_memory_result_key" value="param-prefix"/>
+                <parameter name="original_string" value='`$domain-req`'/>
+                <parameter name="regex" value=","/>
+                <parameter name="ctx_memory_result_key" value="param-prefix1"/>
             </execute>
             <set>
-                <parameter name='controller-ip' value='`$param-prefix[1]`' />
-                <parameter name='domain-type' value='`$param-prefix[0]`' />
-                <parameter name='notification-url' value="`$prop.controller.url + '/' + $prop.sdnc.async.url`" />
+                <parameter name='notification-url' value="http://167.254.204.152:31817/asyncNotification" />
+                <parameter name='domain-service1' value='`$param-prefix1[0]`' />
+                <parameter name='domain-service2' value='`$param-prefix1[1]`' />
             </set>
-            <switch test='`$domain-type`'>
-                <outcome value='MSA'>
+            <set>
+                <parameter name='access-id' value="`$optical-service-delete-input.request-id`" />
+            </set>
+            <for index='ppx' start='0' end='`$param-prefix1_length`' >
+                <switch test='`$param-prefix1_length`'>
+                    <outcome value='1'>
+                        <block atomic='true'>
+                            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+key='SELECT controller_id
+from REQUEST_DETAILS
+WHERE request_id = $domain-service1'
+pfx='detail-db1'>
+                                <outcome value='success'>
+                                    <set>
+                                        <parameter name='controller-id1' value='`$detail-db1.controller-id`' />
+                                    </set>
+                                </outcome>
+                            </get-resource>
+                            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                                <parameter name="original_string" value='`$controller-id1`'/>
+                                <parameter name="regex" value="_"/>
+                                <parameter name="ctx_memory_result_key" value="param-prefix"/>
+                            </execute>
+                            <set>
+                                <parameter name='domain-type' value='`$param-prefix[0]`' />
+                                <parameter name='controller-ip' value='`$param-prefix[1]`' />
+                                <parameter name='optical-service-delete-input.request-id' value="`$domain-service1`" />
+                                <parameter name='optical-service-delete-input.payload.service-name' value="`$optical-service-delete-input.payload.param[0].value + '_MDONS-OTN'`"/>
+                            </set>
+                            <switch test='`$domain-type`'>
+                                <outcome value='MSA'>
+                                    <block>
+                                        <call module='optical-service' rpc='service-delete-msa' mode='sync' >
+                                            <outcome value='success'>
+                                                <block atomic='true'>
+                                                    <set>
+                                                        <parameter name='service1-status' value='`$final-response-code`' />
+                                                    </set>
+                                                </block>
+                                            </outcome>
+                                            <outcome value='failure'>
+                                                <return status='failure'>
+                                                    <parameter name='error-code' value='500' />
+                                                    <parameter name='error-message' value='Failed to call MSA DG' />
+                                                    <parameter name='ack-final-indicator' value="Y" />
+                                                </return>
+                                            </outcome>
+                                        </call>
+                                    </block>
+                                </outcome>
+                                <outcome value='TAPI'>
+                                    <block>
+                                        <call module='optical-service' rpc='service-delete-tapi' mode='sync' >
+                                            <outcome value='success'>
+                                                <block>
+                                                    <set>
+                                                        <parameter name='service1-status' value='`$final-response-code`' />
+                                                    </set>
+                                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                                        <parameter name="file" value="/opt/opendaylight/current/data/log/service-delete-tapi.log" />
+                                                        <parameter name="level" value="info" />
+                                                        <parameter name="field1" value="`$service1-status`"/>
+                                                    </record>
+                                                </block>
+                                            </outcome>
+                                            <outcome value='failure'>
+                                                <return status='failure'>
+                                                    <parameter name='error-code' value='500' />
+                                                    <parameter name='error-message' value='Failed to call MSA DG' />
+                                                    <parameter name='ack-final-indicator' value="Y" />
+                                                </return>
+                                            </outcome>
+                                        </call>
+                                    </block>
+                                </outcome>
+                            </switch>
+                        </block>
+                    </outcome>
+                    <outcome value='2'>
+                        <switch test='`$ppx`'>
+                            <outcome value='0'>
+                                <block>
+                                    <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+key='SELECT controller_id
+from REQUEST_DETAILS
+WHERE request_id = $domain-service1'
+pfx='detail-db11'>
+                                        <outcome value='success'>
+                                            <set>
+                                                <parameter name='controller-id11' value='`$detail-db11.controller-id`' />
+                                            </set>
+                                        </outcome>
+                                    </get-resource>
+                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                                        <parameter name="original_string" value='`$controller-id11`'/>
+                                        <parameter name="regex" value="_"/>
+                                        <parameter name="ctx_memory_result_key" value="domain1"/>
+                                    </execute>
+                                    <set>
+                                        <parameter name='optical-service-delete-input.request-id' value="`$domain-service1`" />
+                                        <parameter name='optical-service-delete-input.payload.service-name' value="`$optical-service-delete-input.payload.param[0].value + '_MDONS-OTN-TAPI-1'`"/>
+                                        <parameter name='domain-type' value='`$domain1[0]`' />
+                                        <parameter name='controller-ip' value='`$domain1[1]`' />
+                                    </set>
+                                    <call module='optical-service' rpc='service-delete-tapi' mode='sync' >
+                                        <outcome value='success'>
+                                            <block>
+                                                <set>
+                                                    <parameter name='service1-status' value='`$final-response-code`' />
+                                                </set>
+                                                <switch test='`$service1-status == 200`'>
+                                                    <outcome value='true'>
+                                                        <set>
+                                                            <parameter name='service1' value='success' />
+                                                        </set>
+                                                    </outcome>
+                                                    <outcome value='false'>
+                                                        <set>
+                                                            <parameter name='service1' value='failure' />
+                                                        </set>
+                                                    </outcome>
+                                                </switch>
+                                            </block>
+                                        </outcome>
+                                        <outcome value='failure'>
+                                            <return status='failure'>
+                                                <parameter name='error-code' value='500' />
+                                                <parameter name='error-message' value='Main Delete Dg not available' />
+                                                <parameter name='ack-final-indicator' value="Y" />
+                                            </return>
+                                        </outcome>
+                                    </call>
+                                </block>
+                            </outcome>
+                            <outcome value='1'>
+                                <block>
+                                    <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+key='SELECT controller_id
+from REQUEST_DETAILS
+WHERE request_id = $domain-service2'
+pfx='detail-db22'>
+                                        <outcome value='success'>
+                                            <set>
+                                                <parameter name='controller-id22' value='`$detail-db22.controller-id`' />
+                                            </set>
+                                        </outcome>
+                                    </get-resource>
+                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                                        <parameter name="original_string" value='`$controller-id22`'/>
+                                        <parameter name="regex" value="_"/>
+                                        <parameter name="ctx_memory_result_key" value="domain2"/>
+                                    </execute>
+                                    <set>
+                                        <parameter name='optical-service-delete-input.request-id' value="`$domain-service2`" />
+                                        <parameter name='optical-service-delete-input.payload.service-name' value="`$optical-service-delete-input.payload.param[0].value + '_MDONS-OTN-TAPI-2'`"/>
+                                        <parameter name='domain-type' value='`$domain2[0]`' />
+                                        <parameter name='controller-ip' value='`$domain2[1]`' />
+                                    </set>
+                                    <call module='optical-service' rpc='service-delete-tapi' mode='sync' >
+                                        <outcome value='success'>
+                                            <block>
+                                                <set>
+                                                    <parameter name='service2-status' value='`$final-response-code`' />
+                                                </set>
+                                                <switch test='`$service2-status == 200`'>
+                                                    <outcome value='true'>
+                                                        <set>
+                                                            <parameter name='service2' value='success' />
+                                                        </set>
+                                                    </outcome>
+                                                    <outcome value='false'>
+                                                        <set>
+                                                            <parameter name='service2' value='failure' />
+                                                        </set>
+                                                    </outcome>
+                                                </switch>
+                                            </block>
+                                        </outcome>
+                                        <outcome value='failure'>
+                                            <return status='failure'>
+                                                <parameter name='error-code' value='500' />
+                                                <parameter name='error-message' value='Main Delete Dg not available' />
+                                                <parameter name='ack-final-indicator' value="Y" />
+                                            </return>
+                                        </outcome>
+                                    </call>
+                                </block>
+                            </outcome>
+                        </switch>
+                    </outcome>
+                </switch>
+            </for>
+            <switch test='`$ppx`'>
+                <outcome value='0'>
                     <block>
-                        <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                            <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/optical-service-delete-msa.json'`" />
-                            <parameter name="restapiUrl" value="`$controller-ip + '/cxf/openroadm/openroadm-services/' + $optical-service-delete-input.payload.service-name`"/>
-                            <parameter name='restapiUser' value='admin' />
-                            <parameter name='restapiPassword' value='admin' />
-                            <parameter name="httpMethod" value="DELETE"/>
-                            <parameter name="responsePrefix" value="service-delete-response"/>
-                            <parameter name='contentType' value='application/json' />
-                            <parameter name='format' value='json' />
-                            <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.msa.jks"/>
-                            <parameter name="trustStorePassword" value="adminadmin"/>
-                            <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
-                            <parameter name="keyStorePassword" value="adminadmin"/>
-                            <outcome value='failure'>
-                                <block atomic='true'>
-                                    <return status='failure'>
-                                        <parameter name='error-code' value='500' />
-                                        <parameter name='error-message' value='Error deleting the Service' />
+                        <switch test='`$service1-status`'>
+                            <outcome value='200'>
+                                <block>
+                                    <delete plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource'
+    resource="SQL"
+    key="DELETE FROM REQUEST_DETAILS WHERE request_id = $access-id"></delete>
+                                    <return status='success'>
+                                        <parameter name="error-code" value="200" />
+                                        <parameter name="error-message" value="Service Deleted Successfully" />
+                                        <parameter name='ack-final-indicator' value='Y' />
                                     </return>
                                 </block>
                             </outcome>
-                            <outcome value='success'>
-                                <block atomic='true'>
-                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
-                                        <parameter name="file" value="/opt/opendaylight/current/data/log/optical-service-create.log" />
-                                        <parameter name="level" value="info" />
-                                        <parameter name="field1" value="Successfully sent the request"/>
-                                    </record>
-                                    <switch test='`$service-delete-response.configuration-response-common.response-code`'>
-                                        <outcome value='Other'>
-                                            <return status='failure'>
-                                                <parameter name='error-code' value='`$service-delete-response.configuration-response-common.response-code`' />
-                                                <parameter name='error-message' value='`$service-delete-response.configuration-response-common.response-message`' />
-                                            </return>
-                                        </outcome>
-                                        <outcome value='200'>
-                                            <block atomic='true'>
-                                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
-                                                    <parameter name="file" value="/opt/opendaylight/current/data/log/optical-service-create.log" />
-                                                    <parameter name="level" value="info" />
-                                                    <parameter name="field1" value="Inside controller"/>
-                                                </record>
-                                                <save plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' 
-resource='SQL' 
-key='UPDATE REQUEST_DETAILS SET status = "DELETING" WHERE request_id = $optical-service-delete-input.request-id' 
-force='true' pfx='save-result'></save>
-                                                <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' 
-key='SELECT *
-from REQUEST_DETAILS 
-WHERE request_id = $optical-service-delete-input.request-id'
-pfx='db.request-details'>
-                                                    <outcome value='success'>
-                                                        <set>
-                                                            <parameter name='instance-id' value='`$db.request-details.service-instance-id`' />
-                                                            <parameter name='customer-id' value='`$db.request-details.global-customer-id`' />
-                                                            <parameter name='service-id' value='`$db.request-details.service-type`' />
-                                                        </set>
-                                                    </outcome>
-                                                </get-resource>
-                                                <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' 
-force='true' 
-resource='service-instance' 
-key = 'customer.global-customer-id = $customer-id AND
-     service-subscription.service-type = $service-id AND
-     service-instance.service-instance-id = $instance-id'
-local-only='false'>
-                                                    <parameter name='orchestration-status' value='DELETING' />
-                                                </update>
-                                                <return status='success'>
-                                                    <parameter name="error-code" value="200" />
-                                                    <parameter name="error-message" value="Service Deletion in Progress" />
-                                                    <parameter name='ack-final-indicator' value='N' />
-                                                </return>
-                                            </block>
-                                        </outcome>
-                                    </switch>
+                            <outcome value='Other'>
+                                <block>
+                                    <return status='failure'>
+                                        <parameter name='error-code' value='500' />
+                                        <parameter name='error-message' value='Access service request entry cannot be deleted' />
+                                        <parameter name='ack-final-indicator' value="Y" />
+                                    </return>
                                 </block>
                             </outcome>
-                        </execute>
+                        </switch>
                     </block>
                 </outcome>
-                <outcome value='TAPI'>
+                <outcome value='1'>
                     <block>
-                        <call module='optical-service' rpc='service-delete-tapi' mode='sync' ></call>
+                        <switch test='`$service1-status == $service2-status == 200`'>
+                            <outcome value='true'>
+                                <block>
+                                    <delete plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource'
+    resource="SQL"
+    key="DELETE FROM REQUEST_DETAILS WHERE request_id = $access-id"></delete>
+                                    <return status='success'>
+                                        <parameter name="error-code" value="200" />
+                                        <parameter name="error-message" value="Service Deleted Successfully" />
+                                        <parameter name='ack-final-indicator' value='Y' />
+                                    </return>
+                                </block>
+                            </outcome>
+                            <outcome value='false'>
+                                <block>
+                                    <return status='failure'>
+                                        <parameter name='error-code' value='500' />
+                                        <parameter name='error-message' value='Access service request entry cannot be deleted' />
+                                        <parameter name='ack-final-indicator' value="Y" />
+                                    </return>
+                                </block>
+                            </outcome>
+                        </switch>
                     </block>
                 </outcome>
             </switch>
