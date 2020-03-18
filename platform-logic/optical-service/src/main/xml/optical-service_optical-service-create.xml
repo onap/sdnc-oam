@@ -3,68 +3,203 @@
     xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='optical-service' version='${project.version}'>
     <method rpc='optical-service-create' mode='sync'>
         <block atomic='true'>
-            <call module='optical-service' rpc='optical-validate-input-params' mode='sync' ></call>
-            <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
-                <parameter name='fileName' value='/opt/onap/sdnc/data/properties/optical-service-dg.properties' />
-                <parameter name='contextPrefix' value='prop' />
-            </execute>
-            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
-key='SELECT controller_id
-from TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE
-WHERE interface_name = $optical-service-create-input.payload.service-aend.port-id
-AND interface_id = $optical-service-create-input.payload.service-aend.port-name'
-pfx='controllerid'>
+            <for index='idx' start='0' end='`$optical-service-create-input.payload.param_length`' >
+                <set>
+                    <parameter name='params' value='`$optical-service-create-input.payload.param[$idx]`' />
+                </set>
+                <switch test="`$optical-service-create-input.payload.param[$idx].name == 'uni1_id'`">
+                    <outcome value='true'>
+                        <set>
+                            <parameter name='optical-service-create-input.payload.service-aend.port-id' value="`$optical-service-create-input.payload.param[$idx].value`"/>
+                        </set>
+                    </outcome>
+                </switch>
+                <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                    <parameter name="file" value="/opt/opendaylight/current/data/log/optical-service-create.log" />
+                    <parameter name="level" value="info" />
+                    <parameter name="field1" value="`$optical-service-create-input.payload.service-aend.port-id`"/>
+                </record>
+                <switch test="`$optical-service-create-input.payload.param[$idx].name == 'uni2_id'`">
+                    <outcome value='true'>
+                        <set>
+                            <parameter name='optical-service-create-input.payload.service-zend.port-id' value="`$optical-service-create-input.payload.param[$idx].value`"/>
+                        </set>
+                    </outcome>
+                </switch>
+                <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                    <parameter name="file" value="/opt/opendaylight/current/data/log/optical-service-create.log" />
+                    <parameter name="level" value="info" />
+                    <parameter name="field1" value="`$optical-service-create-input.payload.service-zend.port-id`"/>
+                </record>
+                <switch test="`$optical-service-create-input.payload.param[$idx].name == 'uni1_coding_func'`">
+                    <outcome value='true'>
+                        <set>
+                            <parameter name='optical-service-create-input.payload.service-rate' value="`$optical-service-create-input.payload.param[$idx].value`"/>
+                        </set>
+                    </outcome>
+                </switch>
+                <switch test="`$optical-service-create-input.payload.param[$idx].name == 'uni_id'`">
+                    <outcome value='true'>
+                        <set>
+                            <parameter name='optical-service-create-input.payload.service-aend.port-id' value="`$optical-service-create-input.payload.param[$idx].value`"/>
+                        </set>
+                    </outcome>
+                </switch>
+                <switch test="`$optical-service-create-input.payload.param[$idx].name == 'enni_id'`">
+                    <outcome value='true'>
+                        <set>
+                            <parameter name='optical-service-create-input.payload.service-zend.port-id' value="`$optical-service-create-input.payload.param[$idx].value`"/>
+                        </set>
+                    </outcome>
+                </switch>
+                <switch test="`$optical-service-create-input.payload.param[$idx].name == 'uni_coding_func'`">
+                    <outcome value='true'>
+                        <set>
+                            <parameter name='optical-service-create-input.payload.service-rate' value="`$optical-service-create-input.payload.param[$idx].value`"/>
+                        </set>
+                    </outcome>
+                </switch>
+                <switch test="`$optical-service-create-input.payload.param[$idx].name == 'enni1_id'`">
+                    <outcome value='true'>
+                        <set>
+                            <parameter name='optical-service-create-input.payload.service-aend.port-id' value="`$optical-service-create-input.payload.param[$idx].value`"/>
+                        </set>
+                    </outcome>
+                </switch>
+                <switch test="`$optical-service-create-input.payload.param[$idx].name == 'enni2_id'`">
+                    <outcome value='true'>
+                        <set>
+                            <parameter name='optical-service-create-input.payload.service-zend.port-id' value="`$optical-service-create-input.payload.param[$idx].value`"/>
+                        </set>
+                    </outcome>
+                </switch>
+                <switch test="`$optical-service-create-input.payload.param[$idx].name == 'enni1_coding_func'`">
+                    <outcome value='true'>
+                        <set>
+                            <parameter name='optical-service-create-input.payload.service-rate' value="`$optical-service-create-input.payload.param[$idx].value`"/>
+                        </set>
+                    </outcome>
+                </switch>
+                <switch test="`$optical-service-create-input.payload.param[$idx].name == 'service-name'`">
+                    <outcome value='true'>
+                        <set>
+                            <parameter name='optical-service-create-input.payload.service-name' value="`$optical-service-create-input.payload.param[$idx].value`"/>
+                        </set>
+                    </outcome>
+                </switch>
+            </for>
+            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' 
+key='SELECT controller_id 
+from TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE 
+WHERE interface_name = $optical-service-create-input.payload.service-aend.port-id' 
+pfx='db.source1'>
                 <outcome value='success'>
                     <set>
-                        <parameter name='controller-id' value='`$controllerid.controller-id`' />
+                        <parameter name='controller1' value="`$db.source1.controller-id`"/>
                     </set>
                 </outcome>
             </get-resource>
+            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' 
+key='SELECT controller_id 
+from TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE 
+WHERE interface_name = $optical-service-create-input.payload.service-zend.port-id' 
+pfx='db.source2'>
+                <outcome value='success'>
+                    <set>
+                        <parameter name='controller2' value="`$db.source2.controller-id`"/>
+                    </set>
+                </outcome>
+            </get-resource>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
+                <parameter name="ctx-destination" value="service1-svc-instance-id"/>
+            </execute>
             <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
-                <parameter name="original_string" value='`$controller-id`'/>
+                <parameter name="original_string" value='`$controller1`'/>
                 <parameter name="regex" value="_"/>
-                <parameter name="ctx_memory_result_key" value="param-prefix"/>
+                <parameter name="ctx_memory_result_key" value="param-prefix1"/>
+            </execute>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                <parameter name="original_string" value='`$controller2`'/>
+                <parameter name="regex" value="_"/>
+                <parameter name="ctx_memory_result_key" value="param-prefix2"/>
+            </execute>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
+                <parameter name="ctx-destination" value="service1-request-id"/>
             </execute>
             <set>
-                <parameter name='controller-ip' value='`$param-prefix[1]`' />
+                <parameter name='controller-ip1' value='`$param-prefix1[1]`' />
+                <parameter name='domain-type1' value='`$param-prefix1[0]`' />
+                <parameter name='controller-ip2' value='`$param-prefix2[1]`' />
+                <parameter name='domain-type2' value='`$param-prefix2[0]`' />
             </set>
-            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
-key='SELECT *
-from TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE
-WHERE interface_name = $optical-service-create-input.payload.service-aend.port-id
-AND interface_id = $optical-service-create-input.payload.service-aend.port-name'
-pfx='db-aend'>
-                <outcome value='success'>
-                    <set>
-                        <parameter name='aend-nodeid' value='`$db-aend.pnf-id`' />
-                        <parameter name='a-end-pnf-name' value='`$db-aend.pnf-name`' />
-                        <parameter name='aend-clli' value='`$db-aend.clli`' />
-                    </set>
-                </outcome>
-            </get-resource>
-            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
-key='SELECT *
-from TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE
-WHERE interface_name = $optical-service-create-input.payload.service-zend.port-id
-AND interface_id = $optical-service-create-input.payload.service-zend.port-name'
-pfx='db-zend'>
-                <outcome value='success'>
-                    <set>
-                        <parameter name='zend-nodeid' value='`$db-zend.pnf-id`' />
-                        <parameter name='z-end-pnf-name' value='`$db-zend.pnf-name`' />
-                        <parameter name='zend-clli' value='`$db-zend.clli`' />
-                    </set>
-                </outcome>
-            </get-resource>
-            <switch test='`$optical-service-create-input.payload.domain-type`'>
-                <outcome value='MSA'>
-                    <block atomic='true'>
-                        <call module='optical-service' rpc='service-create-msa' mode='sync' ></call>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
+                <parameter name="ctx-destination" value="service2-svc-instance-id"/>
+            </execute>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
+                <parameter name="ctx-destination" value="service2-request-id"/>
+            </execute>
+            <switch test='`$controller1==$controller2`'>
+                <outcome value='true'>
+                    <block>
+                        <set>
+                            <parameter name='as-request-id' value='`$optical-service-create-input.request-id`' />
+                            <parameter name='as-svc-instance-id' value='`$optical-service-create-input.service-id`' />
+                        </set>
+                        <set>
+                            <parameter name='domain-requests' value="`$service1-request-id`" />
+                            <parameter name='optical-service-create-input.request-id' value="`$service1-request-id`" />
+                            <parameter name='optical-service-create-input.service-id' value="`$service1-svc-instance-id`" />
+                            <parameter name='optical-service-create-input.payload.service-name' value="`$optical-service-create-input.payload.service-name + '_' + 'MDONS-OTN'`" />
+                        </set>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                            <parameter name="file" value="/opt/opendaylight/current/data/log/optical-service-create.log" />
+                            <parameter name="level" value="info" />
+                            <parameter name="field1" value="`'domain rquest_' + $domain-requests`"/>
+                            <parameter name="field2" value="`'Access rquest_' + $as-request-id`"/>
+                        </record>
+                        <save plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL" key="INSERT INTO REQUEST_DETAILS (request_id, controller_id, status, service_rate, service_instance_id, service_type, global_customer_id, notification_url, domain_requests ) VALUES ( $as-request-id , null , 'CREATING' , $optical-service-create-input.payload.service-rate ,  $as-svc-instance-id , $optical-service-create-input.service-type , $optical-service-create-input.global-customer-id , $optical-service-create-input.notification-url , $domain-requests );"></save>
+                        <call module='optical-service' rpc='main-create' mode='sync' >
+                            <outcome value='success'>
+                                <switch test='`$final-response-code`'>
+                                    <outcome value='200'>
+                                        <block>
+                                            <save plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' 
+resource='SQL' 
+key='UPDATE REQUEST_DETAILS SET status = "CREATED" WHERE request_id = $as-request-id'
+force='true' pfx='save-result'></save>
+                                            <call module='optical-service' rpc='create-service-relationship' mode='sync' ></call>
+                                            <return status='success'>
+                                                <parameter name='error-code' value='200' />
+                                                <parameter name='error-message' value='Service Created Successfully' />
+                                                <parameter name='ack-final-indicator' value='Y' />
+                                            </return>
+                                        </block>
+                                    </outcome>
+                                </switch>
+                            </outcome>
+                        </call>
                     </block>
                 </outcome>
-                <outcome value='TAPI'>
-                    <block atomic='true'>
-                        <call module='optical-service' rpc='service-create-tapi' mode='sync' ></call>
+                <outcome value='false'>
+                    <block>
+                        <set>
+                            <parameter name='as-request-id' value='`$optical-service-create-input.request-id`' />
+                            <parameter name='as-svc-instance-id' value='`$optical-service-create-input.service-id`' />
+                            <parameter name='domain-requests' value="`$service1-request-id + ',' + $service2-request-id`" />
+                        </set>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                            <parameter name="file" value="/opt/opendaylight/current/data/log/optical-service-create.log" />
+                            <parameter name="level" value="info" />
+                            <parameter name="field1" value="`'domain rquest_' + $domain-requests`"/>
+                            <parameter name="field2" value="`'Service 1 req id---' + $service1-request-id`"/>
+                            <parameter name="field3" value="`'Service 2 req id---' + $service2-request-id`"/>
+                        </record>
+                        <save plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL" key="INSERT INTO REQUEST_DETAILS (request_id, controller_id, status, service_rate, service_instance_id, service_type, global_customer_id, notification_url, domain_requests ) VALUES ( $as-request-id , null , 'CREATING' , $optical-service-create-input.payload.service-rate ,  $as-svc-instance-id , $optical-service-create-input.service-type , $optical-service-create-input.global-customer-id , $optical-service-create-input.notification-url , $domain-requests );"></save>
+                        <set>
+                            <parameter name='access-aend' value="`$optical-service-create-input.payload.service-aend.port-id`"/>
+                            <parameter name='access-zend' value="`$optical-service-create-input.payload.service-zend.port-id`"/>
+                        </set>
+                        <call module='optical-service' rpc='inter-domain-handling' mode='sync' ></call>
                     </block>
                 </outcome>
             </switch>
