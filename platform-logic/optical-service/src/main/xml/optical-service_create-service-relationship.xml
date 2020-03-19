@@ -1,0 +1,51 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='optical-service' version='${project.version}'>
+    <method rpc='create-service-relationship' mode='sync'>
+        <block atomic='true'>
+            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+key='SELECT *
+from REQUEST_DETAILS
+WHERE request_id = $as-request-id'
+pfx='access-service'></get-resource>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                <parameter name="original_string" value='`$access-service.domain-requests`'/>
+                <parameter name="regex" value=","/>
+                <parameter name="ctx_memory_result_key" value="domain-services"/>
+            </execute>
+            <for index='idc' start='0' end='`$domain-services_length`' >
+                <block atomic='true'>
+                    <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+key='SELECT *
+from REQUEST_DETAILS
+WHERE request_id = $domain-services[$idc]'
+pfx='ds-details'></get-resource>
+                    <block atomic='true'>
+                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list'  
+     key='customer.global-customer-id = $optical-service-create-input.global-customer-id AND
+     service-subscription.service-type = $optical-service-create-input.service-type AND
+     service-instance.service-instance-id = $access-service.service-instance-id' force="true" pfx="tmp.AnAI-data">
+                            <parameter name="relationship-list.relationship[0].related-to" value="service-instance" />
+                            <parameter name="relationship-list.relationship[0].related-link" value="`'/business/customers/customer/' + $optical-service-create-input.global-customer-id + '/service-subscriptions/service-subscription/' + $optical-service-create-input.service-type + '/service-instances/service-instance/' + $ds-details.service-instance-id`" />
+                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="service-instance.service-instance-id" />
+                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$ds-details.service-instance-id`" />
+                        </save>
+                    </block>
+                </block>
+            </for>
+            <switch test='`$domain-services_length`'>
+                <outcome value='2'>
+                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list'  
+     key='customer.global-customer-id = $optical-service-create-input.global-customer-id AND
+     service-subscription.service-type = $optical-service-create-input.service-type AND
+     service-instance.service-instance-id = $access-service.service-instance-id' force="true" pfx="tmp.AnAI-data">
+                        <parameter name="relationship-list.relationship[0].related-to" value="service-instance" />
+                        <parameter name="relationship-list.relationship[0].related-link" value="`'/network/logical-links/logical-link/' + $inter.logical-link[$ida].link-name`" />
+                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="logical-link.link-name" />
+                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$inter.logical-link[$ida].link-name`" />
+                    </save>
+                </outcome>
+            </switch>
+        </block>
+    </method>
+</service-logic>
