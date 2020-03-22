@@ -1,478 +1,478 @@
 [
-  {
-    "id": "e71bc70e.124d38",
-    "type": "dgstart",
-    "name": "DGSTART",
-    "outputs": 1,
-    "x": 142,
-    "y": 49,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      [
-        "f849e1fd.7b8e28"
-      ]
-    ]
-  },
-  {
-    "id": "f849e1fd.7b8e28",
-    "type": "service-logic",
-    "name": "DataChange ${project.version}",
-    "module": "DataChange",
-    "version": "${project.version}",
-    "comments": "",
-    "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>",
-    "outputs": 1,
-    "x": 231.00003051757812,
-    "y": 139.88891220092773,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      [
-        "7adf111d.766db8"
-      ]
-    ]
-  },
-  {
-    "id": "7adf111d.766db8",
-    "type": "method",
-    "name": "method update-network-to-aai",
-    "xml": "<method rpc='update-network-to-aai' mode='sync'>\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 267.1112518310547,
-    "y": 210.22223663330078,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      [
-        "802b5752.247908"
-      ]
-    ]
-  },
-  {
-    "id": "802b5752.247908",
-    "type": "block",
-    "name": "block : atomic",
-    "xml": "<block atomic=\"true\">\n",
-    "atomic": "false",
-    "comments": "",
-    "outputs": 1,
-    "x": 492.33343505859375,
-    "y": 209.77792358398438,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      [
-        "32d96ea8.386a82",
-        "7667af77.0df1e8",
-        "6f623dd3.9a7c44",
-        "ffd24e55.e4afa"
-      ]
-    ]
-  },
-  {
-    "id": "7667af77.0df1e8",
-    "type": "update",
-    "name": "save network-resource",
-    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='network-resource'  \n     key='network-resource.network-id = $tmp.network-id' >\n<parameter name='network-id' value='`$tmp.network-id`' />\n<parameter name='client-id' value='`$network.client-id`' />\n<parameter name='te-topo-id' value='`$network.te-topology-id`' />\n<parameter name='provider-id' value='`$network.provider-id`' />\n\n<parameter name='network-type' value='`$network.network-types`' />\n\n\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 722.333251953125,
-    "y": 115.00001525878906,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "ab67cffd.8b31",
-    "type": "update",
-    "name": "save pnf",
-    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf' \n      key='pnf.pnf-name = $unique-nodeId' >\n<parameter name='pnf-name' value='`$unique-nodeId`' />\n<parameter name='pnf-id' value='`$node.node-id`' />\n<parameter name='operational-status' value='`$node.te.oper-status`' />\n<parameter name='admin-status' value='`$node.te.te-node-attributes.admin-status`' />\n<parameter name='in-maint' value='true' />\n\n\n\n\n\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 934.1111450195312,
-    "y": 205.111083984375,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "6f623dd3.9a7c44",
-    "type": "for",
-    "name": "for each node",
-    "xml": "<for index='pidx' start='0' end='`$network.node_length`' >\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 705.8888549804688,
-    "y": 185.33331298828125,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      [
-        "ab67cffd.8b31",
-        "c4083363.2a3b2",
-        "ba78539e.d2e248",
-        "c02a5c85.3b448",
-        "499b8cbc.ebafac",
-        "7a876b8.f89b114",
-        "46013f8c.54849"
-      ]
-    ]
-  },
-  {
-    "id": "c4083363.2a3b2",
-    "type": "set",
-    "name": "set network",
-    "xml": "<set>\n<parameter name='node.' value='`$network.node[$pidx].`' />\n\n<parameter name='unique-networkId' value='`$tmp.network-id`' />\n<parameter name='unique-nodeId' value=\"`'networkId-' + $unique-networkId + '-nodeId-' + $node.node-id`\" />\n<parameter name='src-tpId' value=\"`'networkId-' + $unique-networkId + '-nodeId-' + $link.source.source-node + '-ltpId-' + $link.source.source-tp`\" />\n",
-    "comments": "",
-    "x": 950.111083984375,
-    "y": 133.2222137451172,
-    "z": "a2160ede.50a7f8",
-    "wires": []
-  },
-  {
-    "id": "c02a5c85.3b448",
-    "type": "save",
-    "name": "save pnf relationship to network-resource in AAI",
-    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf:relationship-list' \n      key='pnf.pnf-name = $unique-nodeId' force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"network-resource\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/network-resources/network-resource/' + $tmp.network-id`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"network-resource.network-id\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$tmp.network-id`\" />",
-    "comments": "",
-    "outputs": 1,
-    "x": 1030.7779541015625,
-    "y": 380.44447803497314,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "499b8cbc.ebafac",
-    "type": "for",
-    "name": "for each termination point",
-    "xml": "<for index='tidx' start='0' end='`$node.termination-point_length`' >\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 963.4444580078125,
-    "y": 496.111083984375,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      [
-        "c5951e15.43701",
-        "c670da77.075458",
-        "3831ed03.d1f9da",
-        "f6959b19.b0bc18"
-      ]
-    ]
-  },
-  {
-    "id": "c5951e15.43701",
-    "type": "set",
-    "name": "set termination point",
-    "xml": "<set>\n<parameter name='tp.' value='`$node.termination-point[$tidx].`' />\n",
-    "comments": "",
-    "x": 1230.111328125,
-    "y": 457.0000457763672,
-    "z": "a2160ede.50a7f8",
-    "wires": []
-  },
-  {
-    "id": "3831ed03.d1f9da",
-    "type": "update",
-    "name": "save p-interface",
-    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface' \n      key='pnf.pnf-name = $unique-nodeId\n      AND p-interface.interface-name = $unique-ltpId' >      \n<parameter name='interface-name' value='`$unique-ltpId`' />\n<parameter name='network-ref' value='`$tp.supporting-termination-point[0].network-ref`' />\n<parameter name='transparent' value='`$tp.svc.supported-classification.transparent`' />\n<parameter name='speed-value' value='`$tp.te.interface-switching-capability[0].max-lsp-bandwidth[0].te-bandwidth.eth-bandwidth`' />\n<parameter name='operational-status' value='`$tp.te.oper-status`' />\n<parameter name='in-maint' value=\"true\" />\n\n<parameter name='inter-layer-lock-id' value='`$tp.te.inter-layer-lock-id[0]`' />\n<parameter name='inter-domain-plug-id' value='`$tp.te.inter-domain-plug-id`' />\n\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1213.8151397705078,
-    "y": 630.5555934906006,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      [
-        "9d09dea6.d30ca8",
-        "abd50ee3.2f813"
-      ]
-    ]
-  },
-  {
-    "id": "7e259f3c.438d9",
-    "type": "save",
-    "name": "save pnf relationship to p-interface in AAI",
-    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf:relationship-list' \n      key='pnf.pnf-name = $unique-nodeId' force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"p-interface\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/network-resources/network-resource/' + $tmp.network-id + '/pnfs/pnf/' + $unique-nodeId '/p-interfaces/p-interface/' + $unique-ltpId`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"p-interface.interface-name\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$unique-ltpId`\" />",
-    "comments": "",
-    "outputs": 1,
-    "x": 1297.703857421875,
-    "y": 765.3333740234375,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "c670da77.075458",
-    "type": "set",
-    "name": "set unique-ltpId",
-    "xml": "<set>\n<parameter name='unique-ltpId' value=\"`$unique-nodeId + '-ltpId-' + $tp.te-tp-id`\" />\n",
-    "comments": "",
-    "x": 1214.000244140625,
-    "y": 491.1111145019531,
-    "z": "a2160ede.50a7f8",
-    "wires": []
-  },
-  {
-    "id": "32d96ea8.386a82",
-    "type": "execute",
-    "name": "execute",
-    "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >\n    <parameter name=\"source\" value=\"`$network.network-id`\"/>\n    <parameter name=\"outputPath\" value=\"tmp.network-id\"/>\n    <parameter name=\"target\" value=\"/\"/>\n    <parameter name=\"replacement\" value=\"-\"/>\n    ",
-    "comments": "",
-    "outputs": 1,
-    "x": 671.9935302734375,
-    "y": 75.99349212646484,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "ba78539e.d2e248",
-    "type": "save",
-    "name": "save pnf relation with esr-thirdparty-sdnc",
-    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='esr-thirdparty-sdnc:relationship-list' \n      key='esr-thirdparty-sdnc.thirdparty-sdnc-id = $prop.sdncRestApi.thirdpartySdnc.id' \n      force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"pnf\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/pnfs/pnf/' + $node.node-id`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"pnf.pnf-name\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$node.node-id`\" />\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1012,
-    "y": 416.9934997558594,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "9d09dea6.d30ca8",
-    "type": "success",
-    "name": "success",
-    "xml": "<outcome value='success'>\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1385.4998397827148,
-    "y": 617.7460689544678,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      [
-        "3d744c93.2eb20c"
-      ]
-    ]
-  },
-  {
-    "id": "abd50ee3.2f813",
-    "type": "failure",
-    "name": "failure",
-    "xml": "<outcome value='failure'>\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1379.1784286499023,
-    "y": 669.9603805541992,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      [
-        "a0fb6003.0efd8"
-      ]
-    ]
-  },
-  {
-    "id": "3d744c93.2eb20c",
-    "type": "block",
-    "name": "block",
-    "xml": "<block>\n",
-    "atomic": "false",
-    "comments": "",
-    "outputs": 1,
-    "x": 1536,
-    "y": 617,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "a0fb6003.0efd8",
-    "type": "update",
-    "name": "update p-interface",
-    "xml": "<update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface' \n      key='pnf.pnf-name = $node.node-id\n      AND p-interface.interface-name = $unique-ltpId' >      \n<parameter name='interface-name' value='`$unique-ltpId`' />\n<parameter name='network-ref' value='`$tp.supporting-termination-point[0].network-ref`' />\n<parameter name='transparent' value='`$tp.svc.supported-classification.transparent`' />\n<parameter name='speed-value' value='`$tp.te.interface-switching-capability[0].max-lsp-bandwidth[0].te-bandwidth.eth-bandwidth`' />\n<parameter name='operational-status' value='`$tp.te.oper-status`' />\n<parameter name='in-maint' value=\"true\" />\n\n<parameter name='inter-layer-lock-id' value='`$tp.te.inter-layer-lock-id[0]`' />\n<parameter name='inter-domain-plug-id' value='`$tp.te.inter-domain-plug-id`' />\n\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1556,
-    "y": 667,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "aa9ed7c5.9f2be8",
-    "type": "update",
-    "name": "save tunnel-termination-point",
-    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='tunnel-termination-point' \n      key='pnf.pnf-name = $unique-nodeId\n      AND tunnel-termination-point.ttp-id = $unique-ttpId' >\n\n<parameter name='ttp-id' value='`$unique-ttpId`' />\n<parameter name='tunnel-tp-id' value='`$ttp.tunnel-tp-id`' />\n<parameter name='name' value='`$ttp.name`' />\n<parameter name='admin-status' value='`$ttp.admin-status`' />\n<parameter name='oper-status' value='`$ttp.oper-status`' />\n<parameter name='inter-layer-lock-id' value='`$ttp.inter-layer-lock-id`' />\n<parameter name='switching-capability' value='`$ttp.switching-capability`' />\n<parameter name='protection-type' value='`$ttp.protection-type`' />\n<parameter name='encoding' value='`$ttp.encoding`' />\n\n\n\n\n\n\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1423,
-    "y": 205,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      [
-        "54fe71d8.edb1c",
-        "6cd48f92.21a288"
-      ]
-    ]
-  },
-  {
-    "id": "7a876b8.f89b114",
-    "type": "for",
-    "name": "for each tunnel termination point",
-    "xml": "<for index='ttidx' start='0' end='`$node.te.tunnel-termination-point_length`' >\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1038,
-    "y": 281,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      [
-        "79913f13.5b1fa",
-        "4552b8b5.e9ba2",
-        "aa9ed7c5.9f2be8",
-        "e23bdb7f.fdc9c"
-      ]
-    ]
-  },
-  {
-    "id": "79913f13.5b1fa",
-    "type": "set",
-    "name": "set tunnel termination point",
-    "xml": "<set>\n<parameter name='ttp.' value='`$node.te.tunnel-termination-point[$ttidx].`' />\n",
-    "comments": "",
-    "x": 1393,
-    "y": 114,
-    "z": "a2160ede.50a7f8",
-    "wires": []
-  },
-  {
-    "id": "4552b8b5.e9ba2",
-    "type": "set",
-    "name": "set unique-ttpId",
-    "xml": "<set>\n<parameter name='unique-ttpId' value=\"`$unique-nodeId + '-ttpId-' + $ttp.tunnel-tp-id`\" />\n",
-    "comments": "",
-    "x": 1370.888916015625,
-    "y": 151.111083984375,
-    "z": "a2160ede.50a7f8",
-    "wires": []
-  },
-  {
-    "id": "54fe71d8.edb1c",
-    "type": "success",
-    "name": "success",
-    "xml": "<outcome value='success'>\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1680,
-    "y": 191,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      [
-        "42f8b4e.c7b524c"
-      ]
-    ]
-  },
-  {
-    "id": "6cd48f92.21a288",
-    "type": "failure",
-    "name": "failure",
-    "xml": "<outcome value='failure'>\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1673.6785888671875,
-    "y": 243.21431159973145,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      [
-        "5f719388.c96efc"
-      ]
-    ]
-  },
-  {
-    "id": "42f8b4e.c7b524c",
-    "type": "block",
-    "name": "block",
-    "xml": "<block>\n",
-    "atomic": "false",
-    "comments": "",
-    "outputs": 1,
-    "x": 1830.5001602172852,
-    "y": 190.25393104553223,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "5f719388.c96efc",
-    "type": "update",
-    "name": "update tunnel-termination-point",
-    "xml": "<update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='tunnel-termination-point' \n      key='pnf.pnf-name = $node.node-id\n      AND tunnel-termination-point.ttp-id = $unique-ttpId' >\n\n<parameter name='tunnel-tp-id' value='`$ttp.tunnel-tp-id`' />\n<parameter name='name' value='`$ttp.name`' />\n<parameter name='admin-status' value='`$ttp.admin-status`' />\n<parameter name='oper-status' value='`$ttp.oper-status`' />\n<parameter name='inter-layer-lock-id' value='`$ttp.inter-layer-lock-id`' />\n<parameter name='switching-capability' value='`$ttp.switching-capability`' />\n<parameter name='protection-type' value='`$ttp.protection-type`' />\n<parameter name='encoding' value='`$ttp.encoding`' />\n\n\n\n\n\n\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1911,
-    "y": 245,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "46013f8c.54849",
-    "type": "set",
-    "name": "set local variables",
-    "xml": "<set>\n<parameter name='unique-networkId' value='`$tmp.network-id`' />\n<parameter name='unique-nodeId' value=\"`'networkId-' + $unique-networkId + '-nodeId-' + $node.node-id`\" />\n",
-    "comments": "",
-    "x": 969,
-    "y": 167,
-    "z": "a2160ede.50a7f8",
-    "wires": []
-  },
-  {
-    "id": "ffd24e55.e4afa",
-    "type": "call",
-    "name": "call update-network-links-to-aai",
-    "xml": "<call module='DataChange' rpc='update-network-links-to-aai' mode='sync' >\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 648,
-    "y": 311,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "f6959b19.b0bc18",
-    "type": "save",
-    "name": "save pnf-interface relationship to pnf in AAI",
-    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface:relationship-list' \n      key='pnf.pnf-name = $unique-nodeId\n      AND p-interface.interface-name = $unique-ltpId' force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"pnf\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/pnfs/pnf/' + $unique-nodeId`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"pnf.pnf-name\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$unique-nodeId`\" />\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1300,
-    "y": 724,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "e23bdb7f.fdc9c",
-    "type": "save",
-    "name": "save pnf relationship to tunnel termination point in AAI",
-    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf:relationship-list' \n      key='pnf.pnf-name = $unique-nodeId' force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[$ttidx].related-to\" value=\"tunnel-termination-point\" />\n<parameter name=\"relationship-list.relationship[$ttidx].related-link\" value=\"`'/network/network-resources/network-resource/' + $tmp.network-id + '/pnfs/pnf/' + $node.node-id '/tunnel-termination-points/tunnel-termination-point/' + $unique-ttpId`\" />\n<parameter name=\"relationship-list.relationship[$ttidx].relationship-data[0].relationship-key\" value=\"tunnel-termination-point.ttp-id\" />\n<parameter name=\"relationship-list.relationship[$ttidx].relationship-data[0].relationship-value\" value=\"`$unique-ttpId`\" />",
-    "comments": "",
-    "outputs": 1,
-    "x": 1485,
-    "y": 297,
-    "z": "a2160ede.50a7f8",
-    "wires": [
-      []
-    ]
-  }
+    {
+        "id": "aba7cd12.5adbc",
+        "type": "dgstart",
+        "name": "DGSTART",
+        "outputs": 1,
+        "x": 124.75,
+        "y": 78.75,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            [
+                "c60a8297.8f292"
+            ]
+        ]
+    },
+    {
+        "id": "c60a8297.8f292",
+        "type": "service-logic",
+        "name": "DataChange ${project.version}",
+        "module": "DataChange",
+        "version": "${project.version}",
+        "comments": "",
+        "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>",
+        "outputs": 1,
+        "x": 213.75003051757812,
+        "y": 169.63891220092773,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            [
+                "938b0494.9a6a5"
+            ]
+        ]
+    },
+    {
+        "id": "938b0494.9a6a5",
+        "type": "method",
+        "name": "method update-network-to-aai",
+        "xml": "<method rpc='update-network-to-aai' mode='sync'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 249.8612518310547,
+        "y": 239.97223663330078,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            [
+                "a34caab1.f227c"
+            ]
+        ]
+    },
+    {
+        "id": "a34caab1.f227c",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 475.08343505859375,
+        "y": 239.52792358398438,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            [
+                "77ba1b7b.e5f444",
+                "c8ab8dbe.bd7f28",
+                "1803364c.0bdf9a",
+                "de6c736b.8746e8"
+            ]
+        ]
+    },
+    {
+        "id": "c8ab8dbe.bd7f28",
+        "type": "update",
+        "name": "save network-resource",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='network-resource'  \n     key='network-resource.network-id = $tmp.network-id' >\n<parameter name='network-id' value='`$tmp.network-id`' />\n<parameter name='client-id' value='`$network.client-id`' />\n<parameter name='te-topo-id' value='`$network.te-topology-id`' />\n<parameter name='provider-id' value='`$network.provider-id`' />\n\n<parameter name='network-type' value='`$network.network-types`' />\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 704.083251953125,
+        "y": 157.75001525878906,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c026bb02.3b26d8",
+        "type": "update",
+        "name": "save pnf",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf' \n      key='pnf.pnf-name = $unique-nodeId' >\n<parameter name='pnf-name' value='`$unique-nodeId`' />\n<parameter name='pnf-id' value='`$node.node-id`' />\n<parameter name='operational-status' value='`$node.te.oper-status`' />\n<parameter name='admin-status' value='`$node.te.te-node-attributes.admin-status`' />\n<parameter name='in-maint' value='true' />\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 918.8611450195312,
+        "y": 249.861083984375,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1803364c.0bdf9a",
+        "type": "for",
+        "name": "for each node",
+        "xml": "<for index='pidx' start='0' end='`$network.node_length`' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 688.6388549804688,
+        "y": 215.08331298828125,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            [
+                "c026bb02.3b26d8",
+                "d61a58f4.bff15",
+                "c96e726.54a239",
+                "9d45ed2.df7ec9",
+                "a93b3f2e.8db1a",
+                "35e2ae04.623d02",
+                "2abc67b3.7a8788"
+            ]
+        ]
+    },
+    {
+        "id": "d61a58f4.bff15",
+        "type": "set",
+        "name": "set network",
+        "xml": "<set>\n<parameter name='node.' value='`$network.node[$pidx].`' />\n\n<parameter name='unique-networkId' value='`$tmp.network-id`' />\n<parameter name='unique-nodeId' value=\"`'networkId-' + $unique-networkId + '-nodeId-' + $node.node-id`\" />\n<parameter name='src-tpId' value=\"`'networkId-' + $unique-networkId + '-nodeId-' + $link.source.source-node + '-ltpId-' + $link.source.source-tp`\" />\n",
+        "comments": "",
+        "x": 932.861083984375,
+        "y": 162.9722137451172,
+        "z": "b5a1720e.5bd23",
+        "wires": []
+    },
+    {
+        "id": "9d45ed2.df7ec9",
+        "type": "save",
+        "name": "save pnf relationship to network-resource in AAI",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf:relationship-list' \n      key='pnf.pnf-name = $unique-nodeId' force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"network-resource\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/network-resources/network-resource/' + $tmp.network-id`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"network-resource.network-id\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$tmp.network-id`\" />",
+        "comments": "",
+        "outputs": 1,
+        "x": 1047.5279541015625,
+        "y": 385.1944885253906,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a93b3f2e.8db1a",
+        "type": "for",
+        "name": "for each termination point",
+        "xml": "<for index='tidx' start='0' end='`$node.termination-point_length`' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 946.1944580078125,
+        "y": 525.861083984375,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            [
+                "520a15b.ffc5c6c",
+                "8aeff7ba.bc3918",
+                "b1621255.bd2b28",
+                "960cf15b.c6e218"
+            ]
+        ]
+    },
+    {
+        "id": "520a15b.ffc5c6c",
+        "type": "set",
+        "name": "set termination point",
+        "xml": "<set>\n<parameter name='tp.' value='`$node.termination-point[$tidx].`' />\n",
+        "comments": "",
+        "x": 1319.861328125,
+        "y": 483.75006103515625,
+        "z": "b5a1720e.5bd23",
+        "wires": []
+    },
+    {
+        "id": "b1621255.bd2b28",
+        "type": "update",
+        "name": "save p-interface",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface' \n      key='pnf.pnf-name = $unique-nodeId\n      AND p-interface.interface-name = $unique-ltpId' >      \n<parameter name='interface-name' value='`$unique-ltpId`' />\n<parameter name='network-ref' value='`$tp.supporting-termination-point[0].network-ref`' />\n<parameter name='transparent' value='`$tp.svc.supported-classification.transparent`' />\n<parameter name='speed-value' value='`$tp.te.interface-switching-capability[0].max-lsp-bandwidth[0].te-bandwidth.eth-bandwidth`' />\n<parameter name='operational-status' value='`$tp.te.oper-status`' />\n<parameter name='in-maint' value=\"true\" />\n\n<parameter name='inter-layer-lock-id' value='`$tp.te.inter-layer-lock-id[0]`' />\n<parameter name='inter-domain-plug-id' value='`$tp.te.inter-domain-plug-id`' />\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1198.565185546875,
+        "y": 661.3056030273438,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            [
+                "d5a91999.2b78e",
+                "5db93e7b.0ef3b"
+            ]
+        ]
+    },
+    {
+        "id": "7589c0c6.d461f8",
+        "type": "save",
+        "name": "save pnf relationship to p-interface in AAI",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf:relationship-list' \n      key='pnf.pnf-name = $unique-nodeId' force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"p-interface\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/network-resources/network-resource/' + $tmp.network-id + '/pnfs/pnf/' + $unique-nodeId '/p-interfaces/p-interface/' + $unique-ltpId`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"p-interface.interface-name\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$unique-ltpId`\" />",
+        "comments": "",
+        "outputs": 1,
+        "x": 1280.453857421875,
+        "y": 795.0833740234375,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "8aeff7ba.bc3918",
+        "type": "set",
+        "name": "set unique-ltpId",
+        "xml": "<set>\n<parameter name='unique-ltpId' value=\"`$unique-nodeId + '-ltpId-' + $tp.te-tp-id`\" />\n",
+        "comments": "",
+        "x": 1196.750244140625,
+        "y": 550.8611145019531,
+        "z": "b5a1720e.5bd23",
+        "wires": []
+    },
+    {
+        "id": "77ba1b7b.e5f444",
+        "type": "execute",
+        "name": "execute",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >\n    <parameter name=\"source\" value=\"`$network.network-id`\"/>\n    <parameter name=\"outputPath\" value=\"tmp.network-id\"/>\n    <parameter name=\"target\" value=\"/\"/>\n    <parameter name=\"replacement\" value=\"-\"/>\n    ",
+        "comments": "",
+        "outputs": 1,
+        "x": 654.7435302734375,
+        "y": 105.74349212646484,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c96e726.54a239",
+        "type": "save",
+        "name": "save pnf relation with esr-thirdparty-sdnc",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='esr-thirdparty-sdnc:relationship-list' \n      key='esr-thirdparty-sdnc.thirdparty-sdnc-id = $prop.sdncRestApi.thirdpartySdnc.id' \n      force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[0].related-to\" value=\"pnf\" />\n<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/pnfs/pnf/' + $unique-nodeId`\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"pnf.pnf-name\" />\n<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$unique-nodeId`\" />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 994.75,
+        "y": 446.7434997558594,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d5a91999.2b78e",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1368.2498397827148,
+        "y": 647.4960689544678,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            [
+                "35add999.ccc1ce"
+            ]
+        ]
+    },
+    {
+        "id": "5db93e7b.0ef3b",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1361.9284286499023,
+        "y": 699.7103805541992,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            [
+                "167daf03.50cf51"
+            ]
+        ]
+    },
+    {
+        "id": "35add999.ccc1ce",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 1518.75,
+        "y": 646.75,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "167daf03.50cf51",
+        "type": "update",
+        "name": "update p-interface",
+        "xml": "<update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface' \n      key='pnf.pnf-name = $unique-nodeId\n      AND p-interface.interface-name = $unique-ltpId' >      \n<parameter name='interface-name' value='`$unique-ltpId`' />\n<parameter name='network-ref' value='`$tp.supporting-termination-point[0].network-ref`' />\n<parameter name='transparent' value='`$tp.svc.supported-classification.transparent`' />\n<parameter name='speed-value' value='`$tp.te.interface-switching-capability[0].max-lsp-bandwidth[0].te-bandwidth.eth-bandwidth`' />\n<parameter name='operational-status' value='`$tp.te.oper-status`' />\n<parameter name='in-maint' value=\"true\" />\n\n<parameter name='inter-layer-lock-id' value='`$tp.te.inter-layer-lock-id[0]`' />\n<parameter name='inter-domain-plug-id' value='`$tp.te.inter-domain-plug-id`' />\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1538.75,
+        "y": 696.75,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "cd2be279.98fdb8",
+        "type": "update",
+        "name": "save tunnel-termination-point",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='tunnel-termination-point' \n      key='tunnel-termination-point.ttp-id = $unique-ttpId' >\n\n<parameter name='ttp-id' value='`$unique-ttpId`' />\n<parameter name='tunnel-tp-id' value='`$ttp.tunnel-tp-id`' />\n<parameter name='name' value='`$ttp.name`' />\n<parameter name='admin-status' value='`$ttp.admin-status`' />\n<parameter name='oper-status' value='`$ttp.oper-status`' />\n<parameter name='inter-layer-lock-id' value='`$ttp.inter-layer-lock-id`' />\n<parameter name='switching-capability' value='`$ttp.switching-capability`' />\n<parameter name='protection-type' value='`$ttp.protection-type`' />\n<parameter name='encoding' value='`$ttp.encoding`' />\n\n\n\n<!--<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='tunnel-termination-point' -->\n<!--      key='pnf.pnf-name = $unique-nodeId-->\n<!--      AND tunnel-termination-point.ttp-id = $unique-ttpId' >-->\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1406.75,
+        "y": 234.75,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            [
+                "36e162ff.126196",
+                "4fdc5d56.09888c"
+            ]
+        ]
+    },
+    {
+        "id": "35e2ae04.623d02",
+        "type": "for",
+        "name": "for each tunnel termination point",
+        "xml": "<for index='ttidx' start='0' end='`$node.te.tunnel-termination-point_length`' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1020.75,
+        "y": 310.75,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            [
+                "1d70b95c.1d2597",
+                "e4b715fe.40a13",
+                "cd2be279.98fdb8",
+                "ed21c1a4.a37c68"
+            ]
+        ]
+    },
+    {
+        "id": "1d70b95c.1d2597",
+        "type": "set",
+        "name": "set tunnel termination point",
+        "xml": "<set>\n<parameter name='ttp.' value='`$node.te.tunnel-termination-point[$ttidx].`' />\n",
+        "comments": "",
+        "x": 1378.75,
+        "y": 81.75,
+        "z": "b5a1720e.5bd23",
+        "wires": []
+    },
+    {
+        "id": "e4b715fe.40a13",
+        "type": "set",
+        "name": "set unique-ttpId",
+        "xml": "<set>\n<parameter name='unique-ttpId' value=\"`$unique-nodeId + '-ttpId-' + $ttp.tunnel-tp-id`\" />\n",
+        "comments": "",
+        "x": 1353.638916015625,
+        "y": 180.861083984375,
+        "z": "b5a1720e.5bd23",
+        "wires": []
+    },
+    {
+        "id": "36e162ff.126196",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1662.75,
+        "y": 220.75,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            [
+                "9c561a22.a2a3b8"
+            ]
+        ]
+    },
+    {
+        "id": "4fdc5d56.09888c",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1656.4285888671875,
+        "y": 272.96431159973145,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            [
+                "b93603b8.440ee"
+            ]
+        ]
+    },
+    {
+        "id": "9c561a22.a2a3b8",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 1813.2501602172852,
+        "y": 220.00393104553223,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b93603b8.440ee",
+        "type": "update",
+        "name": "update tunnel-termination-point",
+        "xml": "<update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='tunnel-termination-point' \n      key='tunnel-termination-point.ttp-id = $unique-ttpId' >\n\n<parameter name='tunnel-tp-id' value='`$ttp.tunnel-tp-id`' />\n<parameter name='name' value='`$ttp.name`' />\n<parameter name='admin-status' value='`$ttp.admin-status`' />\n<parameter name='oper-status' value='`$ttp.oper-status`' />\n<parameter name='inter-layer-lock-id' value='`$ttp.inter-layer-lock-id`' />\n<parameter name='switching-capability' value='`$ttp.switching-capability`' />\n<parameter name='protection-type' value='`$ttp.protection-type`' />\n<parameter name='encoding' value='`$ttp.encoding`' />\n\n\n\n\n\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1893.75,
+        "y": 271.75,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2abc67b3.7a8788",
+        "type": "set",
+        "name": "set local variables",
+        "xml": "<set>\n<parameter name='unique-networkId' value='`$tmp.network-id`' />\n<parameter name='unique-nodeId' value=\"`'networkId-' + $unique-networkId + '-nodeId-' + $node.node-id`\" />\n",
+        "comments": "",
+        "x": 951.75,
+        "y": 196.75,
+        "z": "b5a1720e.5bd23",
+        "wires": []
+    },
+    {
+        "id": "de6c736b.8746e8",
+        "type": "call",
+        "name": "call update-network-links-to-aai",
+        "xml": "<call module='DataChange' rpc='update-network-links-to-aai' mode='sync' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 630.75,
+        "y": 340.75,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "960cf15b.c6e218",
+        "type": "save",
+        "name": "save pnf-interface relationship to pnf in AAI",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface:relationship-list' \n      key='pnf.pnf-name = $unique-nodeId\n      AND p-interface.interface-name = $unique-ltpId' force=\"true\" pfx=\"tmp.AnAI-data\">\n<!--<parameter name=\"relationship-list.relationship[0].related-to\" value=\"pnf\" />-->\n<!--<parameter name=\"relationship-list.relationship[0].related-link\" value=\"`'/network/pnfs/pnf/' + $unique-nodeId`\" />-->\n<!--<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-key\" value=\"pnf.pnf-name\" />-->\n<!--<parameter name=\"relationship-list.relationship[0].relationship-data[0].relationship-value\" value=\"`$unique-nodeId`\" />-->\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1282.75,
+        "y": 753.75,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ed21c1a4.a37c68",
+        "type": "save",
+        "name": "save pnf relationship to tunnel termination point in AAI",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf:relationship-list' \n      key='pnf.pnf-name = $unique-nodeId' force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[$ttidx].related-to\" value=\"tunnel-termination-point\" />\n<parameter name=\"relationship-list.relationship[$ttidx].related-link\" value=\"`'/network/network-resources/network-resource/' + $tmp.network-id + '/pnfs/pnf/' + $node.node-id '/tunnel-termination-points/tunnel-termination-point/' + $unique-ttpId`\" />\n<parameter name=\"relationship-list.relationship[$ttidx].relationship-data[0].relationship-key\" value=\"tunnel-termination-point.ttp-id\" />\n<parameter name=\"relationship-list.relationship[$ttidx].relationship-data[0].relationship-value\" value=\"`$unique-ttpId`\" />",
+        "comments": "",
+        "outputs": 1,
+        "x": 1467.75,
+        "y": 326.75,
+        "z": "b5a1720e.5bd23",
+        "wires": [
+            []
+        ]
+    }
 ]
