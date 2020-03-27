@@ -28,7 +28,11 @@ import shutil
 import subprocess
 import logging
 
+
 log_file = '/opt/opendaylight/data/log/installCerts.log'
+with open(os.path.join('/opt/opendaylight/data/log', 'installCerts.log'), 'w') as fp:
+    pass
+
 log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 logging.basicConfig(filename=log_file,level=logging.DEBUG,filemode='w',format=log_format)
 
