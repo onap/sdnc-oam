@@ -100,6 +100,39 @@
                 <outcome value='create'>
                     <block atomic="true">
                         <switch test='`$vnf-topology-operation-input.request-information.request-action`'>
+                            <outcome value='CreateAccessConnectivityInstance'>
+                                <for index='idx' start='0' end='`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param_length`' >
+                                    <switch test="`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].name == 'manufacturer'`">
+                                        <outcome value='true'>
+                                            <switch test='`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].value`'>
+                                                <outcome value='HUAWEI'>
+                                                    <call module='GENERIC-RESOURCE-API' rpc='bbs-access-connectivity-vnf-topology-operation-create-huawei' mode='sync' ></call>
+                                                </outcome>
+                                                <outcome value='Other'>
+                                                    <return status='failure'>
+                                                        <parameter name='ack-final' value='Y'/>
+                                                        <parameter name="error-code" value="500" />
+                                                        <parameter name="error-message" value="`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].name+' is invalid manufacturer,please check!'`" />
+                                                    </return>
+                                                </outcome>
+                                            </switch>
+                                        </outcome>
+                                    </switch>
+                                </for>
+                            </outcome>
+                            <outcome value='CreateInternetProfileInstance'>
+                                <for index='idx' start='0' end='`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param_length`' >
+                                    <switch test="`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].name == 'manufacturer'`">
+                                        <outcome value='true'>
+                                            <switch test='`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].value`'>
+                                                <outcome value='HUAWEI'>
+                                                    <call module='GENERIC-RESOURCE-API' rpc='bbs-internet-profile-vnf-topology-operation-create-huawei' mode='sync' ></call>
+                                                </outcome>
+                                            </switch>
+                                        </outcome>
+                                    </switch>
+                                </for>
+                            </outcome>
                             <outcome value='CreateSiteInstance'>
                                 <call module='GENERIC-RESOURCE-API' rpc='site-vnf-topology-operation-create' mode='sync' ></call>
                             </outcome>
@@ -131,6 +164,32 @@
                 <outcome value='delete'>
                     <block atomic="true">
                         <switch test='`$vnf-topology-operation-input.request-information.request-action`'>
+                            <outcome value='DeleteAccessConnectivityInstance'>
+                                <for index='idx' start='0' end='`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param_length`' >
+                                    <switch test="`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].name == 'manufacturer'`">
+                                        <outcome value='true'>
+                                            <switch test='`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].value`'>
+                                                <outcome value='HUAWEI'>
+                                                    <call module='GENERIC-RESOURCE-API' rpc='bbs-access-connectivity-vnf-topology-operation-delete-huawei' mode='sync' ></call>
+                                                </outcome>
+                                            </switch>
+                                        </outcome>
+                                    </switch>
+                                </for>
+                            </outcome>
+                            <outcome value='DeleteInternetProfileInstance'>
+                                <for index='idx' start='0' end='`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param_length`' >
+                                    <switch test="`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].name == 'manufacturer'`">
+                                        <outcome value='true'>
+                                            <switch test='`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].value`'>
+                                                <outcome value='HUAWEI'>
+                                                    <call module='GENERIC-RESOURCE-API' rpc='bbs-internet-profile-vnf-topology-operation-delete-huawei' mode='sync' ></call>
+                                                </outcome>
+                                            </switch>
+                                        </outcome>
+                                    </switch>
+                                </for>
+                            </outcome>
                             <outcome value='DeleteSiteInstance'>
                                 <call module='GENERIC-RESOURCE-API' rpc='site-vnf-topology-operation-delete' mode='sync' ></call>
                             </outcome>
@@ -158,6 +217,23 @@
                             </outcome>
                         </switch>
                     </block>
+                </outcome>
+                <outcome value='update'>
+                    <switch test='`$vnf-topology-operation-input.request-information.request-action`'>
+                        <outcome value='ChangeInternetProfileInstance'>
+                            <for index='idx' start='0' end='`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param_length`' >
+                                <switch test="`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].name == 'manufacturer'`">
+                                    <outcome value='true'>
+                                        <switch test='`$vnf-topology-operation-input.vnf-request-input.vnf-input-parameters.param[$idx].value`'>
+                                            <outcome value='HUAWEI'>
+                                                <call module='GENERIC-RESOURCE-API' rpc='bbs-internet-profile-vnf-topology-operation-change-huawei' mode='sync' ></call>
+                                            </outcome>
+                                        </switch>
+                                    </outcome>
+                                </switch>
+                            </for>
+                        </outcome>
+                    </switch>
                 </outcome>
                 <outcome value='Other'>
                     <return status='failure'>
