@@ -32,7 +32,7 @@ log_file = '/opt/opendaylight/data/log/installCerts.log'
 log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 logging.basicConfig(filename=log_file,level=logging.DEBUG,filemode='w',format=log_format)
 
-Path = os.environ['ODL_CERT_DIR']
+Path = "/tmp"
 
 zipFileList = []
 
@@ -226,10 +226,10 @@ def get_pass(file_name):
 
 
 def cleanup():
-    for file in os.listdir(Path):
-        if os.path.isfile(Path + '/' + file):
-            logging.debug("Cleaning up the file %s", Path + '/'+ file)
-            os.remove(Path + '/'+ file)
+    for file in jks_files:
+        if os.path.isfile(file):
+            logging.debug("Cleaning up the file %s", file)
+            os.remove(file)
 
 
 def jks_to_p12(file, password):
