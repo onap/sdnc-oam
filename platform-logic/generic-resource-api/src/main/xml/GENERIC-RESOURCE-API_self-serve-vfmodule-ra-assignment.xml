@@ -142,7 +142,7 @@
                 <parameter name='dirPath' value="/opt/onap/sdnc/restconfapi/yang" />
                 <parameter name='format' value='json' />
                 <parameter name='httpMethod' value='POST' />
-                <parameter name="responsePrefix" value="`$responsePrefix`" />
+                <parameter name="responsePrefix" value="raAssign" />
                 <outcome value='failure'>
                     <return status='failure'>
                         <parameter name='ack-final' value='Y'/>
@@ -163,18 +163,30 @@
                 <parameter name="field1" value="AFTER BlueprintProcessingClient"/>
             </record>
             <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils" method="jsonStringToCtx">
-                <parameter name="source" value="`'raAssign.payload.resource-assignment-response.meshed-template.' + $tmp.vf-module-label`" />
+                <parameter name="source" value="`'raAssign.payload.resource-assignment-response.resolved-data.' + $tmp.vf-module-label`" />
                 <parameter name="outputPath" value="jsonContextPrefix" />
-                <parameter name="isEscaped" value="false" />
-            </execute>
-            <switch test="`$jsonContextPrefix.resource-accumulator-resolved-data_length`">
-                <outcome value=''>
+                <parameter name="isEscaped" value="true" />
+                <outcome value='success'>
                     <call module='GENERIC-RESOURCE-API' rpc='self-serve-process-vfmodule-mapping-ra-response' mode='sync' ></call>
                 </outcome>
-                <outcome value='Other'>
-                    <call module='GENERIC-RESOURCE-API' rpc='self-serve-process-vfmodule-template-ra-response' mode='sync' ></call>
+                <outcome value='failure'>
+                    <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils" method="jsonStringToCtx">
+                        <parameter name="source" value="`'raAssign.payload.resource-assignment-response.meshed-template.' + $tmp.vf-module-label`" />
+                        <parameter name="outputPath" value="jsonContextPrefix" />
+                        <parameter name="isEscaped" value="true" />
+                        <outcome value='failure'>
+                            <return status='failure'>
+                                <parameter name='ack-final' value='Y'/>
+                                <parameter name="error-code" value="500" />
+                                <parameter name="error-message" value="Failed to parse RA respose from mapping or meshed-template" />
+                            </return>
+                        </outcome>
+                        <outcome value='success'>
+                            <call module='GENERIC-RESOURCE-API' rpc='self-serve-process-vfmodule-template-ra-response' mode='sync' ></call>
+                        </outcome>
+                    </execute>
                 </outcome>
-            </switch>
+            </execute>
             <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
                 <parameter name="logger" value="message-log"/>
                 <parameter name="field1" value="DONE: vfmodule-ra-assignment"/>
