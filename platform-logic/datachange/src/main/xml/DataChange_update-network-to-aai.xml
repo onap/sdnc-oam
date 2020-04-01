@@ -1,148 +1,149 @@
-<service-logic
-        xmlns='http://www.onap.org/sdnc/svclogic'
-        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>
-    <method rpc='update-network-to-aai' mode='sync'>
+<service-logic xsi:schemaLocation="http://www.onap.org/sdnc/svclogic ./svclogic.xsd" module="DataChange" version="${project.version}">
+    <method rpc="update-network-to-aai" mode="sync">
         <block atomic="true">
-            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
+            <execute plugin="org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils" method="replace">
                 <parameter name="source" value="`$network.network-id`"/>
                 <parameter name="outputPath" value="tmp.network-id"/>
                 <parameter name="target" value="/"/>
                 <parameter name="replacement" value="-"/>
             </execute>
-            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='network-resource'
-                  key='network-resource.network-id = $tmp.network-id' >
-                <parameter name='network-id' value='`$tmp.network-id`' />
-                <parameter name='client-id' value='`$network.client-id`' />
-                <parameter name='te-topo-id' value='`$network.te-topology-id`' />
-                <parameter name='provider-id' value='`$network.provider-id`' />
-                <parameter name='network-type' value='`$network.network-types`' />
+            <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="network-resource" key="network-resource.network-id = $tmp.network-id">
+                <parameter name="network-id" value="`$tmp.network-id`"/>
+                <parameter name="client-id" value="`$network.client-id`"/>
+                <parameter name="te-topo-id" value="`$network.te-topology-id`"/>
+                <parameter name="provider-id" value="`$network.provider-id`"/>
+                <parameter name="network-type" value="`$network.network-types`"/>
             </save>
-            <for index='pidx' start='0' end='`$network.node_length`' >
+            <for index="pidx" start="0" end="`$network.node_length`">
                 <set>
-                    <parameter name='node.' value='`$network.node[$pidx].`' />
-                    <parameter name='unique-networkId' value='`$tmp.network-id`' />
-                    <parameter name='unique-nodeId' value="`'networkId-' + $unique-networkId + '-nodeId-' + $node.node-id`" />
-                    <parameter name='src-tpId' value="`'networkId-' + $unique-networkId + '-nodeId-' + $link.source.source-node + '-ltpId-' + $link.source.source-tp`" />
+                    <parameter name="node." value="`$network.node[$pidx].`"/>
+                    <parameter name="unique-networkId" value="`$tmp.network-id`"/>
                 </set>
                 <set>
-                    <parameter name='unique-networkId' value='`$tmp.network-id`' />
-                    <parameter name='unique-nodeId' value="`'networkId-' + $unique-networkId + '-nodeId-' + $node.node-id`" />
+                    <parameter name="unique-nodeId" value="`'networkId-' + $unique-networkId + '-nodeId-' + $node.node-id`"/>
                 </set>
-                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf'
-                      key='pnf.pnf-name = $unique-nodeId' >
-                    <parameter name='pnf-name' value='`$unique-nodeId`' />
-                    <parameter name='pnf-id' value='`$node.node-id`' />
-                    <parameter name='operational-status' value='`$node.te.oper-status`' />
-                    <parameter name='admin-status' value='`$node.te.te-node-attributes.admin-status`' />
-                    <parameter name='in-maint' value='true' />
+                <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="pnf" key="pnf.pnf-name = $unique-nodeId">
+                    <parameter name="pnf-name" value="`$unique-nodeId`"/>
+                    <parameter name="pnf-id" value="`$node.node-id`"/>
+                    <parameter name="operational-status" value="`$node.te.oper-status`"/>
+                    <parameter name="admin-status" value="`$node.te.te-node-attributes.admin-status`"/>
+                    <parameter name="in-maint" value="true"/>
                 </save>
-                <for index='ttidx' start='0' end='`$node.te.tunnel-termination-point_length`' >
-                    <set>
-                        <parameter name='ttp.' value='`$node.te.tunnel-termination-point[$ttidx].`' />
-                    </set>
-                    <set>
-                        <parameter name='unique-ttpId' value="`$unique-nodeId + '-ttpId-' + $ttp.tunnel-tp-id`" />
-                    </set>
-                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='tunnel-termination-point'
-                          key='pnf.pnf-name = $unique-nodeId
-      AND tunnel-termination-point.ttp-id = $unique-ttpId' >
-                        <parameter name='ttp-id' value='`$unique-ttpId`' />
-                        <parameter name='tunnel-tp-id' value='`$ttp.tunnel-tp-id`' />
-                        <parameter name='name' value='`$ttp.name`' />
-                        <parameter name='admin-status' value='`$ttp.admin-status`' />
-                        <parameter name='oper-status' value='`$ttp.oper-status`' />
-                        <parameter name='inter-layer-lock-id' value='`$ttp.inter-layer-lock-id`' />
-                        <parameter name='switching-capability' value='`$ttp.switching-capability`' />
-                        <parameter name='protection-type' value='`$ttp.protection-type`' />
-                        <parameter name='encoding' value='`$ttp.encoding`' />
-                        <outcome value='success'>
-                            <block></block>
-                        </outcome>
-                        <outcome value='failure'>
-                            <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='tunnel-termination-point'
-                                    key='pnf.pnf-name = $node.node-id
-      AND tunnel-termination-point.ttp-id = $unique-ttpId' >
-                                <parameter name='tunnel-tp-id' value='`$ttp.tunnel-tp-id`' />
-                                <parameter name='name' value='`$ttp.name`' />
-                                <parameter name='admin-status' value='`$ttp.admin-status`' />
-                                <parameter name='oper-status' value='`$ttp.oper-status`' />
-                                <parameter name='inter-layer-lock-id' value='`$ttp.inter-layer-lock-id`' />
-                                <parameter name='switching-capability' value='`$ttp.switching-capability`' />
-                                <parameter name='protection-type' value='`$ttp.protection-type`' />
-                                <parameter name='encoding' value='`$ttp.encoding`' />
-                            </update>
-                        </outcome>
-                    </save>
-                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf:relationship-list'
-                          key='pnf.pnf-name = $unique-nodeId' force="true" pfx="tmp.AnAI-data">
-                        <parameter name="relationship-list.relationship[$ttidx].related-to" value="tunnel-termination-point" />
-                        <parameter name="relationship-list.relationship[$ttidx].related-link" value="`'/network/network-resources/network-resource/' + $tmp.network-id + '/pnfs/pnf/' + $node.node-id '/tunnel-termination-points/tunnel-termination-point/' + $unique-ttpId`" />
-                        <parameter name="relationship-list.relationship[$ttidx].relationship-data[0].relationship-key" value="tunnel-termination-point.ttp-id" />
-                        <parameter name="relationship-list.relationship[$ttidx].relationship-data[0].relationship-value" value="`$unique-ttpId`" />
-                    </save>
-                </for>
-                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf:relationship-list'
-                      key='pnf.pnf-name = $unique-nodeId' force="true" pfx="tmp.AnAI-data">
-                    <parameter name="relationship-list.relationship[0].related-to" value="network-resource" />
-                    <parameter name="relationship-list.relationship[0].related-link" value="`'/network/network-resources/network-resource/' + $tmp.network-id`" />
-                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="network-resource.network-id" />
-                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$tmp.network-id`" />
+                <switch test="`$node.te.tunnel-termination-point_length`">
+                    <outcome value="">
+                        <block/>
+                    </outcome>
+                    <outcome value="0">
+                        <block/>
+                    </outcome>
+                    <outcome value="Other">
+                        <for index="ttidx" start="0" end="`$node.te.tunnel-termination-point_length`">
+                            <set>
+                                <parameter name="ttp." value="`$node.te.tunnel-termination-point[$ttidx].`"/>
+                            </set>
+                            <set>
+                                <parameter name="unique-ttpId" value="`$unique-nodeId + '-ttpId-' + $ttp.tunnel-tp-id`"/>
+                            </set>
+                            <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="tunnel-termination-point" key="pnf.pnf-name = $unique-nodeId AND tunnel-termination-point.ttp-id = $unique-ttpId">
+                                <parameter name="ttp-id" value="`$unique-ttpId`"/>
+                                <parameter name="tunnel-tp-id" value="`$ttp.tunnel-tp-id`"/>
+                                <parameter name="name" value="`$ttp.name`"/>
+                                <parameter name="admin-status" value="`$ttp.admin-status`"/>
+                                <parameter name="oper-status" value="`$ttp.oper-status`"/>
+                                <parameter name="inter-layer-lock-id" value="`$ttp.inter-layer-lock-id`"/>
+                                <parameter name="switching-capability" value="`$ttp.switching-capability`"/>
+                                <parameter name="protection-type" value="`$ttp.protection-type`"/>
+                                <parameter name="encoding" value="`$ttp.encoding`"/>
+                                <outcome value="success">
+                                    <block/>
+                                </outcome>
+                                <outcome value="failure">
+                                    <update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="tunnel-termination-point" key="pnf.pnf-name = $unique-nodeId AND tunnel-termination-point.ttp-id = $unique-ttpId">
+                                        <parameter name="ttp-id" value="`$unique-ttpId`"/>
+                                        <parameter name="tunnel-tp-id" value="`$ttp.tunnel-tp-id`"/>
+                                        <parameter name="name" value="`$ttp.name`"/>
+                                        <parameter name="admin-status" value="`$ttp.admin-status`"/>
+                                        <parameter name="oper-status" value="`$ttp.oper-status`"/>
+                                        <parameter name="inter-layer-lock-id" value="`$ttp.inter-layer-lock-id`"/>
+                                        <parameter name="switching-capability" value="`$ttp.switching-capability`"/>
+                                        <parameter name="protection-type" value="`$ttp.protection-type`"/>
+                                        <parameter name="encoding" value="`$ttp.encoding`"/>
+                                    </update>
+                                </outcome>
+                            </save>
+                            <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="pnf:relationship-list" key="pnf.pnf-name = $unique-nodeId" force="true" pfx="tmp.AnAI-data">
+                                <parameter name="relationship-list.relationship[$ttidx].related-to" value="tunnel-termination-point"/>
+                                <parameter name="relationship-list.relationship[$ttidx].related-link" value="`'/network/network-resources/network-resource/' + $tmp.network-id + '/pnfs/pnf/' + $node.node-id '/tunnel-termination-points/tunnel-termination-point/' + $unique-ttpId`"/>
+                                <parameter name="relationship-list.relationship[$ttidx].relationship-data[0].relationship-key" value="tunnel-termination-point.ttp-id"/>
+                                <parameter name="relationship-list.relationship[$ttidx].relationship-data[0].relationship-value" value="`$unique-ttpId`"/>
+                            </save>
+                        </for>
+                    </outcome>
+                </switch>
+                <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                    <parameter name="file" value="/opt/onap/hesamlogx.txt"/>
+                    <parameter name="field1" value="__TIMESTAMP__"/>
+                    <parameter name="field2" value="sucess executing Hesam hesam log file"/>
+                    <parameter name="field3" value="`$node.te.tunnel-termination-point_length`"/>
+                    <parameter name="field4" value="`$node.termination-point_length`"/>
+                </record>
+                <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="pnf:relationship-list" key="pnf.pnf-name = $unique-nodeId" force="true" pfx="tmp.AnAI-data">
+                    <parameter name="relationship-list.relationship[0].related-to" value="network-resource"/>
+                    <parameter name="relationship-list.relationship[0].related-link" value="`'/network/network-resources/network-resource/' + $tmp.network-id`"/>
+                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="network-resource.network-id"/>
+                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$tmp.network-id`"/>
                 </save>
-                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='esr-thirdparty-sdnc:relationship-list'
-                      key='esr-thirdparty-sdnc.thirdparty-sdnc-id = $prop.sdncRestApi.thirdpartySdnc.id'
-                      force="true" pfx="tmp.AnAI-data">
-                    <parameter name="relationship-list.relationship[0].related-to" value="pnf" />
-                    <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $node.node-id`" />
-                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="pnf.pnf-name" />
-                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$node.node-id`" />
+                <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="esr-thirdparty-sdnc:relationship-list" key="esr-thirdparty-sdnc.thirdparty-sdnc-id = $prop.sdncRestApi.thirdpartySdnc.id" force="true" pfx="tmp.AnAI-data">
+                    <parameter name="relationship-list.relationship[0].related-to" value="pnf"/>
+                    <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $node.node-id`"/>
+                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="pnf.pnf-name"/>
+                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$node.node-id`"/>
                 </save>
-                <for index='tidx' start='0' end='`$node.termination-point_length`' >
-                    <set>
-                        <parameter name='tp.' value='`$node.termination-point[$tidx].`' />
-                    </set>
-                    <set>
-                        <parameter name='unique-ltpId' value="`$unique-nodeId + '-ltpId-' + $tp.te-tp-id`" />
-                    </set>
-                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface'
-                          key='pnf.pnf-name = $unique-nodeId
-      AND p-interface.interface-name = $unique-ltpId' >
-                        <parameter name='interface-name' value='`$unique-ltpId`' />
-                        <parameter name='network-ref' value='`$tp.supporting-termination-point[0].network-ref`' />
-                        <parameter name='transparent' value='`$tp.svc.supported-classification.transparent`' />
-                        <parameter name='speed-value' value='`$tp.te.interface-switching-capability[0].max-lsp-bandwidth[0].te-bandwidth.eth-bandwidth`' />
-                        <parameter name='operational-status' value='`$tp.te.oper-status`' />
-                        <parameter name='in-maint' value="true" />
-                        <parameter name='inter-layer-lock-id' value='`$tp.te.inter-layer-lock-id[0]`' />
-                        <parameter name='inter-domain-plug-id' value='`$tp.te.inter-domain-plug-id`' />
-                        <outcome value='success'>
-                            <block></block>
-                        </outcome>
-                        <outcome value='failure'>
-                            <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface'
-                                    key='pnf.pnf-name = $node.node-id
-      AND p-interface.interface-name = $unique-ltpId' >
-                                <parameter name='interface-name' value='`$unique-ltpId`' />
-                                <parameter name='network-ref' value='`$tp.supporting-termination-point[0].network-ref`' />
-                                <parameter name='transparent' value='`$tp.svc.supported-classification.transparent`' />
-                                <parameter name='speed-value' value='`$tp.te.interface-switching-capability[0].max-lsp-bandwidth[0].te-bandwidth.eth-bandwidth`' />
-                                <parameter name='operational-status' value='`$tp.te.oper-status`' />
-                                <parameter name='in-maint' value="true" />
-                                <parameter name='inter-layer-lock-id' value='`$tp.te.inter-layer-lock-id[0]`' />
-                                <parameter name='inter-domain-plug-id' value='`$tp.te.inter-domain-plug-id`' />
-                            </update>
-                        </outcome>
-                    </save>
-                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface:relationship-list'
-                          key='pnf.pnf-name = $unique-nodeId
-      AND p-interface.interface-name = $unique-ltpId' force="true" pfx="tmp.AnAI-data">
-                        <parameter name="relationship-list.relationship[0].related-to" value="pnf" />
-                        <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $unique-nodeId`" />
-                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="pnf.pnf-name" />
-                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$unique-nodeId`" />
-                    </save>
-                </for>
+                <switch test="`$node.termination-point_length`">
+                    <outcome value="">
+                        <block/>
+                    </outcome>
+                    <outcome value="0">
+                        <block/>
+                    </outcome>
+                    <outcome value="Other">
+                        <for index="tidx" start="0" end="`$node.termination-point_length`">
+                            <set>
+                                <parameter name="tp." value="`$node.termination-point[$tidx].`"/>
+                            </set>
+                            <set>
+                                <parameter name="unique-ltpId" value="`$unique-nodeId + '-ltpId-' + $tp.te-tp-id`"/>
+                            </set>
+                            <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="p-interface" key="pnf.pnf-name = $unique-nodeId AND p-interface.interface-name = $unique-ltpId">
+                                <parameter name="interface-name" value="`$unique-ltpId`"/>
+                                <parameter name="network-ref" value="`$tp.supporting-termination-point[0].network-ref`"/>
+                                <parameter name="transparent" value="`$tp.svc.supported-classification.transparent`"/>
+                                <parameter name="speed-value" value="`$tp.te.interface-switching-capability[0].max-lsp-bandwidth[0].te-bandwidth.eth-bandwidth`"/>
+                                <parameter name="operational-status" value="`$tp.te.oper-status`"/>
+                                <parameter name="in-maint" value="true"/>
+                                <parameter name="inter-layer-lock-id" value="`$tp.te.inter-layer-lock-id[0]`"/>
+                                <parameter name="inter-domain-plug-id" value="`$tp.te.inter-domain-plug-id`"/>
+                                <outcome value="success">
+                                    <block/>
+                                </outcome>
+                                <outcome value="failure">
+                                    <update plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="p-interface" key="pnf.pnf-name = $unique-nodeId AND p-interface.interface-name = $unique-ltpId">
+                                        <parameter name="interface-name" value="`$unique-ltpId`"/>
+                                        <parameter name="network-ref" value="`$tp.supporting-termination-point[0].network-ref`"/>
+                                        <parameter name="transparent" value="`$tp.svc.supported-classification.transparent`"/>
+                                        <parameter name="speed-value" value="`$tp.te.interface-switching-capability[0].max-lsp-bandwidth[0].te-bandwidth.eth-bandwidth`"/>
+                                        <parameter name="operational-status" value="`$tp.te.oper-status`"/>
+                                        <parameter name="in-maint" value="true"/>
+                                        <parameter name="inter-layer-lock-id" value="`$tp.te.inter-layer-lock-id[0]`"/>
+                                        <parameter name="inter-domain-plug-id" value="`$tp.te.inter-domain-plug-id`"/>
+                                    </update>
+                                </outcome>
+                            </save>
+                        </for>
+                    </outcome>
+                </switch>
             </for>
-            <call module='DataChange' rpc='update-network-links-to-aai' mode='sync' ></call>
+            <call module="DataChange" rpc="update-network-links-to-aai" mode="sync"/>
         </block>
     </method>
 </service-logic>
