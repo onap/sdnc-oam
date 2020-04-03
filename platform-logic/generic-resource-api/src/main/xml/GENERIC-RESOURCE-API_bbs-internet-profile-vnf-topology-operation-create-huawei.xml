@@ -10,6 +10,7 @@
                 <parameter name="contentType" value="application/json"/>
                 <parameter name="httpMethod" value="post"/>
                 <parameter name="responsePrefix" value="service-result"/>
+                <!--<parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/CreateInternetProfileInstance'`" />-->
                 <outcome value='failure'>
                     <return status='failure'>
                         <parameter name='ack-final' value='Y'/>
@@ -18,15 +19,15 @@
                     </return>
                 </outcome>
                 <outcome value='success'>
-                    <switch test="`$service-result.errors.error[0].error-message`">
+                    <switch test="`$service-result.status`">
                         <outcome value='Other'>
                             <return status='failure'>
                                 <parameter name='ack-final' value='Y'/>
                                 <parameter name="error-code" value="500" />
-                                <parameter name="error-message" value="`'Error CreateInternetProfileInstance return: '+$service-result.errors.error[0].error-message`" />
+                                <parameter name="error-message" value="`'Error ChangeInternetProfileInstance return: '+$service-result.status`" />
                             </return>
                         </outcome>
-                        <outcome value=''>
+                        <outcome value='ok'>
                             <block></block>
                         </outcome>
                     </switch>
@@ -47,6 +48,9 @@
                 <set>
                     <parameter name='vnf-id' value="`$prop.random-data-list[3]`"/>
                     <parameter name='vnf-name' value="`'vnf-'+$prop.random-data-list[4]`"/>
+                    <!--<set>-->
+                    <!--<parameter name='vnf-id' value="123456789"/>-->
+                    <!--<parameter name='vnf-name' value="vnf_name"/>-->
                 </set>
                 <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="generic-vnf" key="generic-vnf.vnf-id = $vnf-id" >
                     <parameter name= "vnf-id" value = "`$vnf-id`"/>
