@@ -38,40 +38,18 @@ key = 'pnf.pnf-name = $z-end-pnf-name
       local-only='false'>
                 <parameter name='available-capacity' value='`$available-bandwidth-zend`' />
             </update>
-            <switch test='`$optical-service-create-input.payload.domain-type`'>
-                <outcome value='MSA'>
-                    <block>
-                        <save plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL" key="INSERT INTO REQUEST_DETAILS (request_id, controller_id, status, service_rate, service_instance_id, service_type, global_customer_id, notification_url) VALUES ( $optical-service-create-input.request-id , $controller-id , 'CREATING' , $optical-service-create-input.payload.service-rate ,  $optical-service-create-input.service-id , $optical-service-create-input.service-type , $optical-service-create-input.global-customer-id , $optical-service-create-input.notification-url );"></save>
-                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance'  
+            <save plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL" key="INSERT INTO REQUEST_DETAILS (request_id, controller_id, status, service_rate, service_instance_id, service_type, global_customer_id, notification_url) VALUES ( $optical-service-create-input.request-id , $controller-id , 'CREATED' , $optical-service-create-input.payload.service-rate ,  $optical-service-create-input.service-id , $optical-service-create-input.service-type , $optical-service-create-input.global-customer-id , $optical-service-create-input.notification-url );"></save>
+            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance'  
      key='customer.global-customer-id = $optical-service-create-input.global-customer-id AND
      service-subscription.service-type = $optical-service-create-input.service-type AND
      service-instance.service-instance-id = $optical-service-create-input.service-id' >
-                            <parameter name='service-instance-id' value='`$optical-service-create-input.service-id`' />
-                            <parameter name='service-instance-name' value='`$optical-service-create-input.payload.service-name`' />
-                            <parameter name='service-type' value='Domain-Service' />
-                            <parameter name='orchestration-status' value='CREATING' />
-                            <parameter name='service-rate' value='`$optical-service-create-input.payload.service-rate`' />
-                            <parameter name='service-layer' value='`$optical-service-create-input.payload.service-layer`' />
-                        </save>
-                    </block>
-                </outcome>
-                <outcome value='TAPI'>
-                    <block>
-                        <save plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL" key="INSERT INTO REQUEST_DETAILS (request_id, controller_id, status, service_rate, service_instance_id, service_type, global_customer_id, notification_url) VALUES ( $optical-service-create-input.request-id , $controller-id , 'CREATED' , $optical-service-create-input.payload.service-rate ,  $optical-service-create-input.service-id , $optical-service-create-input.service-type , $optical-service-create-input.global-customer-id , $optical-service-create-input.notification-url );"></save>
-                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance'  
-     key='customer.global-customer-id = $optical-service-create-input.global-customer-id AND
-     service-subscription.service-type = $optical-service-create-input.service-type AND
-     service-instance.service-instance-id = $optical-service-create-input.service-id' >
-                            <parameter name='service-instance-id' value='`$optical-service-create-input.service-id`' />
-                            <parameter name='service-instance-name' value='`$optical-service-create-input.payload.service-name`' />
-                            <parameter name='service-type' value='Domain-Service' />
-                            <parameter name='orchestration-status' value='CREATED' />
-                            <parameter name='service-rate' value='`$optical-service-create-input.payload.service-rate`' />
-                            <parameter name='service-layer' value='`$optical-service-create-input.payload.service-layer`' />
-                        </save>
-                    </block>
-                </outcome>
-            </switch>
+                <parameter name='service-instance-id' value='`$optical-service-create-input.service-id`' />
+                <parameter name='service-instance-name' value='`$optical-service-create-input.payload.service-name`' />
+                <parameter name='service-type' value='Domain-Service' />
+                <parameter name='orchestration-status' value='CREATED' />
+                <parameter name='service-rate' value='`$optical-service-create-input.payload.service-rate`' />
+                <parameter name='service-layer' value='`$optical-service-create-input.payload.service-layer`' />
+            </save>
             <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list'  
      key='customer.global-customer-id = $optical-service-create-input.global-customer-id AND
      service-subscription.service-type = $optical-service-create-input.service-type AND
@@ -85,11 +63,9 @@ key = 'pnf.pnf-name = $z-end-pnf-name
                 <parameter name="relationship-list.relationship[1].relationship-data[0].relationship-key" value="pnf.pnf-name" />
                 <parameter name="relationship-list.relationship[1].relationship-data[0].relationship-value" value="`$z-end-pnf-name`" />
             </save>
-            <return status='success'>
-                <parameter name='error-code' value='200' />
-                <parameter name='error-message' value='Service Creation in Progress' />
-                <parameter name='ack-final-indicator' value='N' />
-            </return>
+            <set>
+                <parameter name='final-response-code' value='200' />
+            </set>
         </block>
     </method>
 </service-logic>

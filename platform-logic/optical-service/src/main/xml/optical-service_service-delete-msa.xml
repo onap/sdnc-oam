@@ -3,10 +3,6 @@
     xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='optical-service' version='${project.version}'>
     <method rpc='service-delete-msa' mode='sync'>
         <block atomic="true">
-            <set>
-                <parameter name='optical-service-create-input.request-id' value="`$domain-service1`" />
-                <parameter name='optical-service-delete-input.payload.service-name' value="`$optical-service-delete-input.payload.param[0].value + '_MDONS-OTN-MSA'`"/>
-            </set>
             <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                 <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/optical-service-delete-msa.json'`" />
                 <parameter name="restapiUrl" value="`$controller-ip + '/cxf/openroadm/openroadm-services/' + $optical-service-delete-input.payload.service-name`"/>
@@ -49,32 +45,15 @@
                                         <parameter name="level" value="info" />
                                         <parameter name="field1" value="Inside controller"/>
                                     </record>
-                                    <save plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' 
-resource='SQL' 
-key='UPDATE REQUEST_DETAILS SET status = "DELETING" WHERE request_id = $optical-service-delete-input.request-id' 
-force='true' pfx='save-result'></save>
                                     <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' 
 key='SELECT *
 from REQUEST_DETAILS 
 WHERE request_id = $optical-service-delete-input.request-id'
-pfx='db.request-details'>
-                                        <outcome value='success'>
-                                            <set>
-                                                <parameter name='instance-id' value='`$db.request-details.service-instance-id`' />
-                                                <parameter name='customer-id' value='`$db.request-details.global-customer-id`' />
-                                                <parameter name='service-id' value='`$db.request-details.service-type`' />
-                                            </set>
-                                        </outcome>
-                                    </get-resource>
-                                    <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' 
-force='true' 
-resource='service-instance' 
-key = 'customer.global-customer-id = $customer-id AND
-     service-subscription.service-type = $service-id AND
-     service-instance.service-instance-id = $instance-id'
-local-only='false'>
-                                        <parameter name='orchestration-status' value='DELETING' />
-                                    </update>
+pfx='output'></get-resource>
+                                    <set>
+                                        <parameter name='request-id' value='`$optical-service-create-input.request-id`' />
+                                    </set>
+                                    <call module='optical-service' rpc='aai-delete-service-handling' mode='sync' ></call>
                                     <set>
                                         <parameter name='final-response-code' value="200" />
                                     </set>
