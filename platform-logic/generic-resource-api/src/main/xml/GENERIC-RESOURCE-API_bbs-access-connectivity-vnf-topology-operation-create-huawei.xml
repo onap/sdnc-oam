@@ -92,7 +92,7 @@
             </for>
             <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
                 <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/bbs-token-template.json'`"/>
-                <parameter name="restapiUrl" value="`'http://159.138.58.209:30335/rest/plat/smapp/v1/oauth/token'`"/>
+                <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url+'/rest/plat/smapp/v1/oauth/token'`"/>
                 <parameter name="format" value="json"/>
                 <parameter name="httpMethod" value="put"/>
                 <parameter name="responsePrefix" value="token-result"/>
@@ -127,7 +127,7 @@
             </execute>
             <execute plugin="org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode" method="sendRequest">
                 <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/bbs-access-connectivity-create.json'`" />
-                <parameter name="restapiUrl" value="`'http://159.138.58.209:30335/ws/rest/1002/FanOpenAPI/ActiveOnt'`" />
+                <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/ws/rest/1002/FanOpenAPI/ActiveOnt'`" />
                 <parameter name="contentType" value="application/json"/>
                 <parameter name="httpMethod" value="post"/>
                 <parameter name="responsePrefix" value="service-result"/>
@@ -178,7 +178,19 @@
                 <set>
                     <parameter name='vnf-id' value="`$prop.random-data-list[3]`"/>
                     <parameter name='vnf-name' value="`'vnf-'+$prop.random-data-list[4]`"/>
+                    <!--<set>-->
+                    <!--<parameter name='vnf-id' value="123456789"/>-->
+                    <!--<parameter name='vnf-name' value="vnf_name"/>-->
                 </set>
+                <record plugin='org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder'>
+                    <parameter name='logger' value='message-log'/>
+                    <parameter name='field1' value='`$vnf-id`'/>
+                    <parameter name='field2' value='`$vnf-name`'/>
+                    <!--<record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">-->
+                    <!--   <parameter name="file" value="/root/logx.txt" />-->
+                    <!--   <parameter name="field1" value="deleteAccessConnectivityService success!" />-->
+                    <!--       <parameter name="field2" value='`$topology.networks.network[0].network-types`' />-->
+                </record>
                 <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="generic-vnf" key="generic-vnf.vnf-id = $vnf-id" >
                     <parameter name= "vnf-id" value = "`$vnf-id`"/>
                     <parameter name=  "vnf-name" value = "`$vnf-name`"/>
