@@ -18,20 +18,22 @@
                     </return>
                 </outcome>
                 <outcome value='success'>
-                    <switch test="`$service-result.errors.error[0].error-message`">
+                    <switch test="`$service-result.status`">
                         <outcome value='Other'>
                             <return status='failure'>
                                 <parameter name='ack-final' value='Y'/>
                                 <parameter name="error-code" value="500" />
-                                <parameter name="error-message" value="`'Error ChangeInternetProfileInstance return: '+$service-result.errors.error[0].error-message`" />
+                                <parameter name="error-message" value="`'Error ChangeInternetProfileInstance return: '+$service-result.status`" />
                             </return>
                         </outcome>
-                        <outcome value=''>
+                        <outcome value='ok'>
                             <block></block>
                         </outcome>
                     </switch>
                 </outcome>
             </execute>
+            <call module='GENERIC-RESOURCE-API' rpc='bbs-internet-profile-vnf-topology-operation-delete-huawei' mode='sync'></call>
+            <call module='GENERIC-RESOURCE-API' rpc='bbs-internet-profile-vnf-topology-operation-create-huawei' mode='sync'></call>
             <return status='success'>
                 <parameter name="ack-final-indicator" value="Y" />
                 <parameter name="error-code" value="200" />
