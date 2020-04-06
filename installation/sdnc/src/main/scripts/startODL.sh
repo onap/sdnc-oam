@@ -173,6 +173,8 @@ fi
 cp /opt/opendaylight/current/certs/* /tmp
 cp -r /opt/app/osaaf/local/. /tmp
 
+# Create empty log file (needed to fix CSIT)
+echo > /opt/opendaylight/data/log/installCerts.log
 nohup python ${SDNC_BIN}/installCerts.py &
 
 exec ${ODL_HOME}/bin/karaf server
