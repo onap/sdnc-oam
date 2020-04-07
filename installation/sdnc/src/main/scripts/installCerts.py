@@ -221,9 +221,9 @@ def timeIncrement(timePassed):
 
 def get_pass(file_name):
     try:
-        with open(file_name , 'r') as file_obj:
+        with open(file_name, 'r') as file_obj:
             password = file_obj.read().strip()
-        return password
+        return "'{}'".format(password)
     except Exception as e:
         logging.error("Error occurred while fetching password : %s", e)
         exit()
