@@ -1,6 +1,6 @@
 <service-logic
-        xmlns='http://www.onap.org/sdnc/svclogic'
-        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>
     <method rpc='esr-thirdparty-sdnc-discovery' mode='sync'>
         <block atomic="true">
             <switch test="`$prop.sdncRestApi.vendor == 'ZTE'`">
@@ -64,94 +64,68 @@
                                                                         <call module='DataChange' rpc='update-network-to-aai' mode='sync' ></call>
                                                                     </block>
                                                                 </for>
-                                                                <switch test='`$topology.networks.network_length`'>
-                                                                    <outcome value='2'>
-                                                                        <switch test='`$topology.networks.network[0].network-types`'>
-                                                                            <outcome value='ethernet-topology'>
-                                                                                <switch test='`$topology.networks.network[1].network-types`'>
-                                                                                    <outcome value='otn-topology'>
+                                                                <switch test='`$topology.networks.network_length >= 2`'>
+                                                                    <outcome value='true'>
+                                                                        <for index='netidx' start='0' end='`$topology.networks.network_length`' >
+                                                                            <block>
+                                                                                <set>
+                                                                                    <parameter name='network.' value='' />
+                                                                                </set>
+                                                                                <set>
+                                                                                    <parameter name='network.' value='`$topology.networks.network[$netidx].`' />
+                                                                                </set>
+                                                                                <switch test='`$network.te-topology-id`'>
+                                                                                    <outcome value='11'>
                                                                                         <block>
+                                                                                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                                                                                <parameter name="file" value="/opt/onap/logSdncDiscovery.txt" />
+                                                                                                <parameter name="field1" value="__TIMESTAMP__" />
+                                                                                                <parameter name="field2" value="networks_length" />
+                                                                                                <parameter name="field3" value="`$topology.networks.network_length`" />
+                                                                                                <parameter name="field4" value="network-type-is" />
+                                                                                                <parameter name="field5" value="OTN" />
+                                                                                            </record>
                                                                                             <set>
-                                                                                                <parameter name='network-eth.' value='`$topology.networks.network[0].`' />
-                                                                                                <parameter name='network-otn.' value='`$topology.networks.network[1].`' />
+                                                                                                <parameter name='network-otn.' value='`$topology.networks.network[$netidx].`' />
                                                                                             </set>
-                                                                                            <call module='DataChange' rpc='update-tp-ttp-relationship' mode='sync' ></call>
                                                                                         </block>
                                                                                     </outcome>
-                                                                                    <outcome value='Other'>
-                                                                                        <return status='failure'>
-                                                                                            <parameter name='error-code' value='' />
-                                                                                            <parameter name='error-message' value='' />
-                                                                                        </return>
-                                                                                    </outcome>
-                                                                                </switch>
-                                                                            </outcome>
-                                                                            <outcome value='otn-topology'>
-                                                                                <switch test='`$topology.networks.network[1].network-types`'>
-                                                                                    <outcome value='ethernet-topology'>
+                                                                                    <outcome value='33'>
                                                                                         <block>
+                                                                                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                                                                                <parameter name="file" value="/opt/onap/logSdncDiscovery.txt" />
+                                                                                                <parameter name="field1" value="__TIMESTAMP__" />
+                                                                                                <parameter name="field2" value="networks_length" />
+                                                                                                <parameter name="field3" value="`$topology.networks.network_length`" />
+                                                                                                <parameter name="field4" value="network-type-is" />
+                                                                                                <parameter name="field5" value="ETH" />
+                                                                                            </record>
                                                                                             <set>
-                                                                                                <parameter name='network.eth' value='`$topology.networks.network[1].`' />
-                                                                                                <parameter name='network.otn' value='`$topology.networks.network[0].`' />
+                                                                                                <parameter name='network-eth.' value='`$topology.networks.network[$netidx].`' />
                                                                                             </set>
-                                                                                            <call module='DataChange' rpc='update-tp-ttp-relationship' mode='sync' ></call>
                                                                                         </block>
                                                                                     </outcome>
-                                                                                    <outcome value='Other'>
-                                                                                        <return status='failure'>
-                                                                                            <parameter name='error-code' value='' />
-                                                                                            <parameter name='error-message' value='' />
-                                                                                        </return>
-                                                                                    </outcome>
                                                                                 </switch>
-                                                                            </outcome>
-                                                                        </switch>
+                                                                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                                                                    <parameter name="file" value="/opt/onap/logSdncDiscovery.txt" />
+                                                                                    <parameter name="field6" value="network-otn-is" />
+                                                                                    <parameter name="field7" value="`$network-otn.te-topology-id`" />
+                                                                                    <parameter name="field8" value="network-eth-is" />
+                                                                                    <parameter name="field9" value="`$network-eth.te-topology-id`" />
+                                                                                </record>
+                                                                                <call module='DataChange' rpc='update-tp-ttp-relationship' mode='sync' ></call>
+                                                                            </block>
+                                                                        </for>
+                                                                    </outcome>
+                                                                    <outcome value='false'>
+                                                                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                                                            <parameter name="file" value="/opt/onap/logSdncDiscovery.txt" />
+                                                                            <parameter name="field1" value="__TIMESTAMP__" />
+                                                                            <parameter name="field2" value="networks_length" />
+                                                                            <parameter name="field3" value="`$topology.networks.network_length`" />
+                                                                        </record>
                                                                     </outcome>
                                                                 </switch>
-                                                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
-                                                                              resource="network-resources"
-                                                                              pfx='tmp.aai.network-resources' local-only='false' >
-                                                                    <outcome value='success'>
-                                                                        <switch test='tmp.aai.network-resources_length'>
-                                                                            <outcome value='4'>
-                                                                                <block atomic='true'>
-                                                                                    <for index='nridx' start='0' end='`$tmp.aai.network-resources.network-resource_length`' >
-                                                                                        <block>
-                                                                                            <set>
-                                                                                                <parameter name='otnidx' value='0' />
-                                                                                            </set>
-                                                                                            <switch test='`$tmp.aai.network-resources.network-resource[$nridx].network-type`'>
-                                                                                                <outcome value='otn-topology'>
-                                                                                                    <block>
-                                                                                                        <set>
-                                                                                                            <parameter name='network-resource-otn[$otnidx].' value='`$tmp.aai.network-resources.network-resource[$nridx].`' />
-                                                                                                        </set>
-                                                                                                        <set>
-                                                                                                            <parameter name='otnidx' value='`$otnidx + 1`' />
-                                                                                                        </set>
-                                                                                                    </block>
-                                                                                                </outcome>
-                                                                                            </switch>
-                                                                                        </block>
-                                                                                    </for>
-                                                                                    <call module='DataChange' rpc='update-open-ended-links' mode='sync' ></call>
-                                                                                </block>
-                                                                            </outcome>
-                                                                        </switch>
-                                                                    </outcome>
-                                                                    <outcome value='not-found'>
-                                                                        <return status='failure'>
-                                                                            <parameter name='error-code' value='' />
-                                                                            <parameter name='error-message' value='' />
-                                                                        </return>
-                                                                    </outcome>
-                                                                    <outcome value='Other'>
-                                                                        <return status='failure'>
-                                                                            <parameter name='error-code' value='' />
-                                                                            <parameter name='error-message' value='' />
-                                                                        </return>
-                                                                    </outcome>
-                                                                </get-resource>
                                                             </block>
                                                         </outcome>
                                                     </execute>
@@ -186,94 +160,68 @@
                                                                         <call module='DataChange' rpc='update-network-to-aai' mode='sync' ></call>
                                                                     </block>
                                                                 </for>
-                                                                <switch test='`$topology.networks.network_length`'>
-                                                                    <outcome value='2'>
-                                                                        <switch test='`$topology.networks.network[0].network-types`'>
-                                                                            <outcome value='ethernet-topology'>
-                                                                                <switch test='`$topology.networks.network[1].network-types`'>
-                                                                                    <outcome value='otn-topology'>
+                                                                <switch test='`$topology.networks.network_length >= 2`'>
+                                                                    <outcome value='true'>
+                                                                        <for index='netidx' start='0' end='`$topology.networks.network_length`' >
+                                                                            <block>
+                                                                                <set>
+                                                                                    <parameter name='network.' value='' />
+                                                                                </set>
+                                                                                <set>
+                                                                                    <parameter name='network.' value='`$topology.networks.network[$netidx].`' />
+                                                                                </set>
+                                                                                <switch test='`$network.te-topology-id`'>
+                                                                                    <outcome value='11'>
                                                                                         <block>
+                                                                                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                                                                                <parameter name="file" value="/opt/onap/logSdncDiscovery.txt" />
+                                                                                                <parameter name="field1" value="__TIMESTAMP__" />
+                                                                                                <parameter name="field2" value="networks_length" />
+                                                                                                <parameter name="field3" value="`$topology.networks.network_length`" />
+                                                                                                <parameter name="field4" value="network-type-is" />
+                                                                                                <parameter name="field5" value="OTN" />
+                                                                                            </record>
                                                                                             <set>
-                                                                                                <parameter name='network-eth.' value='`$topology.networks.network[0].`' />
-                                                                                                <parameter name='network-otn.' value='`$topology.networks.network[1].`' />
+                                                                                                <parameter name='network-otn.' value='`$topology.networks.network[$netidx].`' />
                                                                                             </set>
-                                                                                            <call module='DataChange' rpc='update-tp-ttp-relationship' mode='sync' ></call>
                                                                                         </block>
                                                                                     </outcome>
-                                                                                    <outcome value='Other'>
-                                                                                        <return status='failure'>
-                                                                                            <parameter name='error-code' value='' />
-                                                                                            <parameter name='error-message' value='' />
-                                                                                        </return>
-                                                                                    </outcome>
-                                                                                </switch>
-                                                                            </outcome>
-                                                                            <outcome value='otn-topology'>
-                                                                                <switch test='`$topology.networks.network[1].network-types`'>
-                                                                                    <outcome value='ethernet-topology'>
+                                                                                    <outcome value='33'>
                                                                                         <block>
+                                                                                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                                                                                <parameter name="file" value="/opt/onap/logSdncDiscovery.txt" />
+                                                                                                <parameter name="field1" value="__TIMESTAMP__" />
+                                                                                                <parameter name="field2" value="networks_length" />
+                                                                                                <parameter name="field3" value="`$topology.networks.network_length`" />
+                                                                                                <parameter name="field4" value="network-type-is" />
+                                                                                                <parameter name="field5" value="ETH" />
+                                                                                            </record>
                                                                                             <set>
-                                                                                                <parameter name='network.eth' value='`$topology.networks.network[1].`' />
-                                                                                                <parameter name='network.otn' value='`$topology.networks.network[0].`' />
+                                                                                                <parameter name='network-eth.' value='`$topology.networks.network[$netidx].`' />
                                                                                             </set>
-                                                                                            <call module='DataChange' rpc='update-tp-ttp-relationship' mode='sync' ></call>
                                                                                         </block>
                                                                                     </outcome>
-                                                                                    <outcome value='Other'>
-                                                                                        <return status='failure'>
-                                                                                            <parameter name='error-code' value='' />
-                                                                                            <parameter name='error-message' value='' />
-                                                                                        </return>
-                                                                                    </outcome>
                                                                                 </switch>
-                                                                            </outcome>
-                                                                        </switch>
+                                                                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                                                                    <parameter name="file" value="/opt/onap/logSdncDiscovery.txt" />
+                                                                                    <parameter name="field6" value="network-otn-is" />
+                                                                                    <parameter name="field7" value="`$network-otn.te-topology-id`" />
+                                                                                    <parameter name="field8" value="network-eth-is" />
+                                                                                    <parameter name="field9" value="`$network-eth.te-topology-id`" />
+                                                                                </record>
+                                                                                <call module='DataChange' rpc='update-tp-ttp-relationship' mode='sync' ></call>
+                                                                            </block>
+                                                                        </for>
+                                                                    </outcome>
+                                                                    <outcome value='false'>
+                                                                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                                                            <parameter name="file" value="/opt/onap/logSdncDiscovery.txt" />
+                                                                            <parameter name="field1" value="__TIMESTAMP__" />
+                                                                            <parameter name="field2" value="networks_length" />
+                                                                            <parameter name="field3" value="`$topology.networks.network_length`" />
+                                                                        </record>
                                                                     </outcome>
                                                                 </switch>
-                                                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
-                                                                              resource="network-resources"
-                                                                              pfx='tmp.aai.network-resources' local-only='false' >
-                                                                    <outcome value='success'>
-                                                                        <switch test='tmp.aai.network-resources_length'>
-                                                                            <outcome value='4'>
-                                                                                <block atomic='true'>
-                                                                                    <for index='nridx' start='0' end='`$tmp.aai.network-resources.network-resource_length`' >
-                                                                                        <block>
-                                                                                            <set>
-                                                                                                <parameter name='otnidx' value='0' />
-                                                                                            </set>
-                                                                                            <switch test='`$tmp.aai.network-resources.network-resource[$nridx].network-type`'>
-                                                                                                <outcome value='otn-topology'>
-                                                                                                    <block>
-                                                                                                        <set>
-                                                                                                            <parameter name='network-resource-otn[$otnidx].' value='`$tmp.aai.network-resources.network-resource[$nridx].`' />
-                                                                                                        </set>
-                                                                                                        <set>
-                                                                                                            <parameter name='otnidx' value='`$otnidx + 1`' />
-                                                                                                        </set>
-                                                                                                    </block>
-                                                                                                </outcome>
-                                                                                            </switch>
-                                                                                        </block>
-                                                                                    </for>
-                                                                                    <call module='DataChange' rpc='update-open-ended-links' mode='sync' ></call>
-                                                                                </block>
-                                                                            </outcome>
-                                                                        </switch>
-                                                                    </outcome>
-                                                                    <outcome value='not-found'>
-                                                                        <return status='failure'>
-                                                                            <parameter name='error-code' value='' />
-                                                                            <parameter name='error-message' value='' />
-                                                                        </return>
-                                                                    </outcome>
-                                                                    <outcome value='Other'>
-                                                                        <return status='failure'>
-                                                                            <parameter name='error-code' value='' />
-                                                                            <parameter name='error-message' value='' />
-                                                                        </return>
-                                                                    </outcome>
-                                                                </get-resource>
                                                             </block>
                                                         </outcome>
                                                     </execute>
