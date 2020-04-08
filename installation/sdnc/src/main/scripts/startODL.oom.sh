@@ -27,8 +27,20 @@
 # List of used constants, that are provided during container initialization
 
 ODL_HOME=${ODL_HOME:-/opt/opendaylight/current}
+ODL_FEATURES_BOOT_FILE=$ODL_HOME/etc/org.apache.karaf.features.cfg
+#
+ODL_REMOVEIDMDB=${ODL_REMOVEIDMDB:-false}
+
+#ODL_CERT_DIR
 ODL_ADMIN_USERNAME=${ODL_ADMIN_USERNAME:-admin}
-ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD:-Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U}
+if $ODL_REMOVEIDMDB ; then
+   echo "Remove odl idmdb"
+   rm $ODL_HOME/data/idmlight.db.mv.db
+   ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD:-admin}
+else
+   ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD:-Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U}
+fi
+
 export ODL_ADMIN_PASSWORD ODL_ADMIN_USERNAME
 
 SDNC_HOME=${SDNC_HOME:-/opt/onap/sdnc}
@@ -52,9 +64,16 @@ SDNC_AAF_ENABLED=${SDNC_AAF_ENABLED:-false}
 SDNRWT=${SDNRWT:-false}
 SDNRWT_BOOTFEATURES=${SDNRWT_BOOTFEATURES:-sdnr-wt-feature-aggregator}
 SDNRDM=${SDNRDM:-false}
-SDNRDM_BOOTFEATURES=${SDNRDM_BOOTFEATURES:-sdnr-wt-feature-aggregator-devicemanager}
-
+# Add devicemanager base and specific repositories
+SDNRDM_BASE_REPO=${SDNRDM_BASE_REPO:-mvn:org.onap.ccsdk.features.sdnr.wt/sdnr-wt-feature-aggregator-devicemanager-base/$CCSDKFEATUREVERSION/xml/features}
+SDNRDM_ONF_REPO=${SDNRDM_ONF_REPO:-mvn:org.onap.ccsdk.features.sdnr.wt/sdnr-wt-devicemanager-onf-feature/$CCSDKFEATUREVERSION/xml/features}
+SDNRDM_ORAN_REPO=${SDNRDM_ORAN_REPO:-mvn:org.onap.ccsdk.features.sdnr.wt/sdnr-wt-devicemanager-oran-feature/$CCSDKFEATUREVERSION/xml/features}
+SDNRDM_GRAN_REPO=${SDNRDM_GRAN_REPO:-mvn:org.onap.ccsdk.features.sdnr.wt/sdnr-wt-devicemanager-gran-feature/$CCSDKFEATUREVERSION/xml/features}
+# Add devicemanager features
+SDNRDM_SDM_LIST=${SDNRDM_SDM_LIST:-sdnr-wt-devicemanager-onf-feature, sdnr-wt-devicemanager-oran-feature, sdnr-wt-devicemanager-gran-feature}
+SDNRDM_BOOTFEATURES=${SDNRDM_BOOTFEATURES:-sdnr-wt-feature-aggregator-devicemanager-base, ${SDNRDM_SDM_LIST}}
 SDNRINIT=${SDNRINIT:-false}
+SDNRONLY=${SDNRONLY:-false}
 SDNRDBURL=${SDNRDBURL:-http://sdnrdb:9200}
 #SDNRDBUSERNAME
 #SDNRDBPASSWORD
@@ -66,30 +85,56 @@ SDNR_NORTHBOUND_BOOTFEATURES=${SDNR_NORTHBOUND_BOOTFEATURES:-sdnr-northbound-all
 
 # Functions
 
+# Test if repository exists, like this mvn:org.onap.ccsdk.features.sdnr.wt/sdnr-wt-devicemanager-oran-feature/0.7.2/xml/features
+# $1 repository
+function isRepoExisting() {
+  REPO=$(echo $1 | sed -E "s#mvn:(.*)/xml/features\$#\1#")
+  OIFS="$IFS"
+  IFS='/' parts=($REPO)
+  IFS="$OIFS"
+  path="$ODL_HOME/system/"${parts[0]//./\/}"/"${parts[1]}"/"${parts[2]}
+  [ -d "$path" ]
+}
+
+# Add features repository to karaf featuresRepositories configuration
+# $1 repositories to be added
+function addRepository() {
+  CFG=$ODL_FEATURES_BOOT_FILE
+  ORIG=$CFG.orig
+  if isRepoExisting "$1" ; then
+    echo "Add repository: $1"
+    sed -i "\|featuresRepositories|s|$|, $1|" $CFG
+  else
+    echo "Repo does not exist: $1"
+  fi
+}
+
 # Append features to karaf boot feature configuration
 # $1 additional feature to be added
 # $2 repositories to be added (optional)
 function addToFeatureBoot() {
-  CFG=$ODL_HOME/etc/org.apache.karaf.features.cfg
+  CFG=$ODL_FEATURES_BOOT_FILE
   ORIG=$CFG.orig
   if [ -n "$2" ] ; then
-    echo "Add repository: $2"
-    mv $CFG $ORIG
-    cat $ORIG | sed -e "\|featuresRepositories|s|$|,$2|" > $CFG
+    addRepository $2
   fi
   echo "Add boot feature: $1"
-  mv $CFG $ORIG
-  cat $ORIG | sed -e "\|featuresBoot *=|s|$|,$1|" > $CFG
+  sed -i "\|featuresBoot *=|s|$|,$1|" $CFG
 }
 
 # Append features to karaf boot feature configuration
 # $1 search pattern
 # $2 replacement
 function replaceFeatureBoot() {
-  CFG=$ODL_HOME/etc/org.apache.karaf.features.cfg
-  ORIG=$CFG.orig
+  CFG=$ODL_FEATURES_BOOT_FILE
   echo "Replace boot feature $1 with: $2"
   sed -i "/featuresBoot/ s/$1/$2/g" $CFG
+}
+
+# Remove all sdnc specific features
+function cleanupFeatureBoot() {
+  echo "Remove northbound bootfeatures "
+  sed -i "/featuresBoot/ s/,ccsdk-sli-core-all.*$//g" $ODL_FEATURES_BOOT_FILE
 }
 
 function initialize_sdnr() {
@@ -98,13 +143,26 @@ function initialize_sdnr() {
   INITCMD+="$ODL_HOME/system/org/onap/ccsdk/features/sdnr/wt/sdnr-wt-data-provider-setup/$CCSDKFEATUREVERSION/sdnr-dmt.jar "
   INITCMD+="$SDNRDBCOMMAND"
   echo "Execute: $INITCMD"
-  $INITCMD
+  n=0
+  until [ $n -ge 5 ] ; do
+    $INITCMD && break
+    n=$[$n+1]
+    sleep 15
+  done
   return $?
 }
 
 function install_sdnrwt_features() {
   # Repository setup provided via sdnc dockerfile
   if $SDNRWT; then
+    addRepository $SDNRDM_BASE_REPO
+    addRepository $SDNRDM_ONF_REPO
+    addRepository $SDNRDM_ORAN_REPO
+    addRepository $SDNRDM_GRAN_REPO
+
+    if $SDNRONLY; then
+      cleanupFeatureBoot
+    fi
     if $SDNRDM; then
       addToFeatureBoot "$SDNRDM_BOOTFEATURES"
     else
@@ -112,6 +170,7 @@ function install_sdnrwt_features() {
     fi
   fi
 }
+
 
 function install_sdnr_northbound_features() {
   # Repository setup provided via sdnc dockerfile
@@ -181,12 +240,20 @@ function enable_odl_cluster(){
 # -----------------------
 # Main script starts here
 
+echo "Image path=${IMAGEPATH}"
+echo "Image names=${IMAGENAMES}"
 echo "Settings:"
-echo "  ENABLE_ODL_CLUSTER=$ENABLE_ODL_CLUSTER"
-echo "  SDNC_REPLICAS=$SDNC_REPLICAS"
+echo "  USER=$(whoami)"
+echo "  SDNC_BIN=$SDNC_BIN"
+echo "  SDNC_HOME=$SDNC_HOME"
+echo "  ODL_CERT_DIR=$ODL_CERT_DIR"
 echo "  CCSDKFEATUREVERSION=$CCSDKFEATUREVERSION"
+echo "  ENABLE_ODL_CLUSTER=$ENABLE_ODL_CLUSTER"
+echo "  ODL_REMOVEIDMDB=$ODL_REMOVEIDMDB"
+echo "  SDNC_REPLICAS=$SDNC_REPLICAS"
 echo "  SDNRWT=$SDNRWT"
 echo "  SDNRDM=$SDNRDM"
+echo "  SDNRONLY=$SDNRONLY"
 echo "  SDNRINIT=$SDNRINIT"
 echo "  SDNRDBURL=$SDNRDBURL"
 echo "  SDNRDBUSERNAME=$SDNRDBUSERNAME"
@@ -196,7 +263,6 @@ echo "  IS_PRIMARY_CLUSTER=$IS_PRIMARY_CLUSTER"
 echo "  MY_ODL_CLUSTER=$MY_ODL_CLUSTER"
 echo "  PEER_ODL_CLUSTER=$PEER_ODL_CLUSTER"
 echo "  AAF_ENABLED=$SDNC_AAF_ENABLED"
-
 
 if $SDNC_AAF_ENABLED; then
     export SDNC_STORE_DIR=/opt/app/osaaf/local
@@ -219,7 +285,11 @@ if $SDNRINIT ; then
   initialize_sdnr
   init_result=$?
   echo "Result of init script: $init_result"
-  exit $init_result
+  if $SDNRWT ; then
+    echo "Proceed to initialize sdnr"
+  else
+    exit $init_result
+  fi
 fi
 
 if [ ! -f ${SDNC_HOME}/.installed ]
@@ -236,9 +306,17 @@ then
     echo "Installed at `date`" > ${SDNC_HOME}/.installed
 fi
 
-if [ -d /opt/opendaylight/current/certs ] ; then
-  cp /opt/opendaylight/current/certs/* /tmp
-fi
-nohup python ${SDNC_BIN}/installCerts.py &
+# Odl configuration done
+ODL_FEATURES_BOOT=$(sed -n "/featuresBoot =/p" $ODL_FEATURES_BOOT_FILE)
+export ODL_FEATURES_BOOT
 
+if [ -z "$ODL_CERT_DIR" ] ; then
+  echo "No certs provided. Skip installation."
+else
+  echo "Start background cert installer"
+  nohup python ${SDNC_BIN}/installCerts.oom.py &
+fi
+
+echo "Startup opendaylight"
+echo $ODL_FEATURES_BOOT
 exec ${ODL_HOME}/bin/karaf server
