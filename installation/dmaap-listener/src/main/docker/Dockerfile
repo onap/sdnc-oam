@@ -1,11 +1,22 @@
 # Base ubuntu with added packages needed for open ecomp
+FROM alpine:3.8 AS stage0
+
+ENV JAVA_HOME /usr/lib/jvm/java-1.8-openjdk
+ENV SDNC_CONFIG_DIR /opt/onap/sdnc/data/properties
+
+# copy deliverables to opt
+COPY opt /opt
+
+# End of stage 0
+
 FROM alpine:3.8
 
 MAINTAINER SDNC Team (onap-sdnc@lists.onap.org)
 
 ENV JAVA_HOME /usr/lib/jvm/java-1.8-openjdk
 ENV SDNC_CONFIG_DIR /opt/onap/sdnc/data/properties
-    
+
+USER root
 RUN apk update && apk add \
     bash \
     git \
@@ -18,7 +29,12 @@ RUN apk update && apk add \
     unzip \
     rsync
 
-# copy deliverables to opt
-COPY opt /opt
+
+# Create sdnc user
+RUN addgroup -S sdnc && adduser -S sdnc -G sdnc
 
 
+# Copy /opt and change owner/group to sdnc
+COPY --from=stage0 --chown=sdnc:sdnc /opt /opt
+
+USER sdnc
