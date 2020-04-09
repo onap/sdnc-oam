@@ -1,327 +1,351 @@
 [
-  {
-    "id": "c069a9f3.34d638",
-    "type": "dgstart",
-    "name": "DGSTART",
-    "outputs": 1,
-    "x": 168,
-    "y": 75,
-    "z": "d37ca473.74b47",
-    "wires": [
-      [
-        "2f4d91cf.36cc46"
-      ]
-    ]
-  },
-  {
-    "id": "2f4d91cf.36cc46",
-    "type": "service-logic",
-    "name": "DataChange ${project.version}",
-    "module": "DataChange",
-    "version": "${project.version}",
-    "comments": "",
-    "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>",
-    "outputs": 1,
-    "x": 257.0000305175781,
-    "y": 165.88891220092773,
-    "z": "d37ca473.74b47",
-    "wires": [
-      [
-        "550913a5.d552a4"
-      ]
-    ]
-  },
-  {
-    "id": "550913a5.d552a4",
-    "type": "method",
-    "name": "method update-tp-ttp-relationship",
-    "xml": "<method rpc='update-tp-ttp-relationship' mode='sync'>\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 293.1112518310547,
-    "y": 236.22223663330078,
-    "z": "d37ca473.74b47",
-    "wires": [
-      [
-        "1261384d.98d348"
-      ]
-    ]
-  },
-  {
-    "id": "1261384d.98d348",
-    "type": "block",
-    "name": "block : atomic",
-    "xml": "<block atomic=\"true\">\n",
-    "atomic": "false",
-    "comments": "",
-    "outputs": 1,
-    "x": 518.3334350585938,
-    "y": 235.77792358398438,
-    "z": "d37ca473.74b47",
-    "wires": [
-      [
-        "f631c21f.80e608",
-        "d6f41ba6.e863f8",
-        "9c740eae.9ff66"
-      ]
-    ]
-  },
-  {
-    "id": "d6f41ba6.e863f8",
-    "type": "for",
-    "name": "for each node in network-eth",
-    "xml": "<for index='pethidx' start='0' end='`$network-eth.node_length`' >\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 750.8888549804688,
-    "y": 190.33331298828125,
-    "z": "d37ca473.74b47",
-    "wires": [
-      [
-        "9889f298.ed1fc8",
-        "5c75717d.de39a",
-        "f952b49d.52fa6"
-      ]
-    ]
-  },
-  {
-    "id": "9889f298.ed1fc8",
-    "type": "set",
-    "name": "set node-eth",
-    "xml": "<set>\n<parameter name='node-eth.' value='`$network-eth.node[$pethidx].`' />",
-    "comments": "",
-    "x": 1034.111083984375,
-    "y": 97.22221374511719,
-    "z": "d37ca473.74b47",
-    "wires": []
-  },
-  {
-    "id": "5c75717d.de39a",
-    "type": "for",
-    "name": "for each termination point",
-    "xml": "<for index='tidx' start='0' end='`$node-eth.termination-point_length`' >\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 983.4444580078125,
-    "y": 353.111083984375,
-    "z": "d37ca473.74b47",
-    "wires": [
-      [
-        "c60cccd6.642dd",
-        "4b686a78.0dbfdc",
-        "634edb60.ca9b44",
-        "d61d1f77.90dba"
-      ]
-    ]
-  },
-  {
-    "id": "c60cccd6.642dd",
-    "type": "set",
-    "name": "set termination point tp-eth",
-    "xml": "<set>\n<parameter name='tp-eth.' value='`$node-eth.termination-point[$tidx].`' />\n",
-    "comments": "",
-    "x": 1255.111328125,
-    "y": 224.00006103515625,
-    "z": "d37ca473.74b47",
-    "wires": []
-  },
-  {
-    "id": "4b686a78.0dbfdc",
-    "type": "set",
-    "name": "set unique-ltpethId",
-    "xml": "<set>\n<parameter name='unique-ltpethId' value=\"`$unique-node-ethId + '-ltpId-' + $tp-eth.te-tp-id`\" />\n",
-    "comments": "",
-    "x": 1233.000244140625,
-    "y": 261.111083984375,
-    "z": "d37ca473.74b47",
-    "wires": []
-  },
-  {
-    "id": "f631c21f.80e608",
-    "type": "execute",
-    "name": "execute set tmp.network-eth.network-id",
-    "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >\n    <parameter name=\"source\" value=\"`$network-eth.network-id`\"/>\n    <parameter name=\"outputPath\" value=\"tmp.network-eth.network-id\"/>\n    <parameter name=\"target\" value=\"/\"/>\n    <parameter name=\"replacement\" value=\"-\"/>\n    ",
-    "comments": "",
-    "outputs": 1,
-    "x": 708.9935302734375,
-    "y": 54.993499755859375,
-    "z": "d37ca473.74b47",
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "f952b49d.52fa6",
-    "type": "set",
-    "name": "set local variables",
-    "xml": "<set>\n<parameter name='unique-network-ethId' value='`$tmp.network-eth.network-id`' />\n<parameter name='unique-node-ethId' value=\"`'networkId-' + $unique-network-ethId + '-nodeId-' + $node-eth.node-id`\" />\n",
-    "comments": "",
-    "x": 1033,
-    "y": 145,
-    "z": "d37ca473.74b47",
-    "wires": []
-  },
-  {
-    "id": "9c740eae.9ff66",
-    "type": "execute",
-    "name": "execute set tmp.network-otn.network-id",
-    "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >\n    <parameter name=\"source\" value=\"`$network-otn.network-id`\"/>\n    <parameter name=\"outputPath\" value=\"tmp.network-otn.network-id\"/>\n    <parameter name=\"target\" value=\"/\"/>\n    <parameter name=\"replacement\" value=\"-\"/>\n    ",
-    "comments": "",
-    "outputs": 1,
-    "x": 706,
-    "y": 94,
-    "z": "d37ca473.74b47",
-    "wires": [
-      []
-    ]
-  },
-  {
-    "id": "75e07276.34af4c",
-    "type": "for",
-    "name": "for each tunnel termination point in otn",
-    "xml": "<for index='ttidx' start='0' end='`$node.te.tunnel-termination-point_length`' >\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1609,
-    "y": 408,
-    "z": "d37ca473.74b47",
-    "wires": [
-      [
-        "74200ec3.9b2e88",
-        "b86a8b99.9fa22",
-        "f5f85bac.6cdcb",
-        "45e7bcc7.d12924"
-      ]
-    ]
-  },
-  {
-    "id": "74200ec3.9b2e88",
-    "type": "set",
-    "name": "set tunnel termination point",
-    "xml": "<set>\n<parameter name='ttp.' value='`$node-otn.te.tunnel-termination-point[$ttidx].`' />\n",
-    "comments": "",
-    "x": 1985,
-    "y": 333,
-    "z": "d37ca473.74b47",
-    "wires": []
-  },
-  {
-    "id": "b86a8b99.9fa22",
-    "type": "set",
-    "name": "set unique-ttpId",
-    "xml": "<set>\n<parameter name='unique-ttpId' value=\"`$unique-node-otnId + '-ttpId-' + $ttp.tunnel-tp-id`\" />\n",
-    "comments": "",
-    "x": 1962.888916015625,
-    "y": 400.111083984375,
-    "z": "d37ca473.74b47",
-    "wires": []
-  },
-  {
-    "id": "634edb60.ca9b44",
-    "type": "set",
-    "name": "set tp-inter-layer-lock-id",
-    "xml": "<set>\n<parameter name='tp-inter-layer-lock-id' value='`$node-eth.termination-point[$tidx].te.inter-layer-lock-id[0]`' />\n",
-    "comments": "",
-    "x": 1273,
-    "y": 301,
-    "z": "d37ca473.74b47",
-    "wires": []
-  },
-  {
-    "id": "d61d1f77.90dba",
-    "type": "for",
-    "name": "for each node in network-otn",
-    "xml": "<for index='potnidx' start='0' end='`$network-otn.node_length`' >\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1291,
-    "y": 350,
-    "z": "d37ca473.74b47",
-    "wires": [
-      [
-        "75e07276.34af4c",
-        "81ad0d1b.593018",
-        "65d2d272.734f34"
-      ]
-    ]
-  },
-  {
-    "id": "81ad0d1b.593018",
-    "type": "set",
-    "name": "set node-otn",
-    "xml": "<set>\n<parameter name='node-otn.' value='`$network-otn.node[$potnidx].`' />",
-    "comments": "",
-    "x": 1585,
-    "y": 320,
-    "z": "d37ca473.74b47",
-    "wires": []
-  },
-  {
-    "id": "65d2d272.734f34",
-    "type": "set",
-    "name": "set local variables",
-    "xml": "<set>\n<parameter name='unique-network-otnId' value='`$tmp.network-otn.network-id`' />\n<parameter name='unique-node-otnId' value=\"`'networkId-' + $unique-network-otnId + '-nodeId-' + $node-otn.node-id`\" />\n",
-    "comments": "",
-    "x": 1583.888916015625,
-    "y": 367.7777862548828,
-    "z": "d37ca473.74b47",
-    "wires": []
-  },
-  {
-    "id": "f5f85bac.6cdcb",
-    "type": "set",
-    "name": "set ttp-inter-layer-lock-id",
-    "xml": "<set>\n<parameter name='ttp-inter-layer-lock-id' value='`$node-otn.te.tunnel-termination-point[$ttidx].inter-layer-lock-id`' />\n",
-    "comments": "",
-    "x": 1984,
-    "y": 451,
-    "z": "d37ca473.74b47",
-    "wires": []
-  },
-  {
-    "id": "45e7bcc7.d12924",
-    "type": "switchNode",
-    "name": "switch tp-inter-layer-lock-id",
-    "xml": "<switch test='tp-inter-layer-lock-id'>\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 1927,
-    "y": 506,
-    "z": "d37ca473.74b47",
-    "wires": [
-      [
-        "7b1ad64c.6662d"
-      ]
-    ]
-  },
-  {
-    "id": "7b1ad64c.6662d",
-    "type": "outcome",
-    "name": "ttp-inter-layer-lock-id",
-    "xml": "<outcome value='ttp-inter-layer-lock-id'>\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 2036,
-    "y": 603,
-    "z": "d37ca473.74b47",
-    "wires": [
-      [
-        "d7c8dbff.d22ff"
-      ]
-    ]
-  },
-  {
-    "id": "d7c8dbff.d22ff",
-    "type": "save",
-    "name": "save p-interface relationship to ttp in AAI",
-    "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface:relationship-list' \n      key='p-interface.interface-name = $unique-ltpethId' force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[1].related-to\" value=\"tunnel-termination-point\" />\n<parameter name=\"relationship-list.relationship[1].related-link\" value=\"/network/tunnel-termination-points/tunnel-termination-point/ + `$unique-ttpId`\" />\n<parameter name=\"relationship-list.relationship[1].relationship-data[0].relationship-key\" value=\"tunnel-termination-point.tunnel-tp-id\" />\n<parameter name=\"relationship-list.relationship[1].relationship-data[0].relationship-value\" value=\"`$unique-ttpId`\" />\n",
-    "comments": "",
-    "outputs": 1,
-    "x": 2354,
-    "y": 603,
-    "z": "d37ca473.74b47",
-    "wires": [
-      []
-    ]
-  }
+    {
+        "id": "f3ed8bda.981eb",
+        "type": "dgstart",
+        "name": "DGSTART",
+        "outputs": 1,
+        "x": 126,
+        "y": 86.00650024414062,
+        "z": "8966128c.40fc9",
+        "wires": [
+            [
+                "1edaf826.be0fa"
+            ]
+        ]
+    },
+    {
+        "id": "1edaf826.be0fa",
+        "type": "service-logic",
+        "name": "DataChange ${project.version}",
+        "module": "DataChange",
+        "version": "${project.version}",
+        "comments": "",
+        "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>",
+        "outputs": 1,
+        "x": 215.00003051757812,
+        "y": 176.89541244506836,
+        "z": "8966128c.40fc9",
+        "wires": [
+            [
+                "3d56f688.012602"
+            ]
+        ]
+    },
+    {
+        "id": "3d56f688.012602",
+        "type": "method",
+        "name": "method update-tp-ttp-relationship",
+        "xml": "<method rpc='update-tp-ttp-relationship' mode='sync'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 251.1112518310547,
+        "y": 247.2287368774414,
+        "z": "8966128c.40fc9",
+        "wires": [
+            [
+                "91a7d40.f3c79b"
+            ]
+        ]
+    },
+    {
+        "id": "91a7d40.f3c79b",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 476.33343505859375,
+        "y": 246.784423828125,
+        "z": "8966128c.40fc9",
+        "wires": [
+            [
+                "44cf69ab.02fc28",
+                "6f71423b.e63cac",
+                "8b1ad0d7.d3282"
+            ]
+        ]
+    },
+    {
+        "id": "6f71423b.e63cac",
+        "type": "for",
+        "name": "for each node in network-eth",
+        "xml": "<for index='pethidx' start='0' end='`$network-eth.node_length`' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 708.8888549804688,
+        "y": 201.33981323242188,
+        "z": "8966128c.40fc9",
+        "wires": [
+            [
+                "c451c605.7ae0a",
+                "70ab1d73.78dfa4",
+                "7bcb2ba2.9953f4"
+            ]
+        ]
+    },
+    {
+        "id": "c451c605.7ae0a",
+        "type": "set",
+        "name": "set node-eth",
+        "xml": "<set>\n<parameter name='node-eth.' value='`$network-eth.node[$pethidx].`' />",
+        "comments": "",
+        "x": 992.111083984375,
+        "y": 108.22871398925781,
+        "z": "8966128c.40fc9",
+        "wires": []
+    },
+    {
+        "id": "70ab1d73.78dfa4",
+        "type": "for",
+        "name": "for each termination point",
+        "xml": "<for index='tidx' start='0' end='`$node-eth.termination-point_length`' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 941.4444580078125,
+        "y": 364.1175842285156,
+        "z": "8966128c.40fc9",
+        "wires": [
+            [
+                "ae76cdd8.d0a408",
+                "f5cb00b6.301068",
+                "a58125ba.f3ece",
+                "6948417f.bffae",
+                "eb8eee0c.443eb8"
+            ]
+        ]
+    },
+    {
+        "id": "ae76cdd8.d0a408",
+        "type": "set",
+        "name": "set termination point tp-eth",
+        "xml": "<set>\n<parameter name='tp-eth.' value='`$node-eth.termination-point[$tidx].`' />\n",
+        "comments": "",
+        "x": 1213.111328125,
+        "y": 235.00656127929688,
+        "z": "8966128c.40fc9",
+        "wires": []
+    },
+    {
+        "id": "f5cb00b6.301068",
+        "type": "set",
+        "name": "set unique-ltpethId",
+        "xml": "<set>\n<parameter name='unique-ltpethId' value=\"`$unique-node-ethId + '-ltpId-' + $tp-eth.te-tp-id`\" />\n",
+        "comments": "",
+        "x": 1191.000244140625,
+        "y": 272.1175842285156,
+        "z": "8966128c.40fc9",
+        "wires": []
+    },
+    {
+        "id": "44cf69ab.02fc28",
+        "type": "execute",
+        "name": "execute set tmp.network-eth.network-id",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >\n    <parameter name=\"source\" value=\"`$network-eth.network-id`\"/>\n    <parameter name=\"outputPath\" value=\"tmp.network-eth.network-id\"/>\n    <parameter name=\"target\" value=\"/\"/>\n    <parameter name=\"replacement\" value=\"-\"/>\n    ",
+        "comments": "",
+        "outputs": 1,
+        "x": 666.9935302734375,
+        "y": 66,
+        "z": "8966128c.40fc9",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "7bcb2ba2.9953f4",
+        "type": "set",
+        "name": "set local variables",
+        "xml": "<set>\n<parameter name='unique-network-ethId' value='`$tmp.network-eth.network-id`' />\n<parameter name='unique-node-ethId' value=\"`'networkId-' + $unique-network-ethId + '-nodeId-' + $node-eth.node-id`\" />\n",
+        "comments": "",
+        "x": 991,
+        "y": 156.00650024414062,
+        "z": "8966128c.40fc9",
+        "wires": []
+    },
+    {
+        "id": "8b1ad0d7.d3282",
+        "type": "execute",
+        "name": "execute set tmp.network-otn.network-id",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >\n    <parameter name=\"source\" value=\"`$network-otn.network-id`\"/>\n    <parameter name=\"outputPath\" value=\"tmp.network-otn.network-id\"/>\n    <parameter name=\"target\" value=\"/\"/>\n    <parameter name=\"replacement\" value=\"-\"/>\n    ",
+        "comments": "",
+        "outputs": 1,
+        "x": 664,
+        "y": 105.00650024414062,
+        "z": "8966128c.40fc9",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "3e8d4c9d.81492c",
+        "type": "for",
+        "name": "for each tunnel termination point in otn",
+        "xml": "<for index='ttidx' start='0' end='`$node.te.tunnel-termination-point_length`' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1567,
+        "y": 419.0065002441406,
+        "z": "8966128c.40fc9",
+        "wires": [
+            [
+                "c8d54563.247c18",
+                "5e04ba3c.b57a04",
+                "f0519db1.196698",
+                "86fe0338.dea2e8",
+                "14bac025.125a4"
+            ]
+        ]
+    },
+    {
+        "id": "c8d54563.247c18",
+        "type": "set",
+        "name": "set tunnel termination point",
+        "xml": "<set>\n<parameter name='ttp.' value='`$node-otn.te.tunnel-termination-point[$ttidx].`' />\n",
+        "comments": "",
+        "x": 1943,
+        "y": 344.0065002441406,
+        "z": "8966128c.40fc9",
+        "wires": []
+    },
+    {
+        "id": "5e04ba3c.b57a04",
+        "type": "set",
+        "name": "set unique-ttpId",
+        "xml": "<set>\n<parameter name='unique-ttpId' value=\"`$unique-node-otnId + '-ttpId-' + $ttp.tunnel-tp-id`\" />\n",
+        "comments": "",
+        "x": 1920.888916015625,
+        "y": 411.1175842285156,
+        "z": "8966128c.40fc9",
+        "wires": []
+    },
+    {
+        "id": "a58125ba.f3ece",
+        "type": "set",
+        "name": "set tp-inter-layer-lock-id",
+        "xml": "<set>\n<parameter name='tp-inter-layer-lock-id' value='`$node-eth.termination-point[$tidx].te.inter-layer-lock-id[0]`' />\n",
+        "comments": "",
+        "x": 1231,
+        "y": 312.0065002441406,
+        "z": "8966128c.40fc9",
+        "wires": []
+    },
+    {
+        "id": "6948417f.bffae",
+        "type": "for",
+        "name": "for each node in network-otn",
+        "xml": "<for index='potnidx' start='0' end='`$network-otn.node_length`' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1249,
+        "y": 361.0065002441406,
+        "z": "8966128c.40fc9",
+        "wires": [
+            [
+                "3e8d4c9d.81492c",
+                "a37094cf.0ec268",
+                "f9e7891b.a33b9"
+            ]
+        ]
+    },
+    {
+        "id": "a37094cf.0ec268",
+        "type": "set",
+        "name": "set node-otn",
+        "xml": "<set>\n<parameter name='node-otn.' value='`$network-otn.node[$potnidx].`' />",
+        "comments": "",
+        "x": 1543,
+        "y": 331.0065002441406,
+        "z": "8966128c.40fc9",
+        "wires": []
+    },
+    {
+        "id": "f9e7891b.a33b9",
+        "type": "set",
+        "name": "set local variables",
+        "xml": "<set>\n<parameter name='unique-network-otnId' value='`$tmp.network-otn.network-id`' />\n<parameter name='unique-node-otnId' value=\"`'networkId-' + $unique-network-otnId + '-nodeId-' + $node-otn.node-id`\" />\n",
+        "comments": "",
+        "x": 1541.888916015625,
+        "y": 378.78428649902344,
+        "z": "8966128c.40fc9",
+        "wires": []
+    },
+    {
+        "id": "f0519db1.196698",
+        "type": "set",
+        "name": "set ttp-inter-layer-lock-id",
+        "xml": "<set>\n<parameter name='ttp-inter-layer-lock-id' value='`$node-otn.te.tunnel-termination-point[$ttidx].inter-layer-lock-id`' />\n",
+        "comments": "",
+        "x": 1942,
+        "y": 462.0065002441406,
+        "z": "8966128c.40fc9",
+        "wires": []
+    },
+    {
+        "id": "86fe0338.dea2e8",
+        "type": "switchNode",
+        "name": "switch tp-inter-layer-lock-id",
+        "xml": "<switch test='tp-inter-layer-lock-id'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1885,
+        "y": 517.0065002441406,
+        "z": "8966128c.40fc9",
+        "wires": [
+            [
+                "bece73d9.c8717"
+            ]
+        ]
+    },
+    {
+        "id": "bece73d9.c8717",
+        "type": "outcome",
+        "name": "ttp-inter-layer-lock-id",
+        "xml": "<outcome value='ttp-inter-layer-lock-id'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1994,
+        "y": 614.0065002441406,
+        "z": "8966128c.40fc9",
+        "wires": [
+            [
+                "377503ca.868e7c"
+            ]
+        ]
+    },
+    {
+        "id": "377503ca.868e7c",
+        "type": "save",
+        "name": "save p-interface relationship to ttp in AAI",
+        "xml": "<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface:relationship-list' \n      key='p-interface.interface-name = $unique-ltpethId' force=\"true\" pfx=\"tmp.AnAI-data\">\n<parameter name=\"relationship-list.relationship[1].related-to\" value=\"tunnel-termination-point\" />\n<parameter name=\"relationship-list.relationship[1].related-link\" value=\"/network/tunnel-termination-points/tunnel-termination-point/ + `$unique-ttpId`\" />\n<parameter name=\"relationship-list.relationship[1].relationship-data[0].relationship-key\" value=\"tunnel-termination-point.tunnel-tp-id\" />\n<parameter name=\"relationship-list.relationship[1].relationship-data[0].relationship-value\" value=\"`$unique-ttpId`\" />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2312,
+        "y": 614.0065002441406,
+        "z": "8966128c.40fc9",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "eb8eee0c.443eb8",
+        "type": "set",
+        "name": "unset termination point tp-eth",
+        "xml": "<set>\n<parameter name='tp-eth.' value='' />\n",
+        "comments": "",
+        "x": 1208,
+        "y": 198,
+        "z": "8966128c.40fc9",
+        "wires": []
+    },
+    {
+        "id": "14bac025.125a4",
+        "type": "set",
+        "name": "unset tunnel termination point",
+        "xml": "<set>\n<parameter name='ttp.' value='' />\n",
+        "comments": "",
+        "x": 1933,
+        "y": 305,
+        "z": "8966128c.40fc9",
+        "wires": []
+    }
 ]

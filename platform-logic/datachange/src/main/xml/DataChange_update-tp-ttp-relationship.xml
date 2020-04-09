@@ -1,6 +1,6 @@
 <service-logic
-        xmlns='http://www.onap.org/sdnc/svclogic'
-        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>
     <method rpc='update-tp-ttp-relationship' mode='sync'>
         <block atomic="true">
             <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
@@ -25,6 +25,9 @@
                 </set>
                 <for index='tidx' start='0' end='`$node-eth.termination-point_length`' >
                     <set>
+                        <parameter name='tp-eth.' value='' />
+                    </set>
+                    <set>
                         <parameter name='tp-eth.' value='`$node-eth.termination-point[$tidx].`' />
                     </set>
                     <set>
@@ -43,6 +46,9 @@
                         </set>
                         <for index='ttidx' start='0' end='`$node.te.tunnel-termination-point_length`' >
                             <set>
+                                <parameter name='ttp.' value='' />
+                            </set>
+                            <set>
                                 <parameter name='ttp.' value='`$node-otn.te.tunnel-termination-point[$ttidx].`' />
                             </set>
                             <set>
@@ -53,8 +59,8 @@
                             </set>
                             <switch test='tp-inter-layer-lock-id'>
                                 <outcome value='ttp-inter-layer-lock-id'>
-                                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface:relationship-list'
-                                          key='p-interface.interface-name = $unique-ltpethId' force="true" pfx="tmp.AnAI-data">
+                                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface:relationship-list' 
+      key='p-interface.interface-name = $unique-ltpethId' force="true" pfx="tmp.AnAI-data">
                                         <parameter name="relationship-list.relationship[1].related-to" value="tunnel-termination-point" />
                                         <parameter name="relationship-list.relationship[1].related-link" value="/network/tunnel-termination-points/tunnel-termination-point/ + `$unique-ttpId`" />
                                         <parameter name="relationship-list.relationship[1].relationship-data[0].relationship-key" value="tunnel-termination-point.tunnel-tp-id" />
