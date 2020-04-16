@@ -60,7 +60,10 @@
         "z": "27c6cdb6.f4809a",
         "wires": [
             [
-                "4dd86cf3.942054"
+                "4dd86cf3.942054",
+                "1a3fcf2c.299b01",
+                "18e76f04.abb6f9",
+                "4f7b81dc.d4d6f"
             ]
         ]
     },
@@ -104,8 +107,8 @@
         "xml": "<outcome value='failure'>\n",
         "comments": "",
         "outputs": 1,
-        "x": 873.5666656494141,
-        "y": 276,
+        "x": 882.566650390625,
+        "y": 305,
         "z": "27c6cdb6.f4809a",
         "wires": [
             [
@@ -121,8 +124,8 @@
         "atomic": "true",
         "comments": "",
         "outputs": 1,
-        "x": 1035.566665649414,
-        "y": 271,
+        "x": 1019.566650390625,
+        "y": 303,
         "z": "27c6cdb6.f4809a",
         "wires": [
             [
@@ -154,8 +157,8 @@
         "name": "return failure",
         "xml": "<return status='failure'>\n<parameter name='error-code' value='500' />\n<parameter name='error-message' value='Error deleting the Service' />\n",
         "comments": "",
-        "x": 1203.566665649414,
-        "y": 268,
+        "x": 1266.566650390625,
+        "y": 276,
         "z": "27c6cdb6.f4809a",
         "wires": []
     },
@@ -315,6 +318,74 @@
         "comments": "",
         "x": 1762.13330078125,
         "y": 627.566650390625,
+        "z": "27c6cdb6.f4809a",
+        "wires": []
+    },
+    {
+        "id": "18e76f04.abb6f9",
+        "type": "execute",
+        "name": "split node-id a-end retrieved from DB",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >\n<parameter name=\"original_string\" value='`$controller-id1`'/>\n<parameter name=\"regex\" value=\"_\"/>\n<parameter name=\"ctx_memory_result_key\" value=\"param-prefix\"/>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 812.5,
+        "y": 162.5,
+        "z": "27c6cdb6.f4809a",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1a3fcf2c.299b01",
+        "type": "get-resource",
+        "name": "get resources from DB -controller_id",
+        "xml": "<get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'\nkey='SELECT controller_id\nfrom REQUEST_DETAILS\nWHERE request_id = $domain-service1'\npfx='detail-db1'>",
+        "comments": "",
+        "outputs": 1,
+        "x": 765.61669921875,
+        "y": 90.61666870117188,
+        "z": "27c6cdb6.f4809a",
+        "wires": [
+            [
+                "7d7099fb.e2d5f"
+            ]
+        ]
+    },
+    {
+        "id": "7d7099fb.e2d5f",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 987.61669921875,
+        "y": 58.616668701171875,
+        "z": "27c6cdb6.f4809a",
+        "wires": [
+            [
+                "cc76d0c8.367a88"
+            ]
+        ]
+    },
+    {
+        "id": "cc76d0c8.367a88",
+        "type": "set",
+        "name": "set",
+        "xml": "<set>\n<parameter name='controller-id1' value='`$detail-db1.controller-id`' />\n\n\n\n\n\n\n\n\n\n\n",
+        "comments": "",
+        "x": 1094.61669921875,
+        "y": 92.61666870117188,
+        "z": "27c6cdb6.f4809a",
+        "wires": []
+    },
+    {
+        "id": "4f7b81dc.d4d6f",
+        "type": "set",
+        "name": "set domain-services",
+        "xml": "<set>\n<parameter name='domain-type' value='`$param-prefix[0]`' />\n<parameter name='controller-ip' value='`$param-prefix[1]`' />\n<parameter name='optical-service-delete-input.request-id' value=\"`$domain-service1`\" />\n<parameter name='optical-service-delete-input.payload.service-name' value=\"`$service-name + $param-prefix[2]`\"/>",
+        "comments": "",
+        "x": 777.61669921875,
+        "y": 244.61666870117188,
         "z": "27c6cdb6.f4809a",
         "wires": []
     }
