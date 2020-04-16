@@ -24,6 +24,7 @@ pfx='db-aend'>
                         <parameter name='aend-cep-list' value='`$db-aend.connection-point`' />
                         <parameter name='aend-nep' value='`$db-aend.interface-name`' />
                         <parameter name='aend-rate' value='`$db-aend.rate`' />
+                        <parameter name='esr-id' value='`$db-aend.controller-id`' />
                     </set>
                 </outcome>
             </get-resource>
@@ -322,8 +323,13 @@ pfx='zend'      local-only='false'></get-resource>
                     </block>
                 </outcome>
             </switch>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                <parameter name="original_string" value='`$esr-id`'/>
+                <parameter name="regex" value="_"/>
+                <parameter name="ctx_memory_result_key" value="new-esr"/>
+            </execute>
             <set>
-                <parameter name='service-name' value="`$optical-service-create-input.payload.service-name`" />
+                <parameter name='service-name' value="`$optical-service-create-input.payload.service-name +'_' + $new-esr[2]`"/>
                 <parameter name='svc-action' value="CREATE" />
             </set>
             <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">

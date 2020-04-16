@@ -3,6 +3,28 @@
     xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='optical-service' version='${project.version}'>
     <method rpc='service-delete-msa' mode='sync'>
         <block atomic="true">
+            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+key='SELECT controller_id
+from REQUEST_DETAILS
+WHERE request_id = $domain-service1'
+pfx='detail-db1'>
+                <outcome value='success'>
+                    <set>
+                        <parameter name='controller-id1' value='`$detail-db1.controller-id`' />
+                    </set>
+                </outcome>
+            </get-resource>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                <parameter name="original_string" value='`$controller-id1`'/>
+                <parameter name="regex" value="_"/>
+                <parameter name="ctx_memory_result_key" value="param-prefix"/>
+            </execute>
+            <set>
+                <parameter name='domain-type' value='`$param-prefix[0]`' />
+                <parameter name='controller-ip' value='`$param-prefix[1]`' />
+                <parameter name='optical-service-delete-input.request-id' value="`$domain-service1`" />
+                <parameter name='optical-service-delete-input.payload.service-name' value="`$service-name + $param-prefix[2]`"/>
+            </set>
             <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                 <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/optical-service-delete-msa.json'`" />
                 <parameter name="restapiUrl" value="`$controller-ip + '/cxf/openroadm/openroadm-services/' + $optical-service-delete-input.payload.service-name`"/>
