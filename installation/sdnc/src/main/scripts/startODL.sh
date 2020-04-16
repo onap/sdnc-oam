@@ -171,7 +171,7 @@ then
 fi
 
 cp /opt/opendaylight/current/certs/* /tmp
-cp -r /opt/app/osaaf/local/. /tmp
+cp /var/custom-certs/* /tmp
 
 # Create ODL data log directory (it nornally is created after karaf
 # is started, but needs to exist before installCerts.py runs)
