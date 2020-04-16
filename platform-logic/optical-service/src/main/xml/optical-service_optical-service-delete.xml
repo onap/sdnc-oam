@@ -15,6 +15,7 @@ pfx='detail-db'>
                 <outcome value='success'>
                     <set>
                         <parameter name='domain-req' value='`$detail-db.domain-requests`' />
+                        <parameter name='delete-acc-svc-id' value='`$detail-db.service-instance-id`' />
                     </set>
                 </outcome>
             </get-resource>
@@ -27,9 +28,6 @@ pfx='detail-db'>
                 <parameter name='notification-url' value="http://167.254.204.152:31817/asyncNotification" />
                 <parameter name='domain-service1' value='`$param-prefix1[0]`' />
                 <parameter name='domain-service2' value='`$param-prefix1[1]`' />
-            </set>
-            <set>
-                <parameter name='access-id' value="`$optical-service-delete-input.request-id`" />
             </set>
             <for index='ppx' start='0' end='`$param-prefix1_length`' >
                 <switch test='`$param-prefix1_length`'>
@@ -55,7 +53,7 @@ pfx='detail-db1'>
                                 <parameter name='domain-type' value='`$param-prefix[0]`' />
                                 <parameter name='controller-ip' value='`$param-prefix[1]`' />
                                 <parameter name='optical-service-delete-input.request-id' value="`$domain-service1`" />
-                                <parameter name='optical-service-delete-input.payload.service-name' value="`$optical-service-delete-input.payload.param[0].value + '_MDONS-OTN'`"/>
+                                <parameter name='optical-service-delete-input.payload.service-name' value="`$optical-service-delete-input.payload.param[0].value + '_MDONS-OTN_'`"/>
                             </set>
                             <switch test='`$domain-type`'>
                                 <outcome value='MSA'>
@@ -128,7 +126,7 @@ pfx='detail-db11'>
                                     </execute>
                                     <set>
                                         <parameter name='optical-service-delete-input.request-id' value="`$domain-service1`" />
-                                        <parameter name='optical-service-delete-input.payload.service-name' value="`$optical-service-delete-input.payload.param[0].value + '_MDONS-OTN-TAPI-1'`"/>
+                                        <parameter name='optical-service-delete-input.payload.service-name' value="`$optical-service-delete-input.payload.param[0].value + '_MDONS-OTN_'`"/>
                                         <parameter name='domain-type' value='`$domain1[0]`' />
                                         <parameter name='controller-ip' value='`$domain1[1]`' />
                                     </set>
@@ -182,7 +180,7 @@ pfx='detail-db22'>
                                     </execute>
                                     <set>
                                         <parameter name='optical-service-delete-input.request-id' value="`$domain-service2`" />
-                                        <parameter name='optical-service-delete-input.payload.service-name' value="`$optical-service-delete-input.payload.param[0].value + '_MDONS-OTN-TAPI-2'`"/>
+                                        <parameter name='optical-service-delete-input.payload.service-name' value="`$optical-service-delete-input.payload.param[0].value + '_MDONS-OTN_'`"/>
                                         <parameter name='domain-type' value='`$domain2[0]`' />
                                         <parameter name='controller-ip' value='`$domain2[1]`' />
                                     </set>
@@ -256,6 +254,28 @@ pfx='detail-db22'>
                                     <delete plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource'
     resource="SQL"
     key="DELETE FROM REQUEST_DETAILS WHERE request_id = $access-id"></delete>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                        <parameter name="file" value="/opt/opendaylight/current/data/log/optical-service-create.log" />
+                                        <parameter name="level" value="info" />
+                                        <parameter name="field1" value="`'domain rquest_' + $domain-requests`"/>
+                                        <parameter name="field2" value="`'Access rquest_' + $as-request-id`"/>
+                                    </record>
+                                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+resource="service-instance"
+ key='customer.global-customer-id = $output.global-customer-id AND
+     service-subscription.service-type = $output.service-type AND
+     service-instance.service-instance-id = $delete-acc-svc-id' 
+pfx='acc-serv-dl'      local-only='false'></get-resource>
+                                    <set>
+                                        <parameter name='link-name' value='`$acc-serv-dl.relationship-list.relationship[0].relationship-data[0].relationship-value`' />
+                                    </set>
+                                    <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' 
+force='true'
+resource='logical-link'
+     key='logical-link.link-name = $link-name '
+      local-only='false'>
+                                        <parameter name='operational-status' value='available' />
+                                    </update>
                                     <return status='success'>
                                         <parameter name="error-code" value="200" />
                                         <parameter name="error-message" value="Service Deleted Successfully" />

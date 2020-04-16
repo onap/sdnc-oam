@@ -3,16 +3,30 @@
     xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='optical-service' version='${project.version}'>
     <method rpc='service-delete-tapi' mode='sync'>
         <block atomic="true">
+            <set>
+                <parameter name='request-id' value='`$optical-service-delete-input.request-id`' />
+            </set>
             <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
                 <parameter name="file" value="/opt/opendaylight/current/data/log/service-create-tapi.log" />
                 <parameter name="level" value="info" />
                 <parameter name="field1" value="Inside optical service delete tapi"/>
             </record>
+            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' 
+key='SELECT * from REQUEST_DETAILS WHERE request_id = $request-id '
+pfx='output'></get-resource>
             <set>
-                <parameter name='request-id' value='`$optical-service-delete-input.request-id`' />
+                <parameter name='esr-id' value='`$output.controller-id`' />
+            </set>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                <parameter name="original_string" value='`$esr-id`'/>
+                <parameter name="regex" value="_"/>
+                <parameter name="ctx_memory_result_key" value="new-esr"/>
+            </execute>
+            <set>
+                <parameter name='service-name' value="`$optical-service-delete-input.payload.service-name +  $new-esr[2]`" />
             </set>
             <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                <parameter name="restapiUrl" value="` $controller-ip + $prop.tapi.get.services.url + $optical-service-delete-input.payload.service-name`" />
+                <parameter name="restapiUrl" value="` $controller-ip + $prop.tapi.get.services.url + $service-name`" />
                 <parameter name="restapiUser" value="admin"/>
                 <parameter name="restapiPassword" value="admin"/>
                 <parameter name="httpMethod" value="GET"/>
@@ -43,7 +57,7 @@ from TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE
 WHERE interface_name = $zend-nep'
 pfx='db-zend'></get-resource>
                         <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                            <parameter name="restapiUrl" value="` $controller-ip + $prop.tapi.delete.service.url + $optical-service-delete-input.payload.service-name`" />
+                            <parameter name="restapiUrl" value="` $controller-ip + $prop.tapi.delete.service.url + $service-name`" />
                             <parameter name="restapiUser" value="admin"/>
                             <parameter name="restapiPassword" value="admin"/>
                             <parameter name="httpMethod" value="DELETE"/>
@@ -125,9 +139,6 @@ pfx='zend'      local-only='false'></get-resource>
 resource='SQL' 
 key='UPDATE TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE SET connection_point = $zend-new WHERE interface_name = $zend-nep'
 force='true' pfx='save-result'></save>
-                                    <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' 
-key='SELECT * from REQUEST_DETAILS WHERE request_id = $request-id '
-pfx='output'></get-resource>
                                     <delete plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
 resource="service-instance"
 key='customer.global-customer-id = $output.global-customer-id AND
