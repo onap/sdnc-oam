@@ -12,6 +12,9 @@
                     </return>
                 </outcome>
             </switch>
+            <set>
+                <parameter name='CONSTANT' value='success'/>
+            </set>
             <for silentFailure='true'  index='vdns-index' start='0' end='`$jsonContextPrefix.resolution-summary_length`' >
                 <block atomic="true">
                     <set>
@@ -42,9 +45,22 @@
                                 <set>
                                     <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].name' 
 	value='`$jsonContextPrefix.resolution-summary[$vdns-index].name`'/>
-                                    <parameter name='service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].value' 
-	value='`$jsonContextPrefix.resolution-summary[$vdns-index].value`'/>
                                 </set>
+                                <switch test="`$jsonContextPrefix.resolution-summary[$vdns-index].status == 'success' and
+		$jsonContextPrefix.resolution-summary[$vdns-index].value == ''`">
+                                    <outcome value='true'>
+                                        <set>
+                                            <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].value`' 
+	value='`$CONSTANT`'/>
+                                        </set>
+                                    </outcome>
+                                    <outcome value='false'>
+                                        <set>
+                                            <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].value`' 
+	value='`$jsonContextPrefix.resolution-summary[$vdns-index].value`'/>
+                                        </set>
+                                    </outcome>
+                                </switch>
                                 <set>
                                     <parameter name='`service-data.vnfs.vnf[$vnf-index].vnf-data.vf-modules.vf-module[$vf-module-index].vf-module-data.vf-module-topology.vf-module-parameters.param[$highnum].resource-resolution-data.capability-name`' 
 	value='`$jsonContextPrefix.resolution-summary[$vdns-index].dictionary-source`'/>
