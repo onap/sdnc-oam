@@ -61,7 +61,6 @@
                                         <set>
                                             <parameter name='vf-module-request-input.' value='`$ctx.vf-module-data.vf-module-request-input.`' />
                                         </set>
-                                        <call module='GENERIC-RESOURCE-API' rpc='sdwan-get-vf-module-lanport-param' mode='sync' ></call>
                                     </block>
                                 </outcome>
                             </switch>
@@ -71,17 +70,18 @@
             </switch>
             <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="generic-vnf" 
-		key="'generic-vnf.vnf-id = $service-data.vnfs.vnf[$vnf-index].vnf-id' 
-		AND depth = '0'"
+		key="generic-vnf.vnf-id = $service-data.vnfs.vnf[$vnf-index].vnf-id"
         pfx='tmp.aai.generic-vnf' local-only='false' >
+                <!--AND depth = '0'"-->
                 <outcome value='success'>
                     <block>
                         <for silentFailure='true' index='vidx' start='0' end='`$tmp.aai.generic-vnf.relationship-list.relationship_length`' >
-                            <switch test='`$tmp.aai.src-pnf.relationship-list.relationship[$vidx].related-to`'>
+                            <switch test='`$tmp.aai.generic-vnf.relationship-list.relationship[$vidx].related-to`'>
                                 <outcome value='uni'>
                                     <block atomic="true">
                                         <set>
-                                            <parameter name='`tmp.unis.uni[$vidx].tpId`' value="`$tmp.aai.src-pnf.relationship-list.relationship[$vidx].relationship-data[0].relationship-value`" />
+                                            <!--<parameter name='`tmp.unis.uni[$vidx].tpId`' value="`$tmp.aai.src-pnf.relationship-list.relationship[$vidx].relationship-data[0].relationship-value`" />-->
+                                            <parameter name='tmp.tpId' value="`$tmp.aai.uni.tpId`" />
                                         </set>
                                         <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
                                             <parameter name="original_string" value='`tmp.unis.uni[$vidx].tpId`'/>
@@ -168,61 +168,30 @@
                 </outcome>
             </get-resource>
             <call module='GENERIC-RESOURCE-API' rpc='sotn-get-otn-tunnel-path-from-oof' mode='sync' ></call>
+            <set>
+                <parameter name='tmp.unis.uni[0].id' value="`$vf-module-topology-operation-input.vf-module-information.vf-module-id`" />
+                <parameter name='tmp.unis.uni[0].tp-id' value="networkId-providerId-5555-clientId-6666-topologyId-11-nodeId-0.190.0.1" />
+                <parameter name='tmp.unis.uni[0].access-provider-id' value="`$domain-A.provider-id`" />
+                <parameter name='tmp.unis.uni[0].access-client-id' value="`$domain-A.client-id`" />
+                <parameter name='tmp.unis.uni[0].access-topology-id' value="`$domain-A.topology-id`" />
+                <parameter name='tmp.unis.uni[0].access-node-id' value="" />
+                <parameter name='tmp.unis.uni[0].src-access-ltp-id' value="" />
+                <parameter name='tmp.unis.uni[0].dst-access-ltp-id' value="" />
+                <parameter name='tmp.unis.uni[1].id' value="5642e9dd-496c-4ef6-be97-5caf4e9beec9" />
+                <parameter name='tmp.unis.uni[1].tp-id' value="networkId-domain2-providerId-5555-clientId-6666-topologyId-11-nodeId-0.191.0.4" />
+                <parameter name='tmp.unis.uni[1].access-provider-id' value="`$domain-B.provider-id`" />
+                <parameter name='tmp.unis.uni[1].access-client-id' value="`$domain-B.client-id`" />
+                <parameter name='tmp.unis.uni[1].access-topology-id' value="`$domain-B.topology-id`" />
+                <parameter name='tmp.unis.uni[1].access-node-id' value="" />
+                <parameter name='tmp.unis.uni[1].src-access-ltp-id' value="" />
+                <parameter name='tmp.unis.uni[1].dst-access-ltp-id' value="" />
+                <parameter name='tmp.unis.uni_length' value="2" />
+            </set>
             <for index='vidx' start='0' end='`$tmp.unis.uni_length`' >
                 <block atomic="true">
                     <set>
                         <parameter name='oof.vpn.' value='`$tmp.unis.uni[$vidx].`' />
                     </set>
-                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
-		resource="esr-thirdparty-sdnc" 
-		key="esr-thirdparty-sdnc.thirdparty-sdnc-id = $oof.vpn.thirdparty-sdnc-id AND 
-		     depth = '1'"
-        pfx='tmp.aai.esr-thirdparty-sdnc' local-only='false' >
-                        <outcome value='success'>
-                            <set>
-                                <parameter name='prop.sdncRestApi.thirdpartySdnc.url' value="`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].service-url`" />
-                                <parameter name='prop.sdncRestApi.thirdpartySdnc.user' value="`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].user-name`" />
-                                <parameter name='prop.sdncRestApi.thirdpartySdnc.password' value="`$tmp.aai.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].password`" />
-                            </set>
-                        </outcome>
-                        <outcome value='not-found'>
-                            <return status='failure'>
-                                <parameter name='ack-final' value='Y'/>
-                                <parameter name="error-code" value="500" />
-                                <parameter name="error-message" value="`'An error occurred while querying esr-thirdparty-sdnc from AnAI with thirdparty-sdnc-id = ' + $tmp.thirdparty-sdnc-id`" />
-                            </return>
-                        </outcome>
-                        <outcome value='Other'>
-                            <return status='failure'>
-                                <parameter name='ack-final' value='Y'/>
-                                <parameter name="error-code" value="500" />
-                                <parameter name="error-message" value="`'Unexpected error occurred while querying esr-thirdparty-sdnc from AnAI with thirdparty-sdnc-id = ' + $tmp.thirdparty-sdnc-id`" />
-                            </return>
-                        </outcome>
-                    </get-resource>
-                    <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                        <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/actokentemplate.json'`" />
-                        <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/controller/v2/tokens'`" />
-                        <parameter name="format" value="json"/>
-                        <parameter name="httpMethod" value="post"/>
-                        <parameter name="responsePrefix" value="token-result"/>
-                        <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
-                        <parameter name="trustStorePassword" value="adminadmin"/>
-                        <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
-                        <parameter name="keyStorePassword" value="adminadmin"/>
-                        <outcome value='success'>
-                            <set>
-                                <parameter name='prop.sdncRestApi.token_id' value='`$token-result.data.token_id`' />
-                            </set>
-                        </outcome>
-                        <outcome value='failure'>
-                            <return status='failure'>
-                                <parameter name='ack-final' value='Y'/>
-                                <parameter name="error-code" value="500" />
-                                <parameter name="error-message" value="Error executing get token rest api" />
-                            </return>
-                        </outcome>
-                    </execute>
                     <call module='GENERIC-RESOURCE-API' rpc='sotn-create-otn-tunnel' mode='sync' ></call>
                     <set>
                         <parameter name='ietf-eth-tran-service_etht-svc.globals.etht-svc-bandwidth-profiles[0].bandwidth-profile-type' value='ietf-eth-tran-types:mef-10-bwp' />
