@@ -27,222 +27,240 @@
                     <block></block>
                 </outcome>
             </execute>
-            <for index='vidx' start='0' end='`$otn-oof.otn-links_length`' >
+            <for index='vidx' start='0' end='`$otn-oof.solutions_length`' >
                 <block atomic="true">
                     <set>
-                        <parameter name='otn-oof.link-name' value='`$otn-oof.solutions[$vidx].`' />
+                        <parameter name='otn-oof.link-name' value='`$otn-oof.solutions[$vidx].link`' />
                     </set>
                     <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="logical-link" 
-		key="logical-link.link-name = $otn-oof.link-name 
-		AND depth = '0'"
+		key="logical-link.link-name = $otn-oof.link-name"
         pfx='tmp.aai.cross-link' local-only='false' >
+                        <!--AND depth = '0'"-->
                         <outcome value='success'>
-                            <switch test='`$tmp.aai.cross-link.link-role`'>
-                                <outcome value='cross-domain-link'>
-                                    <block atomic="true">
-                                        <set>
-                                            <parameter name='tmp.cross-link.src-ltpId' value="`$tmp.aai.cross-link.relationship-list.relationship[0].relationship-data[0].relationship-value`" />
-                                            <parameter name='tmp.cross-link.dst-ltpId' value="`$tmp.aai.cross-link.relationship-list.relationship[1].relationship-data[0].relationship-value`" />
-                                        </set>
-                                        <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+                            <block>
+                                <switch test='`$tmp.aai.cross-link.link-role`'>
+                                    <outcome value='cross-domain'>
+                                        <block atomic="true">
+                                            <set>
+                                                <parameter name='tmp.cross-link.src-ltpId' value="`$tmp.aai.cross-link.relationship-list.relationship[0].relationship-data[1].relationship-value`" />
+                                                <parameter name='tmp.cross-link.dst-ltpId' value="`$tmp.aai.cross-link.relationship-list.relationship[1].relationship-data[1].relationship-value`" />
+                                                <parameter name='tmp.src-pnf-name' value="`$tmp.aai.cross-link.relationship-list.relationship[0].relationship-data[0].relationship-value`" />
+                                                <parameter name='tmp.dst-pnf-name' value="`$tmp.aai.cross-link.relationship-list.relationship[1].relationship-data[0].relationship-value`" />
+                                            </set>
+                                            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="p-interface" 
-		key="p-interface.interface-name = $tmp.src-ltpId 
-		AND depth = '0'"
+		key="pnf.pnf-name = $tmp.src-pnf-name
+		    AND p-interface.interface-name = $tmp.cross-link.src-ltpId"
         pfx='tmp.aai.src-tp' local-only='false' >
-                                            <outcome value='success'>
-                                                <set>
-                                                    <parameter name='tmp.src-pnf-name' value="`$tmp.aai.src-tp.relationship-list.relationship[0].relationship-data[0].relationship-value`" />
-                                                </set>
-                                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+                                                <!--AND depth = '0'"-->
+                                                <outcome value='success'>
+                                                    <block>
+                                                        <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="pnf" 
-		key="pnf.pnf-name = $tmp.src-pnf-name 
-		AND depth = '0'"
+		key="pnf.pnf-name = $tmp.src-pnf-name"
         pfx='tmp.aai.src-pnf' local-only='false' >
-                                                    <outcome value='success'>
-                                                        <block>
-                                                            <set>
-                                                                <parameter name='domain-A.node-id' value="`$tmp.aai.src-pnf.pnf-id`" />
-                                                                <parameter name='domain-A.tpn' value='1' />
-                                                            </set>
-                                                            <for silentFailure='true' index='vidx' start='0' end='`$tmp.aai.src-pnf.relationship-list.relationship_length`' >
-                                                                <switch test='`$tmp.aai.src-pnf.relationship-list.relationship[$vidx].related-to`'>
-                                                                    <outcome value='tunnel-termination-point'>
-                                                                        <block atomic="true">
-                                                                            <set>
-                                                                                <parameter name='tmp.src-ttp-id' value="`$tmp.aai.src-pnf.relationship-list.relationship[$vidx].relationship-data[0].relationship-value`" />
-                                                                            </set>
-                                                                            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+                                                            <!--AND depth = '0'"-->
+                                                            <outcome value='success'>
+                                                                <block>
+                                                                    <set>
+                                                                        <parameter name='domain-A.node-id' value="`$tmp.aai.src-pnf.pnf-id`" />
+                                                                        <parameter name='domain-A.tpn' value='1' />
+                                                                    </set>
+                                                                    <for silentFailure='true' index='vidx' start='0' end='`$tmp.aai.src-pnf.relationship-list.relationship_length`' >
+                                                                        <switch test='`$tmp.aai.src-pnf.relationship-list.relationship[$vidx].related-to`'>
+                                                                            <outcome value='tunnel-termination-point'>
+                                                                                <block atomic="true">
+                                                                                    <set>
+                                                                                        <parameter name='tmp.src-ttp-id' value="`$tmp.aai.src-pnf.relationship-list.relationship[$vidx].relationship-data[0].relationship-value`" />
+                                                                                    </set>
+                                                                                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="tunnel-termination-point" 
 		key="tunnel-termination-point.ttp-id = $tmp.src-ttp-id 
 		AND depth = '0'"
         pfx='tmp.aai.src-ttp' local-only='false' >
-                                                                                <outcome value='success'>
+                                                                                        <outcome value='success'>
+                                                                                            <set>
+                                                                                                <parameter name='domain-A.ttp-id' value="`$tmp.aai.src-ttp.ttp-id`" />
+                                                                                            </set>
+                                                                                        </outcome>
+                                                                                    </get-resource>
+                                                                                </block>
+                                                                            </outcome>
+                                                                            <outcome value='network-resource'>
+                                                                                <block atomic="true">
                                                                                     <set>
-                                                                                        <parameter name='domain-A.ttp-id' value="`$tmp.aai.src-ttp.ttp-id`" />
+                                                                                        <parameter name='tmp.domain-A.network-id' value="`$tmp.aai.src-pnf.relationship-list.relationship[$vidx].relationship-data[0].relationship-value`" />
                                                                                     </set>
-                                                                                </outcome>
-                                                                            </get-resource>
-                                                                        </block>
-                                                                    </outcome>
-                                                                    <outcome value='network-resource'>
-                                                                        <block atomic="true">
-                                                                            <set>
-                                                                                <parameter name='tmp.domain-A.network-id' value="`$tmp.aai.src-pnf.relationship-list.relationship[$vidx].relationship-data[0].relationship-value`" />
-                                                                            </set>
-                                                                            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+                                                                                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="network-resource" 
 		key="network-resource.network-id = $tmp.domain-A.network-id 
 		AND depth = '0'"
         pfx='tmp.aai.src-network-resource' local-only='false' >
-                                                                                <outcome value='success'>
-                                                                                    <set>
-                                                                                        <parameter name='domain-A.network-id' value="`$tmp.aai.src-network-resource.network-id`" />
-                                                                                        <parameter name='domain-A.provider-id' value="`$tmp.aai.src-network-resource.provider-id`" />
-                                                                                        <parameter name='domain-A.client-id' value="`$tmp.aai.src-network-resource.client-id`" />
-                                                                                        <parameter name='domain-A.te-topo-id' value="`$tmp.aai.src-network-resource.te-topo-id`" />
-                                                                                        <parameter name='domain-A.network-type' value="`$tmp.aai.src-network-resource.network-type`" />
-                                                                                    </set>
-                                                                                </outcome>
-                                                                            </get-resource>
-                                                                        </block>
-                                                                    </outcome>
-                                                                </switch>
-                                                            </for>
-                                                        </block>
-                                                    </outcome>
-                                                    <outcome value='not-found'>
-                                                        <return status='failure'>
-                                                            <parameter name='ack-final' value='Y'/>
-                                                            <parameter name="error-code" value="500" />
-                                                            <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
-                                                        </return>
-                                                    </outcome>
-                                                    <outcome value='Other'>
-                                                        <return status='failure'>
-                                                            <parameter name='ack-final' value='Y'/>
-                                                            <parameter name="error-code" value="500" />
-                                                            <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
-                                                        </return>
-                                                    </outcome>
-                                                </get-resource>
-                                            </outcome>
-                                            <outcome value='not-found'>
-                                                <return status='failure'>
-                                                    <parameter name='ack-final' value='Y'/>
-                                                    <parameter name="error-code" value="500" />
-                                                    <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
-                                                </return>
-                                            </outcome>
-                                            <outcome value='Other'>
-                                                <return status='failure'>
-                                                    <parameter name='ack-final' value='Y'/>
-                                                    <parameter name="error-code" value="500" />
-                                                    <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
-                                                </return>
-                                            </outcome>
-                                        </get-resource>
-                                        <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+                                                                                        <outcome value='success'>
+                                                                                            <set>
+                                                                                                <parameter name='domain-A.network-id' value="`$tmp.aai.src-network-resource.network-id`" />
+                                                                                                <parameter name='domain-A.provider-id' value="`$tmp.aai.src-network-resource.provider-id`" />
+                                                                                                <parameter name='domain-A.client-id' value="`$tmp.aai.src-network-resource.client-id`" />
+                                                                                                <parameter name='domain-A.te-topo-id' value="`$tmp.aai.src-network-resource.te-topo-id`" />
+                                                                                                <parameter name='domain-A.network-type' value="`$tmp.aai.src-network-resource.network-type`" />
+                                                                                            </set>
+                                                                                        </outcome>
+                                                                                    </get-resource>
+                                                                                </block>
+                                                                            </outcome>
+                                                                        </switch>
+                                                                    </for>
+                                                                </block>
+                                                            </outcome>
+                                                            <outcome value='not-found'>
+                                                                <return status='failure'>
+                                                                    <parameter name='ack-final' value='Y'/>
+                                                                    <parameter name="error-code" value="500" />
+                                                                    <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                </return>
+                                                            </outcome>
+                                                            <outcome value='Other'>
+                                                                <return status='failure'>
+                                                                    <parameter name='ack-final' value='Y'/>
+                                                                    <parameter name="error-code" value="500" />
+                                                                    <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                </return>
+                                                            </outcome>
+                                                        </get-resource>
+                                                    </block>
+                                                </outcome>
+                                                <outcome value='not-found'>
+                                                    <return status='failure'>
+                                                        <parameter name='ack-final' value='Y'/>
+                                                        <parameter name="error-code" value="500" />
+                                                        <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                    </return>
+                                                </outcome>
+                                                <outcome value='Other'>
+                                                    <return status='failure'>
+                                                        <parameter name='ack-final' value='Y'/>
+                                                        <parameter name="error-code" value="500" />
+                                                        <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                    </return>
+                                                </outcome>
+                                            </get-resource>
+                                            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="p-interface" 
-		key="p-interface.interface-name = $tmp.dst-ltpId 
-		AND depth = '0'"
+		key="pnf.pnf-name = $tmp.src-pnf-name
+		    AND p-interface.interface-name = $tmp.cross-link.src-ltpId"
         pfx='tmp.aai.dst-tp' local-only='false' >
-                                            <outcome value='success'>
-                                                <set>
-                                                    <parameter name='tmp.dst-pnf-name' value="`$tmp.aai.dst-tp.relationship-list.relationship[0].relationship-data[0].relationship-value`" />
-                                                </set>
-                                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+                                                <!--AND depth = '0'"-->
+                                                <outcome value='success'>
+                                                    <block>
+                                                        <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="pnf" 
-		key="pnf.pnf-name = $tmp.dst-pnf-name 
-		AND depth = '0'"
+		key="pnf.pnf-name = $tmp.dst-pnf-name"
         pfx='tmp.aai.dst-pnf' local-only='false' >
-                                                    <outcome value='success'>
-                                                        <block>
-                                                            <set>
-                                                                <parameter name='domain-B.node-id' value="`$tmp.aai.dst-pnf.pnf-id`" />
-                                                                <parameter name='domain-B.tpn' value='1' />
-                                                            </set>
-                                                            <for silentFailure='true' index='vidx' start='0' end='`$tmp.aai.dst-pnf.relationship-list.relationship_length`' >
-                                                                <switch test='`$tmp.aai.dst-pnf.relationship-list.relationship[$vidx].related-to`'>
-                                                                    <outcome value='tunnel-termination-point'>
-                                                                        <block atomic="true">
-                                                                            <set>
-                                                                                <parameter name='tmp.dst-ttp-id' value="`$tmp.aai.dst-pnf.relationship-list.relationship[$vidx].relationship-data[0].relationship-value`" />
-                                                                            </set>
-                                                                            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+                                                            <!--AND depth = '0'"-->
+                                                            <outcome value='success'>
+                                                                <block>
+                                                                    <set>
+                                                                        <parameter name='domain-B.node-id' value="`$tmp.aai.dst-pnf.pnf-id`" />
+                                                                        <parameter name='domain-B.tpn' value='1' />
+                                                                    </set>
+                                                                    <for silentFailure='true' index='vidx' start='0' end='`$tmp.aai.dst-pnf.relationship-list.relationship_length`' >
+                                                                        <switch test='`$tmp.aai.dst-pnf.relationship-list.relationship[$vidx].related-to`'>
+                                                                            <outcome value='tunnel-termination-point'>
+                                                                                <block atomic="true">
+                                                                                    <set>
+                                                                                        <parameter name='tmp.dst-ttp-id' value="`$tmp.aai.dst-pnf.relationship-list.relationship[$vidx].relationship-data[0].relationship-value`" />
+                                                                                    </set>
+                                                                                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="tunnel-termination-point" 
 		key="tunnel-termination-point.ttp-id = $tmp.dst-ttp-id 
 		AND depth = '0'"
         pfx='tmp.aai.dst-ttp' local-only='false' >
-                                                                                <outcome value='success'>
+                                                                                        <outcome value='success'>
+                                                                                            <set>
+                                                                                                <parameter name='domain-B.ttp-id' value="`$tmp.aai.dst-ttp.ttp-id`" />
+                                                                                            </set>
+                                                                                        </outcome>
+                                                                                    </get-resource>
+                                                                                </block>
+                                                                            </outcome>
+                                                                            <outcome value='network-resource'>
+                                                                                <block atomic="true">
                                                                                     <set>
-                                                                                        <parameter name='domain-B.ttp-id' value="`$tmp.aai.dst-ttp.ttp-id`" />
+                                                                                        <parameter name='tmp.domain-B.network-id' value="`$tmp.aai.dst-pnf.relationship-list.relationship[$vidx].relationship-data[0].relationship-value`" />
                                                                                     </set>
-                                                                                </outcome>
-                                                                            </get-resource>
-                                                                        </block>
-                                                                    </outcome>
-                                                                    <outcome value='network-resource'>
-                                                                        <block atomic="true">
-                                                                            <set>
-                                                                                <parameter name='tmp.domain-B.network-id' value="`$tmp.aai.dst-pnf.relationship-list.relationship[$vidx].relationship-data[0].relationship-value`" />
-                                                                            </set>
-                                                                            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
+                                                                                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
 		resource="network-resource" 
 		key="network-resource.network-id = $tmp.domain-B.network-id 
 		AND depth = '0'"
         pfx='tmp.aai.dst-network-resource' local-only='false' >
-                                                                                <outcome value='success'>
-                                                                                    <set>
-                                                                                        <parameter name='domain-B.network-id' value="`$tmp.aai.dst-network-resource.network-id`" />
-                                                                                        <parameter name='domain-B.provider-id' value="`$tmp.aai.dst-network-resource.provider-id`" />
-                                                                                        <parameter name='domain-B.client-id' value="`$tmp.aai.dst-network-resource.client-id`" />
-                                                                                        <parameter name='domain-B.te-topo-id' value="`$tmp.aai.dst-network-resource.te-topo-id`" />
-                                                                                        <parameter name='domain-B.network-type' value="`$tmp.aai.dst-network-resource.network-type`" />
-                                                                                    </set>
-                                                                                </outcome>
-                                                                            </get-resource>
-                                                                        </block>
-                                                                    </outcome>
-                                                                </switch>
-                                                            </for>
-                                                        </block>
-                                                    </outcome>
-                                                    <outcome value='not-found'>
-                                                        <return status='failure'>
-                                                            <parameter name='ack-final' value='Y'/>
-                                                            <parameter name="error-code" value="500" />
-                                                            <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
-                                                        </return>
-                                                    </outcome>
-                                                    <outcome value='Other'>
-                                                        <return status='failure'>
-                                                            <parameter name='ack-final' value='Y'/>
-                                                            <parameter name="error-code" value="500" />
-                                                            <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
-                                                        </return>
-                                                    </outcome>
-                                                </get-resource>
-                                            </outcome>
-                                            <outcome value='not-found'>
-                                                <return status='failure'>
-                                                    <parameter name='ack-final' value='Y'/>
-                                                    <parameter name="error-code" value="500" />
-                                                    <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
-                                                </return>
-                                            </outcome>
-                                            <outcome value='Other'>
-                                                <return status='failure'>
-                                                    <parameter name='ack-final' value='Y'/>
-                                                    <parameter name="error-code" value="500" />
-                                                    <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
-                                                </return>
-                                            </outcome>
-                                        </get-resource>
-                                        <break/>
-                                    </block>
-                                </outcome>
-                            </switch>
+                                                                                        <outcome value='success'>
+                                                                                            <set>
+                                                                                                <parameter name='domain-B.network-id' value="`$tmp.aai.dst-network-resource.network-id`" />
+                                                                                                <parameter name='domain-B.provider-id' value="`$tmp.aai.dst-network-resource.provider-id`" />
+                                                                                                <parameter name='domain-B.client-id' value="`$tmp.aai.dst-network-resource.client-id`" />
+                                                                                                <parameter name='domain-B.te-topo-id' value="`$tmp.aai.dst-network-resource.te-topo-id`" />
+                                                                                                <parameter name='domain-B.network-type' value="`$tmp.aai.dst-network-resource.network-type`" />
+                                                                                            </set>
+                                                                                        </outcome>
+                                                                                    </get-resource>
+                                                                                </block>
+                                                                            </outcome>
+                                                                        </switch>
+                                                                    </for>
+                                                                </block>
+                                                            </outcome>
+                                                            <outcome value='not-found'>
+                                                                <return status='failure'>
+                                                                    <parameter name='ack-final' value='Y'/>
+                                                                    <parameter name="error-code" value="500" />
+                                                                    <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                </return>
+                                                            </outcome>
+                                                            <outcome value='Other'>
+                                                                <return status='failure'>
+                                                                    <parameter name='ack-final' value='Y'/>
+                                                                    <parameter name="error-code" value="500" />
+                                                                    <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                </return>
+                                                            </outcome>
+                                                        </get-resource>
+                                                    </block>
+                                                </outcome>
+                                                <outcome value='not-found'>
+                                                    <return status='failure'>
+                                                        <parameter name='ack-final' value='Y'/>
+                                                        <parameter name="error-code" value="500" />
+                                                        <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                    </return>
+                                                </outcome>
+                                                <outcome value='Other'>
+                                                    <return status='failure'>
+                                                        <parameter name='ack-final' value='Y'/>
+                                                        <parameter name="error-code" value="500" />
+                                                        <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                    </return>
+                                                </outcome>
+                                            </get-resource>
+                                            <break/>
+                                        </block>
+                                    </outcome>
+                                </switch>
+                                <switch test='`$vidx`'>
+                                    <outcome value='0'>
+                                        <set>
+                                            <parameter name='tmp.oofsolutions-first-src-pnf-name' value="`$tmp.aai.cross-link.relationship-list.relationship[0].relationship-data[0].relationship-value`" />
+                                            <parameter name='tmp.oofsolutions-first-src-ltpId' value="`$tmp.aai.cross-link.relationship-list.relationship[0].relationship-data[1].relationship-value`" />
+                                        </set>
+                                    </outcome>
+                                    <outcome value='`$otn-oof.solutions_length - 1`'>
+                                        <set>
+                                            <parameter name='tmp.oofsolutions-last-dst-pnf-name' value="`$tmp.aai.cross-link.relationship-list.relationship[1].relationship-data[0].relationship-value`" />
+                                            <parameter name='tmp.oofsolutions-last-dst-ltpId' value="`$tmp.aai.cross-link.relationship-list.relationship[1].relationship-data[1].relationship-value`" />
+                                        </set>
+                                    </outcome>
+                                </switch>
+                            </block>
                         </outcome>
                         <outcome value='not-found'>
                             <return status='failure'>
