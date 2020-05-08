@@ -20,6 +20,7 @@
 
 # coding=utf-8
 import os
+import re
 import httplib
 import base64
 import time
@@ -249,58 +250,61 @@ def jks_to_p12(file, password):
         logging.error("Error occurred while converting jks to p12 format : %s", e)
 
 
-def extract_content():
-    """Extracts client key, certificates, CA certificates."""
-    try:
-        certList = []
-        key = None
-        cert = None
-
-        truststore_pass = get_pass(truststore_pass_file)
-        truststore_file_p12 = jks_to_p12(truststore_file, truststore_pass)
-
-        keystore_pass = get_pass(keystore_pass_file)
-        keystore_file_p12 = jks_to_p12(keystore_file, keystore_pass)
-
-        clcrt_cmd = 'openssl pkcs12 -in {src_file} -clcerts -nokeys  -passin pass:{src_pass}'.format(src_file=keystore_file_p12, src_pass=keystore_pass)
-
-        clkey_cmd = 'openssl pkcs12 -in {src_file}  -nocerts -nodes -passin pass:{src_pass}'.format(src_file=keystore_file_p12, src_pass=keystore_pass)
-        trust_file = truststore_file_p12.split('/')[2] + '.trust'
-
-        trustCerts_cmd = 'openssl pkcs12 -in {src_file} -out {out_file} -cacerts -nokeys -passin pass:{src_pass} '.format(src_file=truststore_file_p12, out_file=Path + '/' + trust_file, src_pass=truststore_pass)
-
-        result_key = subprocess.check_output(clkey_cmd , shell=True)
-        if result_key:
-            key = result_key.split('-----BEGIN PRIVATE KEY-----', 1)[1].lstrip().split('-----END PRIVATE KEY-----')[0]
-            logging.debug("key ok")
-
-        os.system(trustCerts_cmd)
-        if os.path.exists(Path + '/' + trust_file):
-            certList = readTrustedCertificate(Path, trust_file)
-            logging.debug("certList ok")
-
-        result_crt = subprocess.check_output(clcrt_cmd , shell=True)
-        if result_crt:
-            cert = result_crt.split('-----BEGIN CERTIFICATE-----', 1)[1].lstrip().split('-----END CERTIFICATE-----')[0]
-            logging.debug("cert ok")
-
-        if key and cert and certList:
-            post_content(key, cert, certList, 0)
-        else:
-            logging.debug("Exiting. Key, cert or key are missing")
-            return
-
-    except Exception as e:
-        logging.error("Error occurred while processing the file: %s", e)
-
-
-def look_for_jks_files():
-    if all([os.path.isfile(f) for f in jks_files]):
-        extract_content()
-        cleanup()
+def make_cert_chain(cert_chain, pattern):
+    cert_list = []
+    if cert_chain:
+        matches = re.findall(pattern, cert_chain, re.DOTALL | re.MULTILINE)
+        for cert in matches:
+            cert_list.append(cert.strip())
+        return cert_list
     else:
-        logging.debug("Some of the files are missing")
-        return
+        logging.debug(" Certificate Chain empty: %s " % cert_chain)
+
+
+def process_jks_files(count):
+    ca_cert_list = []
+    logging.info("Processing JKS files found in %s directory " % Path)
+    try:
+        if all([os.path.isfile(f) for f in jks_files]):
+            keystore_pass = get_pass(keystore_pass_file)
+            keystore_file_p12 = jks_to_p12(keystore_file, keystore_pass)
+
+            client_key_cmd = 'openssl pkcs12 -in {src_file} -nocerts -nodes -passin pass:{src_pass}'.format(
+                src_file=keystore_file_p12, src_pass=keystore_pass)
+            client_crt_cmd = 'openssl pkcs12 -in {src_file} -clcerts -nokeys  -passin pass:{src_pass}'.format(
+                src_file=keystore_file_p12, src_pass=keystore_pass)
+
+            truststore_pass = get_pass(truststore_pass_file)
+            truststore_p12 = jks_to_p12(truststore_file, truststore_pass)
+
+            trust_cert_cmd = 'openssl pkcs12 -in {src_file} -cacerts -nokeys -passin pass:{src_pass} '.format(
+                src_file=truststore_p12, src_pass=truststore_pass)
+
+            key_pattern = r'(?<=-----BEGIN PRIVATE KEY-----).*?(?=-----END PRIVATE KEY-----)'
+            client_key = subprocess.check_output(client_key_cmd, shell=True)
+            if client_key:
+                client_key = make_cert_chain(client_key, key_pattern)[0]
+                logging.debug("Key Ok")
+
+            cert_pattern = r'(?<=-----BEGIN CERTIFICATE-----).*?(?=-----END CERTIFICATE-----)'
+            client_cert = subprocess.check_output(client_crt_cmd, shell=True)
+            if client_cert:
+                client_cert = make_cert_chain(client_cert, cert_pattern)[0]
+                logging.debug("Client Cert Ok")
+
+            ca_cert = subprocess.check_output(trust_cert_cmd, shell=True)
+            if ca_cert:
+                ca_cert_list = make_cert_chain(ca_cert, cert_pattern)
+                logging.debug("CA Cert Ok")
+
+            if client_key and client_cert and ca_cert:
+                post_content(client_key, client_cert, ca_cert_list, count)
+        else:
+            logging.debug("No JKS files found in %s directory" % Path)
+    except subprocess.CalledProcessError as err:
+        print("CalledProcessError Execution of OpenSSL command failed: %s" % err)
+    except Exception as e:
+        logging.error("UnExpected Error while processing JKS files at {0}, Caused by: {1}".format(Path, e))
 
 
 def readCertProperties():
@@ -324,10 +328,8 @@ def readCertProperties():
                         count += 1
                         del zipFileList[:]
         else:
-            logging.debug("No zipfiles present in folder " + Path)
-
-        logging.info("Looking for jks files in folder " + Path)
-        look_for_jks_files()
+            logging.debug("No certs.properties/zip files exist at: " + Path)
+            process_jks_files(count)
 
 
 readCertProperties()
