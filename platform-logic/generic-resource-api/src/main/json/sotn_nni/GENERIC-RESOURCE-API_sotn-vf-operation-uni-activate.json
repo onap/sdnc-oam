@@ -84,8 +84,7 @@
                 "5733466d.dcbb88",
                 "6d51d616.88647",
                 "aab160b4.f76088",
-                "48dc3a93.b23a44",
-                "672fc75a.1e91b"
+                "48dc3a93.b23a44"
             ]
         ]
     },
@@ -588,7 +587,7 @@
         "id": "e85654b4.901fd",
         "type": "execute",
         "name": "execute split tp-id to get pnf-name",
-        "xml": "<!--<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >-->\n<!--<parameter name=\"original_string\" value='`tmp.unis.uni[$vidx].tp-id`'/>-->\n<!--<parameter name=\"regex\" value=\"nodeId\"/>-->\n<!--<parameter name=\"tmp.unis.uni[$vidx].pnf-name\" value=\"\"/>-->\n\n<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >\n<parameter name=\"original_string\" value='`tmp.aai.uni.tp-id`'/>\n<parameter name=\"regex\" value=\"nodeId\"/>\n<parameter name=\"tmp.aai.uni.pnf-name\" value=\"\"/>",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >\n<parameter name=\"original_string\" value='`tmp.aai.uni.tp-id`'/>\n<parameter name=\"regex\" value=\"[^-]+$\"/>\n<parameter name=\"ctx_memory_result_key\" value=\"param-prefix\"/>\n\n",
         "comments": "",
         "outputs": 1,
         "x": 2596,
@@ -636,8 +635,8 @@
     {
         "id": "9111f685.17b2e8",
         "type": "set",
-        "name": "set ipAddress prefixLength",
-        "xml": "<set>\n<parameter name='prop.lan.ip-address' value='`$ipandMask[0]`' />\n<parameter name='prop.lan.prefixLength' value='`$ipandMask[1]`' />",
+        "name": "set ltpId",
+        "xml": "<set>\n<parameter name='tmp.src.ltpId' value='`$param-prefix[$param-prefix_length -1]`' />\n",
         "comments": "",
         "x": 3041,
         "y": 673,
@@ -1137,7 +1136,10 @@
                 "f7756434.d014e",
                 "a9643f3f.4f04b",
                 "ae925256.a68df",
-                "ee991e0.ab6b36"
+                "ee991e0.ab6b36",
+                "3ce3b19a.7c10c6",
+                "d661efba.3fa238",
+                "c6d53bc.53f5bc8"
             ]
         ]
     },
@@ -1194,8 +1196,8 @@
     {
         "id": "678c3911.078e2",
         "type": "execute",
-        "name": "execute RestconfApiCallNode Create ethernet Service with token",
-        "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restconfapicall.RestconfApiCallNode' method='sendRequest' >\n<parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-eth-tran-service:etht-svc'`\" />\n<parameter name=\"restapiUser\" value=\"`$prop.sdncRestApi.thirdpartySdnc.user`\" />\n<parameter name=\"restapiPassword\" value=\"`$prop.sdncRestApi.thirdpartySdnc.password`\" />\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"patch\"/>\n<parameter name='dirPath' value=\"/opt/onap/sdnc/restconfapi/yang\" />\n<parameter name=\"responsePrefix\" value=\"vpn-result\"/>\n<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>\n<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>\n<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>\n<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>\n<parameter name='customHttpHeaders' value=\"`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`\" />",
+        "name": "execute RestApiCallNode Create ethernet Service with token",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestApiCallNode' method='sendRequest' >\n<parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-eth-tran-service:etht-svc'`\" />\n<parameter name=\"templateFileName\" value=\"`$prop.restapi.templateDir + '/sotn-ethernet-service.json'`\" />\n<parameter name=\"restapiUser\" value=\"`$prop.sdncRestApi.thirdpartySdnc.user`\" />\n<parameter name=\"restapiPassword\" value=\"`$prop.sdncRestApi.thirdpartySdnc.password`\" />\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"patch\"/>\n<parameter name='dirPath' value=\"/opt/onap/sdnc/restconfapi/yang\" />\n<parameter name=\"responsePrefix\" value=\"vpn-result\"/>\n<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>\n<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>\n<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>\n<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>\n<parameter name='customHttpHeaders' value=\"`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`\" />",
         "comments": "",
         "outputs": 1,
         "x": 1660.52734375,
@@ -1301,8 +1303,8 @@
     {
         "id": "42cb8b06.e7daec",
         "type": "execute",
-        "name": "execute RestconfApiCallNode Create ethernet Service without token",
-        "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restconfapicall.RestconfApiCallNode' method='sendRequest' >\n<parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-eth-tran-service:etht-svc'`\" />\n<parameter name=\"restapiUser\" value=\"`$prop.sdncRestApi.thirdpartySdnc.user`\" />\n<parameter name=\"restapiPassword\" value=\"`$prop.sdncRestApi.thirdpartySdnc.password`\" />\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"patch\"/>\n<parameter name='dirPath' value=\"/opt/onap/sdnc/restconfapi/yang\" />\n<parameter name=\"responsePrefix\" value=\"vpn-result\"/>\n<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>\n<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>\n<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>\n<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>",
+        "name": "execute RestApiCallNode Create ethernet Service without token",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestApiCallNode' method='sendRequest' >\n<parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-eth-tran-service:etht-svc'`\" />\n<parameter name=\"templateFileName\" value=\"`$prop.restapi.templateDir + '/sotn-ethernet-service.json'`\" />\n<parameter name=\"restapiUser\" value=\"`$prop.sdncRestApi.thirdpartySdnc.user`\" />\n<parameter name=\"restapiPassword\" value=\"`$prop.sdncRestApi.thirdpartySdnc.password`\" />\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"patch\"/>\n<parameter name='dirPath' value=\"/opt/onap/sdnc/restconfapi/yang\" />\n<parameter name=\"responsePrefix\" value=\"vpn-result\"/>\n<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>\n<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>\n<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>\n<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>",
         "comments": "",
         "outputs": 1,
         "x": 1670.52734375,
