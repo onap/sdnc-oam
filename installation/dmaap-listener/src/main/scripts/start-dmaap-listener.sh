@@ -27,6 +27,7 @@ PROPERTY_DIR=${PROPERTY_DIR:-/opt/onap/sdnc/data/properties}
 LISTENER=dmaap-listener
 
 DMAAPLISTENERROOT=${DMAAPLISTENERROOT:-/opt/onap/sdnc/dmaap-listener}
+LOGDIR=${LOGDIR:-${DMAAPLISTENERROOT}/logs}
 JAVA_HOME=${JAVA_HOME:-/usr/lib/jvm/java-7-oracle}
 JAVA_OPTS=${JAVA_OPTS:--Dhttps.protocols=TLSv1.1,TLSv1.2}
 JAVA=${JAVA:-${JAVA_HOME}/bin/java}
@@ -39,7 +40,8 @@ do
 done
 
 echo "Starting dmaap-listener"
-exec ${JAVA} ${JAVA_OPTS} -Dlog4j.configurationFile=${PROPERTY_DIR}/log4j.properties -jar ${DMAAPLISTENERROOT}/lib/dmaap-listener*.jar dmaap-listener.properties -cp ${LISTENERCLASSPATH}
+cd ${DMAAPLISTENERROOT}
+exec ${JAVA} ${JAVA_OPTS} -Dlog4j.configurationFile=${PROPERTY_DIR}/log4j2.xml -jar ${DMAAPLISTENERROOT}/lib/dmaap-listener*.jar dmaap-listener.properties -cp ${LISTENERCLASSPATH}
 
 
 
