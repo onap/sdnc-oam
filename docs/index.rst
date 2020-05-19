@@ -2,8 +2,8 @@
 .. http://creativecommons.org/licenses/by/4.0
 
 
-SDNC Northbound
-===============
+Network Controller (SDNC)
+=========================
 
 .. toctree::
    :maxdepth: 1
@@ -14,6 +14,7 @@ SDNC Northbound
    delivery.rst
    logging.rst
    installation.rst
+   cert_installation.rst
    configuration.rst
    build.rst
    humaninterfaces.rst
