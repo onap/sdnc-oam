@@ -86,17 +86,17 @@ tag 0.7-STAGING-latest to pull the latest daily Frankfurt build
 +--------------------------------+-----------------------------------------------------+---------+
 | Image name                     | Description                                         | Version |
 +================================+=====================================================+=========+
-| onap/sdnc-aaf-image            | SDNC controller image, integrated with AAF for RBAC | 1.8.2   |
+| onap/sdnc-aaf-image            | SDNC controller image, integrated with AAF for RBAC | 1.8.3   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-ansible-server-image | Ansible server                                      | 1.8.2   |
+| onap/sdnc-ansible-server-image | Ansible server                                      | 1.8.3   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-dmaap-listener-image | DMaaP listener                                      | 1.8.2   |
+| onap/sdnc-dmaap-listener-image | DMaaP listener                                      | 1.8.3   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-image                | SDNC controller image, without AAF integration      | 1.8.2   |
+| onap/sdnc-image                | SDNC controller image, without AAF integration      | 1.8.3   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-ueb-listener-image   | SDC listener                                        | 1.8.2   |
+| onap/sdnc-ueb-listener-image   | SDC listener                                        | 1.8.3   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-web-image            | Web tier (currently only used by SDN-R persona)     | 1.8.2   |
+| onap/sdnc-web-image            | Web tier (currently only used by SDN-R persona)     | 1.8.3   |
 +--------------------------------+-----------------------------------------------------+---------+
 
 
