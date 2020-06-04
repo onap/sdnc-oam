@@ -21,6 +21,7 @@ The Frankfurt release of SDNC introduces new functionality to support PNFs (Phys
 for Netconf/TLS to support CMPv2, and adds support for the Multi Domain Optical Network Service use case.
 
 
+
 Release Data
 ============
 
@@ -60,6 +61,24 @@ The full list of `bugs fixed in the SDNC Frankfurt release <https://jira.onap.or
 **Known Issues**
 
 The full list of `known issues in SDNC <https://jira.onap.org/issues/?filter=11119>`_ is maintained on the `ONAP Jira`_.
+
+
+Deprecated Features
+-------------------
+
+** SDNC portal **
+
+The SDNC portal is considered deprecated in the Frankfurt release, due
+to resource contraints.  This functionality is delivered dormant
+in Frankfurt (i.e. it is disabled in the Frankfurt helm charts) and we
+plan to remove the code entirely in the Guilin release.
+
+** VNF-API **
+
+The functionality provided by the VNF-API is now provided as part
+of the GENERIC-RESOURCE-API.  Therefore, the VNF-API is deprecated
+in Frankfurt and will be removed in Guilin.
+
 
 Deliverables
 ------------
@@ -153,10 +172,14 @@ There is currently one known SDNC security issue, related to the SDNC portal
 
 * `OJSI-91 <https://jira.onap.org/browse/OJSI-91>`_ : SDNC exposes unprotected API for user creation
 
-The current implementation of the SDNC portal has a self-subscription model - so anyone can create an account by going to
-the setup link.  This is not appropriate for production deployment and will be fixed in a future release.  
-The SDNC portal is disabled in the Frankfurt helm charts and we recommend that it NOT be enabled in a production
-deployment until this issue is corrected.
+The current implementation of the SDNC portal - which was intended purely
+as a test tool - has a self-subscription model - so anyone can create an
+account by going to the setup link.  This is not appropriate for production
+deployment and we strongly recommend that the SDNC portal NOT be used in
+production.
+
+The SDNC portal is disabled in the Frankfurt helm charts and will be removed
+entirely in the Guilin release.
 
 
 
