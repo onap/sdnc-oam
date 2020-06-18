@@ -156,7 +156,100 @@ You must also send this as the body of the request::
      </node>
 
 
-where IP-ADDRESS is the ip-address you are trying to mount the pnf-simulator on. 
+where IP-ADDRESS is the ip-address you are trying to mount the pnf-simulator on.
+
+
+
+
+New secure communication functionality
+=================================================================================
+
+In order to ensure secure communication on southband interface a new functionality have been introduced. The Certificate Management Protocol ver. 2 (CMPv2) is handled by the AAF microservice CertService.
+
+SDNC is capable of obtaining certificates signed by an external Certificate Authority to secure external ONAP communication.
+
+Confirmation of this functionality can be performed in OOM using the Contrib projects EJBCA service.
+
+Firstly, CertService will need to be deployed. This will require the global flag *global.cmpv2Enabled* to be set to true in *kubernetes/onap/resources/overrides/aaf-cert-service-environment.yaml*
+
+To deploy the EJBCA server the global flag *global.addTestingComponents* in  *kubernetes/onap/values.yaml* will need to be set to true. This flag will load the test configuration from *kubernetes/aaf/charts/aaf-cert-service/resources/test/cmpServers.json*
+
+
+
+cmpServers.json:
+
+.. code-block:: json
+
+    {
+      "cmpv2Servers": [
+        {
+          "caName": "Client",
+          "url": "http://aafcert-ejbca:8080/ejbca/publicweb/cmp/cmp",
+          "issuerDN": "CN=ManagementCA",
+          "caMode": "CLIENT",
+          "authentication": {
+            "iak": "mypassword",
+            "rv": "mypassword"
+          }
+        },
+        {
+          "caName": "RA",
+          "url": "http://aafcert-ejbca:8080/ejbca/publicweb/cmp/cmpRA",
+          "issuerDN": "CN=ManagementCA",
+          "caMode": "RA",
+          "authentication": {
+            "iak": "mypassword",
+            "rv": "mypassword"
+          }
+        }
+      ]
+    }
+
+
+
+SDNC invokes the CertService in a new initContainer called certs-init.
+
+There are a number of variables used that can be configured and these are available in *kubernetes/onap/values.yaml* under aaf/certServiceClient
+
+
+
+CertService configuration:
+
+.. code-block:: yaml
+
+ aaf:
+    certServiceClient:
+      image: onap/org.onap.aaf.certservice.aaf-certservice-client:1.0.0
+      secret:
+        name: aaf-cert-service-client-tls-secret
+        mountPath: /etc/onap/aaf/certservice/certs/
+      envVariables:
+        # Certificate related
+        cmpv2Organization: "Linux-Foundation"
+        cmpv2OrganizationalUnit: "ONAP"
+        cmpv2Location: "San-Francisco"
+        cmpv2State: "California"
+        cmpv2Country: "US"
+        # Client configuration related
+        caName: "RA"
+        requestURL: "https://aaf-cert-service:8443/v1/certificate/"
+        requestTimeout: "20000"
+        keystorePath: "/etc/onap/aaf/certservice/certs/certServiceClient-keystore.jks"
+        keystorePassword: "secret"
+        truststorePath: "/etc/onap/aaf/certservice/certs/truststore.jks"
+        truststorePassword: "secret"
+
+
+
+
+For more information:
+
++------------------------------------------------------------------------------------------+
+|https://onap-doc.readthedocs.io/en/latest/submodules/aaf/certservice.git/docs/index.html  |
++------------------------------------------------------------------------------------------+
+|https://doc.primekey.com/ejbca                                                            |
++------------------------------------------------------------------------------------------+
+
 
 
 
