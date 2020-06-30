@@ -1,0 +1,237 @@
+<service-logic
+    xmlns='http://www.onap.org/sdnc/svclogic'
+    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='optical-service' version='${project.version}'>
+    <method rpc='mdons-closed-loop' mode='sync'>
+        <block>
+            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+key='SELECT *
+from REQUEST_DETAILS
+WHERE service_instance_id = $access-service-id'
+pfx='access'></get-resource>
+            <set>
+                <parameter name='original-name' value='`$service-name`' />
+            </set>
+            <set>
+                <parameter name='domain-services' value='`$access.domain-requests`' />
+                <parameter name='pinterface-list' value='`$access.pinterface-list`' />
+                <parameter name='optical-service-delete-input.request-id' value='`$access.request-id`' />
+                <parameter name='optical-service-delete-input.payload.param[0].name' value='service-name' />
+                <parameter name='optical-service-delete-input.payload.param[0].value' value='`$service-name`' />
+                <parameter name='service-instance-id' value='`$access.service-instance-id`' />
+                <parameter name='service-rate' value='`$access.service-rate`' />
+                <parameter name='service-type' value='`$access.service-type`' />
+                <parameter name='global-customer-id' value='`$access.global-customer-id`' />
+                <parameter name='notification-url' value='`$access.notification-url`' />
+            </set>
+            <call module='optical-service' rpc='optical-service-delete' mode='sync' ></call>
+            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                <parameter name="file" value="/opt/opendaylight/current/data/log/mdons-closed-loop.log" />
+                <parameter name="level" value="info" />
+                <parameter name="field1" value="Delete successful"/>
+            </record>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                <parameter name="original_string" value='`$pinterface-list`'/>
+                <parameter name="regex" value=","/>
+                <parameter name="ctx_memory_result_key" value="param-prefix"/>
+            </execute>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                <parameter name="original_string" value='`$param-prefix[0]`'/>
+                <parameter name="regex" value="--"/>
+                <parameter name="ctx_memory_result_key" value="new-aend"/>
+            </execute>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                <parameter name="original_string" value='`$param-prefix[1]`'/>
+                <parameter name="regex" value="--"/>
+                <parameter name="ctx_memory_result_key" value="new-zend"/>
+            </execute>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                <parameter name="original_string" value='`$new-aend[0]`'/>
+                <parameter name="regex" value="_"/>
+                <parameter name="ctx_memory_result_key" value="coding1"/>
+            </execute>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                <parameter name="original_string" value='`$new-zend[0]`'/>
+                <parameter name="regex" value="_"/>
+                <parameter name="ctx_memory_result_key" value="coding2"/>
+            </execute>
+            <set>
+                <parameter name='optical-service-create-input.payload.param_length' value='7' />
+            </set>
+            <for index='ido' start='0' end='`$optical-service-create-input.payload.param_length`' >
+                <switch test='`$ido`'>
+                    <outcome value='0'>
+                        <block>
+                            <set>
+                                <parameter name='optical-service-create-input.payload.param[$ido].name' value='service-name' />
+                                <parameter name='optical-service-create-input.payload.param[$ido].value' value='`$original-name`' />
+                            </set>
+                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                <parameter name="file" value="/opt/opendaylight/current/data/log/mdons-closed-loop.log" />
+                                <parameter name="level" value="info" />
+                                <parameter name="field1" value="Param details 0"/>
+                                <parameter name="field2" value="`$optical-service-create-input.payload.param[$ido].name`"/>
+                                <parameter name="field3" value="`$optical-service-create-input.payload.param[$ido].value`"/>
+                            </record>
+                        </block>
+                    </outcome>
+                    <outcome value='1'>
+                        <block>
+                            <set>
+                                <parameter name='optical-service-create-input.payload.param[$ido].name' value='`$new-aend[0]`' />
+                                <parameter name='optical-service-create-input.payload.param[$ido].value' value='`$new-aend[1]`' />
+                            </set>
+                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                <parameter name="file" value="/opt/opendaylight/current/data/log/mdons-closed-loop.log" />
+                                <parameter name="level" value="info" />
+                                <parameter name="field1" value="Param details 1"/>
+                                <parameter name="field2" value="`$optical-service-create-input.payload.param[$ido].name`"/>
+                                <parameter name="field3" value="`$optical-service-create-input.payload.param[$ido].value`"/>
+                            </record>
+                        </block>
+                    </outcome>
+                    <outcome value='2'>
+                        <block>
+                            <set>
+                                <parameter name='optical-service-create-input.payload.param[$ido].name' value='`$new-zend[0]`' />
+                                <parameter name='optical-service-create-input.payload.param[$ido].value' value='`$new-zend[1]`' />
+                            </set>
+                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                <parameter name="file" value="/opt/opendaylight/current/data/log/mdons-closed-loop.log" />
+                                <parameter name="level" value="info" />
+                                <parameter name="field1" value="Param details 2"/>
+                                <parameter name="field2" value="`$optical-service-create-input.payload.param[$ido].name`"/>
+                                <parameter name="field3" value="`$optical-service-create-input.payload.param[$ido].value`"/>
+                            </record>
+                        </block>
+                    </outcome>
+                    <outcome value='3'>
+                        <block>
+                            <set>
+                                <parameter name='optical-service-create-input.payload.param[$ido].name' value="`$coding1[0] + '_coding_func'`" />
+                                <parameter name='optical-service-create-input.payload.param[$ido].value' value='`$service-rate`' />
+                            </set>
+                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                <parameter name="file" value="/opt/opendaylight/current/data/log/mdons-closed-loop.log" />
+                                <parameter name="level" value="info" />
+                                <parameter name="field1" value="Param details 3"/>
+                                <parameter name="field2" value="`$optical-service-create-input.payload.param[$ido].name`"/>
+                                <parameter name="field3" value="`$optical-service-create-input.payload.param[$ido].value`"/>
+                            </record>
+                        </block>
+                    </outcome>
+                    <outcome value='4'>
+                        <block>
+                            <set>
+                                <parameter name='optical-service-create-input.payload.param[$ido].name' value="`$coding2[0] + '_coding_func'`" />
+                                <parameter name='optical-service-create-input.payload.param[$ido].value' value='`$service-rate`' />
+                            </set>
+                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                <parameter name="file" value="/opt/opendaylight/current/data/log/mdons-closed-loop.log" />
+                                <parameter name="level" value="info" />
+                                <parameter name="field1" value="Param details 4"/>
+                                <parameter name="field2" value="`$optical-service-create-input.payload.param[$ido].name`"/>
+                                <parameter name="field3" value="`$optical-service-create-input.payload.param[$ido].value`"/>
+                            </record>
+                        </block>
+                    </outcome>
+                    <outcome value='5'>
+                        <block>
+                            <set>
+                                <parameter name='optical-service-create-input.payload.param[$ido].name' value="`$coding1[0] + '_client_proto'`" />
+                                <parameter name='optical-service-create-input.payload.param[$ido].value' value='Ethernet' />
+                            </set>
+                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                <parameter name="file" value="/opt/opendaylight/current/data/log/mdons-closed-loop.log" />
+                                <parameter name="level" value="info" />
+                                <parameter name="field1" value="Param details 5"/>
+                                <parameter name="field2" value="`$optical-service-create-input.payload.param[$ido].name`"/>
+                                <parameter name="field3" value="`$optical-service-create-input.payload.param[$ido].value`"/>
+                            </record>
+                        </block>
+                    </outcome>
+                    <outcome value='6'>
+                        <block>
+                            <set>
+                                <parameter name='optical-service-create-input.payload.param[$ido].name' value="`$coding2[0] + '_client_proto'`" />
+                                <parameter name='optical-service-create-input.payload.param[$ido].value' value='Ethernet' />
+                            </set>
+                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                                <parameter name="file" value="/opt/opendaylight/current/data/log/mdons-closed-loop.log" />
+                                <parameter name="level" value="info" />
+                                <parameter name="field1" value="Param details 6"/>
+                                <parameter name="field2" value="`$optical-service-create-input.payload.param[$ido].name`"/>
+                                <parameter name="field3" value="`$optical-service-create-input.payload.param[$ido].value`"/>
+                            </record>
+                        </block>
+                    </outcome>
+                </switch>
+            </for>
+            <set>
+                <parameter name='optical-service-create-input.request-id' value='`$access.request-id`' />
+                <parameter name='optical-service-create-input.global-customer-id' value='`$global-customer-id`' />
+                <parameter name='optical-service-create-input.service-type' value='`$service-type`' />
+                <parameter name='optical-service-create-input.notification-url' value='`$notification-url`' />
+                <parameter name='optical-service-create-input.service-id' value='`$service-instance-id`' />
+                <parameter name='optical-service-create-input.source' value='SO' />
+            </set>
+            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                <parameter name="file" value="/opt/opendaylight/current/data/log/mdons-closed-loop.log" />
+                <parameter name="level" value="info" />
+                <parameter name="field1" value="Length"/>
+                <parameter name="field2" value="`$optical-service-create-input.payload.param_length`"/>
+                <parameter name="field" value="`$access.service-instance-id`"/>
+            </record>
+            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+resource="service-instance"
+ key='customer.global-customer-id = $global-customer-id AND
+     service-subscription.service-type = $service-type AND
+     service-instance.service-instance-id = $access.service-instance-id' 
+pfx='mdons-access'      local-only='false'></get-resource>
+            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                <parameter name="file" value="/opt/opendaylight/current/data/log/mdons-closed-loop.log" />
+                <parameter name="level" value="info" />
+                <parameter name="field1" value="Service Details"/>
+                <parameter name="field3" value="`$access.service-instance-id`"/>
+                <parameter name="field4" value="`$mdons-access.model-invariant-id`"/>
+                <parameter name="field5" value="`$mdons-access.input-parameters`"/>
+            </record>
+            <for index='idl' start='0' end='`$mdons-access.relationship-list.relationship_length`' >
+                <switch test="`$mdons-access.relationship-list.relationship[$idl].related-to == 'logical-link'`">
+                    <outcome value='true'>
+                        <block>
+                            <set>
+                                <parameter name='link-name' value='`$mdons-access.relationship-list.relationship[$idl].relationship-data[0].relationship-value`' />
+                            </set>
+                            <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' 
+force='true'
+resource='logical-link'
+     key='logical-link.link-name = $link-name '
+      local-only='false'>
+                                <parameter name='operational-status' value='down' />
+                            </update>
+                        </block>
+                    </outcome>
+                </switch>
+            </for>
+            <delete plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+resource="service-instance"
+key='customer.global-customer-id = $global-customer-id AND
+service-subscription.service-type = $service-type AND
+service-instance.service-instance-id = $access.service-instance-id'></delete>
+            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance'  
+     key='customer.global-customer-id = $global-customer-id AND
+     service-subscription.service-type = $service-type AND
+     service-instance.service-instance-id = $access.service-instance-id' >
+                <parameter name='service-instance-id' value='`$mdons-access.service-instance-id`' />
+                <parameter name='service-instance-name' value='`$mdons-access.service-instance-name`' />
+                <parameter name='service-type' value='`$mdons-access.service-type`' />
+                <parameter name='orchestration-status' value='`$mdons-access.orchestration-status`' />
+                <parameter name='service-role' value='`$mdons-access.service-role`' />
+                <parameter name='model-invariant-id' value='`$mdons-access.model-invariant-id`' />
+                <parameter name='model-version-id' value='`$mdons-access.model-version-id`' />
+                <parameter name='input-parameters' value='`$mdons-access.input-parameters`' />
+            </save>
+            <call module='optical-service' rpc='optical-service-create' mode='sync' ></call>
+        </block>
+    </method>
+</service-logic>
