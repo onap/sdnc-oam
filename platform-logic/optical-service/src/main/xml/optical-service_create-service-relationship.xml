@@ -6,7 +6,7 @@
             <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
 key='SELECT *
 from REQUEST_DETAILS
-WHERE request_id = $as-request-id'
+WHERE request_id = $access-request-id'
 pfx='access-service'></get-resource>
             <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
                 <parameter name="original_string" value='`$access-service.domain-requests`'/>
@@ -33,17 +33,19 @@ pfx='ds-details'></get-resource>
                     </block>
                 </block>
             </for>
-            <switch test='`$domain-services_length`'>
-                <outcome value='2'>
-                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list'  
+            <switch test='`$domain-services_length == 1`'>
+                <outcome value='false'>
+                    <for index='idml' start='0' end='`$oof-response.solutions.routeInfo.linkList_length`' >
+                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list'  
      key='customer.global-customer-id = $optical-service-create-input.global-customer-id AND
      service-subscription.service-type = $optical-service-create-input.service-type AND
      service-instance.service-instance-id = $access-service.service-instance-id' force="true" pfx="tmp.AnAI-data">
-                        <parameter name="relationship-list.relationship[0].related-to" value="service-instance" />
-                        <parameter name="relationship-list.relationship[0].related-link" value="`'/network/logical-links/logical-link/' + $inter.logical-link[$ida].link-name`" />
-                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="logical-link.link-name" />
-                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$inter.logical-link[$ida].link-name`" />
-                    </save>
+                            <parameter name="relationship-list.relationship[0].related-to" value="service-instance" />
+                            <parameter name="relationship-list.relationship[0].related-link" value="`'/network/logical-links/logical-link/' + $oof-response.solutions.routeInfo.linkList[$idml]`" />
+                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="logical-link.link-name" />
+                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$oof-response.solutions.routeInfo.linkList[$idml]`" />
+                        </save>
+                    </for>
                 </outcome>
             </switch>
         </block>
