@@ -3,195 +3,197 @@
     xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='optical-service' version='${project.version}'>
     <method rpc='inter-domain-handling' mode='sync'>
         <block atomic="true">
-            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
-resource="logical-links"
-key=" "
-pfx='inter' local-only='false' >
-                <outcome value='not-found'>
-                    <return status='failure'>
-                        <parameter name='error-code' value='500' />
-                        <parameter name='error-message' value='No inter-domain-links available' />
-                        <parameter name='ack-final-indicator' value="Y" />
-                    </return>
+            <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
+                <parameter name='fileName' value='/opt/onap/sdnc/data/properties/optical-service-dg.properties' />
+                <parameter name='contextPrefix' value='prop' />
+            </execute>
+            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+key='SELECT * from TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE WHERE interface_name = $src-port-id'
+pfx='src'>
+                <outcome value='success'>
+                    <set>
+                        <parameter name='src-node-id' value='`$src.pnf-name`' />
+                        <parameter name='src-esr-id' value='`$src.controller-id`' />
+                    </set>
                 </outcome>
+            </get-resource>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                <parameter name="original_string" value='`$src-esr-id`'/>
+                <parameter name="regex" value="_"/>
+                <parameter name="ctx_memory_result_key" value="param-prefix"/>
+            </execute>
+            <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL'
+key='SELECT *
+from TOPOLOGY_LOGICAL_RELATION_TO_PINTERFACE
+WHERE interface_name = $dst-port-id'
+pfx='dst'>
+                <outcome value='success'>
+                    <set>
+                        <parameter name='dst-node-id' value='`$dst.pnf-name`' />
+                        <parameter name='dst-esr-id' value='`$dst.controller-id`' />
+                    </set>
+                </outcome>
+            </get-resource>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                <parameter name="original_string" value='`$dst-esr-id`'/>
+                <parameter name="regex" value="_"/>
+                <parameter name="ctx_memory_result_key" value="param-prefix1"/>
+            </execute>
+            <set>
+                <parameter name='src-controller-id' value='`$param-prefix[2]`' />
+                <parameter name='dst-controller-id' value='`$param-prefix1[2]`' />
+                <parameter name='flag' value='true' />
+                <parameter name='domain-requests' value='' />
+                <parameter name='access-status' value='success' />
+                <parameter name='domain-status' value='' />
+            </set>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
+                <parameter name="ctx-destination" value="oof-request-id"/>
+            </execute>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
+                <parameter name="ctx-destination" value="oof-transaction-id"/>
+            </execute>
+            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/oof-mdons.json'`" />
+                <parameter name="restapiUrl" value="` $prop.oof.mdons.url`" />
+                <parameter name="restapiUser" value="admin"/>
+                <parameter name="restapiPassword" value="admin"/>
+                <parameter name="httpMethod" value="POST"/>
+                <parameter name="responsePrefix" value="oof-response"/>
+                <parameter name='contentType' value='application/json' />
+                <parameter name='format' value='json' />
                 <outcome value='failure'>
                     <return status='failure'>
                         <parameter name='error-code' value='500' />
-                        <parameter name='error-message' value='Could not retrieve logical-links' />
+                        <parameter name='error-message' value='No service route found by OOF' />
                         <parameter name='ack-final-indicator' value="Y" />
                     </return>
                 </outcome>
                 <outcome value='success'>
-                    <block atomic="true">
-                        <for index='ida' start='0' end='`$inter.logical-link_length`' >
-                            <switch test='`$inter.logical-link[$ida].link-type`'>
-                                <outcome value='inter-domain'>
-                                    <switch test='`$inter.logical-link[$ida].operational-status == occupied`'>
-                                        <outcome value='true'></outcome>
-                                        <outcome value='false'>
-                                            <block atomic="true">
-                                                <set>
-                                                    <parameter name='access-bend' value='`$inter.logical-link[$ida].relationship-list.relationship[0].relationship-data[1].relationship-value`' />
-                                                    <parameter name='access-cend' value='`$inter.logical-link[$ida].relationship-list.relationship[1].relationship-data[1].relationship-value`' />
-                                                </set>
-                                                <break/>
-                                            </block>
-                                        </outcome>
-                                    </switch>
-                                </outcome>
-                            </switch>
+                    <block atomic='true'>
+                        <for index='idml' start='0' end='`$oof-response.solutions.routeInfo.linkList_length`' >
+                            <block atomic='true'>
+                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+resource="logical-link"
+key="logical-link.link-name = $oof-response.solutions.routeInfo.linkList[$idml]"
+pfx='inter' local-only='false' ></get-resource>
+                                <switch test="`$inter.operational-status == up`">
+                                    <outcome value='false'>
+                                        <block>
+                                            <set>
+                                                <parameter name='flag' value='false' />
+                                            </set>
+                                        </block>
+                                    </outcome>
+                                </switch>
+                            </block>
                         </for>
-                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
-                            <parameter name="file" value="/opt/opendaylight/current/data/log/inter-domain.log" />
-                            <parameter name="level" value="info" />
-                            <parameter name="field1" value="`'Aaccess bend---' + $access-bend`"/>
-                            <parameter name="field2" value="`'Aaccess cend---' + $access-cend`"/>
-                            <parameter name="field3" value="`'Service 1 req id---' + $service1-request-id`"/>
-                            <parameter name="field4" value="`'Service 2 req id---' + $service2-request-id`"/>
-                        </record>
-                        <switch test="`$access-bend == ''`">
-                            <outcome value='true'>
+                        <switch test="`$flag == 'true' `">
+                            <outcome value='false'>
                                 <return status='failure'>
                                     <parameter name='error-code' value='500' />
-                                    <parameter name='error-message' value='No inter-domain-links available' />
+                                    <parameter name='error-message' value='Inter domain links not available' />
                                     <parameter name='ack-final-indicator' value="Y" />
                                 </return>
                             </outcome>
-                            <outcome value='false'>
-                                <block atomic="true">
-                                    <set>
-                                        <parameter name='access-service-name' value='`$optical-service-create-input.payload.service-name`' />
-                                    </set>
-                                    <for index='idb' start='0' end='2' >
-                                        <switch test='`$idb`'>
-                                            <outcome value='0'>
-                                                <block atomic="true">
-                                                    <set>
-                                                        <parameter name='optical-service-create-input.payload.service-aend.port-id' value='`$access-aend`' />
-                                                        <parameter name='optical-service-create-input.payload.service-zend.port-id' value='`$access-bend`' />
-                                                        <parameter name='optical-service-create-input.payload.service-name' value="`$access-service-name +  '_MDONS-OTN'`" />
-                                                        <parameter name='domain-type' value="TAPI" />
-                                                        <parameter name='optical-service-create-input.request-id' value="`$service1-request-id`" />
-                                                        <parameter name='optical-service-create-input.service-id' value="`$service1-svc-instance-id`" />
-                                                    </set>
-                                                    <call module='optical-service' rpc='main-create' mode='sync' >
-                                                        <outcome value='success'>
-                                                            <block atomic="true">
-                                                                <set>
-                                                                    <parameter name='service1-status' value='`$final-response-code`' />
-                                                                </set>
-                                                                <switch test='`$service1-status == 200`'>
-                                                                    <outcome value='true'>
-                                                                        <set>
-                                                                            <parameter name='service1' value='success' />
-                                                                        </set>
-                                                                    </outcome>
-                                                                    <outcome value='false'>
-                                                                        <set>
-                                                                            <parameter name='service1' value='failure' />
-                                                                        </set>
-                                                                    </outcome>
-                                                                </switch>
-                                                            </block>
-                                                        </outcome>
-                                                        <outcome value='failure'>
-                                                            <return status='failure'>
-                                                                <parameter name='error-code' value='500' />
-                                                                <parameter name='error-message' value='Main Create Dg not available' />
-                                                                <parameter name='ack-final-indicator' value="Y" />
-                                                            </return>
-                                                        </outcome>
-                                                    </call>
-                                                </block>
-                                            </outcome>
-                                            <outcome value='1'>
-                                                <block atomic="true">
-                                                    <set>
-                                                        <parameter name='optical-service-create-input.payload.service-aend.port-id' value='`$access-cend`' />
-                                                        <parameter name='optical-service-create-input.payload.service-zend.port-id' value='`$access-zend`' />
-                                                        <parameter name='optical-service-create-input.payload.service-name' value="`$access-service-name + '_MDONS-OTN'`" />
-                                                        <parameter name='domain-type' value="TAPI" />
-                                                        <parameter name='optical-service-create-input.request-id' value="`$service2-request-id`" />
-                                                        <parameter name='optical-service-create-input.service-id' value="`$service2-svc-instance-id`" />
-                                                    </set>
-                                                    <call module='optical-service' rpc='main-create' mode='sync' >
-                                                        <outcome value='success'>
-                                                            <block atomic="true">
-                                                                <set>
-                                                                    <parameter name='service2-status' value='`$final-response-code`' />
-                                                                </set>
-                                                                <switch test='`$service2-status == 200`'>
-                                                                    <outcome value='true'>
-                                                                        <set>
-                                                                            <parameter name='service2' value='success' />
-                                                                        </set>
-                                                                    </outcome>
-                                                                    <outcome value='false'>
-                                                                        <set>
-                                                                            <parameter name='service2' value='success' />
-                                                                        </set>
-                                                                    </outcome>
-                                                                </switch>
-                                                            </block>
-                                                        </outcome>
-                                                        <outcome value='failure'>
-                                                            <return status='failure'>
-                                                                <parameter name='error-code' value='500' />
-                                                                <parameter name='error-message' value='Main Create Dg not available' />
-                                                                <parameter name='ack-final-indicator' value="Y" />
-                                                            </return>
-                                                        </outcome>
-                                                    </call>
-                                                </block>
-                                            </outcome>
-                                        </switch>
-                                    </for>
-                                    <set>
-                                        <parameter name='inter' value='' />
-                                    </set>
-                                    <switch test='`$service1 == $service2 == success`'>
-                                        <outcome value='true'>
-                                            <block>
-                                                <save plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' 
-resource='SQL' 
-key='UPDATE REQUEST_DETAILS SET status = "CREATED" WHERE request_id = $as-request-id'
-force='true' pfx='save-result'></save>
-                                                <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' 
+                            <outcome value='true'>
+                                <block atomic='true'>
+                                    <for index='idmk' start='0' end='`$oof-response.solutions.routeInfo.linkList_length`' >
+                                        <block>
+                                            <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' 
 force='true'
 resource='logical-link'
-     key='logical-link.link-name = $inter.logical-link[$ida].link-name '
+     key='logical-link.link-name = $oof-response.solutions.routeInfo.linkList[$idmk]'
       local-only='false'>
-                                                    <parameter name='operational-status' value='occupied' />
-                                                </update>
-                                                <call module='optical-service' rpc='create-service-relationship' mode='sync' ></call>
-                                                <return status='success'>
-                                                    <parameter name='error-code' value='200' />
-                                                    <parameter name='error-message' value='Multi-domain-service successfully created' />
-                                                    <parameter name='ack-final-indicator' value="Y" />
-                                                </return>
-                                            </block>
-                                        </outcome>
-                                        <outcome value='false'>
-                                            <block>
-                                                <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
-                                                    <parameter name="file" value="/opt/opendaylight/current/data/log/inter-domain.log" />
-                                                    <parameter name="level" value="info" />
-                                                    <parameter name="field1" value="Access service creation failed"/>
-                                                </record>
-                                                <return status='failure'>
-                                                    <parameter name='error-code' value='500' />
-                                                    <parameter name='error-message' value='Multi-domain-service creation failed' />
-                                                    <parameter name='ack-final-indicator' value="Y" />
-                                                </return>
-                                            </block>
-                                        </outcome>
-                                    </switch>
+                                                <parameter name='operational-status' value='occupied' />
+                                            </update>
+                                        </block>
+                                    </for>
+                                </block>
+                            </outcome>
+                        </switch>
+                        <for index='idomainsvc' start='0' end='`$oof-response.solutions.routeInfo.serviceRoute_length`' >
+                            <block atomic='true'>
+                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
+                                    <parameter name="ctx-destination" value="domain-request-id"/>
+                                </execute>
+                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
+                                    <parameter name="ctx-destination" value="domain-instance-id"/>
+                                </execute>
+                                <switch test="`$idomainsvc == $oof-response.solutions.routeInfo.serviceRoute_length - 1`">
+                                    <outcome value='true'>
+                                        <set>
+                                            <parameter name='domain-requests' value="`$domain-requests + $domain-request-id`" />
+                                        </set>
+                                    </outcome>
+                                    <outcome value='false'>
+                                        <set>
+                                            <parameter name='domain-requests' value="`$domain-requests + $domain-request-id + ','`" />
+                                        </set>
+                                    </outcome>
+                                </switch>
+                                <set>
+                                    <parameter name='optical-service-create-input.payload.service-aend.port-id' value='`$oof-response.solutions.routeInfo.serviceRoute[$idomainsvc].srcInterfaceId`' />
+                                    <parameter name='optical-service-create-input.payload.service-zend.port-id' value='`$oof-response.solutions.routeInfo.serviceRoute[$idomainsvc].dstInterfaceId`' />
+                                    <parameter name='optical-service-create-input.payload.service-name' value="`$access-service-name +  '_MDONS-OTN'`" />
+                                    <parameter name='domain-type' value="TAPI" />
+                                    <parameter name='optical-service-create-input.request-id' value="`$domain-request-id`" />
+                                    <parameter name='optical-service-create-input.service-id' value="`$domain-instance-id`" />
+                                </set>
+                                <call module='optical-service' rpc='main-create' mode='sync' >
+                                    <outcome value='success'>
+                                        <block atomic='true'>
+                                            <set>
+                                                <parameter name='service-status' value='`$final-response-code`' />
+                                            </set>
+                                            <switch test='`$service-status == 200`'>
+                                                <outcome value='true'>
+                                                    <set>
+                                                        <parameter name='status' value='success' />
+                                                    </set>
+                                                </outcome>
+                                                <outcome value='false'>
+                                                    <set>
+                                                        <parameter name='status' value='failure' />
+                                                        <parameter name='access-status' value='failure' />
+                                                    </set>
+                                                </outcome>
+                                            </switch>
+                                            <set>
+                                                <parameter name='domain-status' value="`$domain-status + $domain-request-id + '_' + $status` " />
+                                            </set>
+                                        </block>
+                                    </outcome>
+                                </call>
+                            </block>
+                        </for>
+                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                            <parameter name="file" value="/opt/opendaylight/current/data/log/oof-mdons.log" />
+                            <parameter name="level" value="info" />
+                            <parameter name="field1" value="Domain Status"/>
+                            <parameter name="field2" value="`$domain-status`"/>
+                            <parameter name="field3" value="`$flag`"/>
+                            <parameter name="field4" value="`$access-status`"/>
+                        </record>
+                        <switch test="`$access-status == 'success'`">
+                            <outcome value='true'>
+                                <block atomic='true'>
+                                    <save plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' 
+resource='SQL' 
+key='UPDATE REQUEST_DETAILS SET status = "CREATED", domain_requests = $domain-requests WHERE request_id = $access-request-id'
+force='true' pfx='save-result'></save>
+                                    <call module='optical-service' rpc='create-service-relationship' mode='sync' ></call>
+                                    <return status='success'>
+                                        <parameter name='error-code' value='200' />
+                                        <parameter name='error-message' value='Multi-domain-service successfully created' />
+                                        <parameter name='ack-final-indicator' value="Y" />
+                                    </return>
                                 </block>
                             </outcome>
                         </switch>
                     </block>
                 </outcome>
-            </get-resource>
+            </execute>
         </block>
     </method>
 </service-logic>

@@ -3,6 +3,9 @@
     xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='optical-service' version='${project.version}'>
     <method rpc='optical-service-create' mode='sync'>
         <block atomic='true'>
+            <set>
+                <parameter name='pinterface-list' value=""/>
+            </set>
             <for index='idx' start='0' end='`$optical-service-create-input.payload.param_length`' >
                 <set>
                     <parameter name='params' value='`$optical-service-create-input.payload.param[$idx]`' />
@@ -11,6 +14,7 @@
                     <outcome value='true'>
                         <set>
                             <parameter name='optical-service-create-input.payload.service-aend.port-id' value="`$optical-service-create-input.payload.param[$idx].value`"/>
+                            <parameter name='pinterface-aend' value="`'uni1_id--'+ $optical-service-create-input.payload.param[$idx].value`"/>
                         </set>
                     </outcome>
                 </switch>
@@ -23,6 +27,7 @@
                     <outcome value='true'>
                         <set>
                             <parameter name='optical-service-create-input.payload.service-zend.port-id' value="`$optical-service-create-input.payload.param[$idx].value`"/>
+                            <parameter name='pinterface-zend' value="`',uni2_id--'+ $optical-service-create-input.payload.param[$idx].value`"/>
                         </set>
                     </outcome>
                 </switch>
@@ -42,6 +47,7 @@
                     <outcome value='true'>
                         <set>
                             <parameter name='optical-service-create-input.payload.service-aend.port-id' value="`$optical-service-create-input.payload.param[$idx].value`"/>
+                            <parameter name='pinterface-aend' value="`'uni_id--'+ $optical-service-create-input.payload.param[$idx].value`"/>
                         </set>
                     </outcome>
                 </switch>
@@ -49,6 +55,7 @@
                     <outcome value='true'>
                         <set>
                             <parameter name='optical-service-create-input.payload.service-zend.port-id' value="`$optical-service-create-input.payload.param[$idx].value`"/>
+                            <parameter name='pinterface-zend' value="`',enni_id--'+ $optical-service-create-input.payload.param[$idx].value`"/>
                         </set>
                     </outcome>
                 </switch>
@@ -63,6 +70,7 @@
                     <outcome value='true'>
                         <set>
                             <parameter name='optical-service-create-input.payload.service-aend.port-id' value="`$optical-service-create-input.payload.param[$idx].value`"/>
+                            <parameter name='pinterface-aend' value="`'enni1_id--'+ $optical-service-create-input.payload.param[$idx].value`"/>
                         </set>
                     </outcome>
                 </switch>
@@ -70,6 +78,7 @@
                     <outcome value='true'>
                         <set>
                             <parameter name='optical-service-create-input.payload.service-zend.port-id' value="`$optical-service-create-input.payload.param[$idx].value`"/>
+                            <parameter name='pinterface-zend' value="`',enni2_id--'+ $optical-service-create-input.payload.param[$idx].value`"/>
                         </set>
                     </outcome>
                 </switch>
@@ -145,11 +154,21 @@ pfx='db.source2'>
             <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
                 <parameter name="ctx-destination" value="service2-request-id"/>
             </execute>
+            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                <parameter name="file" value="/opt/opendaylight/current/data/log/optical-service-create.log" />
+                <parameter name="level" value="info" />
+                <parameter name="field1" value="Controller Ids"/>
+                <parameter name="field2" value="`$controller1`"/>
+                <parameter name="field3" value="`$controller2`"/>
+            </record>
+            <set>
+                <parameter name='pinterface-list' value="`$pinterface-aend + $pinterface-zend`"/>
+            </set>
             <switch test='`$controller1==$controller2`'>
                 <outcome value='true'>
                     <block>
                         <set>
-                            <parameter name='as-request-id' value='`$optical-service-create-input.request-id`' />
+                            <parameter name='access-request-id' value='`$optical-service-create-input.request-id`' />
                             <parameter name='as-svc-instance-id' value='`$optical-service-create-input.service-id`' />
                         </set>
                         <set>
@@ -164,22 +183,29 @@ pfx='db.source2'>
                             <parameter name="field1" value="`'domain rquest_' + $domain-requests`"/>
                             <parameter name="field2" value="`'Access rquest_' + $as-request-id`"/>
                         </record>
-                        <save plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL" key="INSERT INTO REQUEST_DETAILS (request_id, controller_id, status, service_rate, service_instance_id, service_type, global_customer_id, notification_url, domain_requests ) VALUES ( $as-request-id , null , 'CREATING' , $optical-service-create-input.payload.service-rate ,  $as-svc-instance-id , $optical-service-create-input.service-type , $optical-service-create-input.global-customer-id , $optical-service-create-input.notification-url , $domain-requests );"></save>
+                        <save plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL" key="INSERT INTO REQUEST_DETAILS (request_id, controller_id, status, service_rate, service_instance_id, service_type, global_customer_id, notification_url, domain_requests, pinterface_list ) VALUES ( $access-request-id , null , 'CREATING' , $optical-service-create-input.payload.service-rate ,  $as-svc-instance-id , $optical-service-create-input.service-type , $optical-service-create-input.global-customer-id , $optical-service-create-input.notification-url , $domain-requests , $pinterface-list );"></save>
                         <call module='optical-service' rpc='main-create' mode='sync' >
                             <outcome value='success'>
                                 <switch test='`$final-response-code`'>
                                     <outcome value='200'>
                                         <block>
-                                            <save plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' 
-resource='SQL' 
-key='UPDATE REQUEST_DETAILS SET status = "CREATED" WHERE request_id = $as-request-id'
-force='true' pfx='save-result'></save>
                                             <call module='optical-service' rpc='create-service-relationship' mode='sync' ></call>
-                                            <return status='success'>
-                                                <parameter name='error-code' value='200' />
-                                                <parameter name='error-message' value='Service Created Successfully' />
-                                                <parameter name='ack-final-indicator' value='Y' />
-                                            </return>
+                                            <switch test="`$domain-type == 'MSA'`">
+                                                <outcome value='true'>
+                                                    <return status='success'>
+                                                        <parameter name='error-code' value='200' />
+                                                        <parameter name='error-message' value='Service Created Successfully' />
+                                                        <parameter name='ack-final-indicator' value='N' />
+                                                    </return>
+                                                </outcome>
+                                                <outcome value='false'>
+                                                    <return status='success'>
+                                                        <parameter name='error-code' value='200' />
+                                                        <parameter name='error-message' value='Service Created Successfully' />
+                                                        <parameter name='ack-final-indicator' value='Y' />
+                                                    </return>
+                                                </outcome>
+                                            </switch>
                                         </block>
                                     </outcome>
                                 </switch>
@@ -190,22 +216,23 @@ force='true' pfx='save-result'></save>
                 <outcome value='false'>
                     <block>
                         <set>
-                            <parameter name='as-request-id' value='`$optical-service-create-input.request-id`' />
+                            <parameter name='access-request-id' value='`$optical-service-create-input.request-id`' />
                             <parameter name='as-svc-instance-id' value='`$optical-service-create-input.service-id`' />
-                            <parameter name='domain-requests' value="`$service1-request-id + ',' + $service2-request-id`" />
+                            <parameter name='service-rate' value='`$optical-service-create-input.payload.service-rate`' />
+                        </set>
+                        <save plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL" key="INSERT INTO REQUEST_DETAILS (request_id, controller_id, status, service_rate, service_instance_id, service_type, global_customer_id, notification_url, domain_requests, pinterface_list ) VALUES ( $access-request-id , null , 'CREATING' , $service-rate ,  $as-svc-instance-id , $optical-service-create-input.service-type , $optical-service-create-input.global-customer-id , $optical-service-create-input.notification-url , $domain-requests , $pinterface-list );"></save>
+                        <set>
+                            <parameter name='src-port-id' value="`$optical-service-create-input.payload.service-aend.port-id`"/>
+                            <parameter name='dst-port-id' value="`$optical-service-create-input.payload.service-zend.port-id`"/>
+                            <parameter name='access-service-name' value="`$optical-service-create-input.payload.service-name`"/>
                         </set>
                         <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
                             <parameter name="file" value="/opt/opendaylight/current/data/log/optical-service-create.log" />
                             <parameter name="level" value="info" />
-                            <parameter name="field1" value="`'domain rquest_' + $domain-requests`"/>
-                            <parameter name="field2" value="`'Service 1 req id---' + $service1-request-id`"/>
-                            <parameter name="field3" value="`'Service 2 req id---' + $service2-request-id`"/>
+                            <parameter name="field1" value="Access service details"/>
+                            <parameter name="field2" value="`$access-request-id`"/>
+                            <parameter name="field3" value="`$src-port-id`"/>
                         </record>
-                        <save plugin="org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource" resource="SQL" key="INSERT INTO REQUEST_DETAILS (request_id, controller_id, status, service_rate, service_instance_id, service_type, global_customer_id, notification_url, domain_requests ) VALUES ( $as-request-id , null , 'CREATING' , $optical-service-create-input.payload.service-rate ,  $as-svc-instance-id , $optical-service-create-input.service-type , $optical-service-create-input.global-customer-id , $optical-service-create-input.notification-url , $domain-requests );"></save>
-                        <set>
-                            <parameter name='access-aend' value="`$optical-service-create-input.payload.service-aend.port-id`"/>
-                            <parameter name='access-zend' value="`$optical-service-create-input.payload.service-zend.port-id`"/>
-                        </set>
                         <call module='optical-service' rpc='inter-domain-handling' mode='sync' ></call>
                     </block>
                 </outcome>
