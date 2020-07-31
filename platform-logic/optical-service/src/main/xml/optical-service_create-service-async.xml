@@ -27,10 +27,18 @@ resource='service-instance'
 resource='SQL' 
 key='UPDATE REQUEST_DETAILS SET status = "CREATED" WHERE request_id = $request-id'
 force='true' pfx='save-result'></save>
+                        <get-resource plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' resource='SQL' 
+key="SELECT * from REQUEST_DETAILS WHERE domain_requests = $request-id "
+pfx='access'></get-resource>
+                        <save plugin='org.onap.ccsdk.sli.adaptors.resource.sql.SqlResource' 
+resource='SQL' 
+key='UPDATE REQUEST_DETAILS SET status = "CREATED" WHERE request_id = $access.request-id'
+force='true' pfx='save-result'></save>
                         <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
                             <parameter name="file" value="/opt/opendaylight/current/data/log/async-notif.log" />
                             <parameter name="level" value="info" />
                             <parameter name="field1" value="Finished updating service in AAI and DB to CREATED"/>
+                            <parameter name="field2" value="`$access.request-id`"/>
                         </record>
                     </block>
                 </outcome>
@@ -43,10 +51,26 @@ force='true' pfx='save-result'></save>
                     </block>
                 </outcome>
             </switch>
+            <set>
+                <parameter name='so.service-instance-id' value='`$access.service-instance-id`' />
+                <parameter name='so.service-type' value='`$access.service-type`' />
+                <parameter name='so.svc-request-id' value='`$access.request-id`' />
+                <parameter name='so.response-code' value='`$response-code`' />
+                <parameter name='so.response-message' value='`$response-message`' />
+                <parameter name='so.ack-final-indicator' value='Y' />
+            </set>
+            <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
+                <parameter name="file" value="/opt/opendaylight/current/data/log/async-notif.log" />
+                <parameter name="level" value="info" />
+                <parameter name="field1" value="SO Parameters"/>
+                <parameter name="field2" value="`$so.service-instance-id`"/>
+                <parameter name="field3" value="`$so.svc-request-id`"/>
+                <parameter name="field4" value="`$so.response-code`"/>
+            </record>
             <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/' + $prop.restapi.template.so.response.filename`" />
-                <parameter name="restapiUrl" value="`$output.notification-url`"/>
-                <parameter name="restapiUser" value="`$prop.so.username`" />
+                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/async-response-so.json'`" />
+                <parameter name="restapiUrl" value="http://so-bpmn-infra.onap:8081/mso/async/services/updateStatus"/>
+                <parameter name="restapiUser" value="sdncaBpmn" />
                 <parameter name="restapiPassword" value="`$prop.so.password`"/>
                 <parameter name="httpMethod" value="POST"/>
                 <parameter name="responsePrefix" value="so-response"/>
