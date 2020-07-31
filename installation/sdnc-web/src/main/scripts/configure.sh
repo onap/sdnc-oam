@@ -44,7 +44,6 @@ update_nginx_site_conf() {
 		sed -i 's|SDNRPROTOCOL|'$SDNRPROTOCOL'|g' /opt/bitnami/nginx/conf/server_blocks/https_site.conf
 		sed -i 's|SDNRHOST|'$SDNRHOST'|g' /opt/bitnami/nginx/conf/server_blocks/https_site.conf
 		sed -i 's|SDNRPORT|'$SDNRPORT'|g' /opt/bitnami/nginx/conf/server_blocks/https_site.conf
-		sed -i 's|LOCALDNS|'$LOCALDNS'|g' /opt/bitnami/nginx/conf/server_blocks/https_site.conf
 		
 		#cp /opt/bitnami/nginx/sbin/https_site.conf /opt/bitnami/nginx/conf/server_blocks
 		rm /opt/bitnami/nginx/conf/server_blocks/http_site.conf
@@ -54,7 +53,6 @@ update_nginx_site_conf() {
 		sed -i 's|SDNRPROTOCOL|'$SDNRPROTOCOL'|g' /opt/bitnami/nginx/conf/server_blocks/http_site.conf
 		sed -i 's|SDNRHOST|'$SDNRHOST'|g' /opt/bitnami/nginx/conf/server_blocks/http_site.conf
 		sed -i 's|SDNRPORT|'$SDNRPORT'|g' /opt/bitnami/nginx/conf/server_blocks/http_site.conf
-		sed -i 's|LOCALDNS|'$LOCALDNS'|g' /opt/bitnami/nginx/conf/server_blocks/http_site.conf
 		#cp /opt/bitnami/nginx/sbin/http_site.conf /opt/bitnami/nginx/conf/server_blocks
 		rm /opt/bitnami/nginx/conf/server_blocks/https_site.conf
 	fi
