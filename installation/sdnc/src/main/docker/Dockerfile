@@ -44,7 +44,7 @@ COPY --from=stage0 --chown=odl:odl /opt /opt
 # Add SDNC repositories to boot repositories
 RUN cp $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.karaf.features.cfg.orig
 RUN sed -i -e "\|featuresRepositories|s|$|,${SDNC_NORTHBOUND_REPO}, ${SDNR_NORTHBOUND_REPO}, ${SDNR_WT_REPO}, ${SDNR_DM_REPO}|"  $ODL_HOME/etc/org.apache.karaf.features.cfg
-RUN sed -i -e "\|featuresBoot[^a-zA-Z]|s|$|,sdnc-northbound-all, sdnr-northbound-all|"  $ODL_HOME/etc/org.apache.karaf.features.cfg
+RUN sed -i -e "\|featuresBoot[^a-zA-Z]|s|$|,sdnc-northbound-all, sdnr-northbound-all, a1-adapter-northbound|"  $ODL_HOME/etc/org.apache.karaf.features.cfg
 RUN sed -i "s/odl-restconf-all/odl-restconf-all,odl-netconf-topology/g"  $ODL_HOME/etc/org.apache.karaf.features.cfg
 
 # install AAF configs
