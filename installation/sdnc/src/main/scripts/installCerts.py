@@ -21,7 +21,7 @@
 # coding=utf-8
 import os
 import re
-import httplib
+import http.client
 import base64
 import time
 import zipfile
@@ -47,9 +47,9 @@ TIMEOUT=1000
 INTERVAL=30
 timePassed=0
 
-postKeystore= "/restconf/operations/netconf-keystore:add-keystore-entry"
-postPrivateKey= "/restconf/operations/netconf-keystore:add-private-key"
-postTrustedCertificate= "/restconf/operations/netconf-keystore:add-trusted-certificate"
+postKeystore= "/rests/operations/netconf-keystore:add-keystore-entry"
+postPrivateKey= "/rests/operations/netconf-keystore:add-private-key"
+postTrustedCertificate= "/rests/operations/netconf-keystore:add-trusted-certificate"
 
 truststore_pass_file = Path + '/truststore.pass'
 truststore_file = Path + '/truststore.jks'
@@ -60,11 +60,12 @@ keystore_file = Path + '/keystore.jks'
 jks_files = [truststore_pass_file, keystore_pass_file, keystore_file, truststore_file]
 
 odl_port = 8181
-headers = {'Authorization':'Basic %s' % base64.b64encode(username + ":" + password),
+cred_string = username + ":" + password
+headers = {'Authorization':'Basic %s' % base64.b64encode(cred_string.encode()).decode(),
            'X-FromAppId': 'csit-sdnc',
            'X-TransactionId': 'csit-sdnc',
            'Accept':"application/json",
-           'Content-type':"application/json"}
+           'Content-type':"application/yang-data+json"}
 
 
 def readFile(folder, file):
@@ -172,7 +173,7 @@ def processFiles(folder, count):
 
 
 def post_content(clientKey, clientCrt, certList, count):
-    conn = httplib.HTTPConnection("localhost",odl_port)
+    conn = http.client.HTTPConnection("localhost",odl_port)
 
     if clientKey:
         json_keystore_key = makeKeystoreKey(clientKey, count)
@@ -195,8 +196,8 @@ def makeHealthcheckCall(headers, timePassed):
     # WAIT 10 minutes maximum and test every 30 seconds if HealthCheck API is returning 200
     while timePassed < TIMEOUT:
         try:
-            conn = httplib.HTTPConnection("localhost",odl_port)
-            req = conn.request("POST", "/restconf/operations/SLI-API:healthcheck",headers=headers)
+            conn = http.client.HTTPConnection("localhost",odl_port)
+            req = conn.request("POST", "/rests/operations/SLI-API:healthcheck",headers=headers)
             res = conn.getresponse()
             res.read()
             if res.status == 200:

@@ -176,6 +176,6 @@ cp /var/custom-certs/* /tmp
 # Create ODL data log directory (it nornally is created after karaf
 # is started, but needs to exist before installCerts.py runs)
 mkdir -p /opt/opendaylight/data/log
-nohup python ${SDNC_BIN}/installCerts.py &
+nohup python3 ${SDNC_BIN}/installCerts.py &
 
 exec ${ODL_HOME}/bin/karaf server
