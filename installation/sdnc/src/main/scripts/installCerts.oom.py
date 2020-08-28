@@ -22,7 +22,7 @@
 
 # coding=utf-8
 import os
-import httplib
+import http.client
 import base64
 import time
 import zipfile
@@ -37,7 +37,7 @@ log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 if not os.path.exists(log_directory):
     os.makedirs(log_directory)
 logging.basicConfig(filename=log_file,level=logging.DEBUG,filemode='w',format=log_format)
-print 'Start cert provisioning. Log file: ' + log_file;
+print ('Start cert provisioning. Log file: ' + log_file);
 
 Path = os.environ['ODL_CERT_DIR']
 
@@ -45,33 +45,36 @@ zipFileList = []
 
 username = os.environ['ODL_ADMIN_USERNAME']
 password = os.environ['ODL_ADMIN_PASSWORD']
+newpassword = os.environ.get('ODL_ADMIN_NEWPASSWORD')
 TIMEOUT=1000
 INTERVAL=30
 timePassed=0
 
-postKeystore= "/restconf/operations/netconf-keystore:add-keystore-entry"
-postPrivateKey= "/restconf/operations/netconf-keystore:add-private-key"
-postTrustedCertificate= "/restconf/operations/netconf-keystore:add-trusted-certificate"
+postKeystore= "/rests/operations/netconf-keystore:add-keystore-entry"
+postPrivateKey= "/rests/operations/netconf-keystore:add-private-key"
+postTrustedCertificate= "/rests/operations/netconf-keystore:add-trusted-certificate"
 
 envOdlFeaturesBoot='ODL_FEATURES_BOOT'
 # Strategy sli-api is default
 certreadyCmd="POST"
-certreadyUrl="/restconf/operations/SLI-API:healthcheck"
+certreadyUrl="/rests/operations/SLI-API:healthcheck"
 odlFeaturesBoot=os.environ.get(envOdlFeaturesBoot)
+
 if odlFeaturesBoot is not None:
     odlFeaturesBoot=odlFeaturesBoot.lower()
     if 'odl-netconf-topology' in odlFeaturesBoot or 'odl-netconf-clustered-topology' in odlFeaturesBoot:
         certreadyCmd="GET"
-        certreadyUrl="/restconf/operational/network-topology:network-topology"
+        certreadyUrl="/rests/data/network-topology:network-topology"
 logging.info('ODL ready strategy with command %s and url %s', certreadyCmd, certreadyUrl)
 
 cadi_file = '.pass'
 odl_port = 8181
-headers = {'Authorization':'Basic %s' % base64.b64encode(username + ":" + password),
+cred_string = username + ":" + password
+headers = {'Authorization':'Basic %s' %  base64.b64encode(cred_string.encode()).decode(),
            'X-FromAppId': 'csit-sdnc',
            'X-TransactionId': 'csit-sdnc',
            'Accept':"application/json",
-           'Content-type':"application/json"}
+           'Content-type':"application/yang-data+json"}
 
 def readFile(folder, file):
     key = open(Path + "/" + folder + "/" + file, "r")
@@ -106,8 +109,6 @@ def makeKeystoreKey(clientKey, count):
         clientKey=clientKey)
 
     return json_keystore_key
-
-
 
 def makePrivateKey(clientKey, clientCrt, certList, count):
     caPem = ""
@@ -175,7 +176,7 @@ def processFiles(folder, count):
 
 def post_content(clientKey, clientCrt, certList, count):
     logging.info('Post content: %d', count)
-    conn = httplib.HTTPConnection("localhost",odl_port)
+    conn = http.client.HTTPConnection("localhost",odl_port)
     if clientKey:
         json_keystore_key = makeKeystoreKey(clientKey, count)
         logging.debug("Posting private key in to ODL keystore")
@@ -197,7 +198,7 @@ def makeHealthcheckCall(headers, timePassed):
     # WAIT 10 minutes maximum and test every 30 seconds if HealthCheck API is returning 200
     while timePassed < TIMEOUT:
         try:
-            conn = httplib.HTTPConnection("localhost",odl_port)
+            conn = http.client.HTTPConnection("localhost",odl_port)
             req = conn.request(certreadyCmd, certreadyUrl,headers=headers)
             res = conn.getresponse()
             res.read()
@@ -292,11 +293,32 @@ def lookforfiles():
     else:
         logging.debug("No jks/p12 files found under cert directory %s", Path)
 
+def replaceAdminPassword(username, password, newpassword):
+    if newpassword is None:
+        logging.info('Not to replace password for user %s', username)
+    else:
+        logging.info('Replace password for user %s', username)
+        try:
+            jsondata = '{\"password\": \"{newpassword}\"}'.format(newpassword=newpassword)
+            url = '/auth/v1/users/{username}@sdn'.format(username=username)
+            loggin.info("Url %s data $s", url, jsondata)
+            conn = http.client.HTTPConnection("localhost",odl_port)
+            req = conn.request("PUT", url, jsondata, headers=headers)
+            res = conn.getresponse()
+            res.read()
+            httpStatus = res.status
+            if httpStatus == 200:
+                logging.debug("New password provided successfully for user %s", username)
+            else:
+                logging.debug("Password change was not possible. Problem code was: %d", httpStatus)
+        except:
+            logging.error("Cannot execute REST call to set password.")
 
 def readCertProperties():
     connected = makeHealthcheckCall(headers, timePassed)
     logging.info('Connected status: %s', connected)
     if connected:
+        replaceAdminPassword(username, password, newpassword)
         count = 0
         if os.path.isfile(Path + "/certs.properties"):
             with open(Path + "/certs.properties", "r") as f:
