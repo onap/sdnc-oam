@@ -355,6 +355,8 @@ if [ ! -f ${SDNC_HOME}/.installed ]
 then
     echo "Installing SDN-C keyStore"
     /bin/bash ${SDNC_HOME}/bin/addSdncKeyStore.sh
+    echo "Installing A1-adapter trustStore"
+    /bin/bash ${SDNC_HOME}/bin/addA1TrustStore.sh
 
     if $ENABLE_ODL_CLUSTER ; then enable_odl_cluster ; fi
 

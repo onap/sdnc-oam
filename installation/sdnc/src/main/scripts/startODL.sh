@@ -152,6 +152,8 @@ then
 	${SDNC_HOME}/bin/installSdncDb.sh
 	echo "Installing SDN-C keyStore"
 	${SDNC_HOME}/bin/addSdncKeyStore.sh
+	echo "Installing A1-adapter trustStore"
+	${SDNC_HOME}/bin/addA1TrustStore.sh
 
 	#${CCSDK_HOME}/bin/installOdlHostKey.sh
 
