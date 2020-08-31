@@ -27,26 +27,25 @@ MAINTAINER CCSDK Team (onap-ccsdk@lists.onap.org)
 COPY html /opt/bitnami/nginx/html  
 
 # copy site conf files 
-COPY http_site.conf /opt/bitnami/nginx/conf/server_blocks/
-COPY https_site.conf /opt/bitnami/nginx/conf/server_blocks/
+COPY *.conf /opt/bitnami/nginx/conf/server_blocks/
 
 # setup environment variables
 ENV WEBPROTOCOL="HTTP" \
-	WEBPORT="8080" \
-	SDNRPROTOCOL="HTTP" \
-	SDNRHOST="172.18.0.3" \
-	SDNRPORT="8181" \
-	SSL_CERT_DIR="/app/cert" \
-	SSL_CERTIFICATE="cert.pem" \
-	SSL_CERTIFICATE_KEY="cert.key"
+    WEBPORT="8080" \
+    SDNRPROTOCOL="HTTP" \
+    SDNRHOST="172.18.0.3" \
+    SDNRPORT="8181" \
+    TRPCEURL="" \
+    TOPOURL="" \
+    SSL_CERT_DIR="/app/cert" \
+    SSL_CERTIFICATE="cert.pem" \
+    SSL_CERTIFICATE_KEY="cert.key"
 
 # Check if /app can be used. If so, create "custom" directory and copy the files there.
-COPY bin/configure.sh /opt/bitnami/nginx/sbin
-COPY bin/run.sh /opt/bitnami/nginx/sbin
+COPY bin/*.sh /opt/bitnami/nginx/sbin/
 
 USER root
-RUN chmod +x /opt/bitnami/nginx/sbin/configure.sh
-RUN chmod +x /opt/bitnami/nginx/sbin/run.sh
+RUN chmod +x /opt/bitnami/nginx/sbin/configure.sh /opt/bitnami/nginx/sbin/run.sh
 # By default, docker copies files with the permissions of the build user. To avoid cases where build user 
 # has 644 which can result in failure of certain commands
 RUN chmod -R g+w /opt/bitnami/nginx/html/odlux
