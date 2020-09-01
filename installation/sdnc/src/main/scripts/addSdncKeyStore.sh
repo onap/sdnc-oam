@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 SDNC_HOME=${SDNC_HOME:-/opt/onap/sdnc}
 
