@@ -2,9 +2,6 @@
 ## START OF STAGE0 ##
 FROM onap/ccsdk-odlsli-alpine-image:${ccsdk.docker.version} AS stage0
 
-ENV JAVA_HOME /usr/lib/jvm/java-1.8-openjdk
-ENV ODL_HOME /opt/opendaylight
-
 USER root
 
 # copy onap
@@ -17,13 +14,10 @@ COPY system /tmp/system
 RUN rsync -a /tmp/system $ODL_HOME
 ## END OF STAGE0 ##
 
-
 FROM onap/ccsdk-odlsli-alpine-image:${ccsdk.docker.version}
 
-MAINTAINER SDN-C Team (sdnc@lists.onap.org)
+LABEL maintainer="SDN-C Team (sdnc@lists.onap.org)"
 
-ENV JAVA_HOME /usr/lib/jvm/java-1.8-openjdk
-ENV ODL_HOME /opt/opendaylight
 ENV SDNC_CONFIG_DIR /opt/onap/sdnc/data/properties
 ENV SDNC_STORE_DIR /opt/onap/sdnc/data/stores
 ENV SSL_CERTS_DIR /etc/ssl/certs
