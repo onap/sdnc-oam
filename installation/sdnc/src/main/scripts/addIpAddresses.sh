@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 MYSQL_USER=${MYSQL_USER:-sdnctl}
 MYSQL_PWD=${MYSQL_PWD:-gamma}

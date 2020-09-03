@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 if [ $# -ne 3 ]; then
    echo "Usage: configure_geo_cluster.sh <member_index{1..6}> <primary_node> <secondary_node>"

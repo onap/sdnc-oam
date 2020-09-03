@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 cat > /tmp/daexim-export.json <<-END
 { 
