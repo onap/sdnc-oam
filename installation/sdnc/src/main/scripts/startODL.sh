@@ -2,10 +2,11 @@
 
 ###
 # ============LICENSE_START=======================================================
-# openECOMP : SDN-C
+# SDN-C
 # ================================================================================
-# Copyright (C) 2017 AT&T Intellectual Property. All rights
-# 							reserved.
+# Copyright (C) 2020 Samsung Electronics
+# Copyright (C) 2017 AT&T Intellectual Property. All rights reserved.
+# Copyright (C) 2020 Highstreet Technologies
 # ================================================================================
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,12 +21,40 @@
 # limitations under the License.
 # ============LICENSE_END=========================================================
 ###
+# A single entry point script that can be used in Kubernetes based deployments (via OOM) and standalone docker deployments.
+# Please see https://wiki.onap.org/display/DW/startODL.sh+-+Important+Environment+variables+and+their+description for more details
+
+# Functions
+
+# Test if repository exists, like this mvn:org.onap.ccsdk.features.sdnr.wt/sdnr-wt-devicemanager-oran-feature/0.7.2/xml/features
+# $1 repository
+function isRepoExisting() {
+  REPO=$(echo $1 | sed -E "s#mvn:(.*)/xml/features\$#\1#")
+  OIFS="$IFS"
+  IFS='/' parts=($REPO)
+  IFS="$OIFS"
+  path="$ODL_HOME/system/"${parts[0]//./\/}"/"${parts[1]}"/"${parts[2]}
+  [ -d "$path" ]
+}
+
+# Add features repository to karaf featuresRepositories configuration
+# $1 repositories to be added
+function addRepository() {
+  CFG=$ODL_FEATURES_BOOT_FILE
+  ORIG=$CFG.orig
+  if isRepoExisting "$1" ; then
+    echo "Add repository: $1"
+    sed -i "\|featuresRepositories|s|$|, $1|" $CFG
+  else
+    echo "Repo does not exist: $1"
+  fi
+}
 
 # Append features to karaf boot feature configuration
 # $1 additional feature to be added
 # $2 repositories to be added (optional)
 function addToFeatureBoot() {
-  CFG=$ODL_HOME/etc/org.apache.karaf.features.cfg
+  CFG=$ODL_FEATURES_BOOT_FILE
   ORIG=$CFG.orig
   if [ -n "$2" ] ; then
     echo "Add repository: $2"
@@ -47,19 +76,61 @@ function replaceFeatureBoot() {
   sed -i "/featuresBoot/ s/$1/$2/g" $CFG
 }
 
+# Remove all sdnc specific features
+function cleanupFeatureBoot() {
+  echo "Remove northbound bootfeatures "
+  sed -i "/featuresBoot/ s/,ccsdk-sli-core-all.*$//g" $ODL_FEATURES_BOOT_FILE
+}
+
+function initialize_sdnr() {
+  echo "SDN-R Database Initialization"
+  INITCMD="$JAVA_HOME/bin/java -jar "
+  INITCMD+="$ODL_HOME/system/org/onap/ccsdk/features/sdnr/wt/sdnr-wt-data-provider-setup/$CCSDKFEATUREVERSION/sdnr-dmt.jar "
+  INITCMD+="$SDNRDBCOMMAND"
+  echo "Execute: $INITCMD"
+  n=0
+  until [ $n -ge 5 ] ; do
+    $INITCMD && break
+    n=$[$n+1]
+    sleep 15
+  done
+  return $?
+}
+
 function install_sdnrwt_features() {
-  addToFeatureBoot "$SDNRWT_BOOTFEATURES" $SDNRWT_REPOSITORY
+  # Repository setup provided via sdnc dockerfile
+  if $SDNRWT; then
+    addRepository $SDNRDM_BASE_REPO
+    addRepository $SDNRDM_ONF_REPO
+
+    if $SDNRONLY; then
+      cleanupFeatureBoot
+    fi
+    if $SDNRDM; then
+      addToFeatureBoot "$SDNRDM_BOOTFEATURES"
+    else
+      addToFeatureBoot "$SDNRWT_BOOTFEATURES"
+    fi
+  fi
 }
 
 function install_sdnr_northbound_features() {
-  addToFeatureBoot "$SDNR_NORTHBOUND_BOOTFEATURES" $SDNR_NORTHBOUND_REPOSITORY
+  addToFeatureBoot "$SDNR_NORTHBOUND_BOOTFEATURES" 
 }
 
-function enable_odl_cluster(){
+# Reconfigure ODL from default single node configuration to cluster
+
+function enable_odl_cluster() {
   if [ -z $SDNC_REPLICAS ]; then
      echo "SDNC_REPLICAS is not configured in Env field"
      exit
   fi
+
+  # ODL NETCONF setup
+  echo "Installing Opendaylight cluster features for mdsal and netconf"
+  
+  #Be sure to remove feature odl-netconf-connector-all from list
+  replaceFeatureBoot "odl-netconf-connector-all,"
 
   echo "Installing Opendaylight cluster features"
   replaceFeatureBoot odl-netconf-topology odl-netconf-clustered-topology
@@ -68,25 +139,24 @@ function enable_odl_cluster(){
   #${ODL_HOME}/bin/client feature:install odl-mdsal-clustering
   #${ODL_HOME}/bin/client feature:install odl-jolokia
 
+  # ODL Cluster or Geo cluster configuration
+  
   echo "Update cluster information statically"
-  hm=$(hostname)
-  echo "Get current Hostname ${hm}"
+  fqdn=$(hostname -f)
+  echo "Get current fqdn ${fqdn}"
 
-  node=($(echo ${hm} | tr '-' '\n'))
-  node_name=${node[0]}
-  node_index=${node[1]}
+  # Extract node index using first digit after "-"
+  # Example 2 from "sdnr-2.logo.ost.das.r32.com"
+  node_index=`(echo ${fqdn} | sed -r 's/.*-([0-9]).*/\1/g')`
+  member_offset=1
 
-  if [ -z $PEER_ODL_CLUSTER ]; then
-    echo "This is a local cluster"
-    node_list="${node_name}-0.sdnhost-cluster.onap.svc.cluster.local";
-
-    for ((i=1;i<${SDNC_REPLICAS};i++));
-    do
-      node_list="${node_list} ${node_name}-$i.sdnhost-cluster.onap.svc.cluster.local"
-    done
-    /opt/opendaylight/current/bin/configure_cluster.sh $((node_index+1)) ${node_list}
-  else
+  if $GEO_ENABLED; then
     echo "This is a Geo cluster"
+
+    if [ -z $IS_PRIMARY_CLUSTER ] || [ -z $MY_ODL_CLUSTER ] || [ -z $PEER_ODL_CLUSTER ]; then
+     echo "IS_PRIMARY_CLUSTER, MY_ODL_CLUSTER and PEER_ODL_CLUSTER must all be configured in Env field"
+     return
+    fi
 
     if $IS_PRIMARY_CLUSTER; then
        PRIMARY_NODE=${MY_ODL_CLUSTER}
@@ -98,86 +168,221 @@ function enable_odl_cluster(){
     fi
 
     node_list="${PRIMARY_NODE} ${SECONDARY_NODE}"
-    /opt/onap/sdnc/bin/configure_geo_cluster.sh $((node_index+member_offset)) ${node_list}
+
+    ${SDNC_BIN}/configure_geo_cluster.sh $((node_index+member_offset)) ${node_list}
+  else
+    echo "This is a local cluster"
+    node_list=""
+    if $OOM_ENABLED; then
+       # Extract node name minus the index
+       # Example sdnr from "sdnr-2.logo.ost.das.r32.com"
+       node_name=($(echo ${fqdn} | sed 's/-[0-9].*$//g'))
+       for ((i=0;i<${SDNC_REPLICAS};i++));
+       do
+         node_list="${node_list} ${node_name}-$i.${SERVICE_NAME}-cluster.${NAMESPACE}"
+       done
+       ${ODL_HOME}/bin/configure_cluster.sh $((node_index+1)) ${node_list}
+    else 
+       for ((i=0;i<${SDNC_REPLICAS};i++));
+       do
+         #assemble node list by replacing node-index in hostname with "i"
+         node_name=`(echo ${fqdn} | sed -r "s/-[0-9]/-$i/g")`
+         node_list="${node_list} ${node_name}"
+       done
+       ${ODL_HOME}/bin/configure_cluster.sh $((node_index+1)) ${node_list}
+    fi
   fi
 }
 
 
 # Install SDN-C platform components if not already installed and start container
 
+# -----------------------
+# Main script starts here
+
 ODL_HOME=${ODL_HOME:-/opt/opendaylight/current}
+ODL_FEATURES_BOOT_FILE=$ODL_HOME/etc/org.apache.karaf.features.cfg
+#
+ODL_REMOVEIDMDB=${ODL_REMOVEIDMDB:-false}
+
 ODL_ADMIN_USERNAME=${ODL_ADMIN_USERNAME:-admin}
+if $ODL_REMOVEIDMDB ; then
+   echo "Remove odl idmdb"
+   rm $ODL_HOME/data/idmlight.db.mv.db
+   ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD:-admin}
+else
+   ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD:-Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U}
+fi
 ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD:-Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U}
 SDNC_HOME=${SDNC_HOME:-/opt/onap/sdnc}
 SDNC_BIN=${SDNC_BIN:-/opt/onap/sdnc/bin}
+SDNC_DB_INIT=${SDNC_DB_INIT:-false}
 CCSDK_HOME=${CCSDK_HOME:-/opt/onap/ccsdk}
-SLEEP_TIME=${SLEEP_TIME:-120}
+JDEBUG=${JDEBUG:-false}
 MYSQL_PASSWD=${MYSQL_PASSWD:-openECOMP1.0}
 ENABLE_ODL_CLUSTER=${ENABLE_ODL_CLUSTER:-false}
+GEO_ENABLED=${GEO_ENABLED:-false}
+SDNC_AAF_ENABLED=${SDNC_AAF_ENABLED:-false}
+OOM_ENABLED=${OOM_ENABLED:-false}
 IS_PRIMARY_CLUSTER=${IS_PRIMARY_CLUSTER:-false}
 MY_ODL_CLUSTER=${MY_ODL_CLUSTER:-127.0.0.1}
 INSTALLED_DIR=${INSTALLED_FILE:-/opt/opendaylight/current/daexim}
 SDNRWT=${SDNRWT:-false}
 SDNRWT_BOOTFEATURES=${SDNRWT_BOOTFEATURES:-sdnr-wt-feature-aggregator}
+SDNRDM=${SDNRDM:-false}
+# Add devicemanager base and specific repositories
+SDNRDM_BASE_REPO=${SDNRDM_BASE_REPO:-mvn:org.onap.ccsdk.features.sdnr.wt/sdnr-wt-feature-aggregator-devicemanager-base/$CCSDKFEATUREVERSION/xml/features}
+SDNRDM_ONF_REPO=${SDNRDM_ONF_REPO:-mvn:org.onap.ccsdk.features.sdnr.wt/sdnr-wt-devicemanager-onf-feature/$CCSDKFEATUREVERSION/xml/features}
+# Add devicemanager features
+SDNRDM_SDM_LIST=${SDNRDM_SDM_LIST:-sdnr-wt-devicemanager-onf-feature}
+SDNRDM_BOOTFEATURES=${SDNRDM_BOOTFEATURES:-sdnr-wt-feature-aggregator-devicemanager-base, ${SDNRDM_SDM_LIST}}
+SDNRINIT=${SDNRINIT:-false}
+SDNRONLY=${SDNRONLY:-false}
+SDNRDBURL=${SDNRDBURL:-http://sdnrdb:9200}
+SDNRDBCOMMAND=${SDNRDBCOMMAND:--c init -db $SDNRDBURL -dbu $SDNRDBUSERNAME -dbp $SDNRDBPASSWORD $SDNRDBPARAMETER}
+
 SDNR_NORTHBOUND=${SDNR_NORTHBOUND:-false}
 SDNR_NORTHBOUND_BOOTFEATURES=${SDNR_NORTHBOUND_BOOTFEATURES:-sdnr-northbound-all}
 export ODL_ADMIN_PASSWORD ODL_ADMIN_USERNAME
 
+if $JDEBUG ; then
+    echo "Activate remote debugging"
+    #JSTADTPOLICYFILE="$ODL_HOME/etc/tools.policy"
+    #echo -e "grant codebase \"file:${JAVA_HOME}/lib/tools.jar\" {\n  permission java.security.AllPermission;\n };" > $JSTADTPOLICYFILE
+    #sleep 1
+    #$JAVA_HOME/bin/jstatd -p 1089 -J-Djava.security.policy=$JSTADTPOLICYFILE &
+    EXTRA_JAVA_OPTS+=" -Dcom.sun.management.jmxremote.port=1090"
+    EXTRA_JAVA_OPTS+=" -Dcom.sun.management.jmxremote.rmi.port=1090"
+    EXTRA_JAVA_OPTS+=" -Djava.rmi.server.hostname=$HOSTNAME"
+    EXTRA_JAVA_OPTS+=" -Dcom.sun.management.jmxremote.local.only=false"
+    EXTRA_JAVA_OPTS+=" -Dcom.sun.management.jmxremote.ssl=false"
+    EXTRA_JAVA_OPTS+=" -Dcom.sun.management.jmxremote.authenticate=false"
+    export EXTRA_JAVA_OPTS
+fi
+
+
 echo "Settings:"
+echo "  SDNC_BIN=$SDNC_BIN"
+echo "  SDNC_HOME=$SDNC_HOME"
+echo "  SDNC_DB_INIT=$SDNC_DB_INIT"
+echo "  ODL_CERT_DIR=$ODL_CERT_DIR"
+echo "  CCSDKFEATUREVERSION=$CCSDKFEATUREVERSION"
 echo "  ENABLE_ODL_CLUSTER=$ENABLE_ODL_CLUSTER"
+echo "  ODL_REMOVEIDMDB=$ODL_REMOVEIDMDB"
 echo "  SDNC_REPLICAS=$SDNC_REPLICAS"
 echo "  SDNRWT=$SDNRWT"
+echo "  SDNRDM=$SDNRDM"
+echo "  SDNRONLY=$SDNRONLY"
+echo "  SDNRINIT=$SDNRINIT"
+echo "  SDNRDBURL=$SDNRDBURL"
+echo "  SDNRDBUSERNAME=$SDNRDBUSERNAME"
+echo "  GEO_ENABLED=$GEO_ENABLED"
+echo "  IS_PRIMARY_CLUSTER=$IS_PRIMARY_CLUSTER"
+echo "  MY_ODL_CLUSTER=$MY_ODL_CLUSTER"
+echo "  PEER_ODL_CLUSTER=$PEER_ODL_CLUSTER"
 echo "  SDNR_NORTHBOUND=$SDNR_NORTHBOUND"
+echo "  AAF_ENABLED=$SDNC_AAF_ENABLED"
 
+if $SDNC_AAF_ENABLED; then
+	export SDNC_AAF_STORE_DIR=/opt/app/osaaf/local
+	export SDNC_AAF_CONFIG_DIR=/opt/app/osaaf/local
+	export SDNC_KEYPASS=`cat /opt/app/osaaf/local/.pass`
+	export SDNC_KEYSTORE=org.onap.sdnc.p12
+	sed -i '/cadi_prop_files/d' $ODL_HOME/etc/system.properties
+	echo "cadi_prop_files=$SDNC_AAF_CONFIG_DIR/org.onap.sdnc.props" >> $ODL_HOME/etc/system.properties
 
+	sed -i '/org.ops4j.pax.web.ssl.keystore/d' $ODL_HOME/etc/custom.properties
+	sed -i '/org.ops4j.pax.web.ssl.password/d' $ODL_HOME/etc/custom.properties
+	sed -i '/org.ops4j.pax.web.ssl.keypassword/d' $ODL_HOME/etc/custom.properties
+	echo org.ops4j.pax.web.ssl.keystore=$SDNC_AAF_STORE_DIR/$SDNC_KEYSTORE >> $ODL_HOME/etc/custom.properties
+	echo org.ops4j.pax.web.ssl.password=$SDNC_KEYPASS >> $ODL_HOME/etc/custom.properties
+	echo org.ops4j.pax.web.ssl.keypassword=$SDNC_KEYPASS >> $ODL_HOME/etc/custom.properties
+fi
+
+if $SDNRINIT ; then
+  #One time intialization action
+  initialize_sdnr
+  init_result=$?
+  echo "Result of init script: $init_result"
+  if $SDNRWT ; then
+    echo "Proceed to initialize sdnr"
+  else
+    exit $init_result
+  fi
+fi
+
+if $OOM_ENABLED; then
 #
 # Wait for database
 #
-echo "Waiting for mysql"
-until mysql -h dbhost -u root -p${MYSQL_PASSWD} mysql &> /dev/null
-do
-  printf "."
-  sleep 1
-done
-echo -e "\nmysql ready"
+  echo "Waiting for mysql"
+  until mysql -h dbhost -u root -p${MYSQL_PASSWD} mysql &> /dev/null
+  do
+    printf "."
+    sleep 1
+  done
+  echo -e "\nmysql ready"
+fi
 
 if [ ! -d ${INSTALLED_DIR} ]
 then
     mkdir -p ${INSTALLED_DIR}
 fi
 
-if [ ! -f ${INSTALLED_DIR}/.installed ]
+if [ ! -f ${SDNC_HOME}/.installed ]
 then
-	echo "Installing SDN-C database"
-	${SDNC_HOME}/bin/installSdncDb.sh
-	echo "Installing SDN-C keyStore"
-	${SDNC_HOME}/bin/addSdncKeyStore.sh
-	echo "Installing A1-adapter trustStore"
-	${SDNC_HOME}/bin/addA1TrustStore.sh
+  if $OOM_ENABLED; then
+    # for integration testing. In OOM, a separate job takes care of installing it.
+    if $SDNC_DB_INIT; then
+      echo "Installing SDN-C database"
+      ${SDNC_HOME}/bin/installSdncDb.sh
+    fi
+    echo "Installing SDN-C keyStore"
+    ${SDNC_HOME}/bin/addSdncKeyStore.sh
+    echo "Installing A1-adapter trustStore"
+    ${SDNC_HOME}/bin/addA1TrustStore.sh
 
-	#${CCSDK_HOME}/bin/installOdlHostKey.sh
+    #${CCSDK_HOME}/bin/installOdlHostKey.sh
 
-	if [ -x ${SDNC_HOME}/svclogic/bin/install.sh ]
-	then
-		echo "Installing directed graphs"
-		${SDNC_HOME}/svclogic/bin/install.sh
-	fi
+    if [ -x ${SDNC_HOME}/svclogic/bin/install.sh ]
+    then
+      echo "Installing directed graphs"
+      ${SDNC_HOME}/svclogic/bin/install.sh
+    fi
+  fi
 
-    if $ENABLE_ODL_CLUSTER ; then enable_odl_cluster ; fi
+  if $ENABLE_ODL_CLUSTER ; then enable_odl_cluster ; fi
 
-	if $SDNRWT ; then install_sdnrwt_features ; fi
+  if $SDNRWT ; then install_sdnrwt_features ; fi
 
   if $SDNR_NORTHBOUND ; then install_sdnr_northbound_features ; fi
-
-	echo "Installed at `date`" > ${INSTALLED_DIR}/.installed
+  echo "Installed at `date`" > ${SDNC_HOME}/.installed
 fi
 
-cp /opt/opendaylight/current/certs/* /tmp
-cp /var/custom-certs/* /tmp
+#cp /opt/opendaylight/current/certs/* /tmp
+#cp /var/custom-certs/* /tmp
+
+if [ -n "$OVERRIDE_FEATURES_BOOT" ] ; then
+  echo "Override features boot: $OVERRIDE_FEATURES_BOOT"
+  sed -i "/$FEATURESBOOTMARKER/c\featuresBoot = $OVERRIDE_FEATURES_BOOT" $ODL_FEATURES_BOOT_FILE
+fi
+
+# Odl configuration done
+ODL_REPOSITORIES_BOOT=$(sed -n "/$REPOSITORIESBOOTMARKER/p" $ODL_FEATURES_BOOT_FILE)
+ODL_FEATURES_BOOT=$(sed -n "/$FEATURESBOOTMARKER/p" $ODL_FEATURES_BOOT_FILE)
+export ODL_FEATURES_BOOT
 
 # Create ODL data log directory (it nornally is created after karaf
 # is started, but needs to exist before installCerts.py runs)
-mkdir -p /opt/opendaylight/data/log
-nohup python3 ${SDNC_BIN}/installCerts.py &
+if [ -z "$ODL_CERT_DIR" ] ; then
+  echo "No certs provided. Skip installation."
+else
+  echo "Start background cert installer"
+  mkdir -p /opt/opendaylight/data/log
+  nohup python3 ${SDNC_BIN}/installCerts.py &
+fi
 
+echo "Startup opendaylight"
+echo $ODL_REPOSITORIES_BOOT
+echo $ODL_FEATURES_BOOT
 exec ${ODL_HOME}/bin/karaf server

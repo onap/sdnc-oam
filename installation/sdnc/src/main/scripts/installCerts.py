@@ -1,6 +1,8 @@
 # ============LICENSE_START=======================================================
 #  Copyright (C) 2019 Nordix Foundation.
 # ================================================================================
+#  extended by highstreet technologies GmbH (c) 2020
+# ================================================================================
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -29,20 +31,26 @@ import shutil
 import subprocess
 import logging
 
-
-log_file = '/opt/opendaylight/data/log/installCerts.log'
-with open(os.path.join('/opt/opendaylight/data/log', 'installCerts.log'), 'w') as fp:
+odl_home = os.environ['ODL_HOME']
+log_directory = odl_home + '/data/log/'
+log_file = log_directory + 'installCerts.log'
+with open(os.path.join(log_directory, 'installCerts.log'), 'w') as fp:
     pass
-
 log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+if not os.path.exists(log_directory):
+    os.makedirs(log_directory)
 logging.basicConfig(filename=log_file,level=logging.DEBUG,filemode='w',format=log_format)
+print ('Start cert provisioning. Log file: ' + log_file);
 
 Path = "/tmp"
+if "ODL_CERT_DIR" in os.environ:
+    Path = os.environ['ODL_CERT_DIR']
 
 zipFileList = []
 
 username = os.environ['ODL_ADMIN_USERNAME']
 password = os.environ['ODL_ADMIN_PASSWORD']
+newpassword = os.environ.get('ODL_ADMIN_NEWPASSWORD')
 TIMEOUT=1000
 INTERVAL=30
 timePassed=0
@@ -59,6 +67,18 @@ keystore_file = Path + '/keystore.jks'
 
 jks_files = [truststore_pass_file, keystore_pass_file, keystore_file, truststore_file]
 
+envOdlFeaturesBoot='ODL_FEATURES_BOOT'
+# Strategy sli-api is default
+certreadyCmd="POST"
+certreadyUrl="/rests/operations/SLI-API:healthcheck"
+
+if "SDNRWT" in os.environ: 
+    sdnrWt = os.environ['SDNRWT']
+    if sdnrWt == "true":
+        certreadyCmd="GET"
+        certreadyUrl="/rests/data/network-topology:network-topology"
+logging.info('ODL ready strategy with command %s and url %s', certreadyCmd, certreadyUrl)
+
 odl_port = 8181
 cred_string = username + ":" + password
 headers = {'Authorization':'Basic %s' % base64.b64encode(cred_string.encode()).decode(),
@@ -67,14 +87,12 @@ headers = {'Authorization':'Basic %s' % base64.b64encode(cred_string.encode()).d
            'Accept':"application/json",
            'Content-type':"application/yang-data+json"}
 
-
 def readFile(folder, file):
     key = open(Path + "/" + folder + "/" + file, "r")
     fileRead = key.read()
     key.close()
     fileRead = "\n".join(fileRead.splitlines()[1:-1])
     return fileRead
-
 
 def readTrustedCertificate(folder, file):
     listCert = list()
@@ -93,7 +111,6 @@ def readTrustedCertificate(folder, file):
             caPem = ""
     return listCert
 
-
 def makeKeystoreKey(clientKey, count):
     odl_private_key = "ODL_private_key_%d" %count
 
@@ -103,7 +120,6 @@ def makeKeystoreKey(clientKey, count):
         clientKey=clientKey)
 
     return json_keystore_key
-
 
 def makePrivateKey(clientKey, clientCrt, certList, count):
     caPem = ""
@@ -121,7 +137,6 @@ def makePrivateKey(clientKey, clientCrt, certList, count):
         caPem=caPem)
 
     return json_private_key
-
 
 def makeTrustedCertificate(certList, count):
     number = 0
@@ -148,7 +163,6 @@ def makeRestconfPost(conn, json_file, apiCall):
     else:
         logging.debug("Response :%s Reason :%s ",res.status, res.reason)
 
-
 def extractZipFiles(zipFileList, count):
     for zipFolder in zipFileList:
         with zipfile.ZipFile(Path + "/" + zipFolder.strip(),"r") as zip_ref:
@@ -156,8 +170,8 @@ def extractZipFiles(zipFileList, count):
         folder = zipFolder.rsplit(".")[0]
         processFiles(folder, count)
 
-
 def processFiles(folder, count):
+    logging.info('Process folder: %d %s', count, folder)
     for file in os.listdir(Path + "/" + folder):
         if os.path.isfile(Path + "/" + folder + "/" + file.strip()):
             if ".key" in file:
@@ -171,8 +185,8 @@ def processFiles(folder, count):
     shutil.rmtree(Path + "/" + folder)
     post_content(clientKey, clientCrt, certList, count)
 
-
 def post_content(clientKey, clientCrt, certList, count):
+    logging.info('Post content: %d', count)
     conn = http.client.HTTPConnection("localhost",odl_port)
 
     if clientKey:
@@ -197,21 +211,23 @@ def makeHealthcheckCall(headers, timePassed):
     while timePassed < TIMEOUT:
         try:
             conn = http.client.HTTPConnection("localhost",odl_port)
-            req = conn.request("POST", "/rests/operations/SLI-API:healthcheck",headers=headers)
+            req = conn.request(certreadyCmd, certreadyUrl,headers=headers)
             res = conn.getresponse()
             res.read()
-            if res.status == 200:
+            httpStatus = res.status
+            if httpStatus == 200:
                 logging.debug("Healthcheck Passed in %d seconds." %timePassed)
                 connected = True
                 break
             else:
-                logging.debug("Sleep: %d seconds before testing if Healthcheck worked. Total wait time up now is: %d seconds. Timeout is: %d seconds" %(INTERVAL, timePassed, TIMEOUT))
+                logging.debug("Sleep: %d seconds before testing if Healthcheck worked. Total wait time up now is: %d seconds. Timeout is: %d seconds. Problem code was: %d" %(INTERVAL, timePassed, TIMEOUT, httpStatus))
         except:
-            logging.error("Cannot execute REST call. Sleep: %d seconds before testing if Healthcheck worked. Total wait time up now is: %d seconds. Timeout is: %d seconds" %(INTERVAL, timePassed, TIMEOUT))
+            logging.error("Cannot execute REST call. Sleep: %d seconds before testing if Healthcheck worked. Total wait time up now is: %d seconds. Timeout is: %d seconds." %(INTERVAL, timePassed, TIMEOUT))
         timePassed = timeIncrement(timePassed)
 
     if timePassed > TIMEOUT:
         logging.error("TIME OUT: Healthcheck not passed in  %d seconds... Could cause problems for testing activities..." %TIMEOUT)
+
     return connected
 
 
@@ -230,23 +246,26 @@ def get_pass(file_name):
         logging.error("Error occurred while fetching password : %s", e)
         exit()
 
-
 def cleanup():
-    for file in jks_files:
-        if os.path.isfile(file):
-            logging.debug("Cleaning up the file %s", file)
-            os.remove(file)
+    for file in os.listdir(Path):
+        if os.path.isfile(Path + '/' + file):
+            logging.debug("Cleaning up the file %s", Path + '/'+ file)
+            os.remove(Path + '/'+ file)
 
 
 def jks_to_p12(file, password):
     """Converts jks format into p12"""
     try:
-        p12_file = file.replace('.jks', '.p12')
-        jks_cmd = 'keytool -importkeystore -srckeystore {src_file} -destkeystore {dest_file} -srcstoretype JKS -srcstorepass {src_pass} -deststoretype PKCS12 -deststorepass {dest_pass}'.format(src_file=file, dest_file=p12_file, src_pass=password, dest_pass=password)
-        logging.debug("Converting %s into p12 format", file)
-        os.system(jks_cmd)
-        file = p12_file
-        return file
+        certList = []
+        key = None
+        cert = None
+        if (file.endswith('.jks')):
+             p12_file = file.replace('.jks', '.p12')
+             jks_cmd = 'keytool -importkeystore -srckeystore {src_file} -destkeystore {dest_file} -srcstoretype JKS -srcstorepass {src_pass} -deststoretype PKCS12 -deststorepass {dest_pass}'.format(src_file=file, dest_file=p12_file, src_pass=password, dest_pass=password)
+             logging.debug("Converting %s into p12 format", file)
+             os.system(jks_cmd)
+             file = p12_file
+             return file
     except Exception as e:
         logging.error("Error occurred while converting jks to p12 format : %s", e)
 
@@ -307,6 +326,27 @@ def process_jks_files(count):
     except Exception as e:
         logging.error("UnExpected Error while processing JKS files at {0}, Caused by: {1}".format(Path, e))
 
+def replaceAdminPassword(username, password, newpassword):
+    if newpassword is None:
+        logging.info('Not to replace password for user %s', username)
+    else:
+        logging.info('Replace password for user %s', username)
+        try:
+            jsondata = '{\"password\": \"{newpassword}\"}'.format(newpassword=newpassword)
+            url = '/auth/v1/users/{username}@sdn'.format(username=username)
+            loggin.info("Url %s data $s", url, jsondata)
+            conn = http.client.HTTPConnection("localhost",odl_port)
+            req = conn.request("PUT", url, jsondata, headers=headers)
+            res = conn.getresponse()
+            res.read()
+            httpStatus = res.status
+            if httpStatus == 200:
+                logging.debug("New password provided successfully for user %s", username)
+            else:
+                logging.debug("Password change was not possible. Problem code was: %d", httpStatus)
+        except:
+            logging.error("Cannot execute REST call to set password.")
+
 
 def readCertProperties():
     '''
@@ -316,8 +356,9 @@ def readCertProperties():
     If not foud, it searches for jks certificates.
     '''
     connected = makeHealthcheckCall(headers, timePassed)
-
+    logging.info('Connected status: %s', connected)
     if connected:
+        replaceAdminPassword(username, password, newpassword)
         count = 0
         if os.path.isfile(Path + "/certs.properties"):
             with open(Path + "/certs.properties", "r") as f:
@@ -330,7 +371,9 @@ def readCertProperties():
                         del zipFileList[:]
         else:
             logging.debug("No certs.properties/zip files exist at: " + Path)
+            logging.info("Processing any  available jks/p12 files under cert directory")
             process_jks_files(count)
 
 
 readCertProperties()
+logging.info('Cert installation ending')
