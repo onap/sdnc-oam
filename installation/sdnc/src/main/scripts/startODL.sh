@@ -21,6 +21,8 @@
 # limitations under the License.
 # ============LICENSE_END=========================================================
 ###
+# A single entry point script that can be used in Kubernetes based deployments (via OOM) and standalone docker deployments.
+# Please see https://wiki.onap.org/display/DW/startODL.sh+-+Important+Environment+variables+and+their+description for more details
 
 # Functions
 
@@ -140,11 +142,12 @@ function enable_odl_cluster() {
   # ODL Cluster or Geo cluster configuration
   
   echo "Update cluster information statically"
-  hm=$(hostname)
-  echo "Get current Hostname ${hm}"
+  fqdn=$(hostname -f)
+  echo "Get current fqdn ${fqdn}"
 
-  node=($(echo ${hm} | sed 's/-[0-9]*$//g'))
-  node_index=($(echo ${hm} | awk -F"-" '{print $NF}'))
+  # Extract node index using first digit after "-"
+  # Example 2 from "sdnr-2.logo.ost.das.r32.com"
+  node_index=`(echo ${fqdn} | sed -r 's/.*-([0-9]).*/\1/g')`
   member_offset=1
 
   if $GEO_ENABLED; then
@@ -169,18 +172,22 @@ function enable_odl_cluster() {
     ${SDNC_BIN}/configure_geo_cluster.sh $((node_index+member_offset)) ${node_list}
   else
     echo "This is a local cluster"
+    node_list=""
     if $OOM_ENABLED; then
-       node_list="${node}-0.{{.Values.service.name}}-cluster.{{.Release.Namespace}}";
-       for ((i=1;i<${SDNC_REPLICAS};i++));
+       # Extract node name minus the index
+       # Example sdnr from "sdnr-2.logo.ost.das.r32.com"
+       node_name=($(echo ${fqdn} | sed 's/-[0-9].*$//g'))
+       for ((i=0;i<${SDNC_REPLICAS};i++));
        do
-         node_list="${node_list} ${node}-$i.{{.Values.service.name}}-cluster.{{.Release.Namespace}}"
+         node_list="${node_list} ${node_name}-$i.${SERVICE_NAME}-cluster.${NAMESPACE}"
        done
        ${ODL_HOME}/bin/configure_cluster.sh $((node_index+1)) ${node_list}
     else 
-       node_list="${node_name}-0.sdnhost-cluster.onap.svc.cluster.local";
-       for ((i=1;i<${SDNC_REPLICAS};i++));
+       for ((i=0;i<${SDNC_REPLICAS};i++));
        do
-         node_list="${node_list} ${node_name}-$i.sdnhost-cluster.onap.svc.cluster.local"
+         #assemble node list by replacing node-index in hostname with "i"
+         node_name=`(echo ${fqdn} | sed -r "s/-[0-9]/-$i/g")`
+         node_list="${node_list} ${node_name}"
        done
        ${ODL_HOME}/bin/configure_cluster.sh $((node_index+1)) ${node_list}
     fi
@@ -209,6 +216,7 @@ fi
 ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD:-Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U}
 SDNC_HOME=${SDNC_HOME:-/opt/onap/sdnc}
 SDNC_BIN=${SDNC_BIN:-/opt/onap/sdnc/bin}
+SDNC_DB_INIT=${SDNC_DB_INIT:-false}
 CCSDK_HOME=${CCSDK_HOME:-/opt/onap/ccsdk}
 JDEBUG=${JDEBUG:-false}
 MYSQL_PASSWD=${MYSQL_PASSWD:-openECOMP1.0}
@@ -256,6 +264,7 @@ fi
 echo "Settings:"
 echo "  SDNC_BIN=$SDNC_BIN"
 echo "  SDNC_HOME=$SDNC_HOME"
+echo "  SDNC_DB_INIT=$SDNC_DB_INIT"
 echo "  ODL_CERT_DIR=$ODL_CERT_DIR"
 echo "  CCSDKFEATUREVERSION=$CCSDKFEATUREVERSION"
 echo "  ENABLE_ODL_CLUSTER=$ENABLE_ODL_CLUSTER"
@@ -323,8 +332,11 @@ fi
 if [ ! -f ${SDNC_HOME}/.installed ]
 then
   if $OOM_ENABLED; then
-    echo "Installing SDN-C database"
-    ${SDNC_HOME}/bin/installSdncDb.sh
+    # for integration testing. In OOM, a separate job takes care of installing it.
+    if $SDNC_DB_INIT; then
+      echo "Installing SDN-C database"
+      ${SDNC_HOME}/bin/installSdncDb.sh
+    fi
     echo "Installing SDN-C keyStore"
     ${SDNC_HOME}/bin/addSdncKeyStore.sh
     echo "Installing A1-adapter trustStore"

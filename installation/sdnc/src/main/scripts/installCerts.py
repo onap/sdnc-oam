@@ -34,7 +34,7 @@ import logging
 odl_home = os.environ['ODL_HOME']
 log_directory = odl_home + '/data/log/'
 log_file = log_directory + 'installCerts.log'
-with open(os.path.join('/opt/opendaylight/data/log', 'installCerts.log'), 'w') as fp:
+with open(os.path.join(log_directory, 'installCerts.log'), 'w') as fp:
     pass
 log_format = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 if not os.path.exists(log_directory):
