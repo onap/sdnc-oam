@@ -48,7 +48,8 @@ RUN echo "cadi_prop_files=$SDNC_CONFIG_DIR/org.onap.sdnc.props" >> $ODL_HOME/etc
 # Install ssl and java certificates
 COPY truststoreONAPall.jks $JAVA_SECURITY_DIR
 COPY truststoreONAPall.jks $SDNC_STORE_DIR
-RUN keytool -importkeystore -srckeystore $JAVA_SECURITY_DIR/truststoreONAPall.jks -srcstorepass changeit -destkeystore $JAVA_SECURITY_DIR/cacerts  -deststorepass changeit
+RUN keytool -importkeystore -srckeystore $JAVA_SECURITY_DIR/truststoreONAPall.jks -srcstorepass changeit -destkeystore $JAVA_SECURITY_DIR/cacerts  -deststorepass changeit -noprompt
+RUN keytool -importkeystore -srckeystore $JAVA_SECURITY_DIR/truststoreONAPall.jks -srcstorepass changeit -destkeystore /opt/java/openjdk/lib/security/cacerts  -deststorepass changeit -noprompt
 
 # Secure with TLS
 RUN echo org.osgi.service.http.secure.enabled=true >> $ODL_HOME/etc/custom.properties
