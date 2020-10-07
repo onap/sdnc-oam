@@ -311,7 +311,7 @@ if $SDNRINIT ; then
   fi
 fi
 
-if $OOM_ENABLED; then
+if $OOM_DISABLED; then
 #
 # Wait for database
 #
@@ -331,16 +331,12 @@ fi
 
 if [ ! -f ${SDNC_HOME}/.installed ]
 then
-  if $OOM_ENABLED; then
+  if $OOM_DISABLED; then
     # for integration testing. In OOM, a separate job takes care of installing it.
     if $SDNC_DB_INIT; then
       echo "Installing SDN-C database"
       ${SDNC_HOME}/bin/installSdncDb.sh
     fi
-    echo "Installing SDN-C keyStore"
-    ${SDNC_HOME}/bin/addSdncKeyStore.sh
-    echo "Installing A1-adapter trustStore"
-    ${SDNC_HOME}/bin/addA1TrustStore.sh
 
     #${CCSDK_HOME}/bin/installOdlHostKey.sh
 
@@ -350,6 +346,11 @@ then
       ${SDNC_HOME}/svclogic/bin/install.sh
     fi
   fi
+
+  echo "Installing SDN-C keyStore"
+  ${SDNC_HOME}/bin/addSdncKeyStore.sh
+  echo "Installing A1-adapter trustStore"
+  ${SDNC_HOME}/bin/addA1TrustStore.sh
 
   if $ENABLE_ODL_CLUSTER ; then enable_odl_cluster ; fi
 
