@@ -283,6 +283,7 @@ printf "%s\n" "  MY_ODL_CLUSTER=$MY_ODL_CLUSTER"
 printf "%s\n" "  PEER_ODL_CLUSTER=$PEER_ODL_CLUSTER"
 printf "%s\n" "  SDNR_NORTHBOUND=$SDNR_NORTHBOUND"
 printf "%s\n" "  AAF_ENABLED=$SDNC_AAF_ENABLED"
+printf "%s\n" "  OOM_ENABLED=$OOM_ENABLED"
 
 if "$SDNC_AAF_ENABLED"; then
 	export SDNC_AAF_STORE_DIR=/opt/app/osaaf/local
@@ -312,7 +313,7 @@ if $SDNRINIT ; then
   fi
 fi
 
-if $OOM_ENABLED; then
+if ! $OOM_ENABLED; then
 #
 # Wait for database
 #
@@ -332,16 +333,12 @@ fi
 
 if [ ! -f "${SDNC_HOME}"/.installed ]
 then
-  if $OOM_ENABLED; then
+  if ! $OOM_ENABLED; then
     # for integration testing. In OOM, a separate job takes care of installing it.
     if $SDNC_DB_INIT; then
       printf "Installing SDN-C database\n"
       "${SDNC_HOME}"/bin/installSdncDb.sh
     fi
-    printf "Installing SDN-C keyStore\n"
-    "${SDNC_HOME}"/bin/addSdncKeyStore.sh
-    printf "Installing A1-adapter trustStore\n"
-    "${SDNC_HOME}"/bin/addA1TrustStore.sh
 
     #${CCSDK_HOME}/bin/installOdlHostKey.sh
 
@@ -351,6 +348,11 @@ then
       "${SDNC_HOME}"/svclogic/bin/install.sh
     fi
   fi
+
+  printf "Installing SDN-C keyStore\n"
+  "${SDNC_HOME}"/bin/addSdncKeyStore.sh
+  printf "Installing A1-adapter trustStore\n"
+  "${SDNC_HOME}"/bin/addA1TrustStore.sh
 
   if $SDNRWT ; then install_sdnrwt_features ; fi
   # The enable_odl_cluster call should not be moved above this line as the cleanFeatureBoot will overwrite entries. Ex: odl-jolokia
