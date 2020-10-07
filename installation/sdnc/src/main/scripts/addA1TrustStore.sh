@@ -22,7 +22,7 @@ SDNC_STORE_DIR=${SDNC_STORE_DIR:-/opt/onap/sdnc/data/stores}
 A1_TRUSTSTORE=${SDNC_STORE_DIR}/truststore.a1.adapter.jks
 ONAP_TRUSTSTORE=${SDNC_STORE_DIR}/truststoreONAPall.jks
 
-if [ -f ${A1_TRUST_STORE} ]
+if [ -f ${A1_TRUSTSTORE} -a "${A1_TRUSTSTORE_PASSWORD}" != "" ]
 then
   keytool -importkeystore -srckeystore ${A1_TRUSTSTORE} -srcstorepass ${A1_TRUSTSTORE_PASSWORD} -destkeystore ${ONAP_TRUSTSTORE} -deststorepass changeit
 fi
