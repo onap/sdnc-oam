@@ -1,6 +1,6 @@
 # Prepare stage for multistage image build
 ## START OF STAGE0 ##
-FROM onap/ccsdk-odlsli-alpine-image:latest AS stage0
+FROM onap/ccsdk-odlsli-alpine-image:${ccsdk.docker.version} AS stage0
 
 USER root
 
@@ -14,7 +14,7 @@ COPY system /tmp/system
 RUN rsync -a /tmp/system $ODL_HOME
 ## END OF STAGE0 ##
 
-FROM onap/ccsdk-odlsli-alpine-image:latest
+FROM onap/ccsdk-odlsli-alpine-image:${ccsdk.docker.version}
 
 LABEL maintainer="SDN-C Team (sdnc@lists.onap.org)"
 
