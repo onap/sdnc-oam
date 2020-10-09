@@ -174,7 +174,8 @@ enable_odl_cluster() {
     printf "This is a local cluster\n"
     i=0
     node_list=""
-    if $OOM_ENABLED; then
+    # SERVICE_NAME and NAMESPACE are used to create cluster node names and are provided via Helm charts in OOM environment
+    if [ ! -z "$SERVICE_NAME" ] && [ ! -z "$NAMESPACE" ]; then
        # Extract node name minus the index
        # Example sdnr from "sdnr-2.logo.ost.das.r32.com"
        node_name=$(echo "${fqdn}" | sed 's/-[0-9].*$//g')
@@ -183,7 +184,8 @@ enable_odl_cluster() {
          i=$(("$i" + 1))
        done
        "${ODL_HOME}"/bin/configure_cluster.sh $((node_index+1)) "${node_list}"
-    else 
+    elif [ -z "$SERVICE_NAME" ] && [ -z "$NAMESPACE" ]; then
+      # Hostname is used in Standalone environment to create cluster node names
        while [ $i -lt "$SDNC_REPLICAS" ]; do
          #assemble node list by replacing node-index in hostname with "i"
          node_name=$(echo "${fqdn}" | sed -r "s/-[0-9]/-$i/g")
@@ -191,6 +193,13 @@ enable_odl_cluster() {
          i=$(("$i" + 1))
        done
        "${ODL_HOME}"/bin/configure_cluster.sh $((node_index+1)) "${node_list}"
+    else
+       printf "Unhandled cluster scenario. Terminating the container\n" 
+       printf "Any one of the below 2 conditions should be satisfied for successfully enabling cluster mode : \n"
+       printf "1. OOM Environment - Both SERVICE_NAME and NAMESPACE environment variables have to be set.\n"
+       printf "2. Docker (standalone) Environment - Neither of SERVICE_NAME and NAMESPACE have to be set.\n"
+       printf "Current configuration - SERVICE_NAME = $SERVICE_NAME  NAMESPACE = $NAMESPACE\n"
+       exit $NOTOK
     fi
   fi
 }
@@ -217,6 +226,7 @@ fi
 ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD:-Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U}
 SDNC_HOME=${SDNC_HOME:-/opt/onap/sdnc}
 SDNC_BIN=${SDNC_BIN:-/opt/onap/sdnc/bin}
+# Whether to intialize MYSql DB or not. Default is to initialize
 SDNC_DB_INIT=${SDNC_DB_INIT:-false}
 CCSDK_HOME=${CCSDK_HOME:-/opt/onap/ccsdk}
 JDEBUG=${JDEBUG:-false}
@@ -224,7 +234,6 @@ MYSQL_PASSWD=${MYSQL_PASSWD:-openECOMP1.0}
 ENABLE_ODL_CLUSTER=${ENABLE_ODL_CLUSTER:-false}
 GEO_ENABLED=${GEO_ENABLED:-false}
 SDNC_AAF_ENABLED=${SDNC_AAF_ENABLED:-false}
-OOM_ENABLED=${OOM_ENABLED:-false}
 IS_PRIMARY_CLUSTER=${IS_PRIMARY_CLUSTER:-false}
 MY_ODL_CLUSTER=${MY_ODL_CLUSTER:-127.0.0.1}
 INSTALLED_DIR=${INSTALLED_FILE:-/opt/opendaylight/current/daexim}
@@ -237,6 +246,7 @@ SDNRDM_ONF_REPO=${SDNRDM_ONF_REPO:-mvn:org.onap.ccsdk.features.sdnr.wt/sdnr-wt-d
 # Add devicemanager features
 SDNRDM_SDM_LIST=${SDNRDM_SDM_LIST:-sdnr-wt-devicemanager-onf-feature}
 SDNRDM_BOOTFEATURES=${SDNRDM_BOOTFEATURES:-sdnr-wt-feature-aggregator-devicemanager-base, ${SDNRDM_SDM_LIST}}
+# Whether to Initialize the ElasticSearch DB.
 SDNRINIT=${SDNRINIT:-false}
 SDNRONLY=${SDNRONLY:-false}
 SDNRDBURL=${SDNRDBURL:-http://sdnrdb:9200}
@@ -244,6 +254,7 @@ SDNRDBCOMMAND=${SDNRDBCOMMAND:--c init -db $SDNRDBURL -dbu $SDNRDBUSERNAME -dbp 
 
 SDNR_NORTHBOUND=${SDNR_NORTHBOUND:-false}
 SDNR_NORTHBOUND_BOOTFEATURES=${SDNR_NORTHBOUND_BOOTFEATURES:-sdnr-northbound-all}
+NOTOK=1
 export ODL_ADMIN_PASSWORD ODL_ADMIN_USERNAME
 
 if $JDEBUG ; then
@@ -283,7 +294,8 @@ printf "%s\n" "  MY_ODL_CLUSTER=$MY_ODL_CLUSTER"
 printf "%s\n" "  PEER_ODL_CLUSTER=$PEER_ODL_CLUSTER"
 printf "%s\n" "  SDNR_NORTHBOUND=$SDNR_NORTHBOUND"
 printf "%s\n" "  AAF_ENABLED=$SDNC_AAF_ENABLED"
-printf "%s\n" "  OOM_ENABLED=$OOM_ENABLED"
+printf "%s\n" "  SERVICE_NAME=$SERVICE_NAME"
+printf "%s\n" "  NAMESPACE=$NAMESPACE"
 
 if "$SDNC_AAF_ENABLED"; then
 	export SDNC_AAF_STORE_DIR=/opt/app/osaaf/local
@@ -313,7 +325,8 @@ if $SDNRINIT ; then
   fi
 fi
 
-if ! $OOM_ENABLED; then
+# Check for MySQL DB connectivity only if SDNC_DB_INIT is set to "true" 
+if $SDNC_DB_INIT; then
 #
 # Wait for database
 #
@@ -333,26 +346,21 @@ fi
 
 if [ ! -f "${SDNC_HOME}"/.installed ]
 then
-  if ! $OOM_ENABLED; then
     # for integration testing. In OOM, a separate job takes care of installing it.
     if $SDNC_DB_INIT; then
       printf "Installing SDN-C database\n"
       "${SDNC_HOME}"/bin/installSdncDb.sh
     fi
-
-    #${CCSDK_HOME}/bin/installOdlHostKey.sh
+    printf "Installing SDN-C keyStore\n"
+    "${SDNC_HOME}"/bin/addSdncKeyStore.sh
+    printf "Installing A1-adapter trustStore\n"
+    "${SDNC_HOME}"/bin/addA1TrustStore.sh
 
     if [ -x "${SDNC_HOME}"/svclogic/bin/install.sh ]
     then
       printf "Installing directed graphs\n"
       "${SDNC_HOME}"/svclogic/bin/install.sh
     fi
-  fi
-
-  printf "Installing SDN-C keyStore\n"
-  "${SDNC_HOME}"/bin/addSdncKeyStore.sh
-  printf "Installing A1-adapter trustStore\n"
-  "${SDNC_HOME}"/bin/addA1TrustStore.sh
 
   if $SDNRWT ; then install_sdnrwt_features ; fi
   # The enable_odl_cluster call should not be moved above this line as the cleanFeatureBoot will overwrite entries. Ex: odl-jolokia
