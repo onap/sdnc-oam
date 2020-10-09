@@ -193,13 +193,13 @@ enable_odl_cluster() {
          i=$(("$i" + 1))
        done
        "${ODL_HOME}"/bin/configure_cluster.sh $((node_index+1)) "${node_list}"
-    elif [ -z "$SERVICE_NAME" ] || [ -z "$NAMESPACE" ]; then
-        printf "Only one of SERVICE_NAME or NAMESPACE has been set. SERVICE_NAME = $SERVICE_NAME  NAMESPACE = $NAMESPACE\n"
-        printf "Both SERVICE_NAME and NAMESPACE environment variables have to be set. Terminating the container\n"
-        exit $NOTOK
     else
-        printf "Unhandled cluster scenario. Exiting container\n"
-        exit $NOTOK
+       printf "Unhandled cluster scenario. Terminating the container\n" 
+       printf "Any one of the below 2 conditions should be satisfied for successfully enabling cluster mode : \n"
+       printf "1. OOM Environment - Both SERVICE_NAME and NAMESPACE environment variables have to be set.\n"
+       printf "2. Docker (standalone) Environment - Neither of SERVICE_NAME and NAMESPACE have to be set.\n"
+       printf "Current configuration - SERVICE_NAME = $SERVICE_NAME  NAMESPACE = $NAMESPACE\n"
+       exit $NOTOK
     fi
   fi
 }
@@ -226,7 +226,7 @@ fi
 ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD:-Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U}
 SDNC_HOME=${SDNC_HOME:-/opt/onap/sdnc}
 SDNC_BIN=${SDNC_BIN:-/opt/onap/sdnc/bin}
-# Whether to initialize MySQL DB or not. In standalone mode, will be initialized via docker-compose
+# Whether to intialize MYSql DB or not. Default is to initialize
 SDNC_DB_INIT=${SDNC_DB_INIT:-false}
 CCSDK_HOME=${CCSDK_HOME:-/opt/onap/ccsdk}
 JDEBUG=${JDEBUG:-false}
