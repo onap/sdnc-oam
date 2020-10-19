@@ -30,21 +30,24 @@ echo " WEBPORT      : $WEBPORT"
 echo " SDNRPROTOCOL : $SDNRPROTOCOL"
 echo " SDNRHOST     : $SDNRHOST"
 echo " SDNRPORT     : $SDNRPORT"
+echo " DNS_RESOLVER : $DNS_RESOLVER"
 echo " TRPCEURL     : $TRPCEURL"
 echo " TOPOURL      : $TOPOURL"
 echo " TILEURL      : $TILEURL"
-echo " SSL_CERT_DIR : $SSL_CERT_DIR"
-echo -n " SSL_CERTIFICATE: $SSL_CERTIFICATE"
-if [ -f "$SSL_CERTIFICATE" ]; then
-echo " (exists)"
-else
-echo " (missing)"
-fi
-echo -n " SSL_CERTIFICATE_KEY: $SSL_CERTIFICATE_KEY"
-if [ -f "$SSL_CERTIFICATE_KEY" ]; then
-echo " (exists)"
-else
-echo " (missing)"
+if [ "$WEBPROTOCOL" == "HTTPS" ]; then
+  echo " SSL_CERT_DIR : $SSL_CERT_DIR"
+  echo -n " SSL_CERTIFICATE: $SSL_CERTIFICATE"
+  if [ -f "$SSL_CERT_DIR/$SSL_CERTIFICATE" ]; then
+    echo " (exists)"
+  else
+    echo " (missing)"
+  fi
+  echo -n " SSL_CERTIFICATE_KEY: $SSL_CERTIFICATE_KEY"
+  if [ -f "$SSL_CERT_DIR/$SSL_CERTIFICATE_KEY" ]; then
+    echo " (exists)"
+  else
+    echo " (missing)"
+  fi
 fi
 echo ""
 
