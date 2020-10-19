@@ -21,7 +21,7 @@
 
 # Base bitnami nginx image
 FROM ${base.image.repo}
-MAINTAINER CCSDK Team (onap-ccsdk@lists.onap.org)
+LABEL maintainer="CCSDK Team (onap-ccsdk@lists.onap.org)"
 
 # copy ODLUX files to nginx
 COPY html /opt/bitnami/nginx/html  
@@ -38,6 +38,7 @@ ENV WEBPROTOCOL="HTTP" \
     TRPCEURL="" \
     TOPOURL="" \
     TILEURL="" \
+    DNS_RESOLVER="1.1.1.1" \
     SSL_CERT_DIR="/app/cert" \
     SSL_CERTIFICATE="cert.pem" \
     SSL_CERTIFICATE_KEY="cert.key"
