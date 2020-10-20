@@ -59,6 +59,7 @@ update_nginx_site_conf() {
     sed -i 's|SDNRPROTOCOL|'$SDNRPROTOCOL'|g' $FN
     sed -i 's|SDNRHOST|'$SDNRHOST'|g' $FN
     sed -i 's|SDNRPORT|'$SDNRPORT'|g' $FN
+    sed -i 's|DNS_RESOLVER|'$DNS_RESOLVER'|g' $FN
 
     # handle optional parameters
     if [ -z "$TRPCEURL" ]; then
@@ -70,7 +71,7 @@ update_nginx_site_conf() {
     fi
     if [ -z "$TOPOURL" ]; then
         echo "topology api forwarding disabled"
-        sed -i 's|proxy_pass TOPOURL/$1;|return 404;|g' $FN
+        sed -i 's|proxy_pass TOPOURL;|return 404;|g' $FN
     else
         sed -i 's|TOPOURL|'$TOPOURL'|g' $FN
     fi
