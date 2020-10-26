@@ -101,7 +101,6 @@ function install_sdnrwt_features() {
   # Repository setup provided via sdnc dockerfile
   if $SDNRWT; then
     addRepository $SDNRDM_BASE_REPO
-    addRepository $SDNRDM_ONF_REPO
 
     if $SDNRONLY; then
       cleanupFeatureBoot
@@ -241,9 +240,8 @@ SDNRWT_BOOTFEATURES=${SDNRWT_BOOTFEATURES:-sdnr-wt-feature-aggregator}
 SDNRDM=${SDNRDM:-false}
 # Add devicemanager base and specific repositories
 SDNRDM_BASE_REPO=${SDNRDM_BASE_REPO:-mvn:org.onap.ccsdk.features.sdnr.wt/sdnr-wt-feature-aggregator-devicemanager-base/$CCSDKFEATUREVERSION/xml/features}
-SDNRDM_ONF_REPO=${SDNRDM_ONF_REPO:-mvn:org.onap.ccsdk.features.sdnr.wt/sdnr-wt-devicemanager-onf-feature/$CCSDKFEATUREVERSION/xml/features}
 # Add devicemanager features
-SDNRDM_SDM_LIST=${SDNRDM_SDM_LIST:-sdnr-wt-devicemanager-onf-feature}
+SDNRDM_SDM_LIST=${SDNRDM_SDM_LIST:-sdnr-wt-feature-aggregator-devicemanager}
 SDNRDM_BOOTFEATURES=${SDNRDM_BOOTFEATURES:-sdnr-wt-feature-aggregator-devicemanager-base, ${SDNRDM_SDM_LIST}}
 # Whether to Initialize the ElasticSearch DB.
 SDNRINIT=${SDNRINIT:-false}
