@@ -1,6 +1,6 @@
 <service-logic
-    xmlns='http://www.onap.org/sdnc/svclogic'
-    xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>
+        xmlns='http://www.onap.org/sdnc/svclogic'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='DataChange' version='${project.version}'>
     <method rpc='update-network-to-aai' mode='sync'>
         <block atomic="true">
             <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='replace' >
@@ -10,26 +10,27 @@
                 <parameter name="replacement" value="-"/>
             </execute>
             <set>
-                <parameter name='tmp.network-id' value="`$prop.sdncRestApi.thirdpartySdnc.id + '-' + $tmp.original-network-id`" />
+                <!--<parameter name='tmp.network-id' value="`$prop.sdncRestApi.thirdpartySdnc.id + '-' + $tmp.original-network-id`" />-->
+                <parameter name='tmp.network-id' value="`$tmp.original-network-id`" />
             </set>
-            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='network-resource'  
-     key='network-resource.network-id = $tmp.network-id' >
+            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='network-resource'
+                  key='network-resource.network-id = $tmp.network-id' >
                 <parameter name='network-id' value='`$tmp.network-id`' />
                 <parameter name='client-id' value='`$network.client-id`' />
                 <parameter name='te-topo-id' value='`$network.te-topology-id`' />
                 <parameter name='provider-id' value='`$network.provider-id`' />
                 <parameter name='network-type' value='`$network.network-types`' />
             </save>
-            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" 
-		resource="esr-thirdparty-sdnc" 
-		key="esr-thirdparty-sdnc.thirdparty-sdnc-id = $prop.sdncRestApi.thirdpartySdnc.id AND 
+            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                          resource="esr-thirdparty-sdnc"
+                          key="esr-thirdparty-sdnc.thirdparty-sdnc-id = $prop.sdncRestApi.thirdpartySdnc.id AND
 		     depth = '1'"
-        pfx='tmp.aai.esr-thirdparty-sdnc' local-only='false' >
+                          pfx='tmp.aai.esr-thirdparty-sdnc' local-only='false' >
                 <outcome value='success'>
                     <block>
-                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='network-resource:relationship-list' 
-      key='network-resource.network-id = $tmp.network-id'
-      force="true" pfx="tmp.AnAI-data">
+                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='network-resource:relationship-list'
+                              key='network-resource.network-id = $tmp.network-id'
+                              force="true" pfx="tmp.AnAI-data">
                             <parameter name="relationship-list.relationship[0].related-to" value="esr-thirdparty-sdnc" />
                             <parameter name="relationship-list.relationship[0].related-link" value="`'/aai/v19/external-system/esr-thirdparty-sdnc-list/esr-thirdparty-sdnc/' + $prop.sdncRestApi.thirdpartySdnc.id`" />
                             <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="esr-thirdparty-sdnc.thirdparty-sdnc-id" />
@@ -64,8 +65,8 @@
                 <set>
                     <parameter name='unique-nodeId' value="`'networkId-' + $unique-networkId + '-nodeId-' + $node.node-id`" />
                 </set>
-                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf' 
-      key='pnf.pnf-name = $unique-nodeId' >
+                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf'
+                      key='pnf.pnf-name = $unique-nodeId' >
                     <parameter name='pnf-name' value='`$unique-nodeId`' />
                     <parameter name='pnf-id' value='`$node.node-id`' />
                     <parameter name='operational-status' value='`$node.te.oper-status`' />
@@ -111,8 +112,8 @@
                                     </execute>
                                 </outcome>
                             </switch>
-                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface' 
-      key='pnf.pnf-name = $unique-nodeId
+                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface'
+                                  key='pnf.pnf-name = $unique-nodeId
       AND p-interface.interface-name = $unique-ltpId' >
                                 <parameter name='interface-name' value='`$unique-ltpId`' />
                                 <parameter name='network-ref' value='`$tp.supporting-termination-point[0].network-ref`' />
@@ -127,8 +128,8 @@
                                     <block></block>
                                 </outcome>
                                 <outcome value='failure'>
-                                    <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface' 
-      key='pnf.pnf-name = $unique-nodeId
+                                    <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='p-interface'
+                                            key='pnf.pnf-name = $unique-nodeId
       AND p-interface.interface-name = $unique-ltpId' >
                                         <parameter name='interface-name' value='`$unique-ltpId`' />
                                         <parameter name='network-ref' value='`$tp.supporting-termination-point[0].network-ref`' />
@@ -145,20 +146,20 @@
                         </for>
                     </outcome>
                 </switch>
-                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf:relationship-list' 
-      key='pnf.pnf-name = $unique-nodeId' force="true" pfx="tmp.AnAI-data">
+                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf:relationship-list'
+                      key='pnf.pnf-name = $unique-nodeId' force="true" pfx="tmp.AnAI-data">
                     <parameter name="relationship-list.relationship[0].related-to" value="network-resource" />
                     <parameter name="relationship-list.relationship[0].related-link" value="`'/network/network-resources/network-resource/' + $tmp.network-id`" />
                     <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="network-resource.network-id" />
                     <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$tmp.network-id`" />
                 </save>
-                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='esr-thirdparty-sdnc:relationship-list' 
-      key='esr-thirdparty-sdnc.thirdparty-sdnc-id = $prop.sdncRestApi.thirdpartySdnc.id' 
-      force="true" pfx="tmp.AnAI-data">
+                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='esr-thirdparty-sdnc:relationship-list'
+                      key='esr-thirdparty-sdnc.thirdparty-sdnc-id = $prop.sdncRestApi.thirdpartySdnc.id'
+                      force="true" pfx="tmp.AnAI-data">
                     <parameter name="relationship-list.relationship[0].related-to" value="pnf" />
-                    <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $node.node-id`" />
+                    <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $unique-nodeId`" />
                     <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="pnf.pnf-name" />
-                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$node.node-id`" />
+                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$unique-nodeId`" />
                 </save>
                 <switch test='`$node.te.tunnel-termination-point_length`'>
                     <outcome value=''>
@@ -178,8 +179,8 @@
                             <set>
                                 <parameter name='unique-ttpId' value="`$unique-nodeId + '-ttpId-' + $ttp.tunnel-tp-id`" />
                             </set>
-                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='tunnel-termination-point' 
-      key='tunnel-termination-point.ttp-id = $unique-ttpId' >
+                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='tunnel-termination-point'
+                                  key='tunnel-termination-point.ttp-id = $unique-ttpId' >
                                 <parameter name='ttp-id' value='`$unique-ttpId`' />
                                 <parameter name='tunnel-tp-id' value='`$ttp.tunnel-tp-id`' />
                                 <parameter name='name' value='`$ttp.name`' />
@@ -193,8 +194,8 @@
                                     <block></block>
                                 </outcome>
                                 <outcome value='failure'>
-                                    <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='tunnel-termination-point' 
-      key='tunnel-termination-point.ttp-id = $unique-ttpId' >
+                                    <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='tunnel-termination-point'
+                                            key='tunnel-termination-point.ttp-id = $unique-ttpId' >
                                         <parameter name='ttp-id' value='`$unique-ttpId`' />
                                         <parameter name='tunnel-tp-id' value='`$ttp.tunnel-tp-id`' />
                                         <parameter name='name' value='`$ttp.name`' />
@@ -207,35 +208,15 @@
                                     </update>
                                 </outcome>
                             </save>
-                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf:relationship-list' 
-      key='pnf.pnf-name = $unique-nodeId' force="true" pfx="tmp.AnAI-data">
+                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='pnf:relationship-list'
+                                  key='pnf.pnf-name = $unique-nodeId' force="true" pfx="tmp.AnAI-data">
                                 <parameter name="relationship-list.relationship[0].related-to" value="tunnel-termination-point" />
                                 <!--<parameter name="relationship-list.relationship[$ttidx].related-link" value="`'/network/network-resources/network-resource/' + $tmp.network-id + '/pnfs/pnf/' + $node.node-id '/tunnel-termination-points/tunnel-termination-point/' + $unique-ttpId`" />-->
                                 <parameter name="relationship-list.relationship[0].related-link" value="`'/network/tunnel-termination-points/tunnel-termination-point/' + $unique-ttpId`" />
                                 <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="tunnel-termination-point.ttp-id" />
                                 <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$unique-ttpId`" />
-                                <outcome value='success'>
-                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
-                                        <parameter name="file" value="/opt/onap/logTopologyDiscovery.txt" />
-                                        <parameter name="field1" value="__TIMESTAMP__" />
-                                        <parameter name="field2" value="sucess executing Hesam log file" />
-                                        <parameter name="field3" value="`$node.te.tunnel-termination-point_length`" />
-                                        <parameter name="field4" value="`$node.termination-point_length`" />
-                                        <parameter name="field5" value="sucessfully saved ttp" />
-                                        <parameter name="field6" value="`relationship-list.relationship[$ttidx].related-link`" />
-                                    </record>
-                                </outcome>
-                                <outcome value='failure'>
-                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
-                                        <parameter name="file" value="/opt/onap/logTopologyDiscovery.txt" />
-                                        <parameter name="field1" value="__TIMESTAMP__" />
-                                        <parameter name="field2" value="sucess executing Hesam log file" />
-                                        <parameter name="field3" value="`$node.te.tunnel-termination-point_length`" />
-                                        <parameter name="field4" value="`$node.termination-point_length`" />
-                                        <parameter name="field5" value="failuire on saving ttp" />
-                                        <parameter name="field6" value="`relationship-list.relationship[$ttidx].related-link`" />
-                                    </record>
-                                </outcome>
+                                <outcome value='success'></outcome>
+                                <outcome value='failure'></outcome>
                             </save>
                             <switch test='`$node.te.tunnel-termination-point[$ttidx].local-link-connectivities.local-link-connectivity_length`'>
                                 <outcome value=''>
@@ -249,8 +230,8 @@
                                         <set>
                                             <parameter name='unique-ltpId-second' value="`$unique-nodeId + '-ltpId-' + $node.te.tunnel-termination-point[$ttidx].local-link-connectivities.local-link-connectivity[0].link-tp-ref`" />
                                         </set>
-                                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='tunnel-termination-point:relationship-list' 
-      key='tunnel-termination-point.ttp-id = $unique-ttpId' force="true" pfx="tmp.AnAI-data">
+                                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='tunnel-termination-point:relationship-list'
+                                              key='tunnel-termination-point.ttp-id = $unique-ttpId' force="true" pfx="tmp.AnAI-data">
                                             <parameter name="relationship-list.relationship[0].related-to" value="p-interface" />
                                             <parameter name="relationship-list.relationship[0].related-link" value="`'/network/pnfs/pnf/' + $unique-nodeId + '/p-interfaces/p-interface/' + $unique-ltpId-second`" />
                                             <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="p-interface.interface-name" />
@@ -262,13 +243,6 @@
                         </for>
                     </outcome>
                 </switch>
-                <record plugin="org.onap.ccsdk.sli.core.sli.recording.FileRecorder">
-                    <parameter name="file" value="/opt/onap/logTopologyDiscovery.txt" />
-                    <parameter name="field1" value="__TIMESTAMP__" />
-                    <parameter name="field2" value="sucess executing Hesam log file" />
-                    <parameter name="field3" value="`$node.te.tunnel-termination-point_length`" />
-                    <parameter name="field4" value="`$node.termination-point_length`" />
-                </record>
             </for>
             <call module='DataChange' rpc='update-network-links-to-aai' mode='sync' ></call>
         </block>
