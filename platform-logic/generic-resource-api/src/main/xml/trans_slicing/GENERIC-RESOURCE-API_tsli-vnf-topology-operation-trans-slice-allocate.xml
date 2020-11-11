@@ -123,6 +123,10 @@
                                                                                             <block>
                                                                                                 <set>
                                                                                                     <parameter name='maximum-bandwidth' value="`$tmp.aai.network-policy.max-bandwidth`" />
+                                                                                                    <parameter name='route-distinguisher' value='`$maximum-bandwidth /1000 *4 /5 +1`' />
+                                                                                                </set>
+                                                                                                <set>
+                                                                                                    <parameter name='gfp' value='`$maximum-bandwidth /1000 *4 /5 +1`' />
                                                                                                 </set>
                                                                                             </block>
                                                                                         </outcome>
@@ -710,6 +714,7 @@
                                                                                                     <parameter name='src-access-ltp-id' value='' />
                                                                                                     <parameter name='dst-access-node-id' value='`$domain-A.node-id`' />
                                                                                                     <parameter name='dst-access-ltp-id' value='`$domain-A.tunnel-tp-id`' />
+                                                                                                    <parameter name='route-distinguisher' value='`$gfp`' />
                                                                                                     <parameter name='vpn-type' value='`$prop.global.sotn.vpnType`' />
                                                                                                     <parameter name='operational-status' value='Created' />
                                                                                                     <parameter name='model-customization-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-customization-uuid`' />
@@ -745,6 +750,7 @@
                                                                                                     <parameter name='dst-access-node-id' value='`$param-prefix-domainB[$param-prefix-domainB_length -3]`' />
                                                                                                     <!--<parameter name='dst-access-ltp-id' value='`$destination.tunnel-tp-id`' />-->
                                                                                                     <parameter name='dst-access-ltp-id' value='' />
+                                                                                                    <parameter name='route-distinguisher' value='`$gfp`' />
                                                                                                     <parameter name='vpn-type' value='`$prop.global.sotn.vpnType`' />
                                                                                                     <parameter name='operational-status' value='Created' />
                                                                                                     <parameter name='model-customization-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-customization-uuid`' />
@@ -766,7 +772,7 @@
                                                                                                     <parameter name='request-id' value='`$prop.vpn-binding-domainA-uuid`' />
                                                                                                     <parameter name='otn-source-node' value='`$param-prefix-domainA[$param-prefix-domainA_length -3]`' />
                                                                                                     <parameter name='otn-dest-node' value='`$domain-A.node-id`' />
-                                                                                                    <parameter name='bw-odu' value="`'0,' + $maximum-bandwidth /1000 *2 /3 `" />
+                                                                                                    <parameter name='bw-odu' value="`'0,' + $gfp`" />
                                                                                                     <!--<parameter name='src-ttp-id' value='`$source.tunnel-tp-id`' />-->
                                                                                                     <parameter name='dst-ttp-id' value='`$domain-A.tunnel-tp-id`' />
                                                                                                     <parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />
@@ -788,7 +794,7 @@
                                                                                                         <return status='failure'>
                                                                                                             <parameter name='ack-final' value='Y'/>
                                                                                                             <parameter name="error-code" value="500" />
-                                                                                                            <parameter name="error-message" value="Error executing OOF api" />
+                                                                                                            <parameter name="error-message" value="Error executing slice creation api for domain A" />
                                                                                                         </return>
                                                                                                     </outcome>
                                                                                                     <outcome value='success'>
@@ -797,11 +803,11 @@
                                                                                                 </execute>
                                                                                                 <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                                                                                                     <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/' + $prop.restapi.ts-coloring-uni-port.templatefile`" />
-                                                                                                    <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.domainA.url + '/restconf/data/ietf-network:networks/network=' + $tmp.domainA.eth-network-id + '/node=' + $tmp.src.pnf-name + '/ietf-network-topology:termination-point=' + $tmp.src.ltpId + '/ietf-te-topology:te/ietf-optical-slice:tp-slice-id' `" />
+                                                                                                    <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.domainA.url + '/restconf/data/ietf-network:networks/network=' + $tmp.domainA.eth-network-id + '/node=' + $tmp.src.pnf-name + '/ietf-network-topology:termination-point=' + $tmp.src.ltpId + '/ietf-te-topology:te' `" />
                                                                                                     <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.domainA.user`" />
                                                                                                     <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.domainA.password`" />
                                                                                                     <parameter name="format" value="json"/>
-                                                                                                    <parameter name="httpMethod" value="post"/>
+                                                                                                    <parameter name="httpMethod" value="patch"/>
                                                                                                     <parameter name="responsePrefix" value="otn-oof"/>
                                                                                                     <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
                                                                                                     <parameter name="trustStorePassword" value="adminadmin"/>
@@ -812,7 +818,7 @@
                                                                                                         <return status='failure'>
                                                                                                             <parameter name='ack-final' value='Y'/>
                                                                                                             <parameter name="error-code" value="500" />
-                                                                                                            <parameter name="error-message" value="Error executing OOF api" />
+                                                                                                            <parameter name="error-message" value="Error executing UNI Coloring for domain A" />
                                                                                                         </return>
                                                                                                     </outcome>
                                                                                                     <outcome value='success'>
@@ -824,7 +830,7 @@
                                                                                                     <parameter name='otn-source-node' value='`$domain-B.node-id`' />
                                                                                                     <parameter name='otn-dest-node' value='`$param-prefix-domainB[$param-prefix-domainB_length -3]`' />
                                                                                                     <!--<parameter name='bw-odu' value='`$maximum-bandwidth /10`' />-->
-                                                                                                    <parameter name='bw-odu' value="`'0,' + $maximum-bandwidth /1000 *2 /3 `" />
+                                                                                                    <parameter name='bw-odu' value="`'0,' + $gfp`" />
                                                                                                     <parameter name='src-ttp-id' value='`$domain-B.tunnel-tp-id`' />
                                                                                                     <!--<parameter name='dst-ttp-id' value='`$destination.tunnel-tp-id`' />-->
                                                                                                     <parameter name='dst-ttp-id' value='' />
@@ -848,7 +854,7 @@
                                                                                                         <return status='failure'>
                                                                                                             <parameter name='ack-final' value='Y'/>
                                                                                                             <parameter name="error-code" value="500" />
-                                                                                                            <parameter name="error-message" value="Error executing OOF api" />
+                                                                                                            <parameter name="error-message" value="Error executing slice creation api for domain B" />
                                                                                                         </return>
                                                                                                     </outcome>
                                                                                                     <outcome value='success'>
@@ -857,11 +863,11 @@
                                                                                                 </execute>
                                                                                                 <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                                                                                                     <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/' + $prop.restapi.ts-coloring-uni-port.templatefile`" />
-                                                                                                    <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.domainB.url + '/restconf/data/ietf-network:networks/network=' + $tmp.domainB.eth-network-id + '/node=' + $tmp.dst.pnf-name + '/ietf-network-topology:termination-point=' + $tmp.dst.ltpId + '/ietf-te-topology:te/ietf-optical-slice:tp-slice-id' `" />
+                                                                                                    <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.domainB.url + '/restconf/data/ietf-network:networks/network=' + $tmp.domainB.eth-network-id + '/node=' + $tmp.dst.pnf-name + '/ietf-network-topology:termination-point=' + $tmp.dst.ltpId + '/ietf-te-topology:te' `" />
                                                                                                     <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.domainB.user`" />
                                                                                                     <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.domainB.password`" />
                                                                                                     <parameter name="format" value="json"/>
-                                                                                                    <parameter name="httpMethod" value="post"/>
+                                                                                                    <parameter name="httpMethod" value="patch"/>
                                                                                                     <parameter name="responsePrefix" value="otn-oof"/>
                                                                                                     <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
                                                                                                     <parameter name="trustStorePassword" value="adminadmin"/>
@@ -872,7 +878,7 @@
                                                                                                         <return status='failure'>
                                                                                                             <parameter name='ack-final' value='Y'/>
                                                                                                             <parameter name="error-code" value="500" />
-                                                                                                            <parameter name="error-message" value="Error executing OOF api" />
+                                                                                                            <parameter name="error-message" value="Error executing UNI coloring for domain B" />
                                                                                                         </return>
                                                                                                     </outcome>
                                                                                                     <outcome value='success'>
