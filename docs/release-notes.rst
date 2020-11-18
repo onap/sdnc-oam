@@ -12,14 +12,15 @@ SDNC Release Notes
 Abstract
 ========
 
-This document provides the release notes for the Frankfurt release of the Software Defined
+This document provides the release notes for the Guilin release of the Software Defined
 Network Controller (SDNC)
 
 Summary
 =======
 
-The Frankfurt release of SDNC introduces new functionality to support PNFs (Physical Network Functions), extends support
-for Netconf/TLS to support CMPv2, and adds support for the Multi Domain Optical Network Service use case.
+The Guilin release of SDNC introduces new functionality to support network slicing and extends support
+for Netconf/TLS to address certificate management.  It also includes a major OpenDaylight release
+upgrade (to Sodium), as well as a major Java upgrade (from Java 8 to Java 11).
 
 
 
@@ -32,10 +33,10 @@ Release Data
 +-------------------------+-------------------------------------------+
 | **Docker images**       | See :ref:`dockercontainers` section below |
 +-------------------------+-------------------------------------------+
-| **Release designation** | Frankfurt                                 |
+| **Release designation** | Guilin                                 |
 |                         |                                           |
 +-------------------------+-------------------------------------------+
-| **Release date**        | 06/04/2020                                |
+| **Release date**        | 11/19/2020                                |
 |                         |                                           |
 +-------------------------+-------------------------------------------+
 
@@ -43,42 +44,45 @@ Release Data
 New features
 ------------
 
-The SDNC Frankfurt release includes the following features:
+The SDNC Guilin release includes the following features:
 
-* ORAN-compliant A1 adaptor (Jira `SDNC-965 <https://jira.onap.org/browse/SDNC-965>`_)
-* Multi-Domain Optical Service (Jira `SDNC-928 <https://jira.onap.org/browse/SDNC-928>`_)
-* Python 2 -> Python 3 migration (Jira `SDNC-967 <https://jira.onap.org/browse/SDNC-967>`_)
-* Upgrade to new Policy lifecycle API (Jira `SDNC-968 <https://jira.onap.org/browse/SDNC-968>`_)
+* Upgrade to Java 11 (Jira `SDNC-1242 <https://jira.onap.org/browse/SDNC-1242>`_)
+* Network slicing (Jira `SDNC-915 <https://jira.onap.org/browse/SDNC-915>`_)
+* NETCONF/TLS Certificate Management (Jira `SDNC-966 <https://jira.onap.org/browse/SDNC-966>`_)
+* Decouple SDNC from OpenDaylight / Karaf : phase 2 (Jira `SDNC-1207 <https://jira.onap.org/browse/SDNC-1207>`_)
 
+This release also includes an upgrade to the OpenDaylight Sodium release, which SDNC consumes from CCSDK.
+Downstream projects that are consuming SDNC maven artifacts, or that plan to ingest SDNC as source and do local compiles should be
+aware that the upgrades to OpenDaylight Sodium and to Java 11 are both potentially breaking changes.  Therefore, we consider
+Guilin to be a  major release and have reflected this in our version numbering.
 
-
-For the complete list of `SDNC Frankfurt release epics <https://jira.onap.org/issues/?filter=12322>`_ and 
-`SDNC Frankfurt release user stories <https://jira.onap.org/issues/?filter=12323>`_ , please see the `ONAP Jira`_.
+For the complete list of `SDNC Guilin release epics <https://jira.onap.org/issues/?filter=12464>`_ and 
+`SDNC Guilin release user stories <https://jira.onap.org/issues/?filter=12465>`_ , please see the `ONAP Jira`_.
 
 **Bug fixes**
 
-The full list of `bugs fixed in the SDNC Frankfurt release <https://jira.onap.org/issues/?filter=12324>`_ is maintained on the `ONAP Jira`_.
+The full list of `bugs fixed in the SDNC Guilin release <https://jira.onap.org/issues/?filter=12466>`_ is maintained on the `ONAP Jira`_.
 
 **Known Issues**
 
 The full list of `known issues in SDNC <https://jira.onap.org/issues/?filter=11119>`_ is maintained on the `ONAP Jira`_.
 
 
-Deprecated Features
+Removed Features
 -------------------
 
 ** SDNC portal **
 
-The SDNC portal is considered deprecated in the Frankfurt release, due
-to resource contraints.  This functionality is delivered dormant
-in Frankfurt (i.e. it is disabled in the Frankfurt helm charts) and we
-plan to remove the code entirely in the Guilin release.
+The SDNC portal was deprecated in the Frankfurt release, due
+to resource contraints.  This functionality was delivered dormant
+in Frankfurt (i.e. it is disabled in the Frankfurt helm charts) and was
+removed entirely in the Guilin release.
 
 ** VNF-API **
 
 The functionality provided by the VNF-API is now provided as part
-of the GENERIC-RESOURCE-API.  Therefore, the VNF-API is deprecated
-in Frankfurt and will be removed in Guilin.
+of the GENERIC-RESOURCE-API.  Therefore, the VNF-API was deprecated
+in Frankfurt and has been removed in Guilin.
 
 
 Deliverables
@@ -106,17 +110,17 @@ tag 0.7-STAGING-latest to pull the latest daily Frankfurt build
 +--------------------------------+-----------------------------------------------------+---------+
 | Image name                     | Description                                         | Version |
 +================================+=====================================================+=========+
-| onap/sdnc-aaf-image            | SDNC controller image, integrated with AAF for RBAC | 1.8.3   |
+| onap/sdnc-aaf-image            | SDNC controller image, integrated with AAF for RBAC | 2.0.4   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-ansible-server-image | Ansible server                                      | 1.8.3   |
+| onap/sdnc-ansible-server-image | Ansible server                                      | 2.0.4   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-dmaap-listener-image | DMaaP listener                                      | 1.8.3   |
+| onap/sdnc-dmaap-listener-image | DMaaP listener                                      | 2.0.4   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-image                | SDNC controller image, without AAF integration      | 1.8.3   |
+| onap/sdnc-image                | SDNC controller image, without AAF integration      | 2.0.4   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-ueb-listener-image   | SDC listener                                        | 1.8.3   |
+| onap/sdnc-ueb-listener-image   | SDC listener                                        | 2.0.4   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-web-image            | Web tier (currently only used by SDN-R persona)     | 1.8.3   |
+| onap/sdnc-web-image            | Web tier (currently only used by SDN-R persona)     | 2.0.4   |
 +--------------------------------+-----------------------------------------------------+---------+
 
 
@@ -153,35 +157,17 @@ Security Notes
 Fixed Security Issues
 ~~~~~~~~~~~~~~~~~~~~~
 
-The following security issues have been addressed in the Frankfurt SDNC release:
+The following security issue, related to the SDNC portal, is no longer applicable due to removal
+of the SDNC portal:
 
-* `OSJI-34 <https://jira.onap.org/browse/OJSI-34>`_ : Multiple SQL Injection issues in SDNC
-* `OSJI-40 <https://jira.onap.org/browse/OJSI-40>`_ : SDNC service allows for arbitrary code execution
-* `OSJI-41 <https://jira.onap.org/browse/OJSI-41>`_ : SDNC service allows for arbitrary code execution in sla/dgUpload form (CVE-2019-12132)
-* `OSJI-42 <https://jira.onap.org/browse/OJSI-42>`_ : SDNC service allows for arbitrary code execution in sla/printAsXml form (CVE-2019-12123)
-* `OSJI-43 <https://jira.onap.org/browse/OJSI-43>`_ : SDNC service allows for arbitrary code execution in sla/printAsGv form (CVE-2019-12113)
-* `OSJI-199 <https://jira.onap.org/browse/OJSI-199>`_ : SDNC service allows for arbitrary code execution in sla/upload form (CVE-2019-12112)
-* `SDNC-1145 <https://jira.onap.org/browse/SDNC-1145>`_ : Pods still run as root
-* `SDNC-970 <https://jira.onap.org/browse/SDNC-970>`_ : Password removal from OOM Helm charts
+* `OJSI-91 <https://jira.onap.org/browse/OJSI-91>`_ : SDNC exposes unprotected API for user creation
 
 .. _secissues :
 
 Known Security Issues
 ~~~~~~~~~~~~~~~~~~~~~
 
-There is currently one known SDNC security issue, related to the SDNC portal
-
-* `OJSI-91 <https://jira.onap.org/browse/OJSI-91>`_ : SDNC exposes unprotected API for user creation
-
-The current implementation of the SDNC portal - which was intended purely
-as a test tool - has a self-subscription model - so anyone can create an
-account by going to the setup link.  This is not appropriate for production
-deployment and we strongly recommend that the SDNC portal NOT be used in
-production.
-
-The SDNC portal is disabled in the Frankfurt helm charts and will be removed
-entirely in the Guilin release.
-
+There are no known outstanding security issues related to SDNC Guilin.
 
 
 Test Results
