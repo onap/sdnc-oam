@@ -172,6 +172,8 @@ Confirmation of this functionality can be performed in OOM using the Contrib pro
 
 Firstly, CertService will need to be deployed. This will require the global flag *global.cmpv2Enabled* to be set to true in *kubernetes/onap/resources/overrides/aaf-cert-service-environment.yaml*
 
+There is also an additional module that will need to be deployed named platform. This is required for secret creation.
+
 To deploy the EJBCA server the global flag *global.addTestingComponents* in  *kubernetes/onap/values.yaml* will need to be set to true. This flag will load the test configuration from *kubernetes/aaf/charts/aaf-cert-service/resources/test/cmpServers.json*
 
 
