@@ -8,4 +8,3 @@ Offered APIs
    :maxdepth: 1
 
    apis/genericresource.rst
-   apis/vnfapi.rst
