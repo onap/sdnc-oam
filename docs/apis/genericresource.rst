@@ -1,4 +1,4 @@
-GENERIC-RESOURCE-API(2017-08-24)
-================================
+GENERIC-RESOURCE-API
+====================
 
-.. swaggerv2doc:: https://gerrit.onap.org/r/gitweb?p=sdnc/northbound.git;a=blob_plain;f=generic-resource-api/model/src/main/resources/generic-resource-api.20170824.json
+.. swaggerv2doc:: https://gerrit.onap.org/r/gitweb?p=sdnc/northbound.git;a=blob;f=generic-resource-api/model/swagger/src/main/json/generic-resource.json;h=1b7454b5dddb37e4c8540f3f8f241747500a36c1;hb=refs/heads/guilin
