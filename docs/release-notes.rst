@@ -33,7 +33,7 @@ Release Data
 +-------------------------+-------------------------------------------+
 | **Docker images**       | See :ref:`dockercontainers` section below |
 +-------------------------+-------------------------------------------+
-| **Release designation** | Guilin                                 |
+| **Release designation** | Guilin                                    |
 |                         |                                           |
 +-------------------------+-------------------------------------------+
 | **Release date**        | 11/19/2020                                |
@@ -71,14 +71,14 @@ The full list of `known issues in SDNC <https://jira.onap.org/issues/?filter=111
 Removed Features
 -------------------
 
-** SDNC portal **
+**SDNC portal**
 
 The SDNC portal was deprecated in the Frankfurt release, due
 to resource contraints.  This functionality was delivered dormant
 in Frankfurt (i.e. it is disabled in the Frankfurt helm charts) and was
 removed entirely in the Guilin release.
 
-** VNF-API **
+**VNF-API**
 
 The functionality provided by the VNF-API is now provided as part
 of the GENERIC-RESOURCE-API.  Therefore, the VNF-API was deprecated
