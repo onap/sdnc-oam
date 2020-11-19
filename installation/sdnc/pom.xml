@@ -31,7 +31,8 @@
         <sdnc.secureport>8443</sdnc.secureport>
         <docker.buildArg.https_proxy>${https_proxy}</docker.buildArg.https_proxy>
         <docker.push.phase>deploy</docker.push.phase>
-        <docker.verbose>true</docker.verbose>
+        <docker.verbose>true</docker.verbose> 
+        <docker.autoCreateCustomNetworks>true</docker.autoCreateCustomNetworks>
         <maven.build.timestamp.format>yyyyMMdd'T'HHmmss'Z'</maven.build.timestamp.format>
     </properties>
 
@@ -115,6 +116,81 @@
                             </image>
                            </images>
                           </configuration>
+                    </execution>
+                    <execution>
+                        <id>start-it-instance</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>start</goal>
+                        </goals>
+                        <configuration>
+                            <images>
+                                <image>
+                                    <name>mariadb:10.5</name>
+                                    <alias>sdnc-db</alias>
+                                    <run>
+                                        <env>
+                                            <MYSQL_ROOT_PASSWORD>itsASecret</MYSQL_ROOT_PASSWORD>
+                                            <MYSQL_USER>sdnctl</MYSQL_USER>
+                                            <MYSQL_PASSWORD>gamma</MYSQL_PASSWORD>
+                                            <MYSQL_DATABASE>sdnctl</MYSQL_DATABASE>
+                                        </env>
+                                        <network>
+                                            <mode>custom</mode>
+                                            <name>sdnc</name>
+                                            <alias>dbhost</alias>
+                                            <alias>sdnctldb01</alias>
+                                            <alias>sdnctldb02</alias>
+                                        </network>
+                                        <ports>
+                                            <port>sdncdb.port:3306</port>
+                                        </ports>
+                                        <log>
+                                            <enabled>true</enabled>
+                                        </log>
+                                    </run>
+                                </image>
+                                <image>
+                                    <name>${image.name}:${project.docker.latesttagtimestamp.version}</name>
+                                    <alias>sdnc-container</alias>
+                                    <run>
+                                        <env>
+                                            <MYSQL_ROOT_PASSWORD>itsASecret</MYSQL_ROOT_PASSWORD>
+                                            <MYSQL_USER>sdnctl</MYSQL_USER>
+                                            <MYSQL_PASSWORD>gamma</MYSQL_PASSWORD>
+                                            <MYSQL_DATABASE>sdnctl</MYSQL_DATABASE>
+                                            <SDNC_CONFIG_DIR>/opt/onap/sdnc/data/properties</SDNC_CONFIG_DIR>
+                                            <KARAF_CONSOLE_LOG_LEVEL>INFO</KARAF_CONSOLE_LOG_LEVEL>
+                                        </env>
+                                        <dependsOn>
+                                            <container>sdnc-db</container>
+                                        </dependsOn>
+                                        <network>
+                                            <mode>custom</mode>
+                                            <name>sdnc</name>
+                                            <alias>sdnc</alias>
+                                        </network>>
+                                        <ports>
+                                            <port>sdnc.port:8181</port>
+                                        </ports>
+                                        <wait>
+                                            <log>all warp coils are now operating at peak efficiency</log>
+                                            <time>120000</time>
+                                        </wait>
+                                        <log>
+                                            <enabled>true</enabled>
+                                        </log>
+                                    </run>
+                                </image>
+                            </images>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>stop-it-instance</id>
+                        <phase>post-integration-test</phase>
+                        <goals>
+                            <goal>stop</goal>
+                        </goals>
                     </execution>
                     <execution>
                       <id>push-images</id>
@@ -401,6 +477,24 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions>
+                  <execution>
+                    <goals>
+                      <goal>integration-test</goal>
+                      <goal>verify</goal>
+                    </goals>
+                  </execution>
+                </executions>
+                <configuration>
+                  <skipITs>false</skipITs>
+                  <environmentVariables>
+                    <SDNC_PORT>${sdnc.port}</SDNC_PORT>
+                  </environmentVariables>
+                </configuration>
+              </plugin>
         </plugins>
     </build>
 </project>
