@@ -389,6 +389,8 @@ else
   printf "Start background cert installer\n"
   mkdir -p /opt/opendaylight/data/log
   nohup python3 "${SDNC_BIN}"/installCerts.py &
+  printf "Start monitoring certificate installation. \n"
+  nohup sh "${SDNC_BIN}"/monitorCertsInstall.sh &
 fi
 
 printf "Startup opendaylight\n"

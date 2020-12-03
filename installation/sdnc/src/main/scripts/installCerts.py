@@ -22,6 +22,7 @@
 
 # coding=utf-8
 import os
+import sys
 import re
 import http.client
 import base64
@@ -158,17 +159,23 @@ def makeRestconfPost(conn, json_file, apiCall):
     req = conn.request("POST", apiCall, json_file, headers=headers)
     res = conn.getresponse()
     res.read()
-    if res.status != 200:
+    if res.status != 200 and res.status != 204:
         logging.error("Error here, response back wasnt 200: Response was : %d , %s" % (res.status, res.reason))
+        writeCertInstallStatus("NOTOK")
     else:
         logging.debug("Response :%s Reason :%s ",res.status, res.reason)
 
 def extractZipFiles(zipFileList, count):
     for zipFolder in zipFileList:
-        with zipfile.ZipFile(Path + "/" + zipFolder.strip(),"r") as zip_ref:
-            zip_ref.extractall(Path)
-        folder = zipFolder.rsplit(".")[0]
-        processFiles(folder, count)
+        try:
+	        with zipfile.ZipFile(Path + "/" + zipFolder.strip(),"r") as zip_ref:
+        	    zip_ref.extractall(Path)
+	        folder = zipFolder.rsplit(".")[0]
+	        processFiles(folder, count)
+        except Exception as e:
+                logging.error("Error while extracting zip file(s). Exiting Certificate Installation.")
+                logging.info("Error details : %s" % e)
+                writeCertInstallStatus("NOTOK")
 
 def processFiles(folder, count):
     logging.info('Process folder: %d %s', count, folder)
@@ -182,6 +189,7 @@ def processFiles(folder, count):
                 clientCrt = readFile(folder, file.strip())
         else:
             logging.error("Could not find file %s" % file.strip())
+            writeCertInstallStatus("NOTOK")
     shutil.rmtree(Path + "/" + folder)
     post_content(clientKey, clientCrt, certList, count)
 
@@ -227,6 +235,7 @@ def makeHealthcheckCall(headers, timePassed):
 
     if timePassed > TIMEOUT:
         logging.error("TIME OUT: Healthcheck not passed in  %d seconds... Could cause problems for testing activities..." %TIMEOUT)
+        writeCertInstallStatus("NOTOK")
 
     return connected
 
@@ -244,7 +253,7 @@ def get_pass(file_name):
         return "'{}'".format(password)
     except Exception as e:
         logging.error("Error occurred while fetching password : %s", e)
-        exit()
+        writeCertInstallStatus("NOTOK")
 
 def cleanup():
     for file in os.listdir(Path):
@@ -268,6 +277,7 @@ def jks_to_p12(file, password):
              return file
     except Exception as e:
         logging.error("Error occurred while converting jks to p12 format : %s", e)
+        writeCertInstallStatus("NOTOK")
 
 
 def make_cert_chain(cert_chain, pattern):
@@ -323,8 +333,10 @@ def process_jks_files(count):
             logging.debug("No JKS files found in %s directory" % Path)
     except subprocess.CalledProcessError as err:
         print("CalledProcessError Execution of OpenSSL command failed: %s" % err)
+        writeCertInstallStatus("NOTOK")
     except Exception as e:
         logging.error("UnExpected Error while processing JKS files at {0}, Caused by: {1}".format(Path, e))
+        writeCertInstallStatus("NOTOK")
 
 def replaceAdminPassword(username, password, newpassword):
     if newpassword is None:
@@ -346,6 +358,7 @@ def replaceAdminPassword(username, password, newpassword):
                 logging.debug("Password change was not possible. Problem code was: %d", httpStatus)
         except:
             logging.error("Cannot execute REST call to set password.")
+            writeCertInstallStatus("NOTOK")
 
 
 def readCertProperties():
@@ -373,7 +386,22 @@ def readCertProperties():
             logging.debug("No certs.properties/zip files exist at: " + Path)
             logging.info("Processing any  available jks/p12 files under cert directory")
             process_jks_files(count)
-
+    else:
+        logging.info('Connected status: %s', connected)
+        logging.info('Stopping SDNR due to inability to install certificates')
+        writeCertInstallStatus("NOTOK")
+        
+def writeCertInstallStatus(installStatus):
+    if installStatus == "NOTOK":
+        with open(os.path.join(log_directory, 'INSTALLCERTSFAIL'), 'w') as fp:
+            pass
+            sys.exit(1)
+    elif installStatus == "OK":
+        with open(os.path.join(log_directory, 'INSTALLCERTSPASS'), 'w') as fp:
+            pass
+            sys.exit(0)
 
 readCertProperties()
 logging.info('Cert installation ending')
+writeCertInstallStatus("OK")
+
