@@ -5,7 +5,7 @@
         <block atomic="true">
             <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                 <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/' + $prop.restapi.oof-getpath.templatefile`" />
-                <parameter name="restapiUrl" value="`$prop.restapi.connection-oof-url`" />
+                <parameter name="restapiUrl" value="`$prop.restapi.connection-oof-url + '?ethsrvType=' + $prop.ethsrvType`" />
                 <parameter name="restapiUser" value="`$prop.oof.user`" />
                 <parameter name="restapiPassword" value="`$prop.oof.password`" />
                 <parameter name="format" value="json"/>
@@ -30,7 +30,15 @@
             <for index='vidx' start='0' end='`$otn-oof.solutions_length`' >
                 <block atomic="true">
                     <set>
+                        <parameter name='otn-oof.link-name' value='' />
+                        <parameter name='tmp.aai.cross-link' value='' />
+                        <parameter name='tmp.aai.cross-link.' value='' />
+                        <parameter name='tmp.aai.cross-link.link-role' value='' />
+                    </set>
+                    <set>
                         <parameter name='otn-oof.link-name' value='`$otn-oof.solutions[$vidx].link`' />
+                        <parameter name='otn-oof.start-node' value='`$otn-oof.solutions[$vidx].start_node`' />
+                        <parameter name='otn-oof.end-node' value='`$otn-oof.solutions[$vidx].end_node`' />
                     </set>
                     <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
                                   resource="logical-link"
@@ -46,13 +54,26 @@
                                                 <switch test='`$tmp.aai.cross-link.relationship-list.relationship[$lridx].related-to`'>
                                                     <outcome value='p-interface'>
                                                         <block>
-                                                            <set>
-                                                                <parameter name='tmp.cross-link.src-ltpId' value="`$tmp.aai.cross-link.relationship-list.relationship[$lridx].relationship-data[1].relationship-value`" />
-                                                                <parameter name='tmp.cross-link.dst-ltpId' value="`$tmp.aai.cross-link.relationship-list.relationship[$lridx + 1].relationship-data[1].relationship-value`" />
-                                                                <parameter name='tmp.src-pnf-name' value="`$tmp.aai.cross-link.relationship-list.relationship[$lridx].relationship-data[0].relationship-value`" />
-                                                                <parameter name='tmp.dst-pnf-name' value="`$tmp.aai.cross-link.relationship-list.relationship[$lridx + 1].relationship-data[0].relationship-value`" />
-                                                            </set>
-                                                            <break/>
+                                                            <switch test='`$tmp.aai.cross-link.relationship-list.relationship[$lridx].relationship-data[0].relationship-value == $otn-oof.start-node`'>
+                                                                <outcome value='true'>
+                                                                    <block atomic="true">
+                                                                        <set>
+                                                                            <parameter name='tmp.cross-link.src-ltpId' value="`$tmp.aai.cross-link.relationship-list.relationship[$lridx].relationship-data[1].relationship-value`" />
+                                                                            <parameter name='tmp.src-pnf-name' value="`$tmp.aai.cross-link.relationship-list.relationship[$lridx].relationship-data[0].relationship-value`" />
+                                                                        </set>
+                                                                    </block>
+                                                                </outcome>
+                                                            </switch>
+                                                            <switch test='`$tmp.aai.cross-link.relationship-list.relationship[$lridx].relationship-data[0].relationship-value == $otn-oof.end-node`'>
+                                                                <outcome value='true'>
+                                                                    <block atomic="true">
+                                                                        <set>
+                                                                            <parameter name='tmp.cross-link.dst-ltpId' value="`$tmp.aai.cross-link.relationship-list.relationship[$lridx].relationship-data[1].relationship-value`" />
+                                                                            <parameter name='tmp.dst-pnf-name' value="`$tmp.aai.cross-link.relationship-list.relationship[$lridx].relationship-data[0].relationship-value`" />
+                                                                        </set>
+                                                                    </block>
+                                                                </outcome>
+                                                            </switch>
                                                         </block>
                                                     </outcome>
                                                 </switch>
