@@ -22,18 +22,18 @@
 ###
 
 SDNC_HOME=${SDNC_HOME:-/opt/onap/sdnc}
-MYSQL_PASSWD=${MYSQL_PASSWD:-openECOMP1.0}
+MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-openECOMP1.0}
 
 SDNC_DB_USER=${SDNC_DB_USER:-sdnctl}
-SDNC_DB_PASSWD=${SDNC_DB_PASSWD:-gamma}
+SDNC_DB_PASSWORD=${SDNC_DB_PASSWORD:-gamma}
 SDNC_DB_DATABASE=${SDN_DB_DATABASE:-sdnctl}
 
 
 # Create tablespace and user account
-mysql -h dbhost -u root -p${MYSQL_PASSWD} mysql <<-END
+mysql -h dbhost -u root -p${MYSQL_ROOT_PASSWORD} mysql <<-END
 CREATE DATABASE ${SDNC_DB_DATABASE};
-CREATE USER '${SDNC_DB_USER}'@'localhost' IDENTIFIED BY '${SDNC_DB_PASSWD}';
-CREATE USER '${SDNC_DB_USER}'@'%' IDENTIFIED BY '${SDNC_DB_PASSWD}';
+CREATE USER '${SDNC_DB_USER}'@'localhost' IDENTIFIED BY '${SDNC_DB_PASSWORD}';
+CREATE USER '${SDNC_DB_USER}'@'%' IDENTIFIED BY '${SDNC_DB_PASSWORD}';
 GRANT ALL PRIVILEGES ON ${SDNC_DB_DATABASE}.* TO '${SDNC_DB_USER}'@'localhost' WITH GRANT OPTION;
 GRANT ALL PRIVILEGES ON ${SDNC_DB_DATABASE}.* TO '${SDNC_DB_USER}'@'%' WITH GRANT OPTION;
 commit;
@@ -43,13 +43,13 @@ END
 if [ -f ${SDNC_HOME}/data/sdnctl.dump ]
 then
   echo "Installing ${SDNC_HOME}/data/sdnctl.dump"
-  mysql -h dbhost -u root -p${MYSQL_PASSWD} sdnctl < ${SDNC_HOME}/data/sdnctl.dump
+  mysql -h dbhost -u root -p${MYSQL_ROOT_PASSWORD} sdnctl < ${SDNC_HOME}/data/sdnctl.dump
 fi
 
 for datafile in ${SDNC_HOME}/data/*.data.dump
 do
   echo "Installing ${datafile}"
-  mysql -h dbhost -u root -p${MYSQL_PASSWD} sdnctl < $datafile
+  mysql -h dbhost -u root -p${MYSQL_ROOT_PASSWORD} sdnctl < $datafile
 done
 
 # Create VNIs 100-199

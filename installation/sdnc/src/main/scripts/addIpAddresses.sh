@@ -1,8 +1,8 @@
 #!/bin/bash
 
-MYSQL_USER=${MYSQL_USER:-sdnctl}
-MYSQL_PWD=${MYSQL_PWD:-gamma}
-MYSQL_DB=${MYSQL_DB:-sdnctl}
+SDNC_DB_USER=${SDNC_DB_USER:-sdnctl}
+SDNC_DB_PASSWORD=${SDNC_DB_PASSWORD:-gamma}
+SDNC_DB_DATABASE=${SDNC_DB_DATABASE:-sdnctl}
 MYSQL_HOST=${MYSQL_HOST:-dbhost}
 
 universe=$1
@@ -11,7 +11,7 @@ start=$3
 
 if [ $# -eq 3 ]
 then
-  mysql --user=${MYSQL_USER} --password=${MYSQL_PWD} --host=${MYSQL_HOST} ${MYSQL_DB} <<EOF
+  mysql --user=${SDNC_DB_USER} --password=${SDNC_DB_PASSWORD} --host=${MYSQL_HOST} ${SDNC_DB_DATABASE} <<EOF
 INSERT INTO IPV4_ADDRESS_POOL VALUES('', '$universe', 'AVAILABLE', '${subnet}.${start}');
 EOF
 elif [ $# -eq 4 ]
@@ -21,7 +21,7 @@ then
 
    while [ $ip -le $stop ]
    do
-   mysql --user=${MYSQL_USER} --password=${MYSQL_PWD} --host=${MYSQL_HOST} ${MYSQL_DB} <<EOF
+   mysql --user=${SDNC_DB_USER} --password=${SDNC_DB_PASSWORD} --host=${MYSQL_HOST} ${SDNC_DB_DATABASE} <<EOF
 INSERT INTO IPV4_ADDRESS_POOL VALUES('', '$universe', 'AVAILABLE','${subnet}.${ip}');
 EOF
 ip=$(( ip+1 ))
