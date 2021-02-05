@@ -229,7 +229,7 @@ SDNC_BIN=${SDNC_BIN:-/opt/onap/sdnc/bin}
 SDNC_DB_INIT=${SDNC_DB_INIT:-false}
 CCSDK_HOME=${CCSDK_HOME:-/opt/onap/ccsdk}
 JDEBUG=${JDEBUG:-false}
-MYSQL_PASSWD=${MYSQL_PASSWD:-openECOMP1.0}
+MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-openECOMP1.0}
 ENABLE_ODL_CLUSTER=${ENABLE_ODL_CLUSTER:-false}
 GEO_ENABLED=${GEO_ENABLED:-false}
 SDNC_AAF_ENABLED=${SDNC_AAF_ENABLED:-false}
@@ -329,7 +329,7 @@ if $SDNC_DB_INIT; then
 # Wait for database
 #
   printf "Waiting for mysql"
-  until mysql -h dbhost -u root -p"${MYSQL_PASSWD}" mysql > /dev/null 2>&1 
+  until mysql -h dbhost -u root -p"${MYSQL_ROOT_PASSWORD}" -e "select 1" > /dev/null 2>&1 
   do
     printf "."
     sleep 1

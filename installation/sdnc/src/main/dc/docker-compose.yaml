@@ -1,0 +1,49 @@
+version: '2.1'
+
+services:
+  db:
+    image: mariadb:10.5
+    container_name: sdnc_db
+    ports:
+      - "3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=MySecretPassword
+      - MYSQL_ROOT_HOST=%
+    logging:       
+      driver:   "json-file"
+      options:  
+        max-size: "30m"
+        max-file: "5"
+
+  sdnc:
+    image: onap/sdnc-image:latest
+    depends_on :
+      - db
+    container_name: sdnc_controller
+    entrypoint: ["/opt/onap/sdnc/bin/startODL.sh"]
+    ports:
+      - "8282:8181"
+      - "8543:8443"
+    links:
+      - db:dbhost
+      - db:sdnctldb01
+      - db:sdnctldb02
+    environment:
+      - MYSQL_ROOT_PASSWORD=MySecretPassword
+      - SDNC_CONFIG_DIR=/opt/onap/sdnc/data/properties
+      - SDNC_REPLICAS=1
+      - SDNC_DB_USER=sdnctl
+      - SDNC_DB_PASSWORD=gamma
+      - MYSQL_DATABASE=sdnctl
+      - SDNC_DB_INIT=true
+      - KARAF_CONSOLE_LOG_LEVEL=info
+    logging:
+      driver:   "json-file"
+      options:
+        max-size: "30m"
+        max-file: "5"
+    extra_hosts:
+        aaf.osaaf.org: 10.12.6.214
+
+
+
