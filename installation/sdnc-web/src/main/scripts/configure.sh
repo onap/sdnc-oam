@@ -28,7 +28,24 @@ update_index_html() {
  
     # Backup the index.html file
     cp /opt/bitnami/nginx/html/odlux/index.html /opt/bitnami/nginx/html/odlux/index.html.backup
-    sed -z 's/<script>[^<]*<\/script>/<script>\n    \/\/ run the application \n  require\(\[\"connectApp\",\"faultApp\",\"maintenanceApp\",\"configurationApp\",\"performanceHistoryApp\",\"inventoryApp\",\"eventLogApp\",\"mediatorApp\",\"networkMapApp\",\"linkCalculationApp\",\"helpApp\",\"run\"\], function \(connectApp,faultApp,maintenanceApp,configurationApp,performanceHistoryApp,inventoryApp,eventLogApp,mediatorApp,networkMapApp,linkCalculationApp,helpApp,run\) \{ \n    connectApp.register\(\); \n  faultApp.register\(\);\n    maintenanceApp.register\(\); \n     configurationApp.register\(\);\n    performanceHistoryApp.register\(\); \n    inventoryApp.register\(\);\n    eventLogApp.register\(\);\n   mediatorApp.register\(\);\n   networkMapApp.register\(\);\n   linkCalculationApp.register\(\);\n     helpApp.register\(\);\n      run.runApplication();\n    \}\);\n  <\/script>/' -i /opt/bitnami/nginx/html/odlux/index.html 
+    #default values
+    ODLUX_AUTH_METHOD="basic"
+    ENABLE_ODLUX_RBAC=${ENABLE_ODLUX_RBAC:-false}
+    
+    if [ "$ENABLE_OAUTH" == "true" ]; then
+        ODLUX_AUTH_METHOD="oauth"
+    fi
+    echo "authentication is $ODLUX_AUTH_METHOD"
+    echo "rbac access is enabled: $ENABLE_ODLUX_RBAC"
+    ODLUX_CONFIG='{"authentication":"'$ODLUX_AUTH_METHOD'","enablePolicy":'$ENABLE_ODLUX_RBAC'}'
+#    sed -z 's/<script>[^<]*<\/script>/<script>\n    \/\/ run the application \n  require\(\[\"connectApp\",\"faultApp\",\"maintenanceApp\",\"configurationApp\",\"performanceHistoryApp\",\"inventoryApp\",\"eventLogApp\",\"mediatorApp\",\"networkMapApp\",\"linkCalculationApp\",\"helpApp\",\"run\"\], function \(connectApp,faultApp,maintenanceApp,configurationApp,performanceHistoryApp,inventoryApp,eventLogApp,mediatorApp,networkMapApp,linkCalculationApp,helpApp,run\) \{ \n run.configure('$ODLUX_CONFIG'); \n    connectApp.register\(\); \n  faultApp.register\(\);\n    maintenanceApp.register\(\); \n     configurationApp.register\(\);\n    performanceHistoryApp.register\(\); \n    inventoryApp.register\(\);\n    eventLogApp.register\(\);\n   mediatorApp.register\(\);\n   networkMapApp.register\(\);\n   linkCalculationApp.register\(\);\n     helpApp.register\(\);\n      run.runApplication();\n    \}\);\n  <\/script>/' -i /opt/bitnami/nginx/html/odlux/index.html 
+
+    #replace require expression
+    sed -z 's/require(\["run"\],\ function\ (run)/require\(\[\"connectApp\",\"faultApp\",\"maintenanceApp\",\"configurationApp\",\"performanceHistoryApp\",\"inventoryApp\",\"eventLogApp\",\"mediatorApp\",\"networkMapApp\",\"linkCalculationApp\",\"helpApp\",\"run\"\], function \(connectApp,faultApp,maintenanceApp,configurationApp,performanceHistoryApp,inventoryApp,eventLogApp,mediatorApp,networkMapApp,linkCalculationApp,helpApp,run\)/' -i /opt/bitnami/nginx/html/odlux/index.html 
+    #replace run.runApplication expression
+    sed -z 's/run.runApplication();/connectApp.register\(\); \n  faultApp.register\(\);\n    maintenanceApp.register\(\); \n     configurationApp.register\(\);\n    performanceHistoryApp.register\(\); \n    inventoryApp.register\(\);\n    eventLogApp.register\(\);\n   mediatorApp.register\(\);\n   networkMapApp.register\(\);\n   linkCalculationApp.register\(\);\n     helpApp.register\(\);\n      run.runApplication();/' -i /opt/bitnami/nginx/html/odlux/index.html 
+    #replace run.configure expression if exists
+    sed -z 's/run.configureApplication([^)]\+)/run.configureApplication('$ODLUX_CONFIG');/' -i /opt/bitnami/nginx/html/odlux/index.html 
 
 }
 
