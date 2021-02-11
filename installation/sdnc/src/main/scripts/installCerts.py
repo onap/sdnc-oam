@@ -51,7 +51,6 @@ zipFileList = []
 
 username = os.environ['ODL_ADMIN_USERNAME']
 password = os.environ['ODL_ADMIN_PASSWORD']
-newpassword = os.environ.get('ODL_ADMIN_NEWPASSWORD')
 TIMEOUT=1000
 INTERVAL=30
 timePassed=0
@@ -338,29 +337,6 @@ def process_jks_files(count):
         logging.error("UnExpected Error while processing JKS files at {0}, Caused by: {1}".format(Path, e))
         writeCertInstallStatus("NOTOK")
 
-def replaceAdminPassword(username, password, newpassword):
-    if newpassword is None:
-        logging.info('Not to replace password for user %s', username)
-    else:
-        logging.info('Replace password for user %s', username)
-        try:
-            jsondata = '{\"password\": \"{newpassword}\"}'.format(newpassword=newpassword)
-            url = '/auth/v1/users/{username}@sdn'.format(username=username)
-            loggin.info("Url %s data $s", url, jsondata)
-            conn = http.client.HTTPConnection("localhost",odl_port)
-            req = conn.request("PUT", url, jsondata, headers=headers)
-            res = conn.getresponse()
-            res.read()
-            httpStatus = res.status
-            if httpStatus == 200:
-                logging.debug("New password provided successfully for user %s", username)
-            else:
-                logging.debug("Password change was not possible. Problem code was: %d", httpStatus)
-        except:
-            logging.error("Cannot execute REST call to set password.")
-            writeCertInstallStatus("NOTOK")
-
-
 def readCertProperties():
     '''
     This function searches for manually copied zip file
@@ -371,7 +347,6 @@ def readCertProperties():
     connected = makeHealthcheckCall(headers, timePassed)
     logging.info('Connected status: %s', connected)
     if connected:
-        replaceAdminPassword(username, password, newpassword)
         count = 0
         if os.path.isfile(Path + "/certs.properties"):
             with open(Path + "/certs.properties", "r") as f:
