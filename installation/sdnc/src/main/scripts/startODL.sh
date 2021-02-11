@@ -82,7 +82,7 @@ cleanupFeatureBoot() {
   sed -i "/featuresBoot/ s/,ccsdk-sli-core-all.*$//g" "$ODL_FEATURES_BOOT_FILE"
 }
 
-initialize_sdnr() {
+initialize_sdnrdb() {
   printf "SDN-R Database Initialization"
   INITCMD="$JAVA_HOME/bin/java -jar "
   INITCMD="${INITCMD} $ODL_HOME/system/org/onap/ccsdk/features/sdnr/wt/sdnr-wt-data-provider-setup/$CCSDKFEATUREVERSION/sdnr-dmt.jar "
@@ -100,15 +100,13 @@ initialize_sdnr() {
 install_sdnrwt_features() {
   # Repository setup provided via sdnc dockerfile
   if $SDNRWT; then
-    addRepository "$SDNRDM_BASE_REPO"
 
     if $SDNRONLY; then
       cleanupFeatureBoot
     fi
-    if $SDNRDM; then
-      addToFeatureBoot "$SDNRDM_BOOTFEATURES"
-    else
-      addToFeatureBoot "$SDNRWT_BOOTFEATURES"
+    addToFeatureBoot "$SDNRDM_BOOTFEATURES"
+    if ! $SDNRDM; then
+      addToFeatureBoot "$SDNRODLUX_BOOTFEATURES"
     fi
   fi
 }
@@ -211,18 +209,13 @@ enable_odl_cluster() {
 printf "Installing SDNC/R from startODL.sh script\n"
 ODL_HOME=${ODL_HOME:-/opt/opendaylight/current}
 ODL_FEATURES_BOOT_FILE=$ODL_HOME/etc/org.apache.karaf.features.cfg
-#
-ODL_REMOVEIDMDB=${ODL_REMOVEIDMDB:-false}
 
 ODL_ADMIN_USERNAME=${ODL_ADMIN_USERNAME:-admin}
-if $ODL_REMOVEIDMDB ; then
-   printf "Remove odl idmdb"
-   rm "$ODL_HOME"/data/idmlight.db.mv.db
-   ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD:-admin}
-else
-   ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD:-Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U}
+# do not start container if ADMIN_PASSWORD is not set
+if [ -z "$ODL_ADMIN_PASSWORD" ]; then
+  echo "ODL_ADMIN_PASSWORD is not set"
+  exit(1)
 fi
-ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD:-Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U}
 SDNC_HOME=${SDNC_HOME:-/opt/onap/sdnc}
 SDNC_BIN=${SDNC_BIN:-/opt/onap/sdnc/bin}
 # Whether to intialize MYSql DB or not. Default is to initialize
@@ -237,13 +230,11 @@ IS_PRIMARY_CLUSTER=${IS_PRIMARY_CLUSTER:-false}
 MY_ODL_CLUSTER=${MY_ODL_CLUSTER:-127.0.0.1}
 INSTALLED_DIR=${INSTALLED_FILE:-/opt/opendaylight/current/daexim}
 SDNRWT=${SDNRWT:-false}
-SDNRWT_BOOTFEATURES=${SDNRWT_BOOTFEATURES:-sdnr-wt-feature-aggregator}
+SDNRODLUX_BOOTFEATURES=${SDNRODLUX_BOOTFEATURES:-sdnr-wt-helpserver-feature,sdnr-wt-odlux-core-feature,sdnr-wt-odlux-apps-feature}
 SDNRDM=${SDNRDM:-false}
-# Add devicemanager base and specific repositories
-SDNRDM_BASE_REPO=${SDNRDM_BASE_REPO:-mvn:org.onap.ccsdk.features.sdnr.wt/sdnr-wt-feature-aggregator-devicemanager-base/$CCSDKFEATUREVERSION/xml/features}
 # Add devicemanager features
 SDNRDM_SDM_LIST=${SDNRDM_SDM_LIST:-sdnr-wt-feature-aggregator-devicemanager}
-SDNRDM_BOOTFEATURES=${SDNRDM_BOOTFEATURES:-sdnr-wt-feature-aggregator-devicemanager-base, ${SDNRDM_SDM_LIST}}
+SDNRDM_BOOTFEATURES=${SDNRDM_BOOTFEATURES:-sdnr-wt-feature-aggregator-devicemanager-base,${SDNRDM_SDM_LIST}}
 # Whether to Initialize the ElasticSearch DB.
 SDNRINIT=${SDNRINIT:-false}
 SDNRONLY=${SDNRONLY:-false}
@@ -253,6 +244,7 @@ SDNRDBCOMMAND=${SDNRDBCOMMAND:--c init -db $SDNRDBURL -dbu $SDNRDBUSERNAME -dbp 
 SDNR_NORTHBOUND=${SDNR_NORTHBOUND:-false}
 SDNR_NORTHBOUND_BOOTFEATURES=${SDNR_NORTHBOUND_BOOTFEATURES:-sdnr-northbound-all}
 NOTOK=1
+#export for installCerts.py
 export ODL_ADMIN_PASSWORD ODL_ADMIN_USERNAME
 
 if $JDEBUG ; then
@@ -313,7 +305,7 @@ fi
 
 if $SDNRINIT ; then
   #One time intialization action
-  initialize_sdnr
+  initialize_sdnrdb
   init_result=$?
   printf "%s\n" "Result of init script: $init_result"
   if $SDNRWT ; then
