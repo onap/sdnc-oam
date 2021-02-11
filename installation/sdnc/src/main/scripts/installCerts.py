@@ -2,6 +2,7 @@
 #  Copyright (C) 2019 Nordix Foundation.
 # ================================================================================
 #  extended by highstreet technologies GmbH (c) 2020
+#  Copyright (c) 2021 Nokia Intellectual Property.
 # ================================================================================
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -273,6 +274,7 @@ def jks_to_p12(file, password):
 def make_cert_chain(cert_chain, pattern):
     cert_list = []
     if cert_chain:
+        cert_chain = cert_chain.decode('utf-8')
         matches = re.findall(pattern, cert_chain, re.DOTALL | re.MULTILINE)
         for cert in matches:
             cert_list.append(cert.strip())
