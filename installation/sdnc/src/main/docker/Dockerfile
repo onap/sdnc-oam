@@ -30,6 +30,7 @@ ENV SDNC_SECUREPORT ${sdnc.secureport}
 USER root
 
 COPY --from=stage0 --chown=odl:odl /opt /opt
+RUN if [ -f $ODL_HOME/data/idmlight.db.mv.db ]; then rm $ODL_HOME/data/idmlight.db.mv.db; fi
 
 # Add SDNC repositories to boot repositories
 RUN cp $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.karaf.features.cfg.orig
