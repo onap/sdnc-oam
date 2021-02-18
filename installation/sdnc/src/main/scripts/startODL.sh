@@ -213,6 +213,13 @@ ODL_HOME=${ODL_HOME:-/opt/opendaylight/current}
 ODL_FEATURES_BOOT_FILE=$ODL_HOME/etc/org.apache.karaf.features.cfg
 
 ODL_ADMIN_USERNAME=${ODL_ADMIN_USERNAME:-admin}
+ODL_REMOVEIDMDB=${ODL_REMOVEIDMDB:-true}
+
+if $ODL_REMOVEIDMDB ; then
+  if [ -f $ODL_HOME/data/idmlight.db.mv.db ]; then 
+    rm $ODL_HOME/data/idmlight.db.mv.db
+  fi
+fi
 # do not start container if ADMIN_PASSWORD is not set
 if [ -z "$ODL_ADMIN_PASSWORD" ]; then
   echo "ODL_ADMIN_PASSWORD is not set"
