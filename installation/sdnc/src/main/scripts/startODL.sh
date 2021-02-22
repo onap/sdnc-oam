@@ -220,11 +220,7 @@ if $ODL_REMOVEIDMDB ; then
     rm $ODL_HOME/data/idmlight.db.mv.db
   fi
 fi
-# do not start container if ADMIN_PASSWORD is not set
-if [ -z "$ODL_ADMIN_PASSWORD" ]; then
-  echo "ODL_ADMIN_PASSWORD is not set"
-  exit 1
-fi
+
 SDNC_HOME=${SDNC_HOME:-/opt/onap/sdnc}
 SDNC_BIN=${SDNC_BIN:-/opt/onap/sdnc/bin}
 # Whether to intialize MYSql DB or not. Default is to initialize
@@ -329,6 +325,12 @@ if $SDNRINIT ; then
   fi
 fi
 
+# do not start container if ADMIN_PASSWORD is not set
+if [ -z "$ODL_ADMIN_PASSWORD" ]; then
+  echo "ODL_ADMIN_PASSWORD is not set"
+  exit 1
+fi
+
 # Check for MySQL DB connectivity only if SDNC_DB_INIT is set to "true" 
 if $SDNC_DB_INIT; then
 #
@@ -342,6 +344,7 @@ if $SDNC_DB_INIT; then
   done
   printf "\nmysql ready"
 fi
+
 
 if [ ! -d "${INSTALLED_DIR}" ]
 then
@@ -367,7 +370,10 @@ then
     fi
 
   if $SDNRWT ; then install_sdnrwt_features ; fi
-  if $ENABLE_OAUTH ; then install_sdnr_oauth_features ; fi
+  if $ENABLE_OAUTH ; then
+    cp $SDNC_HOME/data/oauth-aaa-app-config.xml $ODL_HOME/system/org/opendaylight/aaa/aaa-shiro/0.12.1/aaa-shiro-0.12.1-aaa-app-config.xml
+    install_sdnr_oauth_features 
+  fi
   
   # The enable_odl_cluster call should not be moved above this line as the cleanFeatureBoot will overwrite entries. Ex: odl-jolokia
   if $ENABLE_ODL_CLUSTER ; then enable_odl_cluster ; fi
