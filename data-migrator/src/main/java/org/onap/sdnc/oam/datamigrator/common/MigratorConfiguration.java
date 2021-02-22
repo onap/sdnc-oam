@@ -19,6 +19,7 @@
  */
 package org.onap.sdnc.oam.datamigrator.common;
 
+import org.onap.ccsdk.sli.core.utils.common.EnvProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,7 +74,7 @@ public class MigratorConfiguration {
                             + propFile);
         }
 
-        Properties props = new Properties();
+        Properties props = new EnvProperties();
         props.load(new FileInputStream(propFile));
         this.sourceHost = props.getProperty("org.onap.sdnc.datamigrator.source.host");
         this.sourceUser = props.getProperty("org.onap.sdnc.datamigrator.source.user");
