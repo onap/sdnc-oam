@@ -212,7 +212,7 @@ printf "Installing SDNC/R from startODL.sh script\n"
 ODL_HOME=${ODL_HOME:-/opt/opendaylight/current}
 ODL_FEATURES_BOOT_FILE=$ODL_HOME/etc/org.apache.karaf.features.cfg
 
-ODL_USER=${ODL_USER:-admin}
+ODL_ADMIN_USERNAME=${ODL_ADMIN_USERNAME:-admin}
 ODL_REMOVEIDMDB=${ODL_REMOVEIDMDB:-true}
 
 if $ODL_REMOVEIDMDB ; then
@@ -253,7 +253,7 @@ SDNR_NORTHBOUND=${SDNR_NORTHBOUND:-false}
 SDNR_NORTHBOUND_BOOTFEATURES=${SDNR_NORTHBOUND_BOOTFEATURES:-sdnr-northbound-all}
 NOTOK=1
 #export for installCerts.py
-export ODL_PASSWORD ODL_USER
+export ODL_ADMIN_PASSWORD ODL_ADMIN_USERNAME
 
 if $JDEBUG ; then
     printf "Activate remote debugging\n"
@@ -326,8 +326,8 @@ if $SDNRINIT ; then
 fi
 
 # do not start container if ADMIN_PASSWORD is not set
-if [ -z "$ODL_PASSWORD" ]; then
-  echo "ODL_PASSWORD is not set"
+if [ -z "$ODL_ADMIN_PASSWORD" ]; then
+  echo "ODL_ADMIN_PASSWORD is not set"
   exit 1
 fi
 
