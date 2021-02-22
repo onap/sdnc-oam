@@ -150,43 +150,48 @@
                                                                             <block atomic="true"></block>
                                                                         </outcome>
                                                                     </execute>
-                                                                    <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                                                                        <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.domain.url + '/restconf/data/ietf-eth-tran-service:etht-svc/etht-svc-instances=' + $tmp.aai.connectivity.etht-svc-name`" />
-                                                                        <!--<parameter name="restapiUrl" value="`$prop.restapi.connection-oof-url`" />-->
-                                                                        <!--<parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sotn-ethernet-service.json'`" />-->
-                                                                        <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.domain.user`" />
-                                                                        <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.domain.password`" />
-                                                                        <parameter name="format" value="json"/>
-                                                                        <parameter name="httpMethod" value="delete"/>
-                                                                        <parameter name='dirPath' value="/opt/onap/sdnc/restconfapi/yang" />
-                                                                        <parameter name="responsePrefix" value="vpn-result"/>
-                                                                        <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
-                                                                        <parameter name="trustStorePassword" value="adminadmin"/>
-                                                                        <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
-                                                                        <parameter name="keyStorePassword" value="adminadmin"/>
-                                                                        <outcome value='failure'>
-                                                                            <return status='failure'>
-                                                                                <parameter name='ack-final' value='Y'/>
-                                                                                <parameter name="error-code" value="500" />
-                                                                                <parameter name="error-message" value="Error executing delete ethernet service rest api" />
-                                                                            </return>
+                                                                    <switch test='`$tmp.aai.connectivity.etht-svc-name`'>
+                                                                        <outcome value='Other'>
+                                                                            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                                                                <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.domain.url + '/restconf/data/ietf-eth-tran-service:etht-svc/etht-svc-instances=' + $tmp.aai.connectivity.etht-svc-name`" />
+                                                                                <!--<parameter name="restapiUrl" value="`$prop.restapi.connection-oof-url`" />-->
+                                                                                <!--<parameter name="templateFileName" value="`$prop.restapi.templateDir + '/sotn-ethernet-service.json'`" />-->
+                                                                                <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.domain.user`" />
+                                                                                <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.domain.password`" />
+                                                                                <parameter name="format" value="json"/>
+                                                                                <parameter name="httpMethod" value="delete"/>
+                                                                                <parameter name='dirPath' value="/opt/onap/sdnc/restconfapi/yang" />
+                                                                                <parameter name="responsePrefix" value="vpn-result"/>
+                                                                                <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
+                                                                                <parameter name="trustStorePassword" value="adminadmin"/>
+                                                                                <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                                                                                <parameter name="keyStorePassword" value="adminadmin"/>
+                                                                                <outcome value='failure'>
+                                                                                    <return status='failure'>
+                                                                                        <parameter name='ack-final' value='Y'/>
+                                                                                        <parameter name="error-code" value="500" />
+                                                                                        <parameter name="error-message" value="Error executing delete ethernet service rest api" />
+                                                                                    </return>
+                                                                                </outcome>
+                                                                                <outcome value='success'>
+                                                                                    <block atomic="true">
+                                                                                        <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding'
+                                                                                                key='vpn-binding.vpn-id = $tmp.aai.vpn-binding.vpn-id' >
+                                                                                            <parameter name='vpn-id' value='`$tmp.aai.vpn-binding.vpn-id`' />
+                                                                                            <parameter name='vpn-name' value='`$tmp.aai.vpn-binding.vpn-name`' />
+                                                                                            <parameter name='operational-status' value='Deactivated' />
+                                                                                        </update>
+                                                                                        <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity'
+                                                                                                key='connectivity.connectivity-id = $tmp.aai.connectivity.connectivity-id'>
+                                                                                            <parameter name='connectivity-id' value='`$tmp.aai.connectivity.connectivity-id`' />
+                                                                                            <parameter name='operational-status' value='Deactivated' />
+                                                                                        </update>
+                                                                                    </block>
+                                                                                </outcome>
+                                                                            </execute>
                                                                         </outcome>
-                                                                        <outcome value='success'>
-                                                                            <block atomic="true">
-                                                                                <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding'
-                                                                                        key='vpn-binding.vpn-id = $tmp.aai.vpn-binding.vpn-id' >
-                                                                                    <parameter name='vpn-id' value='`$tmp.aai.vpn-binding.vpn-id`' />
-                                                                                    <parameter name='vpn-name' value='`$tmp.aai.vpn-binding.vpn-name`' />
-                                                                                    <parameter name='operational-status' value='Deactivated' />
-                                                                                </update>
-                                                                                <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity'
-                                                                                        key='connectivity.connectivity-id = $tmp.aai.connectivity.connectivity-id'>
-                                                                                    <parameter name='connectivity-id' value='`$tmp.aai.connectivity.connectivity-id`' />
-                                                                                    <parameter name='operational-status' value='Deactivated' />
-                                                                                </update>
-                                                                            </block>
-                                                                        </outcome>
-                                                                    </execute>
+                                                                        <outcome value=''></outcome>
+                                                                    </switch>
                                                                 </block>
                                                             </outcome>
                                                             <outcome value='not-found'>
