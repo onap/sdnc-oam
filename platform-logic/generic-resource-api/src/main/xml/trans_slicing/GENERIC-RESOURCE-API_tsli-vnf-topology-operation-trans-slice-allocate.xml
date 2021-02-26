@@ -39,6 +39,10 @@
                                     <parameter name='tmp.arr_length' value='0' />
                                     <parameter name='otn-tunnel-slice' value='' />
                                     <parameter name='otn-tunnel-slice_length' value='0' />
+                                    <parameter name='tmp.slicevpns' value='' />
+                                    <parameter name='tmp.slicevpns_length' value='0' />
+                                    <parameter name='tmp.slicevpnuuids' value='' />
+                                    <parameter name='tmp.slicevpnuuids.' value='' />
                                 </set>
                                 <for index='aridx' start='0' end='`$tmp.aai.service-instance.allotted-resources.allotted-resource_length`' >
                                     <set>
@@ -872,7 +876,13 @@
                                                                                                                 <parameter name='vpn-description' value='`$prop.sdncRestApi.thirdpartySdnc.domainG.user`' />
                                                                                                                 <parameter name='vpn-platform' value='`$prop.sdncRestApi.thirdpartySdnc.domainG.password`' />
                                                                                                                 <outcome value='success'>
-                                                                                                                    <block></block>
+                                                                                                                    <block>
+                                                                                                                        <set>
+                                                                                                                            <parameter name='`tmp.slicevpns[$tmp.slicevpns_length]`' value="`$prop.vpn-binding-otnidx-uuid`" />
+                                                                                                                            <parameter name='tmp.slicevpns_length' value="`$tmp.slicevpns_length + 1`" />
+                                                                                                                            <parameter name='`tmp.slicevpnuuids[$prop.vpn-binding-otnidx-uuid]`' value="`$prop.vpn-binding-otnidx-uuid`" />
+                                                                                                                        </set>
+                                                                                                                    </block>
                                                                                                                 </outcome>
                                                                                                             </save>
                                                                                                             <switch test='`$otnidx == 0`'>
@@ -887,15 +897,7 @@
                                                                                                                             <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$uuid.connectivity-domainA-uuid`" />
                                                                                                                         </save>
                                                                                                                         <set>
-                                                                                                                            <!--<parameter name='`otn-tunnel-slice[10].list[$idx].request-id`' value='`$prop.vpn-binding-otnidx-uuid`' />-->
-                                                                                                                            <!--<parameter name='`otn-tunnel-slice[10].list[$idx].otn-source-node`' value='`$param-prefix-domainA[$param-prefix-domainA_length -3]`' />-->
-                                                                                                                            <!--<parameter name='`otn-tunnel-slice[10].list[$idx].otn-dest-node`' value='`$tmp.otninfo[0].dstPort.dst-access-node-id`' />-->
-                                                                                                                            <!--<parameter name='`otn-tunnel-slice[10].list[$idx].bw-odu`' value="`'0,' + $gfp`" />-->
-                                                                                                                            <!--<parameter name='`otn-tunnel-slice[10].list[$idx].src-ttp-id`' value='' />-->
-                                                                                                                            <!--<parameter name='`otn-tunnel-slice[10].list[$idx].dst-ttp-id`' value='`$tmp.otninfo[0].dstPort.dst-tunnel-tp-id`' />-->
                                                                                                                             <parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />
-                                                                                                                            <!--<parameter name='`otn-tunnel-slice_length`' value='`$otnidx + 1`' />-->
-                                                                                                                            <!--<parameter name='`otn-tunnel-slice[10].list_length`' value='`$idx + 1`' />-->
                                                                                                                         </set>
                                                                                                                         <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                                                                                                                             <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/' + $prop.restapi.ts-coloring-uni-port.templatefile`" />
@@ -940,15 +942,7 @@
                                                                                                                                         <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$prop.connectivity-domainB-uuid`" />
                                                                                                                                     </save>
                                                                                                                                     <set>
-                                                                                                                                        <!--<parameter name='`otn-tunnel-slice[$otnidx].list[$idx].request-id`' value='`$prop.vpn-binding-otnidx-uuid`' />-->
-                                                                                                                                        <!--<parameter name='`otn-tunnel-slice[$otnidx].list[$idx].otn-source-node`' value='`$tmp.otninfo[$otnidx].srcPort.src-access-node-id`' />-->
-                                                                                                                                        <!--<parameter name='`otn-tunnel-slice[$otnidx].list[$idx].otn-dest-node`' value='`$param-prefix-domainB[$param-prefix-domainB_length -3]`' />-->
-                                                                                                                                        <!--<parameter name='`otn-tunnel-slice[$otnidx].list[$idx].bw-odu`' value="`'0,' + $gfp`" />-->
-                                                                                                                                        <!--<parameter name='`otn-tunnel-slice[$otnidx].list[$idx].src-ttp-id`' value='`$tmp.otninfo[$otnidx].srcPort.src-tunnel-tp-id`' />-->
-                                                                                                                                        <!--<parameter name='`otn-tunnel-slice[$otnidx].list[$idx].dst-ttp-id`' value='' />-->
                                                                                                                                         <parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />
-                                                                                                                                        <!--<parameter name='`otn-tunnel-slice_length`' value='`$otnidx + 1`' />-->
-                                                                                                                                        <!--<parameter name='`otn-tunnel-slice[$otnidx].list_length`' value='`$idx + 1`' />-->
                                                                                                                                     </set>
                                                                                                                                     <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                                                                                                                                         <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/' + $prop.restapi.ts-coloring-uni-port.templatefile`" />
@@ -1034,15 +1028,7 @@
                                                                                                                                         <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$uuid.connectivity-otnidx-uuid`" />
                                                                                                                                     </save>
                                                                                                                                     <set>
-                                                                                                                                        <!--<parameter name='`otn-tunnel-slice[$otnidx].list[$idx].request-id`' value='`$prop.vpn-binding-otnidx-uuid`' />-->
-                                                                                                                                        <!--<parameter name='`otn-tunnel-slice[$otnidx].list[$idx].otn-source-node`' value='`$tmp.otninfo[$otnidx].srcPort.src-access-node-id`' />-->
-                                                                                                                                        <!--<parameter name='`otn-tunnel-slice[$otnidx].list[$idx].otn-dest-node`' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-node-id`' />-->
-                                                                                                                                        <!--<parameter name='`otn-tunnel-slice[$otnidx].list[$idx].bw-odu`' value="`'0,' + $gfp`" />-->
-                                                                                                                                        <!--<parameter name='`otn-tunnel-slice[$otnidx].list[$idx].src-ttp-id`' value='`$tmp.otninfo[$otnidx].srcPort.src-tunnel-tp-id`' />-->
-                                                                                                                                        <!--<parameter name='`otn-tunnel-slice[$otnidx].list[$idx].dst-ttp-id`' value='`$tmp.otninfo[$otnidx].dstPort.dst-tunnel-tp-id`' />-->
                                                                                                                                         <parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />
-                                                                                                                                        <!--<parameter name='`otn-tunnel-slice_length`' value='`$otnidx + 1`' />-->
-                                                                                                                                        <!--<parameter name='`otn-tunnel-slice[$otnidx].list_length`' value='`$idx + 1`' />-->
                                                                                                                                     </set>
                                                                                                                                 </block>
                                                                                                                             </outcome>
@@ -1052,40 +1038,6 @@
                                                                                                             </switch>
                                                                                                         </block>
                                                                                                     </for>
-                                                                                                    <set>
-                                                                                                        <!--<parameter name='request-id' value='`$prop.vpn-binding-domainA-uuid`' />-->
-                                                                                                        <!--<parameter name='otn-source-node' value='`$param-prefix-domainA[$param-prefix-domainA_length -3]`' />-->
-                                                                                                        <!--<parameter name='otn-dest-node' value='`$domain-A.node-id`' />-->
-                                                                                                        <!--<parameter name='bw-odu' value="`'0,' + $gfp`" />-->
-                                                                                                        <!--<parameter name='dst-ttp-id' value='`$domain-A.tunnel-tp-id`' />-->
-                                                                                                        <!--<parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />-->
-                                                                                                        <parameter name='`otn-tunnel-sliceA-list[$idx].request-id`' value='`$prop.vpn-binding-domainA-uuid`' />
-                                                                                                        <parameter name='`otn-tunnel-sliceA-list[$idx].otn-source-node`' value='`$param-prefix-domainA[$param-prefix-domainA_length -3]`' />
-                                                                                                        <parameter name='`otn-tunnel-sliceA-list[$idx].otn-dest-node`' value='`$domain-A.node-id`' />
-                                                                                                        <parameter name='`otn-tunnel-sliceA-list[$idx].bw-odu`' value="`'0,' + $gfp`" />
-                                                                                                        <parameter name='`otn-tunnel-sliceA-list[$idx].src-ttp-id`' value='' />
-                                                                                                        <parameter name='`otn-tunnel-sliceA-list[$idx].dst-ttp-id`' value='`$domain-A.tunnel-tp-id`' />
-                                                                                                        <parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />
-                                                                                                        <parameter name='`otn-tunnel-sliceA-list_length`' value='`$idx + 1`' />
-                                                                                                        <!--otn-tunnel-slice-list[$idx]-->
-                                                                                                    </set>
-                                                                                                    <set>
-                                                                                                        <!--<parameter name='request-id' value='`$prop.vpn-binding-domainB-uuid`' />-->
-                                                                                                        <!--<parameter name='otn-source-node' value='`$domain-B.node-id`' />-->
-                                                                                                        <!--<parameter name='otn-dest-node' value='`$param-prefix-domainB[$param-prefix-domainB_length -3]`' />-->
-                                                                                                        <!--<parameter name='bw-odu' value="`'0,' + $gfp`" />-->
-                                                                                                        <!--<parameter name='src-ttp-id' value='`$domain-B.tunnel-tp-id`' />-->
-                                                                                                        <!--<parameter name='dst-ttp-id' value='' />-->
-                                                                                                        <!--<parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />-->
-                                                                                                        <parameter name='`otn-tunnel-sliceB-list[$idx].request-id`' value='`$prop.vpn-binding-domainB-uuid`' />
-                                                                                                        <parameter name='`otn-tunnel-sliceB-list[$idx].otn-source-node`' value='`$domain-B.node-id`' />
-                                                                                                        <parameter name='`otn-tunnel-sliceB-list[$idx].otn-dest-node`' value='`$param-prefix-domainB[$param-prefix-domainB_length -3]`' />
-                                                                                                        <parameter name='`otn-tunnel-sliceB-list[$idx].bw-odu`' value="`'0,' + $gfp`" />
-                                                                                                        <parameter name='`otn-tunnel-sliceB-list[$idx].src-ttp-id`' value='`$domain-B.tunnel-tp-id`' />
-                                                                                                        <parameter name='`otn-tunnel-sliceB-list[$idx].dst-ttp-id`' value='' />
-                                                                                                        <parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />
-                                                                                                        <parameter name='`otn-tunnel-sliceB-list_length`' value='`$idx + 1`' />
-                                                                                                    </set>
                                                                                                     <set>
                                                                                                         <parameter name='domain-A.tunnel-tp-id' value='' />
                                                                                                         <parameter name='domain-A.node-id' value='' />
@@ -1144,109 +1096,116 @@
                                         <block atomic="true">
                                             <for index='vpnbidx' start='0' end='`$tmp.aai.all-vpn-bindings.vpn-binding_length`' >
                                                 <block atomic='true'>
-                                                    <set>
-                                                        <parameter name='providerValue' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].access-provider-id`' />
-                                                        <parameter name='found' value='false' />
-                                                    </set>
-                                                    <switch test='`$tmp.arr_length != 0`'>
+                                                    <switch test="`$tmp.slicevpnuuids[$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-id] != '' `">
                                                         <outcome value='true'>
                                                             <block atomic='true'>
-                                                                <for index='arridx' start='0' end='`$tmp.arr_length`' >
-                                                                    <switch test='`$tmp.arr[$arridx] == $providerValue`'>
-                                                                        <outcome value='true'>
-                                                                            <block atomic='true'>
-                                                                                <set>
-                                                                                    <parameter name='found' value='true' />
-                                                                                </set>
-                                                                                <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding'
-                                                                                        key='vpn-binding.vpn-id = $tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-id' >
-                                                                                    <parameter name='vpn-id' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-id`' />
-                                                                                    <parameter name='vpn-type' value='`$arridx`' />
-                                                                                </update>
-                                                                                <set>
-                                                                                    <parameter name='sizeOfSliceList' value='`$otn-tunnel-slice[$arridx].list_length`' />
-                                                                                </set>
-                                                                                <set>
-                                                                                    <!--<parameter name='`tmp.arr[$arridx + 1]`' value='`$providerValue`' />-->
-                                                                                    <!--<parameter name='tmp.arr_length' value='`$tmp.arr_length + 1`' />-->
-                                                                                    <parameter name='`otn-tunnel-slice[$arridx].list[$sizeOfSliceList].request-id`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-id`' />
-                                                                                    <parameter name='`otn-tunnel-slice[$arridx].list[$sizeOfSliceList].otn-source-node`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].src-access-node-id`' />
-                                                                                    <parameter name='`otn-tunnel-slice[$arridx].list[$sizeOfSliceList].otn-dest-node`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].dst-access-node-id`' />
-                                                                                    <parameter name='`otn-tunnel-slice[$arridx].list[$sizeOfSliceList].bw-odu`' value="`'0,' + $gfp`" />
-                                                                                    <parameter name='`otn-tunnel-slice[$arridx].list[$sizeOfSliceList].src-ttp-id`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].src-access-ltp-id`' />
-                                                                                    <parameter name='`otn-tunnel-slice[$arridx].list[$sizeOfSliceList].dst-ttp-id`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].dst-access-ltp-id`' />
-                                                                                    <parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />
-                                                                                    <parameter name='`otn-tunnel-slice[$arridx].list[$sizeOfSliceList].domainurl`' value="`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-region`" />
-                                                                                    <parameter name='`otn-tunnel-slice[$arridx].list[$sizeOfSliceList].domainuser`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-description`' />
-                                                                                    <parameter name='`otn-tunnel-slice[$arridx].list[$sizeOfSliceList].domainpassword`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-platform`' />
-                                                                                    <!--<parameter name='otn-tunnel-slice_length' value='`$arridx + 2`' />-->
-                                                                                    <parameter name='`otn-tunnel-slice[$arridx].list_length`' value='`$sizeOfSliceList + 1`' />
-                                                                                </set>
-                                                                                <break/>
-                                                                            </block>
-                                                                        </outcome>
-                                                                        <outcome value='false'>
-                                                                            <block></block>
-                                                                        </outcome>
-                                                                    </switch>
-                                                                </for>
-                                                                <switch test='`$found`'>
+                                                                <set>
+                                                                    <parameter name='providerValue' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].access-provider-id`' />
+                                                                    <parameter name='found' value='false' />
+                                                                </set>
+                                                                <switch test='`$tmp.arr_length != 0`'>
                                                                     <outcome value='true'>
-                                                                        <block></block>
+                                                                        <block atomic='true'>
+                                                                            <for index='arridx' start='0' end='`$tmp.arr_length`' >
+                                                                                <switch test='`$tmp.arr[$arridx] == $providerValue`'>
+                                                                                    <outcome value='true'>
+                                                                                        <block atomic='true'>
+                                                                                            <set>
+                                                                                                <parameter name='found' value='true' />
+                                                                                            </set>
+                                                                                            <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding'
+                                                                                                    key='vpn-binding.vpn-id = $tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-id' >
+                                                                                                <parameter name='vpn-id' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-id`' />
+                                                                                                <parameter name='vpn-type' value='`$arridx`' />
+                                                                                            </update>
+                                                                                            <set>
+                                                                                                <parameter name='sizeOfSliceList' value='`$otn-tunnel-slice[$arridx].list_length`' />
+                                                                                            </set>
+                                                                                            <set>
+                                                                                                <!--<parameter name='`tmp.arr[$arridx + 1]`' value='`$providerValue`' />-->
+                                                                                                <!--<parameter name='tmp.arr_length' value='`$tmp.arr_length + 1`' />-->
+                                                                                                <parameter name='`otn-tunnel-slice[$arridx].list[$sizeOfSliceList].request-id`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-id`' />
+                                                                                                <parameter name='`otn-tunnel-slice[$arridx].list[$sizeOfSliceList].otn-source-node`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].src-access-node-id`' />
+                                                                                                <parameter name='`otn-tunnel-slice[$arridx].list[$sizeOfSliceList].otn-dest-node`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].dst-access-node-id`' />
+                                                                                                <parameter name='`otn-tunnel-slice[$arridx].list[$sizeOfSliceList].bw-odu`' value="`'0,' + $gfp`" />
+                                                                                                <parameter name='`otn-tunnel-slice[$arridx].list[$sizeOfSliceList].src-ttp-id`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].src-access-ltp-id`' />
+                                                                                                <parameter name='`otn-tunnel-slice[$arridx].list[$sizeOfSliceList].dst-ttp-id`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].dst-access-ltp-id`' />
+                                                                                                <parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />
+                                                                                                <parameter name='`otn-tunnel-slice[$arridx].list[$sizeOfSliceList].domainurl`' value="`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-region`" />
+                                                                                                <parameter name='`otn-tunnel-slice[$arridx].list[$sizeOfSliceList].domainuser`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-description`' />
+                                                                                                <parameter name='`otn-tunnel-slice[$arridx].list[$sizeOfSliceList].domainpassword`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-platform`' />
+                                                                                                <!--<parameter name='otn-tunnel-slice_length' value='`$arridx + 2`' />-->
+                                                                                                <parameter name='`otn-tunnel-slice[$arridx].list_length`' value='`$sizeOfSliceList + 1`' />
+                                                                                            </set>
+                                                                                            <break/>
+                                                                                        </block>
+                                                                                    </outcome>
+                                                                                    <outcome value='false'>
+                                                                                        <block></block>
+                                                                                    </outcome>
+                                                                                </switch>
+                                                                            </for>
+                                                                            <switch test='`$found`'>
+                                                                                <outcome value='true'>
+                                                                                    <block></block>
+                                                                                </outcome>
+                                                                                <outcome value='false'>
+                                                                                    <block atomic='true'>
+                                                                                        <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding'
+                                                                                                key='vpn-binding.vpn-id = $tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-id' >
+                                                                                            <parameter name='vpn-id' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-id`' />
+                                                                                            <parameter name='vpn-type' value='`$arridx + 1`' />
+                                                                                        </update>
+                                                                                        <set>
+                                                                                            <parameter name='`tmp.arr[$arridx + 1]`' value='`$providerValue`' />
+                                                                                            <parameter name='tmp.arr_length' value='`$tmp.arr_length + 1`' />
+                                                                                            <parameter name='`otn-tunnel-slice[$arridx + 1].list[0].request-id`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-id`' />
+                                                                                            <parameter name='`otn-tunnel-slice[$arridx + 1].list[0].otn-source-node`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].src-access-node-id`' />
+                                                                                            <parameter name='`otn-tunnel-slice[$arridx + 1].list[0].otn-dest-node`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].dst-access-node-id`' />
+                                                                                            <parameter name='`otn-tunnel-slice[$arridx + 1].list[0].bw-odu`' value="`'0,' + $gfp`" />
+                                                                                            <parameter name='`otn-tunnel-slice[$arridx + 1].list[0].src-ttp-id`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].src-access-ltp-id`' />
+                                                                                            <parameter name='`otn-tunnel-slice[$arridx + 1].list[0].dst-ttp-id`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].dst-access-ltp-id`' />
+                                                                                            <parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />
+                                                                                            <parameter name='`otn-tunnel-slice[$arridx + 1].list[0].domainurl`' value="`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-region`" />
+                                                                                            <parameter name='`otn-tunnel-slice[$arridx + 1].list[0].domainuser`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-description`' />
+                                                                                            <parameter name='`otn-tunnel-slice[$arridx + 1].list[0].domainpassword`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-platform`' />
+                                                                                            <parameter name='otn-tunnel-slice_length' value='`$arridx + 2`' />
+                                                                                            <parameter name='`otn-tunnel-slice[$arridx + 1].list_length`' value='1' />
+                                                                                        </set>
+                                                                                    </block>
+                                                                                </outcome>
+                                                                            </switch>
+                                                                        </block>
                                                                     </outcome>
                                                                     <outcome value='false'>
                                                                         <block atomic='true'>
                                                                             <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding'
                                                                                     key='vpn-binding.vpn-id = $tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-id' >
                                                                                 <parameter name='vpn-id' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-id`' />
-                                                                                <parameter name='vpn-type' value='`$arridx + 1`' />
+                                                                                <parameter name='vpn-type' value='0' />
                                                                             </update>
                                                                             <set>
-                                                                                <parameter name='`tmp.arr[$arridx + 1]`' value='`$providerValue`' />
-                                                                                <parameter name='tmp.arr_length' value='`$tmp.arr_length + 1`' />
-                                                                                <parameter name='`otn-tunnel-slice[$arridx + 1].list[0].request-id`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-id`' />
-                                                                                <parameter name='`otn-tunnel-slice[$arridx + 1].list[0].otn-source-node`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].src-access-node-id`' />
-                                                                                <parameter name='`otn-tunnel-slice[$arridx + 1].list[0].otn-dest-node`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].dst-access-node-id`' />
-                                                                                <parameter name='`otn-tunnel-slice[$arridx + 1].list[0].bw-odu`' value="`'0,' + $gfp`" />
-                                                                                <parameter name='`otn-tunnel-slice[$arridx + 1].list[0].src-ttp-id`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].src-access-ltp-id`' />
-                                                                                <parameter name='`otn-tunnel-slice[$arridx + 1].list[0].dst-ttp-id`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].dst-access-ltp-id`' />
+                                                                                <parameter name='tmp.arr[0]' value='`$providerValue`' />
+                                                                                <parameter name='tmp.arr_length' value='1' />
+                                                                                <parameter name='`otn-tunnel-slice[0].list[0].request-id`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-id`' />
+                                                                                <parameter name='`otn-tunnel-slice[0].list[0].otn-source-node`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].src-access-node-id`' />
+                                                                                <parameter name='`otn-tunnel-slice[0].list[0].otn-dest-node`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].dst-access-node-id`' />
+                                                                                <parameter name='`otn-tunnel-slice[0].list[0].bw-odu`' value="`'0,' + $gfp`" />
+                                                                                <parameter name='`otn-tunnel-slice[0].list[0].src-ttp-id`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].src-access-ltp-id`' />
+                                                                                <parameter name='`otn-tunnel-slice[0].list[0].dst-ttp-id`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].dst-access-ltp-id`' />
                                                                                 <parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />
-                                                                                <parameter name='`otn-tunnel-slice[$arridx + 1].list[0].domainurl`' value="`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-region`" />
-                                                                                <parameter name='`otn-tunnel-slice[$arridx + 1].list[0].domainuser`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-description`' />
-                                                                                <parameter name='`otn-tunnel-slice[$arridx + 1].list[0].domainpassword`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-platform`' />
-                                                                                <parameter name='otn-tunnel-slice_length' value='`$arridx + 2`' />
-                                                                                <parameter name='`otn-tunnel-slice[$arridx + 1].list_length`' value='1' />
+                                                                                <parameter name='`otn-tunnel-slice[0].list[0].domainurl`' value="`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-region`" />
+                                                                                <parameter name='`otn-tunnel-slice[0].list[0].domainuser`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-description`' />
+                                                                                <parameter name='`otn-tunnel-slice[0].list[0].domainpassword`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-platform`' />
+                                                                                <parameter name='otn-tunnel-slice_length' value='1' />
+                                                                                <parameter name='otn-tunnel-slice[0].list_length' value='1' />
                                                                             </set>
                                                                         </block>
                                                                     </outcome>
                                                                 </switch>
                                                             </block>
                                                         </outcome>
-                                                        <outcome value='false'>
-                                                            <block atomic='true'>
-                                                                <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding'
-                                                                        key='vpn-binding.vpn-id = $tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-id' >
-                                                                    <parameter name='vpn-id' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-id`' />
-                                                                    <parameter name='vpn-type' value='0' />
-                                                                </update>
-                                                                <set>
-                                                                    <parameter name='tmp.arr[0]' value='`$providerValue`' />
-                                                                    <parameter name='tmp.arr_length' value='1' />
-                                                                    <parameter name='`otn-tunnel-slice[0].list[0].request-id`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-id`' />
-                                                                    <parameter name='`otn-tunnel-slice[0].list[0].otn-source-node`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].src-access-node-id`' />
-                                                                    <parameter name='`otn-tunnel-slice[0].list[0].otn-dest-node`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].dst-access-node-id`' />
-                                                                    <parameter name='`otn-tunnel-slice[0].list[0].bw-odu`' value="`'0,' + $gfp`" />
-                                                                    <parameter name='`otn-tunnel-slice[0].list[0].src-ttp-id`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].src-access-ltp-id`' />
-                                                                    <parameter name='`otn-tunnel-slice[0].list[0].dst-ttp-id`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].dst-access-ltp-id`' />
-                                                                    <parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />
-                                                                    <parameter name='`otn-tunnel-slice[0].list[0].domainurl`' value="`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-region`" />
-                                                                    <parameter name='`otn-tunnel-slice[0].list[0].domainuser`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-description`' />
-                                                                    <parameter name='`otn-tunnel-slice[0].list[0].domainpassword`' value='`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-platform`' />
-                                                                    <parameter name='otn-tunnel-slice_length' value='1' />
-                                                                    <parameter name='otn-tunnel-slice[0].list_length' value='1' />
-                                                                </set>
-                                                            </block>
-                                                        </outcome>
+                                                        <outcome value='false'></outcome>
                                                     </switch>
                                                 </block>
                                             </for>
