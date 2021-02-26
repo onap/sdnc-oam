@@ -116,7 +116,9 @@ install_sdnr_oauth_features() {
 install_sdnr_northbound_features() {
   addToFeatureBoot "$SDNR_NORTHBOUND_BOOTFEATURES" 
 }
-
+install_a1_northbound_features() {
+  addToFeatureBoot "$A1_ADAPTER_NORTHBOUND_BOOTFEATURES"
+}
 # Reconfigure ODL from default single node configuration to cluster
 
 enable_odl_cluster() {
@@ -251,6 +253,9 @@ SDNRDBCOMMAND=${SDNRDBCOMMAND:--c init -db $SDNRDBURL -dbu $SDNRDBUSERNAME -dbp 
 
 SDNR_NORTHBOUND=${SDNR_NORTHBOUND:-false}
 SDNR_NORTHBOUND_BOOTFEATURES=${SDNR_NORTHBOUND_BOOTFEATURES:-sdnr-northbound-all}
+A1_ADAPTER_NORTHBOUND=${A1_ADAPTER_NORTHBOUND:-true}
+A1_ADAPTER_NORTHBOUND_BOOTFEATURES=${A1_ADAPTER_NORTHBOUND_BOOTFEATURES:-a1-adapter-northbound}
+
 NOTOK=1
 #export for installCerts.py
 export ODL_ADMIN_PASSWORD ODL_ADMIN_USERNAME
@@ -379,6 +384,8 @@ then
   if $ENABLE_ODL_CLUSTER ; then enable_odl_cluster ; fi
 
   if $SDNR_NORTHBOUND ; then install_sdnr_northbound_features ; fi
+  if $A1_ADAPTER_NORTHBOUND ; then install_a1_northbound_features ; fi
+  
   printf "%s" "Installed at $(date)" > "${SDNC_HOME}"/.installed
 fi
 
