@@ -1,7 +1,7 @@
 <service-logic
         xmlns='http://www.onap.org/sdnc/svclogic'
         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
-    <method rpc='tsli-vnf-topology-operation-trans-slice-allocate' mode='sync'>
+    <method rpc='tsli-vnf-topology-operation-trans-slice-modify' mode='sync'>
         <block atomic="true">
             <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
                 <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />
@@ -43,6 +43,7 @@
                                     <parameter name='tmp.slicevpns_length' value='0' />
                                     <parameter name='tmp.slicevpnuuids' value='' />
                                     <parameter name='tmp.slicevpnuuids.' value='' />
+                                    <parameter name='bwModified' value='false' />
                                 </set>
                                 <for index='aridx' start='0' end='`$tmp.aai.service-instance.allotted-resources.allotted-resource_length`' >
                                     <set>
@@ -153,6 +154,7 @@
                                                                                     <block atomic="true">
                                                                                         <set>
                                                                                             <parameter name='logical-link-name' value="`$tmp.aai.allotted-resource.relationship-list.relationship[$idx].relationship-data[0].relationship-value`" />
+                                                                                            <parameter name='currLinkIsFound' value="false" />
                                                                                         </set>
                                                                                         <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
                                                                                                       resource="logical-link"
@@ -173,6 +175,118 @@
                                                                                                 </return>
                                                                                             </outcome>
                                                                                             <outcome value='success'>
+                                                                                                <block atomic='true'>
+                                                                                                    <for index='rel-index' start='0' end='`$tmp.aai.service-instance.relationship-list.relationship_length`' >
+                                                                                                        <switch test='`$tmp.aai.service-instance.relationship-list.relationship[$rel-index].related-to`'>
+                                                                                                            <outcome value='connectivity'>
+                                                                                                                <block atomic="true">
+                                                                                                                    <set>
+                                                                                                                        <parameter name='tmp.aai.connectivity.' value='' />
+                                                                                                                    </set>
+                                                                                                                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                                                                  resource="connectivity"
+                                                                                                                                  key="connectivity.connectivity-id = $tmp.aai.service-instance.relationship-list.relationship[$rel-index].relationship-data[0].relationship-value"
+                                                                                                                                  local-only="false"
+                                                                                                                                  pfx="tmp.aai.connectivity" >
+                                                                                                                        <outcome value='success'>
+                                                                                                                            <block atomic="true">
+                                                                                                                                <switch test='`$tmp.aai.logical-link.link-id == $tmp.aai.connectivity.etht-svc-name`'>
+                                                                                                                                    <outcome value='true'>
+                                                                                                                                        <block atomic="true">
+                                                                                                                                            <set>
+                                                                                                                                                <parameter name='currLinkIsFound' value="true" />
+                                                                                                                                            </set>
+                                                                                                                                        </block>
+                                                                                                                                    </outcome>
+                                                                                                                                    <outcome value='false'></outcome>
+                                                                                                                                </switch>
+                                                                                                                                <switch test='`$tmp.aai.connectivity.bandwidth-profile-name == $gfp`'>
+                                                                                                                                    <outcome value='true'></outcome>
+                                                                                                                                    <outcome value='false'>
+                                                                                                                                        <block atomic="true">
+                                                                                                                                            <set>
+                                                                                                                                                <parameter name='bwModified' value="true" />
+                                                                                                                                            </set>
+                                                                                                                                            <for silentFailure='true' index='cridx' start='0' end='`$tmp.aai.connectivity.relationship-list.relationship_length`' >
+                                                                                                                                                <switch test='`$tmp.aai.connectivity.relationship-list.relationship[$cridx].related-to`'>
+                                                                                                                                                    <outcome value='vpn-binding'>
+                                                                                                                                                        <block atomic="true">
+                                                                                                                                                            <set>
+                                                                                                                                                                <parameter name='tmp.aai.vpn-binding.' value='' />
+                                                                                                                                                            </set>
+                                                                                                                                                            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                                                                                                          resource="vpn-binding"
+                                                                                                                                                                          key="vpn-binding.vpn-id = $tmp.aai.connectivity.relationship-list.relationship[$cridx].relationship-data[0].relationship-value"
+                                                                                                                                                                          local-only="false"
+                                                                                                                                                                          pfx="tmp.aai.vpn-binding" >
+                                                                                                                                                                <outcome value='success'>
+                                                                                                                                                                    <block atomic="true">
+                                                                                                                                                                        <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding'
+                                                                                                                                                                                key='vpn-binding.vpn-id = $tmp.aai.vpn-binding.vpn-id' >
+                                                                                                                                                                            <parameter name='vpn-id' value='`$tmp.aai.vpn-binding.vpn-id`' />
+                                                                                                                                                                            <parameter name='vpn-name' value='`$tmp.aai.vpn-binding.vpn-name`' />
+                                                                                                                                                                            <parameter name='route-distinguisher' value='`$gfp`' />
+                                                                                                                                                                            <parameter name='operational-status' value='Modified' />
+                                                                                                                                                                        </update>
+                                                                                                                                                                        <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity'
+                                                                                                                                                                                key='connectivity.connectivity-id = $tmp.aai.connectivity.connectivity-id'>
+                                                                                                                                                                            <parameter name='connectivity-id' value='`$tmp.aai.connectivity.connectivity-id`' />
+                                                                                                                                                                            <parameter name='operational-status' value='Modified' />
+                                                                                                                                                                            <parameter name='bandwidth-profile-name' value='`$gfp`' />
+                                                                                                                                                                            <parameter name='cir' value='`$gfp *1000000`' />
+                                                                                                                                                                            <parameter name='eir' value='`$gfp *1000000`' />
+                                                                                                                                                                        </update>
+                                                                                                                                                                    </block>
+                                                                                                                                                                </outcome>
+                                                                                                                                                                <outcome value='not-found'>
+                                                                                                                                                                    <return status='failure'>
+                                                                                                                                                                        <parameter name='ack-final' value='Y'/>
+                                                                                                                                                                        <parameter name="error-code" value="500" />
+                                                                                                                                                                        <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.l3vpn.pe1_id`" />
+                                                                                                                                                                    </return>
+                                                                                                                                                                </outcome>
+                                                                                                                                                                <outcome value='failure'>
+                                                                                                                                                                    <return status='failure'>
+                                                                                                                                                                        <parameter name='error-code' value='' />
+                                                                                                                                                                        <parameter name='error-message' value='' />
+                                                                                                                                                                    </return>
+                                                                                                                                                                </outcome>
+                                                                                                                                                            </get-resource>
+                                                                                                                                                        </block>
+                                                                                                                                                    </outcome>
+                                                                                                                                                </switch>
+                                                                                                                                            </for>
+                                                                                                                                        </block>
+                                                                                                                                    </outcome>
+                                                                                                                                </switch>
+                                                                                                                            </block>
+                                                                                                                        </outcome>
+                                                                                                                        <outcome value='not-found'>
+                                                                                                                            <return status='failure'>
+                                                                                                                                <parameter name='ack-final' value='Y'/>
+                                                                                                                                <parameter name="error-code" value="500" />
+                                                                                                                                <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.l3vpn.pe1_id`" />
+                                                                                                                            </return>
+                                                                                                                        </outcome>
+                                                                                                                        <outcome value='failure'>
+                                                                                                                            <return status='failure'>
+                                                                                                                                <parameter name='error-code' value='' />
+                                                                                                                                <parameter name='error-message' value='' />
+                                                                                                                            </return>
+                                                                                                                        </outcome>
+                                                                                                                    </get-resource>
+                                                                                                                </block>
+                                                                                                            </outcome>
+                                                                                                        </switch>
+                                                                                                    </for>
+                                                                                                </block>
+                                                                                            </outcome>
+                                                                                        </get-resource>
+                                                                                        <switch test='`$currLinkIsFound`'>
+                                                                                            <outcome value='true'>
+                                                                                                <block atomic="true"></block>
+                                                                                            </outcome>
+                                                                                            <outcome value='false'>
                                                                                                 <block>
                                                                                                     <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
                                                                                                         <parameter name="ctx-destination" value="prop.otn-tunnel-name"/>
@@ -988,13 +1102,12 @@
                                                                                                                                         <!--<parameter name='access-node-id' value='`$tmp.otninfo[$otnidx].srcPort.src-access-node-id`' />-->
                                                                                                                                         <!--<parameter name='access-ltp-id' value='``' />-->
                                                                                                                                         <!--<parameter name='cvlan' value='`$tmp.aai.network-route-A.logical-interface-id`' />-->
-                                                                                                                                        <!--<parameter name='bandwidth-profile-name' value='`$prop.sotn.etht-svc-name`' />-->
                                                                                                                                         <parameter name='bandwidth-profile-name' value='`$gfp`' />
                                                                                                                                         <parameter name='vpn-type' value='dummy' />
                                                                                                                                         <parameter name='cir' value='`$gfp *1000000`' />
                                                                                                                                         <parameter name='eir' value='`$gfp *1000000`' />
-                                                                                                                                        <!--<parameter name='cbs' value='`$prop.sotn.cbs`' />-->
-                                                                                                                                        <!--<parameter name='ebs' value='`$prop.sotn.ebs`' />-->
+                                                                                                                                        <!--<parameter name='CBS' value='`$prop.sotn.cbs`' />-->
+                                                                                                                                        <!--<parameter name='EBS' value='`$prop.sotn.ebs`' />-->
                                                                                                                                         <!--<parameter name='color-aware' value='`$prop.sotn.colorAware`' />-->
                                                                                                                                         <!--<parameter name='coupling-flag' value='`$prop.sotn.couplingFlag`' />-->
                                                                                                                                         <!--<parameter name='etht-svc-name' value='`$prop.sotn.etht-svc-name`' />-->
@@ -1075,7 +1188,7 @@
                                                                                                     </set>
                                                                                                 </block>
                                                                                             </outcome>
-                                                                                        </get-resource>
+                                                                                        </switch>
                                                                                     </block>
                                                                                 </outcome>
                                                                             </switch>
