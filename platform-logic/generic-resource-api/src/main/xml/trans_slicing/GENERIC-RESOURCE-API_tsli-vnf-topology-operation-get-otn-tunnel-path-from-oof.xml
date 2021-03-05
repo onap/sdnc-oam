@@ -27,6 +27,56 @@
                     <block></block>
                 </outcome>
             </execute>
+            <block atomic='true'>
+                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                              resource="pnfs"
+                              key="selflink = 'https://aai.onap:8443/aai/v21/network/pnfs?depth=0'"
+                              local-only="false"
+                              pfx="ccsdkTopo.pnfs" >
+                    <outcome value='Other'>
+                        <return status='failure'>
+                            <parameter name='error-code' value='' />
+                            <parameter name='error-message' value='' />
+                        </return>
+                    </outcome>
+                    <outcome value='not-found'>
+                        <return status='failure'>
+                            <parameter name='error-code' value='' />
+                            <parameter name='error-message' value='' />
+                        </return>
+                    </outcome>
+                    <outcome value='success'></outcome>
+                </get-resource>
+                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                              resource="logical-links"
+                              key="selflink = 'https://aai.onap:8443/aai/v21/network/logical-links?depth=0'"
+                              local-only="false"
+                              pfx="ccsdkTopo.logicalLinks" >
+                    <outcome value='Other'>
+                        <return status='failure'>
+                            <parameter name='error-code' value='' />
+                            <parameter name='error-message' value='' />
+                        </return>
+                    </outcome>
+                    <outcome value='not-found'>
+                        <return status='failure'>
+                            <parameter name='error-code' value='' />
+                            <parameter name='error-message' value='' />
+                        </return>
+                    </outcome>
+                    <outcome value='success'></outcome>
+                </get-resource>
+                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.slitopologyutils.SliTopologyUtils' method='computePath' >
+                    <parameter name="pnfs-pfx" value='`$ccsdkTopo.pnfs`'/>
+                    <parameter name="links-pfx" value="`$ccsdkTopo.logicalLinks`"/>
+                    <parameter name="response-pfx" value="otn-oof"/>
+                    <parameter name="output-end-to-end-path" value="true"/>
+                    <parameter name="src-node" value="`$tmp.src.domainA.pnf-name`"/>
+                    <parameter name="dst-node" value="`$tmp.src.domainB.pnf-name`"/>
+                    <outcome value='success'></outcome>
+                    <outcome value='Other'></outcome>
+                </execute>
+            </block>
             <set>
                 <parameter name='`tmp.otninfo.`' value='' />
                 <parameter name='`tmp.otninfo_length`' value='0' />
