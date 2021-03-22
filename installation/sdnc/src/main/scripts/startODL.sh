@@ -85,8 +85,11 @@ cleanupFeatureBoot() {
 initialize_sdnrdb() {
   printf "SDN-R Database Initialization"
   INITCMD="$JAVA_HOME/bin/java -jar "
-  INITCMD="${INITCMD} $ODL_HOME/system/org/onap/ccsdk/features/sdnr/wt/sdnr-wt-data-provider-setup/$CCSDKFEATUREVERSION/sdnr-dmt.jar "
-  INITCMD="${INITCMD} $SDNRDBCOMMAND"
+  FN="$ODL_HOME/${FEATURES_SDNR}/sdnr-wt-data-provider-setup/$CCSDKFEATUREVERSION/sdnr-dmt.jar"
+  if [ ! -f "$FN" ];then
+    FN="$ODL_HOME/${FEATURES_SDNR}/sdnr-wt-data-provider-setup/$CCSDKFEATUREVERSION/sdnr-wt-data-provider-setup-$CCSDKFEATUREVERSION.jar"
+  fi
+  INITCMD="${INITCMD} ${FN} $SDNRDBCOMMAND"
   printf "%s\n" "Execute: $INITCMD"
   n=0
   until [ $n -ge 5 ] ; do
