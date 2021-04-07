@@ -111,6 +111,9 @@ install_sdnrwt_features() {
     if ! $SDNRDM; then
       addToFeatureBoot "$SDNRODLUX_BOOTFEATURES"
     fi
+    if $SDNR_NETCONF_CALLHOME_ENABLED; then
+      addToFeatureBoot "$SDNR_NETCONF_CALLHOME_FEATURE"
+    fi
   fi
 }
 install_sdnr_oauth_features() {
@@ -245,6 +248,7 @@ SDNRWT=${SDNRWT:-false}
 SDNRODLUX_BOOTFEATURES=${SDNRODLUX_BOOTFEATURES:-sdnr-wt-helpserver-feature,sdnr-wt-odlux-core-feature,sdnr-wt-odlux-apps-feature}
 SDNROAUTH_BOOTFEATURES=${SDNROAUTH_BOOTFEATURES:-sdnr-wt-feature-aggregator-oauth}
 SDNRDM=${SDNRDM:-false}
+SDNR_NETCONF_CALLHOME_ENABLED=${SDNR_NETCONF_CALLHOME_ENABLED:-false}
 # Add devicemanager features
 SDNRDM_SDM_LIST=${SDNRDM_SDM_LIST:-sdnr-wt-feature-aggregator-devicemanager}
 SDNRDM_BOOTFEATURES=${SDNRDM_BOOTFEATURES:-sdnr-wt-feature-aggregator-devicemanager-base,${SDNRDM_SDM_LIST}}
@@ -256,6 +260,7 @@ SDNRDBCOMMAND=${SDNRDBCOMMAND:--c init -db $SDNRDBURL -dbu $SDNRDBUSERNAME -dbp 
 
 SDNR_NORTHBOUND=${SDNR_NORTHBOUND:-false}
 SDNR_NORTHBOUND_BOOTFEATURES=${SDNR_NORTHBOUND_BOOTFEATURES:-sdnr-northbound-all}
+SDNR_NETCONF_CALLHOME_FEATURE=${SDNR_NETCONF_CALLHOME_FEATURE:-odl-netconf-callhome-ssh}
 # if only SDNR features then do not start A1 adapter
 if $SDNRONLY ; then
   A1_ADAPTER_NORTHBOUND=false
@@ -309,6 +314,7 @@ printf "%s\n" "  SDNR_NORTHBOUND=$SDNR_NORTHBOUND"
 printf "%s\n" "  AAF_ENABLED=$SDNC_AAF_ENABLED"
 printf "%s\n" "  SERVICE_NAME=$SERVICE_NAME"
 printf "%s\n" "  NAMESPACE=$NAMESPACE"
+printf "%s\n" "  SDNR_NETCONF_CALLHOME_ENABLED=$SDNR_NETCONF_CALLHOME_ENABLED"
 
 if "$SDNC_AAF_ENABLED"; then
 	export SDNC_AAF_STORE_DIR=/opt/app/osaaf/local
