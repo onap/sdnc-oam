@@ -12,13 +12,13 @@ SDNC Release Notes
 Abstract
 ========
 
-This document provides the release notes for the Guilin release of the Software Defined
+This document provides the release notes for the Honolulu release of the Software Defined
 Network Controller (SDNC)
 
 Summary
 =======
 
-The Guilin release of SDNC introduces new functionality to support network slicing and extends support
+The Honolulu release of SDNC introduces new functionality to support network slicing and extends support
 for Netconf/TLS to address certificate management.  It also includes a major OpenDaylight release
 upgrade (to Sodium), as well as a major Java upgrade (from Java 8 to Java 11).
 
@@ -33,7 +33,7 @@ Release Data
 +-------------------------+-------------------------------------------+
 | **Docker images**       | See :ref:`dockercontainers` section below |
 +-------------------------+-------------------------------------------+
-| **Release designation** | Guilin                                    |
+| **Release designation** | Honolulu                                  |
 |                         |                                           |
 +-------------------------+-------------------------------------------+
 | **Release date**        | 11/19/2020                                |
@@ -44,45 +44,25 @@ Release Data
 New features
 ------------
 
-The SDNC Guilin release includes the following features:
+The SDNC Honolulu release includes the following features:
 
-* Upgrade to Java 11 (Jira `SDNC-1242 <https://jira.onap.org/browse/SDNC-1242>`_)
-* Network slicing (Jira `SDNC-915 <https://jira.onap.org/browse/SDNC-915>`_)
-* NETCONF/TLS Certificate Management (Jira `SDNC-966 <https://jira.onap.org/browse/SDNC-966>`_)
-* Decouple SDNC from OpenDaylight / Karaf : phase 2 (Jira `SDNC-1207 <https://jira.onap.org/browse/SDNC-1207>`_)
+* SDN-C (SDN-R) support of E2E Network Slicing in Honolulu (Jira `SDNC-1415 <https://jira.onap.org/browse/SDNC-1415>`_)
+* ONAP CNF Orchestration - Honolulu Enhancements (SDNC) (Jira `SDNC-1451 <https://jira.onap.org/browse/SDNC-1451>`_)
+* Decouple SDNC from OpenDaylight / Karaf : phase 3 (Jira `SDNC-1348 <https://jira.onap.org/browse/SDNC-1348>`_)
 
-This release also includes an upgrade to the OpenDaylight Sodium release, which SDNC consumes from CCSDK.
-Downstream projects that are consuming SDNC maven artifacts, or that plan to ingest SDNC as source and do local compiles should be
-aware that the upgrades to OpenDaylight Sodium and to Java 11 are both potentially breaking changes.  Therefore, we consider
-Guilin to be a  major release and have reflected this in our version numbering.
+This release also includes an upgrade to the OpenDaylight Aluminum release, which SDNC consumes from CCSDK.
 
-For the complete list of `SDNC Guilin release epics <https://jira.onap.org/issues/?filter=12464>`_ and 
-`SDNC Guilin release user stories <https://jira.onap.org/issues/?filter=12465>`_ , please see the `ONAP Jira`_.
+For the complete list of `SDNC Honolulu release epics <https://jira.onap.org/issues/?filter=12498>`_ and 
+`SDNC Honolulu release user stories <https://jira.onap.org/issues/?filter=12499>`_ , please see the `ONAP Jira`_.
 
 **Bug fixes**
 
-The full list of `bugs fixed in the SDNC Guilin release <https://jira.onap.org/issues/?filter=12466>`_ is maintained on the `ONAP Jira`_.
+The full list of `bugs fixed in the SDNC Honolulu release <https://jira.onap.org/issues/?filter=12500>`_ is maintained on the `ONAP Jira`_.
 
 **Known Issues**
 
 The full list of `known issues in SDNC <https://jira.onap.org/issues/?filter=11119>`_ is maintained on the `ONAP Jira`_.
 
-
-Removed Features
--------------------
-
-**SDNC portal**
-
-The SDNC portal was deprecated in the Frankfurt release, due
-to resource contraints.  This functionality was delivered dormant
-in Frankfurt (i.e. it is disabled in the Frankfurt helm charts) and was
-removed entirely in the Guilin release.
-
-**VNF-API**
-
-The functionality provided by the VNF-API is now provided as part
-of the GENERIC-RESOURCE-API.  Therefore, the VNF-API was deprecated
-in Frankfurt and has been removed in Guilin.
 
 
 Deliverables
@@ -96,31 +76,29 @@ Software Deliverables
 Docker Containers
 `````````````````
 
-The following table lists the docker containers comprising the SDNC Frankfurt 
-release along with the current stable Frankfurt version/tag.  Each of these is
+The following table lists the docker containers comprising the SDNC Honolulu
+release along with the current stable Honolulu version/tag.  Each of these is
 available on the ONAP nexus3 site (https://nexus3.onap.org) and can be downloaded
 with the following command::
 
    docker pull nexus3.onap.org:10001/{image-name}:{version}
 
 
-Note: users that want to use the latest in-development Frankfurt version may use the
-tag 0.7-STAGING-latest to pull the latest daily Frankfurt build
 
 +--------------------------------+-----------------------------------------------------+---------+
 | Image name                     | Description                                         | Version |
 +================================+=====================================================+=========+
-| onap/sdnc-aaf-image            | SDNC controller image, integrated with AAF for RBAC | 2.0.4   |
+| onap/sdnc-aaf-image            | SDNC controller image, integrated with AAF for RBAC | 2.1.4   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-ansible-server-image | Ansible server                                      | 2.0.4   |
+| onap/sdnc-ansible-server-image | Ansible server                                      | 2.1.4   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-dmaap-listener-image | DMaaP listener                                      | 2.0.4   |
+| onap/sdnc-dmaap-listener-image | DMaaP listener                                      | 2.1.4   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-image                | SDNC controller image, without AAF integration      | 2.0.4   |
+| onap/sdnc-image                | SDNC controller image, without AAF integration      | 2.1.4   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-ueb-listener-image   | SDC listener                                        | 2.0.4   |
+| onap/sdnc-ueb-listener-image   | SDC listener                                        | 2.1.4   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-web-image            | Web tier (currently only used by SDN-R persona)     | 2.0.4   |
+| onap/sdnc-web-image            | Web tier (currently only used by SDN-R persona)     | 2.1.4   |
 +--------------------------------+-----------------------------------------------------+---------+
 
 
@@ -154,20 +132,11 @@ Not applicable.
 Security Notes
 --------------
 
-Fixed Security Issues
-~~~~~~~~~~~~~~~~~~~~~
-
-The following security issue, related to the SDNC portal, is no longer applicable due to removal
-of the SDNC portal:
-
-* `OJSI-91 <https://jira.onap.org/browse/OJSI-91>`_ : SDNC exposes unprotected API for user creation
-
-.. _secissues :
 
 Known Security Issues
 ~~~~~~~~~~~~~~~~~~~~~
 
-There are no known outstanding security issues related to SDNC Guilin.
+There are no known outstanding security issues related to SDNC Honolulu.
 
 
 Test Results
@@ -178,7 +147,7 @@ Not applicable
 References
 ==========
 
-For more information on the ONAP Frankfurt release, please see:
+For more information on the ONAP Honolulu release, please see:
 
 #. `ONAP Home Page`_
 #. `ONAP Documentation`_
