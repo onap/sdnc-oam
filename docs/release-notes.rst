@@ -36,7 +36,7 @@ Release Data
 | **Release designation** | Honolulu                                  |
 |                         |                                           |
 +-------------------------+-------------------------------------------+
-| **Release date**        | 11/19/2020                                |
+| **Release date**        | 4/22/2021                                 |
 |                         |                                           |
 +-------------------------+-------------------------------------------+
 
@@ -88,17 +88,17 @@ with the following command::
 +--------------------------------+-----------------------------------------------------+---------+
 | Image name                     | Description                                         | Version |
 +================================+=====================================================+=========+
-| onap/sdnc-aaf-image            | SDNC controller image, integrated with AAF for RBAC | 2.1.4   |
+| onap/sdnc-aaf-image            | SDNC controller image, integrated with AAF for RBAC | 2.1.5   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-ansible-server-image | Ansible server                                      | 2.1.4   |
+| onap/sdnc-ansible-server-image | Ansible server                                      | 2.1.5   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-dmaap-listener-image | DMaaP listener                                      | 2.1.4   |
+| onap/sdnc-dmaap-listener-image | DMaaP listener                                      | 2.1.5   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-image                | SDNC controller image, without AAF integration      | 2.1.4   |
+| onap/sdnc-image                | SDNC controller image, without AAF integration      | 2.1.5   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-ueb-listener-image   | SDC listener                                        | 2.1.4   |
+| onap/sdnc-ueb-listener-image   | SDC listener                                        | 2.1.5   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-web-image            | Web tier (currently only used by SDN-R persona)     | 2.1.4   |
+| onap/sdnc-web-image            | Web tier (currently only used by SDN-R persona)     | 2.1.5   |
 +--------------------------------+-----------------------------------------------------+---------+
 
 
