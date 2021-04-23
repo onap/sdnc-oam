@@ -33,11 +33,11 @@ Release Data
 +-------------------------+-------------------------------------------+
 | **Docker images**       | See :ref:`dockercontainers` section below |
 +-------------------------+-------------------------------------------+
-| **Release designation** | Guilin                                    |
+| **Release designation** | Guilin Maintenance Release 1              |
 |                         |                                           |
 +-------------------------+-------------------------------------------+
-| **Release date**        | 11/19/2020                                |
-|                         |                                           |
+| **Release date**        | 11/19/2020  (initial release)             |
+|                         | 4/19/2021   (maintenance release 1)       |
 +-------------------------+-------------------------------------------+
 
 
@@ -60,6 +60,12 @@ For the complete list of `SDNC Guilin release epics <https://jira.onap.org/issue
 `SDNC Guilin release user stories <https://jira.onap.org/issues/?filter=12465>`_ , please see the `ONAP Jira`_.
 
 **Bug fixes**
+
+Guilin Maintenance Release 1 fixes the following bugs:
+
+* SDNC does not retain OpenDaylight state across restarts (Jira `SDNC-1455 <https://jira.onap.org/browse/SDNC-1455>`_)
+* CCVPN - Transport Slicing: SDNC development - Using Same names for OTN tunnels and Ethernet Services in both domains, plus bug fixing (Jira `SDNC-1431 <https://jira.onap.org/browse/SDNC-1431>`_)
+* SDNC restart needed every 24-36h during stability test (Jira `SDNC-1430 <https://jira.onap.org/browse/SDNC-1430>`_)
 
 The full list of `bugs fixed in the SDNC Guilin release <https://jira.onap.org/issues/?filter=12466>`_ is maintained on the `ONAP Jira`_.
 
@@ -110,17 +116,17 @@ tag 0.7-STAGING-latest to pull the latest daily Frankfurt build
 +--------------------------------+-----------------------------------------------------+---------+
 | Image name                     | Description                                         | Version |
 +================================+=====================================================+=========+
-| onap/sdnc-aaf-image            | SDNC controller image, integrated with AAF for RBAC | 2.0.4   |
+| onap/sdnc-aaf-image            | SDNC controller image, integrated with AAF for RBAC | 2.0.6   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-ansible-server-image | Ansible server                                      | 2.0.4   |
+| onap/sdnc-ansible-server-image | Ansible server                                      | 2.0.6   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-dmaap-listener-image | DMaaP listener                                      | 2.0.4   |
+| onap/sdnc-dmaap-listener-image | DMaaP listener                                      | 2.0.6   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-image                | SDNC controller image, without AAF integration      | 2.0.4   |
+| onap/sdnc-image                | SDNC controller image, without AAF integration      | 2.0.6   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-ueb-listener-image   | SDC listener                                        | 2.0.4   |
+| onap/sdnc-ueb-listener-image   | SDC listener                                        | 2.0.6   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-web-image            | Web tier (currently only used by SDN-R persona)     | 2.0.4   |
+| onap/sdnc-web-image            | Web tier (currently only used by SDN-R persona)     | 2.0.6   |
 +--------------------------------+-----------------------------------------------------+---------+
 
 
