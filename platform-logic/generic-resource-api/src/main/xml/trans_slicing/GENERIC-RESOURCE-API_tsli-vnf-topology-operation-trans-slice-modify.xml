@@ -33,16 +33,26 @@
                         <outcome value='false'></outcome>
                         <outcome value='true'>
                             <block>
+                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                              resource="pnfs"
+                                              key="selflink = 'https://aai.onap:8443/aai/v21/network/pnfs?depth=0'"
+                                              local-only="false"
+                                              pfx="ccsdkTopopnfs" ></get-resource>
+                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                              resource="logical-links"
+                                              key="selflink = 'https://aai.onap:8443/aai/v21/network/logical-links?depth=0'"
+                                              local-only="false"
+                                              pfx="ccsdkTopologicalLinks" ></get-resource>
                                 <set>
                                     <parameter name='tmp.arr' value='' />
                                     <parameter name='tmp.arridx' value='0' />
                                     <parameter name='tmp.arr_length' value='0' />
                                     <parameter name='otn-tunnel-slice' value='' />
                                     <parameter name='otn-tunnel-slice_length' value='0' />
-                                    <parameter name='tmp.slicevpns' value='' />
-                                    <parameter name='tmp.slicevpns_length' value='0' />
-                                    <parameter name='tmp.slicevpnuuids' value='' />
-                                    <parameter name='tmp.slicevpnuuids.' value='' />
+                                    <!--<parameter name='tmp.slicevpns' value='' />-->
+                                    <!--<parameter name='tmp.slicevpns_length' value='0' />-->
+                                    <!--<parameter name='tmp.slicevpnuuids' value='' />-->
+                                    <!--<parameter name='tmp.slicevpnuuids.' value='' />-->
                                     <parameter name='bwModified' value='false' />
                                 </set>
                                 <for index='aridx' start='0' end='`$tmp.aai.service-instance.allotted-resources.allotted-resource_length`' >
@@ -835,6 +845,9 @@
                                                                                                         <parameter name='prop.ethsrvType' value='`$network-route-A`' />
                                                                                                     </set>
                                                                                                     <call module='GENERIC-RESOURCE-API' rpc='tsli-vnf-topology-operation-get-otn-tunnel-path-from-oof' mode='sync' ></call>
+                                                                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
+                                                                                                        <parameter name="filename" value="`$filenamemm`" />
+                                                                                                    </execute>
                                                                                                     <for index='otnidx' start='0' end='`$tmp.otninfo_length`' >
                                                                                                         <block atomic='true'>
                                                                                                             <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
@@ -992,13 +1005,7 @@
                                                                                                                 <!-- The following line is in lieu of vpn-binding.slice-id (new attribute in latest AAI) -->
                                                                                                                 <parameter name='ops-note' value='`$tmp.aai.service-instance.service-instance-id`' />
                                                                                                                 <outcome value='success'>
-                                                                                                                    <block>
-                                                                                                                        <set>
-                                                                                                                            <parameter name='`tmp.slicevpns[$tmp.slicevpns_length]`' value="`$prop.vpn-binding-otnidx-uuid`" />
-                                                                                                                            <parameter name='tmp.slicevpns_length' value="`$tmp.slicevpns_length + 1`" />
-                                                                                                                            <parameter name='`tmp.slicevpnuuids[$prop.vpn-binding-otnidx-uuid]`' value="`$prop.vpn-binding-otnidx-uuid`" />
-                                                                                                                        </set>
-                                                                                                                    </block>
+                                                                                                                    <block></block>
                                                                                                                 </outcome>
                                                                                                             </save>
                                                                                                             <switch test='`$otnidx == 0`'>
