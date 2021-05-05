@@ -244,6 +244,7 @@ SDNC_AAF_ENABLED=${SDNC_AAF_ENABLED:-false}
 IS_PRIMARY_CLUSTER=${IS_PRIMARY_CLUSTER:-false}
 MY_ODL_CLUSTER=${MY_ODL_CLUSTER:-127.0.0.1}
 INSTALLED_DIR=${INSTALLED_FILE:-/opt/opendaylight/current/daexim}
+FEATURES_SDNR system/org/onap/ccsdk/features/sdnr/wt
 SDNRWT=${SDNRWT:-false}
 SDNRODLUX_BOOTFEATURES=${SDNRODLUX_BOOTFEATURES:-sdnr-wt-helpserver-feature,sdnr-wt-odlux-core-feature,sdnr-wt-odlux-apps-feature}
 SDNROAUTH_BOOTFEATURES=${SDNROAUTH_BOOTFEATURES:-sdnr-wt-feature-aggregator-oauth}
