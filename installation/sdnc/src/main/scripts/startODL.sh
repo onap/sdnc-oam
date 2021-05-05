@@ -85,10 +85,7 @@ cleanupFeatureBoot() {
 initialize_sdnrdb() {
   printf "SDN-R Database Initialization"
   INITCMD="$JAVA_HOME/bin/java -jar "
-  FN="$ODL_HOME/${FEATURES_SDNR}/sdnr-wt-data-provider-setup/$CCSDKFEATUREVERSION/sdnr-dmt.jar"
-  if [ ! -f "$FN" ];then
-    FN="$ODL_HOME/${FEATURES_SDNR}/sdnr-wt-data-provider-setup/$CCSDKFEATUREVERSION/sdnr-wt-data-provider-setup-$CCSDKFEATUREVERSION.jar"
-  fi
+  FN=$(find "$ODL_HOME/system" -name "sdnr-wt-data-provider-setup-$CCSDKFEATUREVERSION.jar")
   INITCMD="${INITCMD} ${FN} $SDNRDBCOMMAND"
   printf "%s\n" "Execute: $INITCMD"
   n=0
