@@ -1,0 +1,80 @@
+version: '2.1'
+
+networks:
+  default:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: ${MTU}
+
+
+services:
+
+  db:
+    image: mariadb:10.5
+    container_name: sdnc_db_container
+    ports:
+      - "23306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_ROOT_HOST=%
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    logging:       
+      driver:   "json-file"
+      options:  
+        max-size: "30m"
+        max-file: "5"
+
+  sdnc:
+    image: onap/sdnc-image:latest
+    depends_on :
+      - db
+    container_name: sdnc_controller_container
+    entrypoint: ["/opt/onap/sdnc/bin/startODL.sh"]
+    ports:
+      - "8282:8181"
+    links:
+      - db:dbhost
+      - db:sdnctldb01
+      - db:sdnctldb02
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - SDNC_CONFIG_DIR=/opt/onap/sdnc/data/properties
+      - SDNC_BIN=/opt/onap/sdnc/bin
+      - ODL_CERT_DIR=/tmp
+      - ODL_ADMIN_USERNAME=${ODL_USER}
+      - ODL_ADMIN_PASSWORD=${ODL_PASSWORD}
+      - ODL_USER=${ODL_USER}
+      - ODL_PASSWORD=${ODL_PASSWORD}
+      - SDNC_DB_INIT=true  
+      - HONEYCOMB_USER=${HONEYCOMB_USER}
+      - HONEYCOMB_PASSWORD=${HONEYCOMB_PASSWORD}
+      - TRUSTSTORE_PASSWORD=${TRUSTSTORE_PASSWORD}
+      - KEYSTORE_PASSWORD=${KEYSTORE_PASSWORD}
+      - SO_USER=${SO_USER}
+      - SO_PASSWORD=${SO_PASSWORD}
+      - NENG_USER=${NENG_USER}
+      - NENG_PASSWORD=${NENG_PASSWORD}
+      - CDS_USER=${CDS_USER}
+      - CDS_PASSWORD=${CDS_PASSWORD}
+      - ANSIBLE_USER=${ANSIBLE_USER}
+      - ANSIBLE_PASSWORD=${ANSIBLE_PASSWORD}
+      - SQL_CRYPTKEY=${SQL_CRYPTKEY}
+      - A1_TRUSTSTORE_PASSWORD=a1adapter
+    # The default truststore for A1 adapter can be overridden by mounting a new
+    # truststore (uncomment the lines below), whereas the corresponding password
+    # should be updated in A1_TRUSTSTORE_PASSWORD environment variable (in the line above)
+    #volumes:
+    #  - ./a1_truststore.jks:/opt/onap/sdnc/data/stores/truststore.a1.adapter.jks:ro
+    dns:
+      - ${DNS_IP_ADDR-10.0.100.1}
+    logging:
+      driver:   "json-file"
+      options:
+        max-size: "30m"
+        max-file: "5"
+
