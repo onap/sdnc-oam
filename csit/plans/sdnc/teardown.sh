@@ -17,6 +17,6 @@
 # Modifications copyright (c) 2017 AT&T Intellectual Property
 # Modifications copyright (c) 2020 Samsung Electronics Co., Ltd.
 #
-
+docker exec sdnc bash -c 'MYSQL_PWD=$MYSQL_PASSWORD MYSQL_DB=$MYSQL_DATABASE /opt/onap/sdnc/svclogic/bin/showActiveGraphs.sh'  > $WORKSPACE/archives/active-graphs.txt
 docker-compose -f "${SCRIPTS}"/docker-compose.yml down -v
 docker-compose -f "${WORKSPACE}"/archives/pnf-simulator/netconfsimulator/docker-compose.yml down -v
