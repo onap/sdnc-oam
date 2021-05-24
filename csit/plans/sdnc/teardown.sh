@@ -17,6 +17,5 @@
 # Modifications copyright (c) 2017 AT&T Intellectual Property
 # Modifications copyright (c) 2020 Samsung Electronics Co., Ltd.
 #
-
 docker-compose -f "${SCRIPTS}"/docker-compose.yml down -v
 docker-compose -f "${WORKSPACE}"/archives/pnf-simulator/netconfsimulator/docker-compose.yml down -v
