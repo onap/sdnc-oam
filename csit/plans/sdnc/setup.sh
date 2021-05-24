@@ -74,9 +74,12 @@ export LOCAL_IP=$(ip -4 addr show docker0 | grep -Po 'inet \K[\d.]+')
 
 unset http_proxy https_proxy
 
+# Append test data to standard data init file to create db init script
+cat ${WORKSPACE}/../installation/sdnc/src/main/resources/sdnctl.dump ${WORKSPACE}/scripts/csit-data.sql > ${WORKSPACE}/archives/csit-dbinit.sql
 
 # start SDNC containers with docker compose and configuration from docker-compose.yml
 docker-compose -f ${SCRIPTS}/docker-compose.yml up -d
+
 
 # WAIT 5 minutes maximum and check karaf.log for readiness every 10 seconds
 
@@ -143,6 +146,20 @@ fi
 # Update default Networking bridge IP in mount.json file
 cp ${REQUEST_DATA_PATH}/mount.xml.tmpl ${REQUEST_DATA_PATH}/mount.xml
 sed -i "s/pnfaddr/${LOCAL_IP}/g" "${REQUEST_DATA_PATH}"/mount.xml
+
+
+# Load test dgs
+docker exec -ti ${SDNC_CONTAINER_NAME} mkdir -p /tmp/gra.patch
+
+for file in ${WORKSPACE}/plans/sdnc/testdata/*xml
+do
+    docker cp $file ${SDNC_CONTAINER_NAME}:/tmp/gra.patch
+    mname=$(basename $file | cut -d. -f1| cut -d_ -f1)
+    bname=$(basename $file | cut -d. -f1| cut -d_ -f2-)
+    echo ${mname} ${bname} aai-disabled sync >> ${WORKSPACE}/archives/graph.versions
+done
+docker cp ${WORKSPACE}/archives/graph.versions ${SDNC_CONTAINER_NAME}:/tmp/gra.patch
+docker exec ${SDNC_CONTAINER_NAME} /opt/onap/sdnc/svclogic/bin/svclogic.sh install /tmp/gra.patch /opt/onap/sdnc/svclogic/config/svclogic.properties
 
 
 #########################################################################
