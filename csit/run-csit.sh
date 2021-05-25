@@ -2,6 +2,7 @@
 #
 # Copyright 2016-2017 Huawei Technologies Co., Ltd.
 # Modification Copyright 2019-2021 © Samsung Electronics Co., Ltd.
+# Modification Copyright 2021 © highstreet-technologies GmbH
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -192,9 +193,19 @@ SUITES=$( xargs -a testplan.txt )
 echo ROBOT_VARIABLES="${ROBOT_VARIABLES}"
 echo "Starting Robot test suites ${SUITES} ..."
 relax_set
-echo "*** TRACE **** python is $(which python) [version $(python --version)]"
-env
-python -m robot.run -N ${TESTPLAN} -v WORKSPACE:/tmp ${ROBOT_VARIABLES} ${TESTOPTIONS} ${SUITES}
+
+# Runs an alternative robotframework setup as docker image in $ROBOT_IMAGE
+# test suites will be executed within this docker container
+# and results are stored as usual
+if [[ -z $ROBOT_IMAGE ]]; then
+    echo "*** TRACE **** python is $(which python) [version $(python --version)]"
+    env
+    python -m robot.run -N ${TESTPLAN} -v WORKSPACE:/tmp ${ROBOT_VARIABLES} ${TESTOPTIONS} ${SUITES}
+else
+    echo "*** TRACE **** python is running in a container"
+    docker run --net="host" -v ${WORKSPACE}:${WORKSPACE} -v ${WORKDIR}:${WORKDIR} $ROBOT_IMAGE  \
+    python -B -m robot.run -N ${TESTPLAN} -v WORKSPACE:/tmp --outputdir ${WORKDIR} ${ROBOT_VARIABLES} ${TESTOPTIONS} ${SUITES}
+fi
 RESULT=$?
 load_set
 echo "RESULT: $RESULT"
