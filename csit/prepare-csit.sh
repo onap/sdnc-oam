@@ -18,12 +18,12 @@
 #
 
 if [ -z "$WORKSPACE" ]; then
-    export WORKSPACE=`git rev-parse --show-toplevel`
+    export WORKSPACE=`git rev-parse --show-toplevel`/csit
 fi
 
 TESTPLANDIR=${WORKSPACE}/${TESTPLAN}
 
-# Assume that if ROBOT_VENV is set and virtualenv with system site packages can be activated, 
+# Assume that if ROBOT_VENV is set and virtualenv with system site packages can be activated,
 # ci-management/jjb/integration/include-raw-integration-install-robotframework.sh has already
 # been executed
 

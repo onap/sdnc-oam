@@ -1,0 +1,52 @@
+version: "2.2"
+services:
+  sdnr:
+    environment:
+     - SDNRDM="true"
+  topology-api:
+    image: ${TOPOLOGY_DOCKER_REPO}/${TOPOLOGY_DOCKER_IMAGE_NAME}:${TOPOLOGY_DOCKER_IMAGE_TAG}
+    container_name: topology-api
+    ports:
+      - "3001:3001"
+    environment:
+      - AUTH_ENABLED=${AUTH_ENABLED}
+      - AUTH_HOST_URL=${IDENTITY_PROVIDER_URL}
+      # - AUTH_CONFIG_FILE
+      - PROVIDERS=${TOPOLOGY_PROVIDERS}
+      - LOAD_PACKAGES=${LOAD_PACKAGES}
+    depends_on:
+      - sdnr
+    networks:
+      integration:
+        ipv4_address: ${TOPOLOGY_IP}
+  sdnr-web:
+    image: ${NEXUS_DOCKER_REPO}/${NEXUS_DOCKER_WEB_IMAGE_NAME}:${NEXUS_DOCKER_IMAGE_TAG}
+    container_name: sdnr-web
+    ports:
+      - "${SDNC_WEB_PORT}:${SDNC_WEB_PORT}"
+    environment:
+      - WEBPROTOCOL=HTTP
+      - WEBPORT=${SDNC_WEB_PORT}
+      - SDNRPROTOCOL=HTTP
+      - SDNRHOST=sdnr
+      - SDNRPORT=${SDNRPORT}
+      - TOPOURL=${TOPOURL}
+      - TILEURL=${TILEURL}
+    depends_on:
+      - topology-api
+      - sdnr
+    command: ["/wait-for-sdnc.sh", "sdnr:${SDNRPORT}/ready", "/opt/bitnami/nginx/sbin/run.sh"]
+    volumes:
+      - ./wait-for-sdnc.sh:/wait-for-sdnc.sh
+    networks:
+      integration:
+        ipv4_address: ${SDNR_WEB_IP}
+networks:
+  integration:
+    name: ${NETWORK_NAME}
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: ${NETWORK_SUBNET}
+        gateway: ${GATEWAY_IP}
