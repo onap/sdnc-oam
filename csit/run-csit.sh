@@ -154,12 +154,14 @@ TESTPLANDIR="${WORKSPACE}/${TESTPLAN}"
 
 # Set env variables
 source_safely "${WORKSPACE}/sdnc-csit.env"
+if [[ -z $ROBOT_IMAGE ]]; then
+  # Run installation of prerequired libraries
+  source_safely "${WORKSPACE}/prepare-csit.sh"
 
-# Run installation of prerequired libraries
-source_safely "${WORKSPACE}/prepare-csit.sh"
 
 # Activate the virtualenv containing all the required libraries installed by prepare-csit.sh
 source_safely "${ROBOT_VENV}/bin/activate"
+fi
 
 WORKDIR=$(mktemp -d --suffix=-robot-workdir)
 cd "${WORKDIR}"
