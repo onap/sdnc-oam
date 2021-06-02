@@ -1,0 +1,47 @@
+version: "3"
+services:
+  nts-function:
+    image: ${NTS_NF_DOCKER_REPOSITORY}${NTS_NF_IMAGE_NAME}:${NTS_NF_IMAGE_TAG}
+    container_name: ${NTS_NF_IMAGE_NAME}
+    stop_grace_period: 5m
+    ports:
+      - "::${NTS_HOST_NETCONF_SSH_BASE_PORT}-${NTS_HOST_NETCONF_SSH_BASE_PORT_PLUS_SSH_CON}:${EXPOSE_PORT_SSH}-${EXPOSE_PORT_SSH_PLUS_CON}"
+      - "::${NTS_HOST_NETCONF_TLS_BASE_PORT}-${NTS_HOST_NETCONF_TLS_BASE_PORT_PLUS_TLS_CON}:${EXPOSE_PORT_TLS}-${EXPOSE_PORT_TLS_PLUS_CON}"
+    environment:
+      NTS_NF_STANDALONE_START_FEATURES: "datastore-populate ves-heartbeat ves-pnf-registration web-cut-through manual-notification-generation netconf-call-home"
+      NTS_NF_MOUNT_POINT_ADDRESSING_METHOD: "host-mapping"
+      NTS_HOST_IP: ${NTS_HOST_IP}
+      HOSTNAME: ${NTS_NF_CONTAINER_NAME}
+      IPv6Enabled: ${IPV6_ENABLED}
+
+      SSH_CONNECTIONS: ${NTS_NF_SSH_CONNECTIONS}
+      TLS_CONNECTIONS: ${NTS_NF_TLS_CONNECTIONS}
+      NTS_HOST_NETCONF_SSH_BASE_PORT: ${NTS_HOST_NETCONF_SSH_BASE_PORT}
+      NTS_HOST_NETCONF_TLS_BASE_PORT: ${NTS_HOST_NETCONF_TLS_BASE_PORT}
+      
+      SDN_CONTROLLER_PROTOCOL: ${SDN_CONTROLLER_PROTOCOL}
+      SDN_CONTROLLER_IP: ${NTS_NF_SDN_CONTROLLER_IP}
+      SDN_CONTROLLER_PORT: ${NTS_NF_SDN_CONTROLLER_PORT}
+      SDN_CONTROLLER_CALLHOME_PORT: 6666
+      SDN_CONTROLLER_USERNAME: ${ODL_ADMIN_USERNAME}
+      SDN_CONTROLLER_PASSWORD: ${ODL_ADMIN_PASSWORD}
+
+      VES_ENDPOINT_PROTOCOL: "https"
+      VES_ENDPOINT_IP: "127.0.0.1"
+      VES_ENDPOINT_PORT: 1234
+      VES_ENDPOINT_AUTH_METHOD: "no-auth"
+      VES_ENDPOINT_USERNAME: "admin"
+      VES_ENDPOINT_PASSWORD: "admin"
+    networks:
+      integration:
+        ipv4_address: ${NTS_NF_IP}
+
+networks:
+  integration:
+    name: ${NETWORK_NAME}
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: ${NETWORK_SUBNET}
+          gateway: ${GATEWAY_IP}
