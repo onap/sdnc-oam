@@ -1,0 +1,43 @@
+version: "2.2"
+services:
+  sdnr:
+    image: ${NEXUS_DOCKER_REPO}/${NEXUS_DOCKER_IMAGE_NAME}:${NEXUS_DOCKER_IMAGE_TAG}
+    container_name: sdnr
+    ports:
+      - "8181:8181"
+      - "8101:8101"
+#entrypoint: ["/bin/bash", "/opt/onap/sdnc/bin/startODL.oom.sh"]
+    environment:
+      - SDNC_CONFIG_DIR=/opt/onap/ccsdk/data/properties
+      - ODL_CERT_DIR=${ODL_CERT_DIR}
+      - ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD}
+      - ENABLE_ODL_CLUSTER=false
+      - SDNC_REPLICAS=0
+      - CCSDK_REPLICAS=0
+      - DOMAIN=""
+      - SDNRWT=true
+      - SDNRINIT=true
+      - SDNRONLY=true
+      - JAVA_OPTS=-Xms256m -Xmx2g
+    volumes:
+      - ./sdnr/mountpoint-registrar.properties:/opt/opendaylight/etc/mountpoint-registrar.properties
+      - ./sdnr/certs/certs.properties:${ODL_CERT_DIR}/certs.properties
+      - ./sdnr/certs/keys0.zip:${ODL_CERT_DIR}/keys0.zip
+    networks:
+      integration:
+        ipv4_address: ${SDNR_IP}
+    logging:
+      driver:   "json-file"
+      options:
+        max-size: "30m"
+        max-file: "5"
+
+networks:
+  integration:
+    name: ${NETWORK_NAME}
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+      - subnet: ${NETWORK_SUBNET}
+        gateway: ${GATEWAY_IP}
