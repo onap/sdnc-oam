@@ -8,9 +8,7 @@
         <version>2.2.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>org.onap.sdnc.oam</groupId>
     <artifactId>installation-sdnc</artifactId>
-    <version>2.2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>sdnc-oam :: installation :: ${project.artifactId}</name>
@@ -22,17 +20,20 @@
     <properties>
         <image.name>onap/sdnc-aaf-image</image.name>
         <standalone.image.name>onap/sdnc-image</standalone.image.name>
-        <sdnc.project.version>${project.version}</sdnc.project.version>
-        <sdnc.build.timestamp>${maven.build.timestamp}</sdnc.build.timestamp>
         <ccsdk.docker.version>${ccsdk.docker.odlsli.alpine.version}</ccsdk.docker.version>
         <sdnc.keystore>org.onap.sdnc.p12</sdnc.keystore>
         <sdnc.keypass><![CDATA[;:G58,7ZhqOSI:7^oZCY[9Dv]]></sdnc.keypass>
         <sdnc.secureport>8443</sdnc.secureport>
+
+        <maven.build.timestamp.format>yyyyMMdd'T'HHmmss'Z'</maven.build.timestamp.format>
+        <sdnc.build.timestamp>${maven.build.timestamp}</sdnc.build.timestamp>
+
         <docker.buildArg.https_proxy>${https_proxy}</docker.buildArg.https_proxy>
         <docker.push.phase>deploy</docker.push.phase>
-        <docker.verbose>true</docker.verbose> 
+        <docker.skip.run>false</docker.skip.run>
+        <docker.skip.push>false</docker.skip.push>
+        <docker.verbose>true</docker.verbose>
         <docker.autoCreateCustomNetworks>true</docker.autoCreateCustomNetworks>
-        <maven.build.timestamp.format>yyyyMMdd'T'HHmmss'Z'</maven.build.timestamp.format>
     </properties>
 
     <dependencies>
@@ -43,7 +44,7 @@
             <type>zip</type>
             <classifier>repo</classifier>
         </dependency>
-       <dependency>
+        <dependency>
             <groupId>org.onap.sdnc.northbound</groupId>
             <artifactId>optical-service-installer</artifactId>
             <version>${sdnc.northbound.version}</version>
@@ -68,11 +69,10 @@
 
     <build>
         <plugins>
-
-
             <plugin>
                 <groupId>org.codehaus.groovy.maven</groupId>
                 <artifactId>gmaven-plugin</artifactId>
+                <version>1.0</version>
                 <executions>
                     <execution>
                         <phase>validate</phase>
@@ -89,8 +89,13 @@
             <plugin>
                 <groupId>io.fabric8</groupId>
                 <artifactId>docker-maven-plugin</artifactId>
-                <version>0.28.0</version>
+                <version>0.34.0</version>
                 <inherited>false</inherited>
+                <configuration>
+                    <verbose>${docker.verbose}</verbose>
+                    <skipRun>${docker.skip.run}</skipRun>
+                    <skipPush>${docker.skip.push}</skipPush>
+                </configuration>
                 <executions>
                     <execution>
                         <id>generate-images</id>
@@ -99,22 +104,43 @@
                             <goal>build</goal>
                         </goals>
                         <configuration>
-                           <images>
-                            <image>
-                             <name>${image.name}</name>
-                             <build>
-                              <cleanup>try</cleanup>
-                              <dockerFileDir>${basedir}/target/docker-stage</dockerFileDir>
-                              <dockerFile>Dockerfile</dockerFile>
-                              <tags>
-                                 <tag>${project.docker.latestminortag.version}</tag>
-                                 <tag>${project.docker.latestfulltag.version}</tag>
-                                 <tag>${project.docker.latesttagtimestamp.version}</tag>
-                              </tags>
-                             </build>
-                            </image>
-                           </images>
-                          </configuration>
+                            <images>
+                                <image>
+                                    <name>${image.name}</name>
+                                    <build>
+                                        <cleanup>try</cleanup>
+                                        <noCache>true</noCache>
+                                        <contextDir>${basedir}/target/docker-stage</contextDir>
+                                        <dockerFile>Dockerfile</dockerFile>
+                                        <args>
+                                            <AAF>true</AAF>
+                                        </args>
+                                        <tags>
+                                            <tag>${project.docker.latestminortag.version}</tag>
+                                            <tag>${project.docker.latestfulltag.version}</tag>
+                                            <tag>${project.docker.latesttagtimestamp.version}</tag>
+                                        </tags>
+                                    </build>
+                                </image>
+                                <image>
+                                    <name>${standalone.image.name}</name>
+                                    <build>
+                                        <cleanup>try</cleanup>
+                                        <noCache>true</noCache>
+                                        <contextDir>${basedir}/target/docker-stage</contextDir>
+                                        <dockerFile>Dockerfile</dockerFile>
+                                        <args>
+                                            <AAF>false</AAF>
+                                        </args>
+                                        <tags>
+                                            <tag>${project.docker.latestminortag.version}</tag>
+                                            <tag>${project.docker.latestfulltag.version}</tag>
+                                            <tag>${project.docker.latesttagtimestamp.version}</tag>
+                                        </tags>
+                                    </build>
+                                </image>
+                            </images>
+                        </configuration>
                     </execution>
                     <execution>
                         <id>start-it-instance</id>
@@ -193,79 +219,12 @@
                         </goals>
                     </execution>
                     <execution>
-                      <id>push-images</id>
-                      <phase>${docker.push.phase}</phase>
-                      <goals>
-                       <goal>build</goal>
-                       <goal>push</goal>
-                      </goals>
-                       <configuration>
-                        <images>
-                         <image>
-                          <name>${image.name}</name>
-                          <build>
-                           <cleanup>try</cleanup>
-                           <dockerFileDir>${basedir}/target/docker-stage</dockerFileDir>
-                           <dockerFile>Dockerfile</dockerFile>
-                           <tags>
-                              <tag>${project.docker.latestminortag.version}</tag>
-                              <tag>${project.docker.latestfulltag.version}</tag>
-                              <tag>${project.docker.latesttagtimestamp.version}</tag>
-                           </tags>
-                          </build>
-                         </image>
-                        </images>
-                       </configuration>
-                   </execution>
-                   <execution>
-                     <id>generate-standalone-images</id>
-                     <phase>package</phase>
-                     <goals>
-                      <goal>build</goal>
-                     </goals>
-                     <configuration>
-                      <images>
-                       <image>
-                        <name>${standalone.image.name}</name>
-                        <build>
-                         <cleanup>try</cleanup>
-                         <dockerFileDir>${basedir}/target/docker-stage</dockerFileDir>
-                         <dockerFile>standalone.Dockerfile</dockerFile>
-                         <tags>
-                             <tag>${project.docker.latestminortag.version}</tag>
-                             <tag>${project.docker.latestfulltag.version}</tag>
-                             <tag>${project.docker.latesttagtimestamp.version}</tag>
-                         </tags>
-                        </build>
-                       </image>
-                      </images>
-                     </configuration>
-                   </execution>
-                   <execution>
-                     <id>push-standalone-images</id>
-                     <phase>${docker.push.phase}</phase>
-                     <goals>
-                      <goal>build</goal>
-                      <goal>push</goal>
-                     </goals>
-                     <configuration>
-                       <images>
-                        <image>
-                         <name>${standalone.image.name}</name>
-                         <build>
-                          <cleanup>try</cleanup>
-                          <dockerFileDir>${basedir}/target/docker-stage</dockerFileDir>
-                          <dockerFile>standalone.Dockerfile</dockerFile>
-                          <tags>
-                             <tag>${project.docker.latestminortag.version}</tag>
-                             <tag>${project.docker.latestfulltag.version}</tag>
-                             <tag>${project.docker.latesttagtimestamp.version}</tag>
-                          </tags>
-                         </build>
-                        </image>
-                       </images>
-                     </configuration>
-                  </execution>
+                        <id>push-images</id>
+                        <phase>${docker.push.phase}</phase>
+                        <goals>
+                            <goal>push</goal>
+                        </goals>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -285,7 +244,6 @@
                                     <directory>src/main/docker</directory>
                                     <includes>
                                         <include>Dockerfile</include>
-                                        <include>standalone.Dockerfile</include>
                                     </includes>
                                     <filtering>true</filtering>
                                 </resource>
@@ -307,7 +265,7 @@
                                         <include>*.py</include>
                                         <include>*.sh</include>
                                     </includes>
-                                    <filtering>false</filtering>
+                                    <filtering>true</filtering>
                                 </resource>
                             </resources>
                         </configuration>
@@ -403,7 +361,7 @@
                 <version>3.0.2</version>
                 <executions>
                     <execution>
-                        <id>unpack sdnc features</id>
+                        <id>unpack-sdnc-features</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>unpack-dependencies</goal>
@@ -414,7 +372,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>unpack dgs</id>
+                        <id>unpack-platform-logic</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>unpack</goal>
@@ -432,7 +390,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>unpack migration utility</id>
+                        <id>unpack-data-migrator</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>unpack</goal>
@@ -452,29 +410,21 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>1.5.0</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
                 <executions>
                     <execution>
-                        <id>change shell permissions</id>
+                        <id>change-shell-permissions</id>
                         <phase>process-sources</phase>
-                        <goals>
-                            <goal>exec</goal>
-                        </goals>
                         <configuration>
-                            <executable>/usr/bin/find</executable>
-                            <arguments>
-                                <argument>${basedir}/target/docker-stage/opt/onap/sdnc</argument>
-                                <argument>-name</argument>
-                                <argument>*.sh</argument>
-                                <argument>-exec</argument>
-                                <argument>chmod</argument>
-                                <argument>+x</argument>
-                                <argument>{}</argument>
-                                <argument>;</argument>
-                            </arguments>
+                            <target>
+                                <chmod dir="${basedir}/target/docker-stage/opt/onap/sdnc" perm="+x" includes="**/*.sh"/>
+                            </target>
                         </configuration>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
                     </execution>
                 </executions>
             </plugin>
@@ -482,20 +432,20 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <executions>
-                  <execution>
-                    <goals>
-                      <goal>integration-test</goal>
-                      <goal>verify</goal>
-                    </goals>
-                  </execution>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
                 </executions>
                 <configuration>
-                  <skipITs>false</skipITs>
-                  <environmentVariables>
-                    <SDNC_PORT>${sdnc.port}</SDNC_PORT>
-                  </environmentVariables>
+                    <skipITs>false</skipITs>
+                    <environmentVariables>
+                        <SDNC_PORT>${sdnc.port}</SDNC_PORT>
+                    </environmentVariables>
                 </configuration>
-              </plugin>
+            </plugin>
         </plugins>
     </build>
 </project>
