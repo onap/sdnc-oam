@@ -43,20 +43,20 @@ Check GRA service assign
     [Documentation]    Testing GRA service assign
     Send Post File And Validate Response    ${GRA_SERVICE_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/svc-topology-assign.json   200
     
-Check GRA network assign
-    [Tags]     SDNC-GRA-NETWORK-ASSIGN
-    [Documentation]    Testing GRA network assign
-    Send Post File And Validate Response    ${GRA_NETWORK_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/network-topology-assign.json   200
+#Check GRA network assign
+#    [Tags]     SDNC-GRA-NETWORK-ASSIGN
+#    [Documentation]    Testing GRA network assign
+#    Send Post File And Validate Response    ${GRA_NETWORK_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/network-topology-assign.json   200
 
-Check GRA vnf assign
-    [Tags]     SDNC-GRA-VNF-ASSIGN
-    [Documentation]    Testing GRA vnf assign
-    Send Post File And Validate Response    ${GRA_VNF_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/vnf-topology-assign.json   200
+#Check GRA vnf assign
+#    [Tags]     SDNC-GRA-VNF-ASSIGN
+#    [Documentation]    Testing GRA vnf assign
+#    Send Post File And Validate Response    ${GRA_VNF_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/vnf-topology-assign.json   200
 
-Check GRA vf-module assign
-    [Tags]     SDNC-GRA-VF-MODULE-ASSIGN
-    [Documentation]    Testing GRA vf-module assign
-    Send Post File And Validate Response    ${GRA_VFMODULE_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/vf-module-topology-assign.json   200
+#Check GRA vf-module assign
+#    [Tags]     SDNC-GRA-VF-MODULE-ASSIGN
+#    [Documentation]    Testing GRA vf-module assign
+#    Send Post File And Validate Response    ${GRA_VFMODULE_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/vf-module-topology-assign.json   200
 
 Check GRA vf-module unassign
     [Tags]     SDNC-GRA-VF-MODULE-UNASSIGN
@@ -68,10 +68,10 @@ Check GRA vnf unassign
     [Documentation]    Testing GRA vnf unassign
     Send Post File And Validate Response    ${GRA_VNF_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/vnf-topology-unassign.json   200
    
-Check GRA network unassign
-    [Tags]     SDNC-GRA-NETWORK-UNASSIGN
-    [Documentation]    Testing GRA network unassign
-    Send Post File And Validate Response    ${GRA_NETWORK_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/network-topology-unassign.json   200
+#Check GRA network unassign
+#    [Tags]     SDNC-GRA-NETWORK-UNASSIGN
+#    [Documentation]    Testing GRA network unassign
+#    Send Post File And Validate Response    ${GRA_NETWORK_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/network-topology-unassign.json   200
 
 Check GRA service delete
     [Tags]     SDNC-GRA-SERVICE-DELETE
