@@ -41,9 +41,6 @@ SDNC_NORTHBOUND_FEATURES=" \
 
 
 
-SDNC_NORTHBOUND_VERSION=${SDNC_NORTHBOUND_VERSION:-1.2.0}
-SDNC_OAM_VERSION=${SDNC_OAM_VERSION:-1.2.0}
-
 if [ ! -d ${targetDir} ]
 then
   mkdir -p ${targetDir}
@@ -59,35 +56,35 @@ cwd=$(pwd)
 mavenOpts=${2:-"-s ${SETTINGS_FILE} -gs ${GLOBAL_SETTINGS_FILE}"}
 cd /tmp
 
-echo "Installing SDN-C core version ${SDNC_CORE_VERSION}"
+echo "Installing SDN-C core version ${ccsdk.sli.version}"
 for feature in ${SDNC_CORE_FEATURES}
 do
  rm -f /tmp/${feature}-installer*.zip
-mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.onap.sdnc.core:${feature}-installer:${SDNC_CORE_VERSION}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
+mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.onap.sdnc.core:${feature}-installer:${ccsdk.sli.version}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
  unzip -d ${featureDir} /tmp/${feature}-installer*zip
 done
 
-echo "Installing SDN-C adaptors version ${SDNC_ADAPTORS_VERSION}"
+echo "Installing SDN-C adaptors version ${ccsdk.sli.version}"
 for feature in ${SDNC_ADAPTORS_FEATURES}
 do
  rm -f /tmp/${feature}-installer*.zip
-mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.onap.sdnc.adaptors:${feature}-installer:${SDNC_ADAPTORS_VERSION}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
+mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.onap.sdnc.adaptors:${feature}-installer:${ccsdk.sli.version}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
  unzip -d ${featureDir} /tmp/${feature}-installer*zip
 done
 
-echo "Installing SDN-C northbound version ${SDNC_NORTHBOUND_VERSION}"
+echo "Installing SDN-C northbound version ${sdnc.northbound.version}"
 for feature in ${SDNC_NORTHBOUND_FEATURES}
 do
  rm -f /tmp/${feature}-installer*.zip
-mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.onap.sdnc.northbound:${feature}-installer:${SDNC_NORTHBOUND_VERSION}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
+mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.onap.sdnc.northbound:${feature}-installer:${sdnc.northbound.version}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
  unzip -d ${featureDir} /tmp/${feature}-installer*zip
 done
 
-echo "Installing SDN-C plugins version ${SDNC_PLUGINS_VERSION}"
+echo "Installing SDN-C plugins version ${ccsdk.sli.version}"
 for feature in ${SDNC_PLUGINS_FEATURES}
 do
  rm -f /tmp/${feature}-installer*.zip
-mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.onap.sdnc.plugins:${feature}-installer:${SDNC_PLUGINS_VERSION}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
+mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.onap.sdnc.plugins:${feature}-installer:${ccsdk.sli.version}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
  unzip -d ${featureDir} /tmp/${feature}-installer*zip
 done
 
@@ -95,7 +92,7 @@ done
 
 echo "Installing platform-logic"
 rm -f /tmp/platform-logic-installer*.zip
-mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.onap.sdnc.oam:platform-logic-installer:${SDNC_OAM_VERSION}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
+mvn -U ${mavenOpts} org.apache.maven.plugins:maven-dependency-plugin:2.9:copy -Dartifact=org.onap.sdnc.oam:platform-logic-installer:${sdnc.project.version}:zip -DoutputDirectory=/tmp -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.ssl.insecure=true
 unzip -d ${targetDir} /tmp/platform-logic-installer*.zip
 
 find ${targetDir} -name '*.sh' -exec chmod +x '{}' \;
