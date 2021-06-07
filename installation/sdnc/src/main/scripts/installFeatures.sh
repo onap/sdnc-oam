@@ -34,14 +34,11 @@ CCSDK_EXTRAS=" \
    netbox-client"
 
 
-
 SDNC_NORTHBOUND_FEATURES=" \
   generic-resource-api \
   vnfapi \
   vnftools"
 
-
-SDNC_NORTHBOUND_VERSION=${SDNC_NORTHBOUND_VERSION:-1.3.1-SNAPSHOT}
 
 # Install CCSDK features
 ${CCSDK_HOME}/bin/installCcsdkFeatures.sh
@@ -54,7 +51,7 @@ do
 	then
 		${CCSDK_FEATURE_DIR}/ccsdk-${feature}/install-feature.sh
     else
-    	     echo "No installer found for ${feature}"
+      echo "No installer found for ${feature}"
     fi
 done
 

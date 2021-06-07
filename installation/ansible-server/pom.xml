@@ -8,9 +8,7 @@
         <version>2.2.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>org.onap.sdnc.oam</groupId>
     <artifactId>installation-ansible-server</artifactId>
-    <version>2.2.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <name>sdnc-oam :: installation :: ${project.artifactId}</name>
@@ -33,6 +31,7 @@
             <plugin>
                 <groupId>org.codehaus.groovy.maven</groupId>
                 <artifactId>gmaven-plugin</artifactId>
+                <version>1.0</version>
                 <executions>
                     <execution>
                         <phase>validate</phase>
@@ -64,7 +63,7 @@
                                     <includes>
                                         <include>**/*</include>
                                     </includes>
-                                    <filtering>false</filtering>
+                                    <filtering>true</filtering>
                                 </resource>
                             </resources>
                         </configuration>
@@ -82,7 +81,7 @@
                     <plugin>
                         <groupId>io.fabric8</groupId>
                         <artifactId>docker-maven-plugin</artifactId>
-                        <version>0.28.0</version>
+                        <version>0.34.0</version>
                         <inherited>false</inherited>
                         <configuration>
                             <images>
@@ -90,7 +89,8 @@
                                     <name>${image.name}</name>
                                     <build>
                                         <cleanup>try</cleanup>
-                                        <dockerFileDir>${basedir}/target/docker-stage</dockerFileDir>
+                                        <noCache>true</noCache>
+                                        <contextDir>${basedir}/target/docker-stage</contextDir>
                                         <dockerFile>Dockerfile</dockerFile>
                                         <tags>
                                             <tag>${project.docker.latestminortag.version}</tag>
@@ -100,19 +100,13 @@
                                     </build>
                                 </image>
                             </images>
+                            <verbose>${docker.verbose}</verbose>
+                            <skipPush>${docker.skip.push}</skipPush>
                         </configuration>
                         <executions>
                             <execution>
-                                <id>generate-images</id>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>build</goal>
-                                </goals>
-                            </execution>
-
-                            <execution>
-                                <id>push-images</id>
-                                <phase>deploy</phase>
+                                <id>build-push-images</id>
+                                <phase>${docker.push.phase}</phase>
                                 <goals>
                                     <goal>build</goal>
                                     <goal>push</goal>
