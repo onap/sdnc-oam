@@ -18,6 +18,7 @@ FROM onap/ccsdk-odlsli-alpine-image:${ccsdk.docker.version}
 
 LABEL maintainer="SDN-C Team (sdnc@lists.onap.org)"
 
+ENV PATH=$PATH:/opt/java/openjdk/bin
 ENV SDNC_CONFIG_DIR /opt/onap/sdnc/data/properties
 ENV SDNC_STORE_DIR /opt/onap/sdnc/data/stores
 ENV SSL_CERTS_DIR /etc/ssl/certs
@@ -28,7 +29,6 @@ ENV SDNC_KEYPASS ${sdnc.keypass}
 ENV SDNC_SECUREPORT ${sdnc.secureport}
 
 USER root
-
 COPY --from=stage0 --chown=odl:odl /opt /opt
 
 # Add SDNC repositories to boot repositories
