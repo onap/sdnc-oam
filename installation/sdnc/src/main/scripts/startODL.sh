@@ -30,7 +30,7 @@
 isRepoExisting() {
   REPO=$(echo "$1" | sed -E "s#mvn:(.*)/xml/features\$#\1#")
   OIFS="$IFS"
-  IFS='/' 
+  IFS='/'
   set parts $REPO
   IFS="$OIFS"
   path="$ODL_HOME/system/$(echo "$2" | tr '.' '/')/$3/$4"
@@ -114,7 +114,7 @@ install_sdnr_oauth_features() {
   addToFeatureBoot "$SDNROAUTH_BOOTFEATURES"
 }
 install_sdnr_northbound_features() {
-  addToFeatureBoot "$SDNR_NORTHBOUND_BOOTFEATURES" 
+  addToFeatureBoot "$SDNR_NORTHBOUND_BOOTFEATURES"
 }
 install_a1_northbound_features() {
   addToFeatureBoot "$A1_ADAPTER_NORTHBOUND_BOOTFEATURES"
@@ -129,7 +129,7 @@ enable_odl_cluster() {
 
   # ODL NETCONF setup
   printf "Installing Opendaylight cluster features for mdsal and netconf\n"
-  
+
   #Be sure to remove feature odl-netconf-connector-all from list
   replaceFeatureBoot "odl-netconf-connector-all,"
 
@@ -141,7 +141,7 @@ enable_odl_cluster() {
   #${ODL_HOME}/bin/client feature:install odl-jolokia
 
   # ODL Cluster or Geo cluster configuration
-  
+
   printf "Update cluster information statically\n"
   fqdn=$(hostname -f)
   printf "%s\n" "Get current fqdn ${fqdn}"
@@ -195,7 +195,7 @@ enable_odl_cluster() {
        done
        "${ODL_HOME}"/bin/configure_cluster.sh $((node_index+1)) "${node_list}"
     else
-       printf "Unhandled cluster scenario. Terminating the container\n" 
+       printf "Unhandled cluster scenario. Terminating the container\n"
        printf "Any one of the below 2 conditions should be satisfied for successfully enabling cluster mode : \n"
        printf "1. OOM Environment - Both SERVICE_NAME and NAMESPACE environment variables have to be set.\n"
        printf "2. Docker (standalone) Environment - Neither of SERVICE_NAME and NAMESPACE have to be set.\n"
@@ -215,36 +215,42 @@ ODL_HOME=${ODL_HOME:-/opt/opendaylight/current}
 ODL_FEATURES_BOOT_FILE=$ODL_HOME/etc/org.apache.karaf.features.cfg
 
 ODL_ADMIN_USERNAME=${ODL_ADMIN_USERNAME:-admin}
+ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD:-admin}
 ODL_REMOVEIDMDB=${ODL_REMOVEIDMDB:-true}
 
 if $ODL_REMOVEIDMDB ; then
-  if [ -f $ODL_HOME/data/idmlight.db.mv.db ]; then 
+  if [ -f $ODL_HOME/data/idmlight.db.mv.db ]; then
     rm $ODL_HOME/data/idmlight.db.mv.db
   fi
 fi
 
+CCSDK_HOME=${CCSDK_HOME:-/opt/onap/ccsdk}
 SDNC_HOME=${SDNC_HOME:-/opt/onap/sdnc}
 SDNC_BIN=${SDNC_BIN:-/opt/onap/sdnc/bin}
+JDEBUG=${JDEBUG:-false}
+SDNC_AAF_ENABLED=${SDNC_AAF_ENABLED:-false}
+INSTALLED_DIR=${INSTALLED_FILE:-/opt/opendaylight/current/daexim}
+
 # Whether to intialize MYSql DB or not. Default is to initialize
 SDNC_DB_INIT=${SDNC_DB_INIT:-false}
-CCSDK_HOME=${CCSDK_HOME:-/opt/onap/ccsdk}
-JDEBUG=${JDEBUG:-false}
 MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-openECOMP1.0}
+
+IS_PRIMARY_CLUSTER=${IS_PRIMARY_CLUSTER:-false}
+MY_ODL_CLUSTER=${MY_ODL_CLUSTER:-127.0.0.1}
 ENABLE_ODL_CLUSTER=${ENABLE_ODL_CLUSTER:-false}
 ENABLE_OAUTH=${ENABLE_OAUTH:-false}
 ENABLE_ODLUX_RBAC=${ENABLE_ODLUX_RBAC:-false}
 GEO_ENABLED=${GEO_ENABLED:-false}
-SDNC_AAF_ENABLED=${SDNC_AAF_ENABLED:-false}
-IS_PRIMARY_CLUSTER=${IS_PRIMARY_CLUSTER:-false}
-MY_ODL_CLUSTER=${MY_ODL_CLUSTER:-127.0.0.1}
-INSTALLED_DIR=${INSTALLED_FILE:-/opt/opendaylight/current/daexim}
+
 SDNRWT=${SDNRWT:-false}
+SDNRDM=${SDNRDM:-false}
 SDNRODLUX_BOOTFEATURES=${SDNRODLUX_BOOTFEATURES:-sdnr-wt-helpserver-feature,sdnr-wt-odlux-core-feature,sdnr-wt-odlux-apps-feature}
 SDNROAUTH_BOOTFEATURES=${SDNROAUTH_BOOTFEATURES:-sdnr-wt-feature-aggregator-oauth}
-SDNRDM=${SDNRDM:-false}
+
 # Add devicemanager features
 SDNRDM_SDM_LIST=${SDNRDM_SDM_LIST:-sdnr-wt-feature-aggregator-devicemanager}
 SDNRDM_BOOTFEATURES=${SDNRDM_BOOTFEATURES:-sdnr-wt-feature-aggregator-devicemanager-base,${SDNRDM_SDM_LIST}}
+
 # Whether to Initialize the ElasticSearch DB.
 SDNRINIT=${SDNRINIT:-false}
 SDNRONLY=${SDNRONLY:-false}
@@ -341,13 +347,13 @@ if [ -z "$ODL_ADMIN_PASSWORD" ]; then
   exit 1
 fi
 
-# Check for MySQL DB connectivity only if SDNC_DB_INIT is set to "true" 
+# Check for MySQL DB connectivity only if SDNC_DB_INIT is set to "true"
 if $SDNC_DB_INIT; then
 #
 # Wait for database
 #
   printf "Waiting for mysql"
-  until mysql -h dbhost -u root -p"${MYSQL_ROOT_PASSWORD}" -e "select 1" > /dev/null 2>&1 
+  until mysql -h dbhost -u root -p"${MYSQL_ROOT_PASSWORD}" -e "select 1" > /dev/null 2>&1
   do
     printf "."
     sleep 1
@@ -382,15 +388,15 @@ then
   if $SDNRWT ; then install_sdnrwt_features ; fi
   if $ENABLE_OAUTH ; then
     cp $SDNC_HOME/data/oauth-aaa-app-config.xml $ODL_HOME/system/org/opendaylight/aaa/aaa-shiro/0.12.1/aaa-shiro-0.12.1-aaa-app-config.xml
-    install_sdnr_oauth_features 
+    install_sdnr_oauth_features
   fi
-  
+
   # The enable_odl_cluster call should not be moved above this line as the cleanFeatureBoot will overwrite entries. Ex: odl-jolokia
   if $ENABLE_ODL_CLUSTER ; then enable_odl_cluster ; fi
 
   if $SDNR_NORTHBOUND ; then install_sdnr_northbound_features ; fi
   if $A1_ADAPTER_NORTHBOUND ; then install_a1_northbound_features ; fi
-  
+
   printf "%s" "Installed at $(date)" > "${SDNC_HOME}"/.installed
 fi
 
@@ -422,4 +428,5 @@ fi
 printf "Startup opendaylight\n"
 printf "%s\n" "$ODL_REPOSITORIES_BOOT"
 printf "%s\n" "$ODL_FEATURES_BOOT"
+
 exec "${ODL_HOME}"/bin/karaf server
