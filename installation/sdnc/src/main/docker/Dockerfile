@@ -1,45 +1,47 @@
 # Prepare stage for multistage image build
 ## START OF STAGE0 ##
 FROM onap/ccsdk-odlsli-alpine-image:${ccsdk.docker.version} AS stage0
-
 USER root
 
-# copy onap
-COPY opt /opt
-RUN test -L /opt/sdnc || ln -s /opt/onap/sdnc /opt/sdnc
-RUN mkdir $ODL_HOME/current/certs
-
-# copy SDNC mvn artifacts to ODL repository
-COPY system /tmp/system
-RUN rsync -a /tmp/system $ODL_HOME
-## END OF STAGE0 ##
-
-FROM onap/ccsdk-odlsli-alpine-image:${ccsdk.docker.version}
-
-LABEL maintainer="SDN-C Team (sdnc@lists.onap.org)"
+ENV JAVA_HOME /opt/java/openjdk
+ENV PATH $PATH:/opt/java/openjdk/bin
 
 ENV SDNC_CONFIG_DIR /opt/onap/sdnc/data/properties
 ENV SDNC_STORE_DIR /opt/onap/sdnc/data/stores
-ENV SSL_CERTS_DIR /etc/ssl/certs
-ENV JAVA_SECURITY_DIR $SSL_CERTS_DIR/java
-ENV SDNC_NORTHBOUND_REPO mvn:org.onap.sdnc.northbound/sdnc-northbound-all/${sdnc.northbound.version}/xml/features
+ENV JAVA_SECURITY_DIR /etc/ssl/certs/java
+
 ENV SDNC_KEYSTORE ${sdnc.keystore}
 ENV SDNC_KEYPASS ${sdnc.keypass}
 ENV SDNC_SECUREPORT ${sdnc.secureport}
 
-USER root
+ARG AAF=false
 
-COPY --from=stage0 --chown=odl:odl /opt /opt
+# Copy onap
+COPY opt /opt
+RUN test -L /opt/sdnc || ln -s /opt/onap/sdnc /opt/sdnc
+RUN mkdir $ODL_HOME/current/certs
 
-# Add SDNC repositories to boot repositories
+# Copy SDNC mvn artifacts to ODL repository
+COPY system /tmp/system
+RUN rsync -a /tmp/system $ODL_HOME
+
+# Add odl-netconf-topology to boot repositories
 RUN cp $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.karaf.features.cfg.orig
-RUN sed -i -e "\|featuresRepositories|s|$|,${SDNC_NORTHBOUND_REPO}|"  $ODL_HOME/etc/org.apache.karaf.features.cfg
-RUN sed -i -e "\|featuresBoot[^a-zA-Z]|s|$|,sdnc-northbound-all|"  $ODL_HOME/etc/org.apache.karaf.features.cfg
 RUN sed -i "s/odl-restconf-all/odl-restconf-all,odl-netconf-topology/g"  $ODL_HOME/etc/org.apache.karaf.features.cfg
 
-# install AAF configs
-COPY aaa-app-config.xml $ODL_HOME/etc/opendaylight/datastore/initial/config/
-RUN echo "cadi_prop_files=$SDNC_CONFIG_DIR/org.onap.sdnc.props" >> $ODL_HOME/etc/system.properties
+# Add SDNC repositories to boot repositories
+ENV SDNC_NORTHBOUND_REPO mvn:org.onap.sdnc.northbound/sdnc-northbound-all/${sdnc.northbound.version}/xml/features
+RUN sed -i -e "\|featuresRepositories|s|$|,${SDNC_NORTHBOUND_REPO}|" $ODL_HOME/etc/org.apache.karaf.features.cfg
+RUN sed -i -e "\|featuresBoot[^a-zA-Z]|s|$|,sdnc-northbound-all|" $ODL_HOME/etc/org.apache.karaf.features.cfg
+
+
+# Add aaa-app-config.xml Only if AAF is set to true (being passed as an argument in docker-maven-plugin configuration)
+COPY aaa-app-config.xml /tmp/aaa-app-config.xml
+RUN if "${AAF}" ; then \
+        mkdir -p $ODL_HOME/etc/opendaylight/datastore/initial/config ;\
+        mv /tmp/aaa-app-config.xml $ODL_HOME/etc/opendaylight/datastore/initial/config/. ;\
+        echo "cadi_prop_files=$SDNC_CONFIG_DIR/org.onap.sdnc.props" >> $ODL_HOME/etc/system.properties ;\
+    fi
 
 # Install ssl and java certificates
 COPY truststoreONAPall.jks $SDNC_STORE_DIR
@@ -56,9 +58,29 @@ RUN echo org.ops4j.pax.web.ssl.keypassword=$SDNC_KEYPASS >> $ODL_HOME/etc/custom
 # Overwrite svclogic compiler properties
 RUN cp /opt/onap/sdnc/data/properties/svclogic-compiler.properties /opt/onap/sdnc/svclogic/config/svclogic.properties
 
-RUN chown -R odl:odl /opt
+# Changing ownership and permission of /opt
+RUN chown -R odl:odl /opt && chmod -R 755 /opt
+
+## END OF STAGE0 ##
+
+#################################################
+
+## This will create actual image
+FROM scratch
+LABEL maintainer="SDN-C Team (sdnc@lists.onap.org)"
+USER root
+
+ENV JAVA_HOME /opt/java/openjdk
+ENV PATH $PATH:/opt/java/openjdk/bin
+
+ENV ODL_HOME /opt/opendaylight/current
+ENV SDNC_CONFIG_DIR /opt/onap/sdnc/data/properties
+ENV SDNC_KEYSTORE ${sdnc.keystore}
+ENV SDNC_KEYPASS ${sdnc.keypass}
+
+# Copy Everything from stage0
+COPY --from=stage0 / /
 
 USER odl
-
 ENTRYPOINT /opt/onap/sdnc/bin/startODL.sh
 EXPOSE 8181
