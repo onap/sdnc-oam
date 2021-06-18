@@ -26,15 +26,15 @@
       <!-- CSS -->
       <script src="./node_modules/jquery.min.js"></script>
       <script src="./node_modules/tether.min.js" ></script>
-      <link rel="stylesheet" href="/webjars/bootstrap/3.3.7/css/bootstrap.min.css">  
-      <script src="/webjars/bootstrap/3.3.7/js/bootstrap.min.js"></script>      
+      <link rel="stylesheet" href="/webjars/bootstrap/3.3.7/css/bootstrap.min.css">
+      <script src="/webjars/bootstrap/3.3.7/js/bootstrap.min.js"></script>
       <link rel="stylesheet" href="/style/sdnc-style.css">
       <!-- JS -->
       <!-- load angular,date-time picker,pagination,growl and ui-router -->
       <script src = "./node_modules/angular.min.js"></script>
       <script src = "./node_modules/angular-route.min.js"></script>
       <script src="./node_modules/angular-utils-pagination/dirPagination.js"></script>
-      <script src="./node_modules/ng-csv/build/ng-csv.min.js"></script>     
+      <script src="./node_modules/ng-csv/build/ng-csv.min.js"></script>
       <script src="./node_modules/angular-sanitize.min.js"></script>
       <link rel="stylesheet" href="./node_modules/angularjs-datetime-picker/angularjs-datetime-picker.css" />
       <script src="./node_modules/angularjs-datetime-picker/angularjs-datetime-picker.js"></script>
@@ -55,13 +55,13 @@
    <div class="container">
       <!-- header page -->
    <div ng-include="" src="'header.html'"></div>
-      <div style="border-style:ridge;">         
+      <div style="border-style:ridge;">
          <div ng-include="" src="'tabs.html'"></div>
          <!-- views will be injected here -->
          <div ng-view></div>
       </div>  </div>
       <!-- footer page -->
        <div width="100%" align="center" ng-include="" src="'footer.html'"></div>
-     
+
    </body>
 </html>
