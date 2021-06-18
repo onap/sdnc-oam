@@ -34,7 +34,7 @@
       <script src = "./node_modules/angular.min.js"></script>
       <script src = "./node_modules/angular-route.min.js"></script>
       <script src="./node_modules/angular-utils-pagination/dirPagination.js"></script>
-      <script src="./node_modules/ng-csv/build/ng-csv.min.js"></script>     
+      <script src="./node_modules/ng-csv/build/ng-csv.min.js"></script>
       <script src="./node_modules/angular-sanitize.min.js"></script>
       <link rel="stylesheet" href="./node_modules/angularjs-datetime-picker/angularjs-datetime-picker.css" />
       <script src="./node_modules/angularjs-datetime-picker/angularjs-datetime-picker.js"></script>
@@ -61,7 +61,7 @@
    <div class="container">
       <!-- header page -->
    <div ng-include="'static/views/header.html'"></div>
-      <div style="border-style:ridge;height:auto;">          
+      <div style="border-style:ridge;height:auto;">
          <div ng-include="'static/views/tabs.html'" ></div>
          <!-- views will be injected here -->
          <div ng-view></div>
