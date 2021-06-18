@@ -18,7 +18,8 @@
 # Modifications copyright (c) 2021 AT&T Intellectual Property
 #
 
-# 
+# Remove all dangling images
+docker image prune -f
 
 ###################### Netconf Simulator Setup ######################
 
@@ -30,7 +31,7 @@ fi
 mkdir ${WORKSPACE}/archives/pnf-simulator
 git clone "https://gerrit.onap.org/r/integration/simulators/pnf-simulator" ${WORKSPACE}/archives/pnf-simulator
 
-# Fix docker-compose to add nexus repo for onap dockers 
+# Fix docker-compose to add nexus repo for onap dockers
 mv ${WORKSPACE}/archives/pnf-simulator/netconfsimulator/docker-compose.yml ${WORKSPACE}/archives/pnf-simulator/netconfsimulator/docker-compose.yml.orig
 cat ${WORKSPACE}/archives/pnf-simulator/netconfsimulator/docker-compose.yml.orig | sed -e "s/image: onap/image: nexus3.onap.org:10001\/onap/" > ${WORKSPACE}/archives/pnf-simulator/netconfsimulator/docker-compose.yml
 
@@ -73,7 +74,6 @@ rm -rf /tmp/keys0
 export LOCAL_IP=$(ip -4 addr show docker0 | grep -Po 'inet \K[\d.]+')
 
 unset http_proxy https_proxy
-
 
 # start SDNC containers with docker compose and configuration from docker-compose.yml
 docker-compose -f ${SCRIPTS}/docker-compose.yml up -d
