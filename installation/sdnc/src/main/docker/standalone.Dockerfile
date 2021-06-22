@@ -27,6 +27,7 @@ ENV SDNC_NORTHBOUND_REPO mvn:org.onap.sdnc.northbound/sdnc-northbound-all/${sdnc
 ENV SDNC_KEYSTORE ${sdnc.keystore}
 ENV SDNC_KEYPASS ${sdnc.keypass}
 ENV SDNC_SECUREPORT ${sdnc.secureport}
+ENV CCSDKFEATUREVERSION ${ccsdk.features.version}
 
 USER root
 
