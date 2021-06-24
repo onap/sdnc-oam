@@ -16,7 +16,7 @@ ENV SDNC_SECUREPORT ${sdnc.secureport}
 
 ARG AAF=false
 
-# Copy onap
+# Copy deliverables to opt
 COPY opt /opt
 RUN test -L /opt/sdnc || ln -s /opt/onap/sdnc /opt/sdnc
 RUN mkdir $ODL_HOME/current/certs
@@ -25,15 +25,25 @@ RUN mkdir $ODL_HOME/current/certs
 COPY system /tmp/system
 RUN rsync -a /tmp/system $ODL_HOME
 
-# Add odl-netconf-topology to boot repositories
-RUN cp $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.karaf.features.cfg.orig
-RUN sed -i "s/odl-restconf-all/odl-restconf-all,odl-netconf-topology/g"  $ODL_HOME/etc/org.apache.karaf.features.cfg
-
-# Add SDNC repositories to boot repositories
+# Add SDNC NORTHBOUND FEATURES repository
 ENV SDNC_NORTHBOUND_REPO mvn:org.onap.sdnc.northbound/sdnc-northbound-all/${sdnc.northbound.version}/xml/features
-RUN sed -i -e "\|featuresRepositories|s|$|,${SDNC_NORTHBOUND_REPO}|" $ODL_HOME/etc/org.apache.karaf.features.cfg
-RUN sed -i -e "\|featuresBoot[^a-zA-Z]|s|$|,sdnc-northbound-all|" $ODL_HOME/etc/org.apache.karaf.features.cfg
 
+# Add CCSDK SDNR FEATURES repositories
+ENV SDNR_FEATURES_REPO mvn:org.onap.ccsdk.oran/a1-adapter-northbound/${ccsdk.oran.a1adapter.version}/xml/features,\
+mvn:org.onap.ccsdk.features/ccsdk-features-all/${ccsdk.features.version}/xml/features,\
+mvn:org.onap.ccsdk.features.sdnr.northbound/sdnr-northbound-all/${ccsdk.features.version}/xml/features,\
+mvn:org.onap.ccsdk.features.sdnr.wt/sdnr-wt-feature-aggregator/${ccsdk.features.version}/xml/features,\
+mvn:org.onap.ccsdk.features.sdnr.wt/sdnr-wt-feature-aggregator-oauth/${ccsdk.features.version}/xml/features,\
+mvn:org.onap.ccsdk.features.sdnr.wt/sdnr-wt-feature-aggregator-devicemanager/${ccsdk.features.version}/xml/features,\
+mvn:org.onap.ccsdk.features.sdnr.wt/sdnr-wt-feature-aggregator-devicemanager-base/${ccsdk.features.version}/xml/features
+
+# Backing up existing karaf cfg and updating features boot and features repository
+RUN cp $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.karaf.features.cfg.sdnc.orig
+RUN sed -i -e "\|featuresBoot[^a-zA-Z]|s|$|,ccsdk-features-all,sdnc-northbound-all|" $ODL_HOME/etc/org.apache.karaf.features.cfg
+RUN sed -i -e "\|featuresRepositories|s|$|,${SDNC_NORTHBOUND_REPO},${SDNR_FEATURES_REPO}|" $ODL_HOME/etc/org.apache.karaf.features.cfg
+
+# Add odl-netconf-topology to boot repositories
+RUN sed -i "s/odl-restconf-all/odl-restconf-all,odl-netconf-topology/g"  $ODL_HOME/etc/org.apache.karaf.features.cfg
 
 # Add aaa-app-config.xml Only if AAF is set to true (being passed as an argument in docker-maven-plugin configuration)
 COPY aaa-app-config.xml /tmp/aaa-app-config.xml
