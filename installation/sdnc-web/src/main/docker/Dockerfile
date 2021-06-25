@@ -19,12 +19,14 @@
 # ============LICENSE_END=========================================================
 ###
 
+FROM onap/ccsdk-odlsli-alpine-image:${ccsdk.docker.version} AS stage0
+
 # Base bitnami nginx image
 FROM ${base.image.repo}
 LABEL maintainer="CCSDK Team (onap-ccsdk@lists.onap.org)"
 
 # copy ODLUX files to nginx
-COPY html /opt/bitnami/nginx/html  
+COPY --from=stage0  /opt/opendaylight/system/org/onap/ccsdk/features/sdnr/wt/sdnr-wt-odlux-installer/ /opt/bitnami/nginx/odlux-installer/
 
 # copy site conf files 
 COPY *.conf /opt/bitnami/nginx/conf/server_blocks/
@@ -48,9 +50,7 @@ COPY bin/*.sh /opt/bitnami/nginx/sbin/
 
 USER root
 RUN chmod +x /opt/bitnami/nginx/sbin/configure.sh /opt/bitnami/nginx/sbin/run.sh
-# By default, docker copies files with the permissions of the build user. To avoid cases where build user 
-# has 644 which can result in failure of certain commands
-RUN chmod -R g+w /opt/bitnami/nginx/html/odlux
+RUN cd /opt/bitnami/nginx && unzip $(find odlux-installer -name sdnr-wt-odlux-installer-*-repo.zip) -d /opt/bitnami/nginx/html && \rm -rf odlux-installer 
 
 USER 1001
 CMD [ "/opt/bitnami/nginx/sbin/run.sh" ]
