@@ -80,6 +80,7 @@ FROM scratch
 LABEL maintainer="SDN-C Team (sdnc@lists.onap.org)"
 USER root
 
+ENV LC_ALL en_US.UTF-8
 ENV JAVA_HOME /opt/java/openjdk
 ENV PATH $PATH:/opt/java/openjdk/bin
 

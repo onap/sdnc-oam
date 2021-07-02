@@ -215,6 +215,7 @@ enable_odl_cluster() {
 printf "Installing SDNC/R from startODL.sh script\n"
 ODL_HOME=${ODL_HOME:-/opt/opendaylight/current}
 ODL_FEATURES_BOOT_FILE=$ODL_HOME/etc/org.apache.karaf.features.cfg
+FEATURESBOOTMARKER="featuresBoot *="
 
 ODL_ADMIN_USERNAME=${ODL_ADMIN_USERNAME:-admin}
 ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD:-admin}
