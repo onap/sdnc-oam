@@ -25,22 +25,10 @@ RUN mkdir $ODL_HOME/current/certs
 COPY system /tmp/system
 RUN rsync -a /tmp/system $ODL_HOME
 
-# Add SDNC NORTHBOUND FEATURES repository
-ENV SDNC_NORTHBOUND_REPO mvn:org.onap.sdnc.northbound/sdnc-northbound-all/${sdnc.northbound.version}/xml/features
-
-# Add CCSDK SDNR FEATURES repositories
-ENV SDNR_FEATURES_REPO mvn:org.onap.ccsdk.oran/a1-adapter-northbound/${ccsdk.oran.a1adapter.version}/xml/features,\
-mvn:org.onap.ccsdk.features/ccsdk-features-all/${ccsdk.features.version}/xml/features,\
-mvn:org.onap.ccsdk.features.sdnr.northbound/sdnr-northbound-all/${ccsdk.features.version}/xml/features,\
-mvn:org.onap.ccsdk.features.sdnr.wt/sdnr-wt-feature-aggregator/${ccsdk.features.version}/xml/features,\
-mvn:org.onap.ccsdk.features.sdnr.wt/sdnr-wt-feature-aggregator-oauth/${ccsdk.features.version}/xml/features,\
-mvn:org.onap.ccsdk.features.sdnr.wt/sdnr-wt-feature-aggregator-devicemanager/${ccsdk.features.version}/xml/features,\
-mvn:org.onap.ccsdk.features.sdnr.wt/sdnr-wt-feature-aggregator-devicemanager-base/${ccsdk.features.version}/xml/features
-
-# Backing up existing karaf cfg and updating features boot and features repository
+# Backing up existing karaf cfg and updating features boot and features repositories defined in pom.xml
 RUN cp $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.karaf.features.cfg.sdnc.orig
-RUN sed -i -e "\|featuresBoot[^a-zA-Z]|s|$|,sdnc-northbound-all|" $ODL_HOME/etc/org.apache.karaf.features.cfg
-RUN sed -i -e "\|featuresRepositories|s|$|,${SDNC_NORTHBOUND_REPO},${SDNR_FEATURES_REPO}|" $ODL_HOME/etc/org.apache.karaf.features.cfg
+RUN sed -i -e "\|featuresBoot[^a-zA-Z]|s|$|,${sdnc.features.boot}|" $ODL_HOME/etc/org.apache.karaf.features.cfg
+RUN sed -i -e "\|featuresRepositories|s|$|,${ccsdk.features.repo},${sdnc.features.repo}|" $ODL_HOME/etc/org.apache.karaf.features.cfg
 
 # Add odl-netconf-topology to boot repositories
 RUN sed -i "s/odl-restconf-all/odl-restconf-all,odl-netconf-topology/g"  $ODL_HOME/etc/org.apache.karaf.features.cfg
