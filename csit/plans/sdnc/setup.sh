@@ -109,10 +109,8 @@ fi
 num_bundles=$(docker exec -i ${SDNC_CONTAINER_NAME} sh -c "echo '' | /opt/opendaylight/current/bin/client bundle:list" | tail -1 | cut -d' ' -f1)
 
   if [ "$num_bundles" -ge 333 ]; then
-    num_bundles=$(docker exec -i ${SDNC_CONTAINER_NAME} sh -c "echo '' | /opt/opendaylight/current/bin/client bundle:list" | tail -1 | cut -d' ' -f1)
-
-    num_failed_bundles=$(docker exec -i ${SDNC_CONTAINER_NAME} sh -c "echo '' | /opt/opendaylight/current/bin/client bundle:list" | grep Failure | wc -l)
-    failed_bundles=$(docker exec -i ${SDNC_CONTAINER_NAME} sh -c "echo '' | /opt/opendaylight/current/bin/client bundle:list" | grep Failure)
+    num_failed_bundles=$(docker exec -i ${SDNC_CONTAINER_NAME} sh -c "echo '' | /opt/opendaylight/current/bin/client bundle:list" | grep -w Failure | wc -l)
+    failed_bundles=$(docker exec -i ${SDNC_CONTAINER_NAME} sh -c "echo '' | /opt/opendaylight/current/bin/client bundle:list" | grep -w Failure)
     echo There is/are $num_failed_bundles failed bundles out of $num_bundles installed bundles.
   fi
 

@@ -56,6 +56,10 @@ RUN echo org.ops4j.pax.web.ssl.keypassword=$SDNC_KEYPASS >> $ODL_HOME/etc/custom
 # Overwrite svclogic compiler properties
 RUN cp /opt/onap/sdnc/data/properties/svclogic-compiler.properties /opt/onap/sdnc/svclogic/config/svclogic.properties
 
+# Short term fix starts: for javax.servlet-api bundle (Replacing 4.0.1 to 3.1.0 as it's unique for javax.servlet-api)
+RUN find /opt/opendaylight -name "*features*.xml" -exec sed -i -e 's|4.0.1|3.1.0|g' {} \;
+# Short term fix ends
+
 # Changing ownership and permission of /opt
 RUN chown -R odl:odl /opt && chmod -R 755 /opt
 
@@ -68,18 +72,18 @@ FROM scratch
 LABEL maintainer="SDN-C Team (sdnc@lists.onap.org)"
 USER root
 
-ENV LC_ALL en_US.UTF-8
-ENV JAVA_HOME /opt/java/openjdk
-ENV PATH $PATH:/opt/java/openjdk/bin
-
-ENV ODL_HOME /opt/opendaylight/current
-ENV SDNC_CONFIG_DIR /opt/onap/sdnc/data/properties
-ENV SDNC_KEYSTORE ${sdnc.keystore}
-ENV SDNC_KEYPASS ${sdnc.keypass}
+ENV LC_ALL=en_US.UTF-8 \
+    JAVA_HOME=/opt/java/openjdk \
+    PATH=$PATH:/opt/java/openjdk/bin \
+    ODL_HOME=/opt/opendaylight/current \
+    SDNC_CONFIG_DIR=/opt/onap/sdnc/data/properties \
+    SDNC_KEYSTORE=${sdnc.keystore} \
+    SDNC_KEYPASS=${sdnc.keypass}
 
 # Copy Everything from stage0
 COPY --from=stage0 / /
 
 USER odl
-ENTRYPOINT /opt/onap/sdnc/bin/startODL.sh
 EXPOSE 8181
+WORKDIR ${ODL_HOME}
+ENTRYPOINT /opt/onap/sdnc/bin/startODL.sh
