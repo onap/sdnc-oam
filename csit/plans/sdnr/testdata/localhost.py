@@ -24,6 +24,21 @@ RESTCONF_TIMEOUT = '90 s'
 # Restconf response time longer than VALID_RESPONSE_TIME in s will be notified as warning in the robot logs
 VALID_RESPONSE_TIME = 5
 
+# Define network function parameter
+NETWORK_FUNCTIONS = {
+    'O_RAN_FH': {"NAME": "o-ran-fh", "IP": "172.50.0.40", "PORT": "830", "USER": "netconf",
+                 "PASSWORD": "netconf!", 'NETCONF_HOST': '172.50.0.1', 'BASE_PORT': 40000, 'TLS_PORT': 40500},
+    'X_RAN': {"NAME": "x-ran", "IP": "172.50.0.42", "PORT": "830", "USER": "netconf",
+              "PASSWORD": "netconf!", 'NETCONF_HOST': '172.50.0.1', 'BASE_PORT': 42000, 'TLS_PORT': 42500},
+    'ONF_CORE_1_2': {"NAME": "onf-core-1-2", "IP": "172.50.0.30", "PORT": "830",
+                     "USER": "netconf", "PASSWORD": "netconf!", 'NETCONF_HOST': '172.50.0.1', 'BASE_PORT': 30000,
+                     'TLS_PORT': 30500},
+    'ONF_CORE_1_4': {"NAME": "onf-core-1-4", "IP": "172.50.0.31", "PORT": "830",
+                     "USER": "netconf", "PASSWORD": "netconf!", 'NETCONF_HOST': '172.50.0.1', 'BASE_PORT': 31000,
+                     'TLS_PORT': 31500},
+    'OPENROADM_6_1_0': {"NAME": "openroadm-6-1-0", "IP": "172.50.0.36", "PORT": "830", "USER": "netconf",
+                        "PASSWORD": "netconf!", 'NETCONF_HOST': '172.50.0.1', 'BASE_PORT': 36000, 'TLS_PORT': 36500}
+}
 
 VESCOLLECTOR = {"SCHEME": "https", "IP": "172.40.0.1", "PORT": 8443, "AUTHMETHOD": "basic-auth", "USERNAME": "sample1",
                 "PASSWORD": "sample1"}
