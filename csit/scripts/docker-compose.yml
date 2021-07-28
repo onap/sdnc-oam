@@ -22,12 +22,30 @@ services:
         max-size: "30m"
         max-file: "5"
 
+  aaisim:
+    image: rodolpheche/wiremock
+    ports:
+      - "8080:8080"
+    command: --verbose
+    container_name: aaisim
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+      - ./aaisimulator/wiremock:/home/wiremock:ro
+    hostname:
+      aaisim
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "30m"
+        max-file: "5"
+
   sdnc:
     image: onap/sdnc-image:latest
     container_name: sdnc_controller
     volumes:
       - /etc/localtime:/etc/localtime:ro
       - $SDNC_CERT_PATH:/opt/opendaylight/current/certs
+      - ./aaisimulator/aaiclient.properties:/opt/onap/sdnc/data/properties/aaiclient.properties:ro
     entrypoint: ["/opt/onap/sdnc/bin/startODL.sh"]
     ports:
       - "8282:8181"
@@ -37,6 +55,7 @@ services:
       - mariadb:dbhost
       - mariadb:sdnctldb01
       - mariadb:sdnctldb02
+      - aaisim:aaihost
     environment:
       - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
       - MYSQL_USER=${MYSQL_USER}

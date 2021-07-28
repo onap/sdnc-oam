@@ -147,20 +147,6 @@ cp ${REQUEST_DATA_PATH}/mount.xml.tmpl ${REQUEST_DATA_PATH}/mount.xml
 sed -i "s/pnfaddr/${LOCAL_IP}/g" "${REQUEST_DATA_PATH}"/mount.xml
 
 
-# Load test dgs
-docker exec ${SDNC_CONTAINER_NAME} mkdir -p /tmp/gra.patch
-
-for file in ${WORKSPACE}/plans/sdnc/testdata/*xml
-do
-    docker cp $file ${SDNC_CONTAINER_NAME}:/tmp/gra.patch
-    mname=$(basename $file | cut -d. -f1| cut -d_ -f1)
-    bname=$(basename $file | cut -d. -f1| cut -d_ -f2-)
-    echo ${mname} ${bname} aai-disabled sync >> ${WORKSPACE}/archives/graph.versions
-done
-docker cp ${WORKSPACE}/archives/graph.versions ${SDNC_CONTAINER_NAME}:/tmp/gra.patch
-docker exec ${SDNC_CONTAINER_NAME} /opt/onap/sdnc/svclogic/bin/svclogic.sh install /tmp/gra.patch /opt/onap/sdnc/svclogic/config/svclogic.properties
-
-
 #########################################################################
 
 # Export SDNC, AAF-Certservice-Cient, Netconf-Pnp-Simulator Continer Names
