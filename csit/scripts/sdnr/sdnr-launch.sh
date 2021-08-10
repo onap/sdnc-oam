@@ -28,8 +28,6 @@ sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
 which docker-compose
 docker version
 docker-compose version
-# WA: no space left on device.
-docker system prune -f -a
 
 if [[ -z $WORKSPACE ]]; then
     CUR_PATH="`dirname \"$0\"`"              # relative path
@@ -101,8 +99,11 @@ function sdnr_launch() {
 
 function sdnr_launch_single_node() {
 
-    docker-compose $env_file -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose-single-sdnr.yaml \
-                             -f ${WORKSPACE}/scripts/sdnr/docker-compose/$sdnrdb_compose_file \
+    # Use locally build sdnr .. no need to pull
+    #docker-compose $env_file -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose-single-sdnr.yaml \
+    #                         -f ${WORKSPACE}/scripts/sdnr/docker-compose/$sdnrdb_compose_file \
+    #                         pull
+    docker-compose $env_file -f ${WORKSPACE}/scripts/sdnr/docker-compose/$sdnrdb_compose_file \
                              pull
     docker-compose $env_file -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose-single-sdnr.yaml \
                              -f ${WORKSPACE}/scripts/sdnr/docker-compose/$sdnrdb_compose_file \
@@ -114,6 +115,7 @@ function sdnr_launch_single_node() {
              if [ $i == 50 ]; then
                 echo "[ERROR] SDNC/R container not ready"
                 docker ps -a
+                docker logs sdnr
                 # exit 1
              fi
          done

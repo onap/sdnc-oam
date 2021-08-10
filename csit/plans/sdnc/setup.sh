@@ -18,10 +18,17 @@
 # Modifications copyright (c) 2021 AT&T Intellectual Property
 #
 
-# Remove all dangling images
+# Remove all dangling images and cleanup /w/workspace and /tmp
 docker image prune -f
+echo "Remove onap repository artifacts"
+rm -r /tmp/r/org/onap
+echo "Remove all target folders from workspace"
+rm -r $(find /w/workspace -name target)
 
 ###################### Netconf Simulator Setup ######################
+
+echo "Clean"
+sudo apt clean
 
 # Get integration/simulators
 if [ -d ${WORKSPACE}/archives/pnf-simulator ]

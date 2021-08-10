@@ -18,6 +18,19 @@
 # Modifications copyright (c) 2021 highstreet technologies GmbH Property
 #
 
+# Remove all not needed images and clean workspace
+sudo apt clean
+docker rmi -f $(docker images onap/sdnc-dmaap-listener-image -a -q)
+docker rmi -f $(docker images onap/sdnc-ueb-listener-image -a -q)
+docker rmi -f $(docker images onap/onap/sdnc-web-image -a -q)
+docker rmi -f $(docker images onap/sdnc-ansible-server-image -a -q)
+docker rmi -f $(docker images onap/sdnc-aaf-image -a -q)
+docker rmi -f $(docker images onap/ccsdk-ansible-server-image -a -q)
+docker rmi -f $(docker images onap/ccsdk-odlsli-alpine-image -a -q)
+docker images
+
+echo "Start plan sdnr"
+
 source ${WORKSPACE}/scripts/sdnr/sdnr-launch.sh
 onap_dependent_components_launch
 nts_networkfunctions_launch ${WORKSPACE}/plans/sdnr/testdata/nts-networkfunctions.csv
