@@ -18,6 +18,22 @@
 # Modifications copyright (c) 2021 highstreet technologies GmbH Property
 #
 
+echo "Clean"
+sudo apt clean
+
+echo "Start plan sdnr"
+
+docker image prune -f
+echo "Should be empty"
+docker ps -a
+docker rm -f $(docker ps -aq)
+docker rmi -f $(docker images onap/sdnc-ansible-server-image -a -q)
+docker rmi -f $(docker images onap/sdnc-aaf-image -a -q)
+docker rmi -f $(docker images onap/ccsdk-ansible-server-image -a -q)
+docker rmi -f $(docker images onap/ccsdk-odlsli-alpine-image -a -q)
+docker rmi -f $(docker images onap/ccsdk-alpine-j11-image -a -q)
+docker images
+
 source ${WORKSPACE}/scripts/sdnr/sdnr-launch.sh
 onap_dependent_components_launch
 nts_networkfunctions_launch ${WORKSPACE}/plans/sdnr/testdata/nts-networkfunctions.csv

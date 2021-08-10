@@ -29,7 +29,7 @@ which docker-compose
 docker version
 docker-compose version
 # WA: no space left on device.
-docker system prune -f -a
+#docker system prune -f
 
 if [[ -z $WORKSPACE ]]; then
     CUR_PATH="`dirname \"$0\"`"              # relative path
