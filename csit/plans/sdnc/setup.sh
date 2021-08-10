@@ -23,6 +23,12 @@ docker image prune -f
 
 ###################### Netconf Simulator Setup ######################
 
+# Printout container size information
+echo "Disk usage"
+df -h
+echo "20 Biggest directories"
+du -a /var | sort -n -r | head -n 20
+
 # Get integration/simulators
 if [ -d ${WORKSPACE}/archives/pnf-simulator ]
 then
