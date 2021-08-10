@@ -18,6 +18,19 @@
 # Modifications copyright (c) 2021 highstreet technologies GmbH Property
 #
 
+echo "Disk usage"
+df -h
+echo "20 Biggest directories"
+du -a /var | sort -n -r | head -n 15
+echo "Clean"
+sudo apt clean
+echo "Disk usage"
+df -h
+echo "20 Biggest directories"
+du -a /var | sort -n -r | head -n 15
+
+echo "Start plan sdnr"
+
 source ${WORKSPACE}/scripts/sdnr/sdnr-launch.sh
 onap_dependent_components_launch
 nts_networkfunctions_launch ${WORKSPACE}/plans/sdnr/testdata/nts-networkfunctions.csv
