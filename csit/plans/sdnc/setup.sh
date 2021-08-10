@@ -19,9 +19,13 @@
 #
 
 # Remove all dangling images
-docker image prune -f
+#docker image prune -f
 
 ###################### Netconf Simulator Setup ######################
+
+# Printout container size information
+echo "Clean"
+sudo apt clean
 
 # Get integration/simulators
 if [ -d ${WORKSPACE}/archives/pnf-simulator ]
