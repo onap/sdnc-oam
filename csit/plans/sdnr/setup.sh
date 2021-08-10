@@ -18,6 +18,14 @@
 # Modifications copyright (c) 2021 highstreet technologies GmbH Property
 #
 
+echo "Clean"
+sudo apt clean
+
+echo "Start plan sdnr"
+
+docker image prune -f
+docker images
+
 source ${WORKSPACE}/scripts/sdnr/sdnr-launch.sh
 onap_dependent_components_launch
 nts_networkfunctions_launch ${WORKSPACE}/plans/sdnr/testdata/nts-networkfunctions.csv
