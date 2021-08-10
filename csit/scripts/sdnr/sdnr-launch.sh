@@ -29,7 +29,7 @@ which docker-compose
 docker version
 docker-compose version
 # WA: no space left on device.
-docker system prune -f -a
+#docker system prune -f
 
 if [[ -z $WORKSPACE ]]; then
     CUR_PATH="`dirname \"$0\"`"              # relative path
@@ -107,13 +107,15 @@ function sdnr_launch_single_node() {
     docker-compose $env_file -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose-single-sdnr.yaml \
                              -f ${WORKSPACE}/scripts/sdnr/docker-compose/$sdnrdb_compose_file \
                              up -d
-         for i in {1..50}; do
+    df -h
+         for i in {1..30}; do
              curl -sS -m 1 -D - ${HOST_IP}:8181/ready | grep 200 && break
              echo sleep $i
              sleep $i
-             if [ $i == 50 ]; then
+             if [ $i == 30 ]; then
                 echo "[ERROR] SDNC/R container not ready"
                 docker ps -a
+                docker logs sdnr
                 # exit 1
              fi
          done
