@@ -20,8 +20,20 @@
 
 # Remove all dangling images
 docker image prune -f
+docker images
+df -h
+du -ah /w/workspace | sort -n -r | head -n 10
+du -ah /tmp | sort -n -r | head -n 10
+echo "Remove repository"
+rm -r /tmp/r/org/onap
+echo "Remove all target folders from workspace"
+rm -r $(find /w/workspace -name target)
 
 ###################### Netconf Simulator Setup ######################
+
+# Printout container size information
+echo "Clean"
+sudo apt clean
 
 # Get integration/simulators
 if [ -d ${WORKSPACE}/archives/pnf-simulator ]
