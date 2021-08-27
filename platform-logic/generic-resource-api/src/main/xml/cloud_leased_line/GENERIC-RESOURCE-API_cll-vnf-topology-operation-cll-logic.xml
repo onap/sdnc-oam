@@ -1,0 +1,207 @@
+<service-logic
+        xmlns='http://www.onap.org/sdnc/svclogic'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    <method rpc='cll-vnf-topology-operation-cll-logic' mode='sync'>
+        <block atomic="true">
+            <set>
+                <parameter name='middle-man-conn.' value='' />
+            </set>
+            <set>
+                <parameter name='tmp.aai.all-connectivities.' value="" />
+            </set>
+            <set>
+                <parameter name='found-middle-man' value="false" />
+            </set>
+            <set>
+                <parameter name='no-pce-call' value="false" />
+            </set>
+            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                          resource="connectivities"
+                          key="selflink = 'https://aai.onap:8443/aai/v24/network/connectivities"
+                          local-only="false"
+                          pfx="tmp.aai.all-connectivities" >
+                <outcome value='success'>
+                    <block atomic="true">
+                        <switch test="`$tmp.aai.all-connectivities.connectivity_length == 0`">
+                            <outcome value='true'></outcome>
+                            <outcome value='false'>
+                                <for index='connidx' start='0' end='`$tmp.aai.all-connectivities.connectivity_length`' >
+                                    <block atomic='true'>
+                                        <switch test="`$tmp.aai.all-connectivities.connectivity[$connidx].vpn-type == 'mdsc' `">
+                                            <outcome value='false'>
+                                                <block></block>
+                                            </outcome>
+                                            <outcome value='true'>
+                                                <block atomic='true'>
+                                                    <switch test="`$tmp.aai.all-connectivities.connectivity[$connidx].color-aware == $tmp.ROOT.uni-p-interface-long`">
+                                                        <outcome value='false'>
+                                                            <block></block>
+                                                        </outcome>
+                                                        <outcome value='true'>
+                                                            <block atomic='true'>
+                                                                <set>
+                                                                    <parameter name='found-middle-man' value="true" />
+                                                                </set>
+                                                                <set>
+                                                                    <parameter name='middle-man-conn.' value='`$tmp.aai.all-connectivities.connectivity[$connidx].`' />
+                                                                </set>
+                                                            </block>
+                                                        </outcome>
+                                                    </switch>
+                                                </block>
+                                            </outcome>
+                                        </switch>
+                                        <switch test="`$found-middle-man`">
+                                            <outcome value='false'>
+                                                <block></block>
+                                            </outcome>
+                                            <outcome value='true'>
+                                                <block atomic='true'>
+                                                    <for silentFailure='true' index='mmridx' start='0' end='`$middle-man-conn.relationship-list.relationship_length`' >
+                                                        <set>
+                                                            <parameter name='tmp.aai.mmrconnectivity.' value='' />
+                                                        </set>
+                                                        <switch test='`$middle-man-conn.relationship-list.relationship[$mmridx].related-to`'>
+                                                            <outcome value='connectivity'>
+                                                                <block atomic="true">
+                                                                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                  resource="connectivity"
+                                                                                  key="connectivity.connectivity-id = $middle-man-conn.relationship-list.relationship[$mmridx].relationship-data[0].relationship-value"
+                                                                                  local-only="false"
+                                                                                  pfx="tmp.aai.mmrconnectivity" >
+                                                                        <outcome value='success'>
+                                                                            <switch test="`$tmp.aai.mmrconnectivity.vpn-type == 'leaf' `">
+                                                                                <outcome value='false'>
+                                                                                    <block></block>
+                                                                                </outcome>
+                                                                                <outcome value='true'>
+                                                                                    <block atomic='true'>
+                                                                                        <!--<switch test="`$tmp.aai.all-connectivities.connectivity[$connidx].cvlan == $tmp.aai.network-route-LEAF.logical-interface-id `">-->
+                                                                                        <switch test="`$tmp.aai.mmrconnectivity.cvlan == $tmp.aai.network-route-LEAF.logical-interface-id `">
+                                                                                            <outcome value='false'>
+                                                                                                <block></block>
+                                                                                            </outcome>
+                                                                                            <outcome value='true'>
+                                                                                                <for silentFailure='true' index='connrelidx' start='0' end='`$tmp.aai.mmrconnectivity.relationship-list.relationship_length`' >
+                                                                                                    <set>
+                                                                                                        <parameter name='tmp.uni.id' value='' />
+                                                                                                    </set>
+                                                                                                    <switch test='`$tmp.aai.mmrconnectivity.relationship-list.relationship[$connrelidx].related-to`'>
+                                                                                                        <outcome value='uni'>
+                                                                                                            <block atomic="true">
+                                                                                                                <set>
+                                                                                                                    <parameter name='tmp.uni.id' value='`$tmp.aai.mmrconnectivity.relationship-list.relationship[$connrelidx].relationship-data[0].relationship-value`' />
+                                                                                                                </set>
+                                                                                                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                                                              resource="uni"
+                                                                                                                              key="uni.id = $tmp.uni.id"
+                                                                                                                              local-only="false"
+                                                                                                                              pfx="tmp.aai.uni" >
+                                                                                                                    <outcome value='success'>
+                                                                                                                        <block atomic='true'>
+                                                                                                                            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                                                                                                                                <parameter name="original_string" value='`$tmp.aai.uni.id`'/>
+                                                                                                                                <!--<parameter name="regex" value="[^-]+$"/>-->
+                                                                                                                                <parameter name="regex" value="[-]+"/>
+                                                                                                                                <parameter name="ctx_memory_result_key" value="param-prefix-uni-pnfName"/>
+                                                                                                                                <outcome value='success'>
+                                                                                                                                    <block atomic="true">
+                                                                                                                                        <set>
+                                                                                                                                            <parameter name='tmp.uni.pnf-name' value="`$param-prefix-uni-pnfName[0] + '-' +
+                                                   $param-prefix-uni-pnfName[1] + '-' +
+                                                   $param-prefix-uni-pnfName[2] + '-' +
+                                                   $param-prefix-uni-pnfName[3] + '-' +
+                                                   $param-prefix-uni-pnfName[4] + '-' +
+                                                   $param-prefix-uni-pnfName[5] + '-' +
+                                                   $param-prefix-uni-pnfName[6] + '-' +
+                                                   $param-prefix-uni-pnfName[7] + '-' +
+                                                   $param-prefix-uni-pnfName[8]`" />
+                                                                                                                                        </set>
+                                                                                                                                    </block>
+                                                                                                                                </outcome>
+                                                                                                                                <outcome value='failure'>
+                                                                                                                                    <return status='failure'>
+                                                                                                                                        <parameter name='error-code' value='' />
+                                                                                                                                        <parameter name='error-message' value="An error occured while splitting sna1_route" />
+                                                                                                                                    </return>
+                                                                                                                                </outcome>
+                                                                                                                            </execute>
+                                                                                                                            <switch test='`$tmp.uni.pnf-name == $tmp.LEAF.pnf-name-long`'>
+                                                                                                                                <outcome value='false'>
+                                                                                                                                    <block></block>
+                                                                                                                                </outcome>
+                                                                                                                                <outcome value='true'>
+                                                                                                                                    <block atomic='true'>
+                                                                                                                                        <set>
+                                                                                                                                            <parameter name='no-pce-call' value="true" />
+                                                                                                                                        </set>
+                                                                                                                                        <set>
+                                                                                                                                            <parameter name='middle-man-conn.' value='`$tmp.aai.all-connectivities.connectivity[$connidx].`' />
+                                                                                                                                        </set>
+                                                                                                                                        <set>
+                                                                                                                                            <parameter name='filenamebb' value="`$param-prefix-uni-pnfName[8]`" />
+                                                                                                                                        </set>
+                                                                                                                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
+                                                                                                                                            <parameter name="filename" value="`$filenamebb`" />
+                                                                                                                                        </execute>
+                                                                                                                                    </block>
+                                                                                                                                </outcome>
+                                                                                                                            </switch>
+                                                                                                                        </block>
+                                                                                                                    </outcome>
+                                                                                                                    <outcome value='not-found'>
+                                                                                                                        <return status='failure'>
+                                                                                                                            <parameter name='error-code' value='500' />
+                                                                                                                            <parameter name='error-message' value='uni not found' />
+                                                                                                                        </return>
+                                                                                                                    </outcome>
+                                                                                                                    <outcome value='failure'>
+                                                                                                                        <return status='failure'>
+                                                                                                                            <parameter name='error-code' value='500' />
+                                                                                                                            <parameter name='error-message' value='uni not found' />
+                                                                                                                        </return>
+                                                                                                                    </outcome>
+                                                                                                                </get-resource>
+                                                                                                            </block>
+                                                                                                        </outcome>
+                                                                                                    </switch>
+                                                                                                </for>
+                                                                                            </outcome>
+                                                                                        </switch>
+                                                                                    </block>
+                                                                                </outcome>
+                                                                            </switch>
+                                                                        </outcome>
+                                                                        <outcome value='not-found'>
+                                                                            <return status='failure'>
+                                                                                <parameter name='ack-final' value='Y'/>
+                                                                                <parameter name="error-code" value="500" />
+                                                                                <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.l3vpn.pe1_id`" />
+                                                                            </return>
+                                                                        </outcome>
+                                                                        <outcome value='failure'>
+                                                                            <return status='failure'>
+                                                                                <parameter name='error-code' value='' />
+                                                                                <parameter name='error-message' value='' />
+                                                                            </return>
+                                                                        </outcome>
+                                                                    </get-resource>
+                                                                </block>
+                                                            </outcome>
+                                                        </switch>
+                                                    </for>
+                                                </block>
+                                            </outcome>
+                                        </switch>
+                                    </block>
+                                </for>
+                            </outcome>
+                        </switch>
+                    </block>
+                </outcome>
+                <outcome value='not-found'></outcome>
+                <outcome value='failure'></outcome>
+            </get-resource>
+        </block>
+    </method>
+</service-logic>

@@ -1,0 +1,3445 @@
+[
+    {
+        "id": "ee012476.423b98",
+        "type": "save",
+        "name": "get all-vpn-bindings from aai",
+        "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\tresource=\"vpn-bindings\"\n\t    key=\"selflink = 'https://aai.onap:8443/aai/v24/network/vpn-bindings\"\n\t\tlocal-only=\"false\" \n\t\tpfx=\"tmp.aai.all-vpn-bindings\" >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 339,
+        "y": 363,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "2b361ed4.488d22",
+                "8a293b14.096a28",
+                "e711b658.aa0458"
+            ]
+        ]
+    },
+    {
+        "id": "2b361ed4.488d22",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 527,
+        "y": 376,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "d45a4635.eb8678"
+            ]
+        ]
+    },
+    {
+        "id": "8a293b14.096a28",
+        "type": "not-found",
+        "name": "not-found",
+        "xml": "<outcome value='not-found'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 527.490966796875,
+        "y": 421.57403564453125,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "abb54833.f0129"
+            ]
+        ]
+    },
+    {
+        "id": "e711b658.aa0458",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 525,
+        "y": 465,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "f29b4663.f669b"
+            ]
+        ]
+    },
+    {
+        "id": "d45a4635.eb8678",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "outputs": 1,
+        "x": 700,
+        "y": 374,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "f31c0d53.86d7f8"
+            ]
+        ]
+    },
+    {
+        "id": "abb54833.f0129",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.l3vpn.pe1_id`\" />\n\n",
+        "comments": "",
+        "x": 690.0623779296875,
+        "y": 421.8597717285156,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "f29b4663.f669b",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n<parameter name='error-code' value='' />\n<parameter name='error-message' value='' />\n",
+        "comments": "",
+        "x": 692,
+        "y": 464,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "f31c0d53.86d7f8",
+        "type": "for",
+        "name": "for vpnidx in all-vpn-bindings",
+        "xml": "<for index='vpnbidx' start='0' end='`$tmp.aai.all-vpn-bindings.vpn-binding_length`' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 929,
+        "y": 375,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "b49d17ad.574c7"
+            ]
+        ]
+    },
+    {
+        "id": "b49d17ad.574c7",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 1144,
+        "y": 376,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "59104900.730b5"
+            ]
+        ]
+    },
+    {
+        "id": "59104900.730b5",
+        "type": "switchNode",
+        "name": "switch vpnuuid is for this slice",
+        "xml": "<!--<switch test=\"`$tmp.slicevpnuuids[$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-id] != '' `\">-->\n\n<!-- Replace vpn-type with slice-id (a new attribbute in the latest AAI) -->\n<switch test=\"`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].slice-id == $tmp.aai.service-instance.service-instance-id `\">\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1388,
+        "y": 375,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "a081cc3f.ed90c8",
+                "c86127b7.79d09"
+            ]
+        ]
+    },
+    {
+        "id": "a081cc3f.ed90c8",
+        "type": "outcomeTrue",
+        "name": "true",
+        "xml": "<outcome value='true'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1605,
+        "y": 354,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "99d2c91.f0beeb8"
+            ]
+        ]
+    },
+    {
+        "id": "c86127b7.79d09",
+        "type": "outcomeFalse",
+        "name": "false",
+        "xml": "<outcome value='false'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1605,
+        "y": 403,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "99d2c91.f0beeb8",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic='true'>",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 1799,
+        "y": 363,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "1cc75cf0.e01a9b",
+                "171d3657.f2327a",
+                "e9e324cf.d34fa8"
+            ]
+        ]
+    },
+    {
+        "id": "63d9b9e3.c39a3",
+        "type": "dgstart",
+        "name": "DGSTART",
+        "outputs": 1,
+        "x": 158,
+        "y": 104,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "13826703.6fe8f9"
+            ]
+        ]
+    },
+    {
+        "id": "13826703.6fe8f9",
+        "type": "service-logic",
+        "name": "GENERIC-RESOURCE-API ${project.version}",
+        "module": "GENERIC-RESOURCE-API",
+        "version": "${project.version}",
+        "comments": "",
+        "xml": "<service-logic xmlns='http://www.onap.org/sdnc/svclogic' xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>",
+        "outputs": 1,
+        "x": 442.2856903076172,
+        "y": 165.23810863494873,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "a18ada65.df1b6"
+            ]
+        ]
+    },
+    {
+        "id": "a18ada65.df1b6",
+        "type": "method",
+        "name": "method cll-vnf-topology-operation-cll-F1-Activate",
+        "xml": "<method rpc='cll-vnf-topology-operation-cll-F1-Activate' mode='sync'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 448.42860412597656,
+        "y": 250.00003051757812,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "e68623b.1ed71e"
+            ]
+        ]
+    },
+    {
+        "id": "e68623b.1ed71e",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "outputs": 1,
+        "x": 758.238037109375,
+        "y": 241.66668701171875,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "ee012476.423b98",
+                "1d423866.3abba8",
+                "63268214.354d14",
+                "2b86835c.8d9024",
+                "5a6a7d0e.a2f89c"
+            ]
+        ]
+    },
+    {
+        "id": "1cc75cf0.e01a9b",
+        "type": "set",
+        "name": "set tmp.aai.vpn-binding",
+        "xml": "<set>\n<parameter name='tmp.aai.vpn-binding.' value=\"`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].`\" />\n",
+        "comments": "",
+        "x": 2016,
+        "y": 301,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "acb2a33f.d7ec9",
+        "type": "set",
+        "name": "set attachment_param for OTN A",
+        "xml": "<set>\n<parameter name='src-node-id' value='`$tmp.aai.vpn-bindingA.src-access-node-id`' />\n<parameter name='dst-node-id' value='`$tmp.aai.vpn-bindingA.dst-access-node-id`' />\n<!--<parameter name='dst-tpn-id' value='1' />-->\n<parameter name='dst-tpn-id' value='`$tmp.aai.vpn-bindingA.customer-vpn-id`' />\n<parameter name='dst-ttp-id' value='`$tmp.aai.vpn-bindingA.dst-access-ltp-id`' />\n<parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />\n<parameter name='otn-tunnel-name-src-domain' value='`$tmp.aai.vpn-bindingA.vpn-name`' />\n<parameter name='client-id' value='`$tmp.aai.vpn-bindingA.access-client-id`' />\n<parameter name='provider-id' value='`$tmp.aai.vpn-bindingA.access-provider-id`' />\n<parameter name='topology-id' value='`$tmp.aai.vpn-bindingA.access-topology-id`' />\n",
+        "comments": "",
+        "x": 4185,
+        "y": 187,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "1a2b69e5.bdb2ae",
+        "type": "execute",
+        "name": "execute RestApiCallNode Create OTN tunnel with token",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n<parameter name=\"templateFileName\" value=\"`$prop.restapi.templateDir + '/' + $prop.restapi.cll-otn-src-domain-creation.templatefile`\" />\n<parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.domainA.url + '/restconf/data/ietf-te:te'`\" />\n<parameter name=\"restapiUser\" value=\"`$prop.sdncRestApi.thirdpartySdnc.domainA.user`\" />\n<parameter name=\"restapiPassword\" value=\"`$prop.sdncRestApi.thirdpartySdnc.domainA.password`\" />\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"patch\"/>\n<parameter name=\"responsePrefix\" value=\"otn-oof\"/>\n<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>\n<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>\n<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>\n<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>\n<parameter name='customHttpHeaders' value=\"`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`\" />",
+        "comments": "",
+        "outputs": 1,
+        "x": 4266,
+        "y": 502,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "c13bac2.6ce225",
+                "54c65da.56603a4"
+            ]
+        ]
+    },
+    {
+        "id": "c13bac2.6ce225",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4575.5,
+        "y": 471,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "9c791a1e.520a28"
+            ]
+        ]
+    },
+    {
+        "id": "54c65da.56603a4",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4580.5,
+        "y": 536,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "b016fce4.beba"
+            ]
+        ]
+    },
+    {
+        "id": "9c791a1e.520a28",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error executing Create OTN tunnel rest api\" />\n",
+        "comments": "",
+        "x": 4751.5,
+        "y": 471,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "b016fce4.beba",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 4747,
+        "y": 536,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "2227e8a2.0665b8",
+        "type": "set",
+        "name": "set sotn_value",
+        "xml": "<set>\n<!--<parameter name='eth-service-name' value='`$tmp.aai.connectivityA.connectivity-id`' />-->\n<parameter name='eth-service-name' value='`$tmp.aai.connectivityA.etht-svc-name`' />\n<parameter name='slice-id' value='`$vnf-topology-operation-input.service-information.service-instance-id`' />\n<parameter name='provider-id' value='`$tmp.aai.connectivityA.access-provider-id`' />\n<parameter name='client-id' value='`$tmp.aai.connectivityA.access-client-id`' />\n<parameter name='topology-id' value='`$tmp.aai.connectivityA.access-topology-id`' />\n<parameter name='otn-tunnel-name' value='`$tmp.aai.vpn-bindingA.vpn-name`' />\n<parameter name='ethernet-end-point-name' value='`$tmp.aai.connectivityA.connectivity-id`' />\n<parameter name='index-number' value='0' />\n<parameter name='eth-node-id' value='`$tmp.aai.connectivityA.access-node-id`' />\n<parameter name='eth-node-tp-id' value='`$tmp.aai.connectivityA.access-ltp-id`' />\n<parameter name='CIR' value='`$tmp.aai.vpn-bindingA.route-distinguisher *1000000`' />\n<parameter name='EIR' value='`$tmp.aai.vpn-bindingA.route-distinguisher *1000000`' />\n<parameter name='cvlan' value='`$tmp.aai.connectivityA.cvlan`' />\n",
+        "comments": "",
+        "x": 4130.5,
+        "y": 756,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "f70fce2d.7485",
+        "type": "execute",
+        "name": "execute RestApiCallNode Create ethernet Service without token",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n<parameter name=\"templateFileName\" value=\"`$prop.restapi.templateDir + '/' + $prop.restapi.ts-ethernet-service.templatefile`\" />\n<parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.domainA.url + '/restconf/data/ietf-eth-tran-service:etht-svc'`\" />\n<!--<parameter name=\"restapiUrl\" value=\"`$prop.restapi.connection-oof-url`\" />-->\n<parameter name=\"restapiUser\" value=\"`$prop.sdncRestApi.thirdpartySdnc.domainA.user`\" />\n<parameter name=\"restapiPassword\" value=\"`$prop.sdncRestApi.thirdpartySdnc.domainA.password`\" />\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"patch\"/>\n<parameter name='dirPath' value=\"/opt/onap/sdnc/restconfapi/yang\" />\n<parameter name=\"responsePrefix\" value=\"vpn-result\"/>\n<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>\n<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>\n<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>\n<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4284.5,
+        "y": 804,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "8ffe5287.d9d0e8",
+                "5f6b3e31.55961"
+            ]
+        ]
+    },
+    {
+        "id": "8ffe5287.d9d0e8",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4630,
+        "y": 785,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "8c837eb9.336b9"
+            ]
+        ]
+    },
+    {
+        "id": "5f6b3e31.55961",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4634,
+        "y": 825,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "575c5f0f.3503d8"
+            ]
+        ]
+    },
+    {
+        "id": "8c837eb9.336b9",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error executing Create ethernet service rest api\" />\n",
+        "comments": "",
+        "x": 4788,
+        "y": 785,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "575c5f0f.3503d8",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 4791.5,
+        "y": 825,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "25e6aa4e.9a9cde",
+                "1cebed54.09e3f3"
+            ]
+        ]
+    },
+    {
+        "id": "25e6aa4e.9a9cde",
+        "type": "save",
+        "name": "update vpn-binding A resource (aka. OTN domainA) in AAI",
+        "xml": "<update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding' \n      key='vpn-binding.vpn-id = $tmp.aai.vpn-bindingA.vpn-id' >\n<parameter name='vpn-id' value='`$tmp.aai.vpn-bindingA.vpn-id`' />\n<parameter name='vpn-name' value='`$tmp.aai.vpn-bindingA.vpn-name`' />\n\n<parameter name='operational-status' value='Activated' />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 5122,
+        "y": 790,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "57cb404e.88a3a8",
+        "type": "comment",
+        "name": "TODO: FIXME",
+        "info": "use proper vpn-binding id and connectivity id\n\nAlso, does CCSDK support \"update\" operation for vpn-binding and connectivity?",
+        "comments": "",
+        "x": 4986,
+        "y": 749,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "1cebed54.09e3f3",
+        "type": "save",
+        "name": "update connectivity resource in AAI",
+        "xml": "<update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity' \n      key='connectivity.connectivity-id = $tmp.aai.connectivityA.connectivity-id'>\n<parameter name='connectivity-id' value='`$tmp.aai.connectivityA.connectivity-id`' />\n<parameter name='operational-status' value='Activated' />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 5049,
+        "y": 836,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "adcc0fc7.59b628",
+        "type": "set",
+        "name": "set pnf-name",
+        "xml": "<set>\n<parameter name='tmp.src.domainA.pnf-name' value=\"`'networkId-providerId-' +\n                                                   $tmp.aai.vpn-bindingA.access-provider-id + '-clientId-' +\n                                                   $tmp.aai.vpn-bindingA.access-client-id + '-topologyId-' +\n                                                   $tmp.aai.vpn-bindingA.access-topology-id + '-nodeId-' +\n                                                   $tmp.aai.vpn-bindingA.src-access-node-id`\" />\n",
+        "comments": "",
+        "x": 4123,
+        "y": 235,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "36f9f62e.004372",
+        "type": "get-resource",
+        "name": "get-resource src pnf",
+        "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"pnf\" \n\t\tkey=\"pnf.pnf-name = $tmp.src.domainA.pnf-name\"\n        pfx='tmp.aai.source-pnf' local-only='false' >\n\n        <!--AND depth = '0'\"-->\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4149,
+        "y": 352,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "37680b24.ccfd7c",
+                "da1cdd66.16c98",
+                "923405db.542c"
+            ]
+        ]
+    },
+    {
+        "id": "37680b24.ccfd7c",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4344.5001220703125,
+        "y": 304,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "3021ee1b.904b12"
+            ]
+        ]
+    },
+    {
+        "id": "da1cdd66.16c98",
+        "type": "not-found",
+        "name": "not-found",
+        "xml": "<outcome value='not-found'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4336.5001220703125,
+        "y": 359,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "12605fae.863058"
+            ]
+        ]
+    },
+    {
+        "id": "3021ee1b.904b12",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 4488.8824462890625,
+        "y": 303.6556701660156,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "dd5c14b5.d1837"
+            ]
+        ]
+    },
+    {
+        "id": "67c4003.ef8f28",
+        "type": "outcome",
+        "name": "esr-thirdparty-sdnc",
+        "xml": "<outcome value='esr-thirdparty-sdnc'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 5071,
+        "y": 306,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "108d04fa.bf4053"
+            ]
+        ]
+    },
+    {
+        "id": "dd5c14b5.d1837",
+        "type": "for",
+        "name": "for each relationship",
+        "xml": "<for silentFailure='true' index='spvidx' start='0' end='`$tmp.aai.source-pnf.relationship-list.relationship_length`' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4673,
+        "y": 302,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "d5f86c5d.16c4"
+            ]
+        ]
+    },
+    {
+        "id": "d5f86c5d.16c4",
+        "type": "switchNode",
+        "name": "switch related-to",
+        "xml": "<switch test='`$tmp.aai.source-pnf.relationship-list.relationship[$spvidx].related-to`'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4868,
+        "y": 302,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "67c4003.ef8f28"
+            ]
+        ]
+    },
+    {
+        "id": "923405db.542c",
+        "type": "other",
+        "name": "other",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4341.5001220703125,
+        "y": 416,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "b180d8b0.c43f88"
+            ]
+        ]
+    },
+    {
+        "id": "b180d8b0.c43f88",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`\" />\n\n",
+        "comments": "",
+        "x": 4493.5001220703125,
+        "y": 417,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "12605fae.863058",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`\" />\n\n",
+        "comments": "",
+        "x": 4504.5001220703125,
+        "y": 360,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "f9899c24.7b705",
+        "type": "execute",
+        "name": "get esr-thirdparty-sdnc",
+        "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"esr-thirdparty-sdnc\" \n\t\tkey=\"esr-thirdparty-sdnc.thirdparty-sdnc-id = $tmp.domainA.esr-thirdparty-id AND \n\t\t     depth = '1'\"\n        pfx='tmp.aai.domainA.esr-thirdparty-sdnc' local-only='false' >",
+        "comments": "",
+        "outputs": 1,
+        "x": 5456,
+        "y": 319,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "d378bd87.63a5c8",
+                "5261c81e.fbb5b8",
+                "634ff531.a525f4"
+            ]
+        ]
+    },
+    {
+        "id": "108d04fa.bf4053",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "outputs": 1,
+        "x": 5250,
+        "y": 306,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "20f95b42.b2257c",
+                "f9899c24.7b705"
+            ]
+        ]
+    },
+    {
+        "id": "20f95b42.b2257c",
+        "type": "set",
+        "name": "set esr-thirdparty-sdnc domainA id",
+        "xml": "<set>\n<parameter name='tmp.domainA.esr-thirdparty-id' value=\"`$tmp.aai.source-pnf.relationship-list.relationship[$spvidx].relationship-data[0].relationship-value`\" />\n",
+        "comments": "",
+        "x": 5486,
+        "y": 267,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "d378bd87.63a5c8",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 5666,
+        "y": 310,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "1cbdaba0.674dd4"
+            ]
+        ]
+    },
+    {
+        "id": "5261c81e.fbb5b8",
+        "type": "not-found",
+        "name": "not-found",
+        "xml": "<outcome value='not-found'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 5658,
+        "y": 365,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "66b4dbad.a4949c"
+            ]
+        ]
+    },
+    {
+        "id": "634ff531.a525f4",
+        "type": "other",
+        "name": "other",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 5663,
+        "y": 422,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "21f2fdd8.0e601a"
+            ]
+        ]
+    },
+    {
+        "id": "21f2fdd8.0e601a",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`\" />\n\n",
+        "comments": "",
+        "x": 5815,
+        "y": 423,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "66b4dbad.a4949c",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`\" />\n\n",
+        "comments": "",
+        "x": 5826,
+        "y": 368,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "1cbdaba0.674dd4",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 5810.38232421875,
+        "y": 307.6556701660156,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "ebf10644.3cf328"
+            ]
+        ]
+    },
+    {
+        "id": "ebf10644.3cf328",
+        "type": "set",
+        "name": "set controller domainA data",
+        "xml": "<set>\n<parameter name='prop.sdncRestApi.thirdpartySdnc.domainA.url' value=\"`$tmp.aai.domainA.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].service-url`\" />\n<parameter name='prop.sdncRestApi.thirdpartySdnc.domainA.user' value=\"`$tmp.aai.domainA.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].user-name`\" />\n<parameter name='prop.sdncRestApi.thirdpartySdnc.domainA.password' value=\"`$tmp.aai.domainA.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].password`\" />\n\n\n<!--<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >-->\n<!--<parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-network:networks'`\" />-->\n<!--<parameter name=\"restapiUser\" value=\"`$prop.sdncRestApi.thirdpartySdnc.user`\" />-->\n<!--<parameter name=\"restapiPassword\" value=\"`$prop.sdncRestApi.thirdpartySdnc.password`\" />-->\n<!--<parameter name=\"format\" value=\"json\"/>-->\n<!--<parameter name=\"httpMethod\" value=\"get\"/>-->\n<!--<parameter name=\"responsePrefix\" value=\"topology\"/>-->\n<!--<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>-->\n<!--<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>-->\n<!--<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>-->\n<!--<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>-->\n",
+        "comments": "",
+        "x": 6025,
+        "y": 304,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "204badf8.a5ba12",
+        "type": "set",
+        "name": "set attachment_param for OTN B",
+        "xml": "<set>\n<parameter name='src-node-id' value='`$tmp.aai.vpn-bindingB.src-access-node-id`' />\n<parameter name='dst-node-id' value='`$tmp.aai.vpn-bindingB.dst-access-node-id`' />\n<!--<parameter name='src-tpn-id' value='1' />-->\n<parameter name='src-tpn-id' value='`$tmp.aai.vpn-bindingB.customer-vpn-id`' />\n<parameter name='src-ttp-id' value='`$tmp.aai.vpn-bindingB.src-access-ltp-id`' />\n<parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />\n<parameter name='otn-tunnel-name-dst-domain' value='`$tmp.aai.vpn-bindingB.vpn-name`' />\n<parameter name='client-id' value='`$tmp.aai.vpn-bindingB.access-client-id`' />\n<parameter name='provider-id' value='`$tmp.aai.vpn-bindingB.access-provider-id`' />\n<parameter name='topology-id' value='`$tmp.aai.vpn-bindingB.access-topology-id`' />\n",
+        "comments": "",
+        "x": 3592,
+        "y": 1644,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "4d3bca29.9af50c",
+        "type": "execute",
+        "name": "execute RestApiCallNode Create OTN tunnel with token",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n<parameter name=\"templateFileName\" value=\"`$prop.restapi.templateDir + '/' + $prop.restapi.cll-otn-dst-domain-creation.templatefile`\" />\n<parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.domainB.url + '/restconf/data/ietf-te:te'`\" />\n<parameter name=\"restapiUser\" value=\"`$prop.sdncRestApi.thirdpartySdnc.domainB.user`\" />\n<parameter name=\"restapiPassword\" value=\"`$prop.sdncRestApi.thirdpartySdnc.domainB.password`\" />\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"patch\"/>\n<parameter name=\"responsePrefix\" value=\"otn-oof\"/>\n<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>\n<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>\n<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>\n<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>\n<parameter name='customHttpHeaders' value=\"`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`\" />",
+        "comments": "",
+        "outputs": 1,
+        "x": 3655,
+        "y": 1973,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "30186c33.4929f4",
+                "868e39af.adebc8"
+            ]
+        ]
+    },
+    {
+        "id": "30186c33.4929f4",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 3950.5,
+        "y": 1940,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "2aae4501.2c69e2"
+            ]
+        ]
+    },
+    {
+        "id": "868e39af.adebc8",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 3955.5,
+        "y": 2005,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "7501d4e8.c8d944"
+            ]
+        ]
+    },
+    {
+        "id": "2aae4501.2c69e2",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error executing Create OTN tunnel rest api\" />\n",
+        "comments": "",
+        "x": 4118.5,
+        "y": 1940,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "7501d4e8.c8d944",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 4129,
+        "y": 2005,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "cc294dbc.f351c",
+        "type": "set",
+        "name": "set pnf-name",
+        "xml": "<set>\n<parameter name='tmp.dst.domainB.pnf-name' value=\"`'networkId-providerId-' +\n                                                   $tmp.aai.vpn-bindingB.access-provider-id + '-clientId-' +\n                                                   $tmp.aai.vpn-bindingB.access-client-id + '-topologyId-' +\n                                                   $tmp.aai.vpn-bindingB.access-topology-id + '-nodeId-' +\n                                                   $tmp.aai.vpn-bindingB.dst-access-node-id`\" />\n",
+        "comments": "",
+        "x": 3531,
+        "y": 1701,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "c8227bea.321b5",
+        "type": "get-resource",
+        "name": "get-resource dst pnf",
+        "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"pnf\" \n\t\tkey=\"pnf.pnf-name = $tmp.dst.domainB.pnf-name\"\n        pfx='tmp.aai.destination-pnf' local-only='false' >\n\n        <!--AND depth = '0'\"-->\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 3551,
+        "y": 1798,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "9f19ba3f.539ea8",
+                "e4125ed0.f068f8",
+                "de95537a.826588"
+            ]
+        ]
+    },
+    {
+        "id": "9f19ba3f.539ea8",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 3753.5001220703125,
+        "y": 1751,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "e35cf2ca.728ed8"
+            ]
+        ]
+    },
+    {
+        "id": "e4125ed0.f068f8",
+        "type": "not-found",
+        "name": "not-found",
+        "xml": "<outcome value='not-found'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 3745.5001220703125,
+        "y": 1806,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "c80b6676.b0f198"
+            ]
+        ]
+    },
+    {
+        "id": "e35cf2ca.728ed8",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 3897.8824462890625,
+        "y": 1748.6556701660156,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "57d9c9b8.81d7a8"
+            ]
+        ]
+    },
+    {
+        "id": "57d9c9b8.81d7a8",
+        "type": "for",
+        "name": "for each relationship",
+        "xml": "<for silentFailure='true' index='dpvidx' start='0' end='`$tmp.aai.destination-pnf.relationship-list.relationship_length`' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4082,
+        "y": 1763,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "2837eada.0816e6"
+            ]
+        ]
+    },
+    {
+        "id": "de95537a.826588",
+        "type": "other",
+        "name": "other",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 3750.5001220703125,
+        "y": 1863,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "6ac21b2f.35237c"
+            ]
+        ]
+    },
+    {
+        "id": "6ac21b2f.35237c",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`\" />\n\n",
+        "comments": "",
+        "x": 3902.5001220703125,
+        "y": 1864,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "c80b6676.b0f198",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`\" />\n\n",
+        "comments": "",
+        "x": 3913.5001220703125,
+        "y": 1809,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "b2f2b82b.20ac9",
+        "type": "outcome",
+        "name": "esr-thirdparty-sdnc",
+        "xml": "<outcome value='esr-thirdparty-sdnc'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4480,
+        "y": 1767,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "e8c4648e.2f16b8"
+            ]
+        ]
+    },
+    {
+        "id": "2837eada.0816e6",
+        "type": "switchNode",
+        "name": "switch related-to",
+        "xml": "<switch test='`$tmp.aai.destination-pnf.relationship-list.relationship[$dpvidx].related-to`'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4277,
+        "y": 1763,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "b2f2b82b.20ac9"
+            ]
+        ]
+    },
+    {
+        "id": "7fa6120f.8bbc34",
+        "type": "execute",
+        "name": "get esr-thirdparty-sdnc",
+        "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"esr-thirdparty-sdnc\" \n\t\tkey=\"esr-thirdparty-sdnc.thirdparty-sdnc-id = $tmp.domainB.esr-thirdparty-id AND \n\t\t     depth = '1'\"\n        pfx='tmp.aai.domainB.esr-thirdparty-sdnc' local-only='false' >",
+        "comments": "",
+        "outputs": 1,
+        "x": 4865,
+        "y": 1766,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "2004b12.ed9d54e",
+                "ffd8f42d.6ff66",
+                "7412d147.be04a8"
+            ]
+        ]
+    },
+    {
+        "id": "e8c4648e.2f16b8",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "outputs": 1,
+        "x": 4657,
+        "y": 1759,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "619505d8.279204",
+                "7fa6120f.8bbc34"
+            ]
+        ]
+    },
+    {
+        "id": "619505d8.279204",
+        "type": "set",
+        "name": "set esr-thirdparty-sdnc domainB id",
+        "xml": "<set>\n<parameter name='tmp.domainB.esr-thirdparty-id' value=\"`$tmp.aai.destination-pnf.relationship-list.relationship[$dpvidx].relationship-data[0].relationship-value`\" />\n",
+        "comments": "",
+        "x": 4895,
+        "y": 1714,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "407265d3.d9387c",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`\" />\n\n",
+        "comments": "",
+        "x": 5224,
+        "y": 1870,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "70bb8ce1.2b5a7c",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`\" />\n\n",
+        "comments": "",
+        "x": 5235,
+        "y": 1815,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "474b0f12.6a5378",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 5219.38232421875,
+        "y": 1754.6556701660156,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "4664ee87.d9fd18"
+            ]
+        ]
+    },
+    {
+        "id": "4664ee87.d9fd18",
+        "type": "set",
+        "name": "set controller domainB data",
+        "xml": "<set>\n<parameter name='prop.sdncRestApi.thirdpartySdnc.domainB.url' value=\"`$tmp.aai.domainB.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].service-url`\" />\n<parameter name='prop.sdncRestApi.thirdpartySdnc.domainB.user' value=\"`$tmp.aai.domainB.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].user-name`\" />\n<parameter name='prop.sdncRestApi.thirdpartySdnc.domainB.password' value=\"`$tmp.aai.domainB.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].password`\" />\n\n\n<!--<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >-->\n<!--<parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-network:networks'`\" />-->\n<!--<parameter name=\"restapiUser\" value=\"`$prop.sdncRestApi.thirdpartySdnc.user`\" />-->\n<!--<parameter name=\"restapiPassword\" value=\"`$prop.sdncRestApi.thirdpartySdnc.password`\" />-->\n<!--<parameter name=\"format\" value=\"json\"/>-->\n<!--<parameter name=\"httpMethod\" value=\"get\"/>-->\n<!--<parameter name=\"responsePrefix\" value=\"topology\"/>-->\n<!--<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>-->\n<!--<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>-->\n<!--<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>-->\n<!--<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>-->\n",
+        "comments": "",
+        "x": 5434,
+        "y": 1751,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "2004b12.ed9d54e",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 5075,
+        "y": 1757,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "474b0f12.6a5378"
+            ]
+        ]
+    },
+    {
+        "id": "ffd8f42d.6ff66",
+        "type": "not-found",
+        "name": "not-found",
+        "xml": "<outcome value='not-found'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 5067,
+        "y": 1812,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "70bb8ce1.2b5a7c"
+            ]
+        ]
+    },
+    {
+        "id": "7412d147.be04a8",
+        "type": "other",
+        "name": "other",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 5072,
+        "y": 1869,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "407265d3.d9387c"
+            ]
+        ]
+    },
+    {
+        "id": "79f7771a.baa2f",
+        "type": "switchNode",
+        "name": "switch vpn-binding has dst-access-ltp",
+        "xml": "<switch test='`$tmp.aai.vpn-binding.dst-access-ltp-id`'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 3106,
+        "y": 715,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "6b315a67.2be854",
+                "7ca64a28.96fff4"
+            ]
+        ]
+    },
+    {
+        "id": "6b315a67.2be854",
+        "type": "outcome",
+        "name": "Null",
+        "xml": "<outcome value=''>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 3320,
+        "y": 752,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "e26333e1.9f2a38"
+            ]
+        ]
+    },
+    {
+        "id": "7ca64a28.96fff4",
+        "type": "other",
+        "name": "other",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 3322,
+        "y": 690,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "89cb81b5.af1468"
+            ]
+        ]
+    },
+    {
+        "id": "e26333e1.9f2a38",
+        "type": "switchNode",
+        "name": "switch vpn-binding has src-access-ltp",
+        "xml": "<switch test='`$tmp.aai.vpn-binding.src-access-ltp-id`'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2900,
+        "y": 1995,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "5c3b586f.467af",
+                "6b4dbd17.81909c"
+            ]
+        ]
+    },
+    {
+        "id": "5c3b586f.467af",
+        "type": "outcome",
+        "name": "Null",
+        "xml": "<outcome value=''>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 3153,
+        "y": 2029,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "a3ab9951.4bdf08"
+            ]
+        ]
+    },
+    {
+        "id": "6b4dbd17.81909c",
+        "type": "other",
+        "name": "other",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 3153,
+        "y": 1973,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "29d8f363.c99594"
+            ]
+        ]
+    },
+    {
+        "id": "a3ab9951.4bdf08",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n<parameter name='error-code' value='' />\n<parameter name='error-message' value='' />\n",
+        "comments": "",
+        "x": 3304,
+        "y": 2029,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "c7f2aefb.cead08",
+        "type": "set",
+        "name": "set vpn-bindingA and connectivityA",
+        "xml": "<set>\n<parameter name='tmp.aai.vpn-bindingA.' value=\"`$tmp.aai.vpn-binding.`\" />\n<parameter name='tmp.aai.connectivityA.' value=\"`$tmp.aai.connectivity.`\" />\n",
+        "comments": "",
+        "x": 4180,
+        "y": 127,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "8d65460e.504db8",
+        "type": "set",
+        "name": "set vpn-bindingB and connectivityB",
+        "xml": "<set>\n<parameter name='tmp.aai.vpn-bindingB.' value=\"`$tmp.aai.vpn-binding.`\" />\n<parameter name='tmp.aai.connectivityB.' value=\"`$tmp.aai.connectivity.`\" />\n\n",
+        "comments": "",
+        "x": 3588,
+        "y": 1586,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "3e2a76dd.233f7a",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 3871,
+        "y": 384,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "c7f2aefb.cead08",
+                "acb2a33f.d7ec9",
+                "adcc0fc7.59b628",
+                "36f9f62e.004372",
+                "1a2b69e5.bdb2ae",
+                "7d01ae3.e59e8d",
+                "91a8f363.33b6d",
+                "8c296a00.ae82e8"
+            ]
+        ]
+    },
+    {
+        "id": "29d8f363.c99594",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "outputs": 1,
+        "x": 3304,
+        "y": 1972,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "8d65460e.504db8",
+                "204badf8.a5ba12",
+                "cc294dbc.f351c",
+                "c8227bea.321b5",
+                "4d3bca29.9af50c",
+                "605c7758.9853c8",
+                "d3fdc974.92df9",
+                "52902dc6.5c041c"
+            ]
+        ]
+    },
+    {
+        "id": "59dac694.235a08",
+        "type": "set",
+        "name": "set sotn_value",
+        "xml": "<set>\n<!--<parameter name='eth-service-name' value='`$tmp.aai.connectivityB.connectivity-id`' />-->\n<parameter name='eth-service-name' value='`$tmp.aai.connectivityB.etht-svc-name`' />\n<parameter name='slice-id' value='`$vnf-topology-operation-input.service-information.service-instance-id`' />\n<parameter name='provider-id' value='`$tmp.aai.connectivityB.access-provider-id`' />\n<parameter name='client-id' value='`$tmp.aai.connectivityB.access-client-id`' />\n<parameter name='topology-id' value='`$tmp.aai.connectivityB.access-topology-id`' />\n<parameter name='otn-tunnel-name' value='`$tmp.aai.vpn-bindingB.vpn-name`' />\n<parameter name='ethernet-end-point-name' value='`$tmp.aai.connectivityB.connectivity-id`' />\n<parameter name='index-number' value='0' />\n<parameter name='eth-node-id' value='`$tmp.aai.connectivityB.access-node-id`' />\n<parameter name='eth-node-tp-id' value='`$tmp.aai.connectivityB.access-ltp-id`' />\n<parameter name='CIR' value='`$tmp.aai.vpn-bindingB.route-distinguisher *1000000`' />\n<parameter name='EIR' value='`$tmp.aai.vpn-bindingB.route-distinguisher *1000000`' />\n<parameter name='cvlan' value='`$tmp.aai.connectivityB.cvlan`' />\n\n",
+        "comments": "",
+        "x": 3542,
+        "y": 2271,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "704c6.41b9333ac",
+        "type": "execute",
+        "name": "execute RestApiCallNode Create ethernet Service without token",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n<parameter name=\"templateFileName\" value=\"`$prop.restapi.templateDir + '/' + $prop.restapi.ts-ethernet-service.templatefile`\" />\n<parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.domainB.url + '/restconf/data/ietf-eth-tran-service:etht-svc'`\" />\n<!--<parameter name=\"restapiUrl\" value=\"`$prop.restapi.connection-oof-url`\" />-->\n<parameter name=\"restapiUser\" value=\"`$prop.sdncRestApi.thirdpartySdnc.domainB.user`\" />\n<parameter name=\"restapiPassword\" value=\"`$prop.sdncRestApi.thirdpartySdnc.domainB.password`\" />\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"patch\"/>\n<parameter name='dirPath' value=\"/opt/onap/sdnc/restconfapi/yang\" />\n<parameter name=\"responsePrefix\" value=\"vpn-result\"/>\n<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>\n<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>\n<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>\n<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 3696,
+        "y": 2319,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "5cc2fc76.782a54",
+                "be48f3e2.0fbf"
+            ]
+        ]
+    },
+    {
+        "id": "5cc2fc76.782a54",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4041.5,
+        "y": 2300,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "a76d95f1.d45e1"
+            ]
+        ]
+    },
+    {
+        "id": "be48f3e2.0fbf",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4045.5,
+        "y": 2340,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "1991eff2.b8a15"
+            ]
+        ]
+    },
+    {
+        "id": "a76d95f1.d45e1",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error executing Create ethernet service rest api\" />\n",
+        "comments": "",
+        "x": 4199.5,
+        "y": 2300,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "1991eff2.b8a15",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 4203,
+        "y": 2340,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "69ca6e83.833b58",
+                "1ce7897f.5077ef"
+            ]
+        ]
+    },
+    {
+        "id": "69ca6e83.833b58",
+        "type": "save",
+        "name": "update vpn-binding B resource (aka. OTN domainB) in AAI",
+        "xml": "<update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding' \n      key='vpn-binding.vpn-id = $tmp.aai.vpn-bindingB.vpn-id' >\n<parameter name='vpn-id' value='`$tmp.aai.vpn-bindingB.vpn-id`' />\n<parameter name='vpn-name' value='`$tmp.aai.vpn-bindingB.vpn-name`' />\n\n<parameter name='operational-status' value='Activated' />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4543,
+        "y": 2339,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "47268bd4.d29394",
+        "type": "comment",
+        "name": "TODO: FIXME",
+        "info": "use proper vpn-binding id and connectivity\n\nAlso, does CCSDK support \"update\" operation for vpn-binding and connectivity?",
+        "comments": "",
+        "x": 4401,
+        "y": 2297,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "1ce7897f.5077ef",
+        "type": "save",
+        "name": "update connectivity resource in AAI",
+        "xml": "<update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity' \n      key='connectivity.connectivity-id = $tmp.aai.connectivityB.connectivity-id'>\n<parameter name='connectivity-id' value='`$tmp.aai.connectivityB.connectivity-id`' />\n<parameter name='operational-status' value='Activated' />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4472,
+        "y": 2388,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "adf25f68.f6874",
+        "type": "set",
+        "name": "set attachment_param (gfp-n) for OTN",
+        "xml": "<set>\n<parameter name='gfp-n' value='`$tmp.aai.vpn-binding.route-distinguisher`' />\n",
+        "comments": "",
+        "x": 3097,
+        "y": 655,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "5011571a.f2ffc8",
+        "type": "comment",
+        "name": "only dst ttp exists. No src",
+        "info": "",
+        "comments": "",
+        "x": 3692,
+        "y": 341,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "69454f54.a632a",
+        "type": "comment",
+        "name": "only src ttp exists. No dst",
+        "info": "",
+        "comments": "",
+        "x": 3249,
+        "y": 1919,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "89cb81b5.af1468",
+        "type": "switchNode",
+        "name": "switch vpn-binding has src-access-ltp",
+        "xml": "<switch test='`$tmp.aai.vpn-binding.src-access-ltp-id`'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 3428,
+        "y": 503,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "89a2367.f810e48",
+                "76abc6c6.50ef4"
+            ]
+        ]
+    },
+    {
+        "id": "76abc6c6.50ef4",
+        "type": "other",
+        "name": "other",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 3670,
+        "y": 1092,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "fdc63597.3712e"
+            ]
+        ]
+    },
+    {
+        "id": "89a2367.f810e48",
+        "type": "outcome",
+        "name": "Null",
+        "xml": "<outcome value=''>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 3664,
+        "y": 383,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "3e2a76dd.233f7a"
+            ]
+        ]
+    },
+    {
+        "id": "fdc63597.3712e",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "outputs": 1,
+        "x": 3828,
+        "y": 1091,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "1793312b.927ef7",
+                "41401fda.2be158",
+                "9005ec38.4e5e88",
+                "dd0899e7.f82f08",
+                "ecd7f356.de7408",
+                "b3054d0f.9c60c"
+            ]
+        ]
+    },
+    {
+        "id": "41401fda.2be158",
+        "type": "set",
+        "name": "set attachment_param for OTN G",
+        "xml": "<set>\n<parameter name='src-node-id' value='`$tmp.aai.vpn-bindingG.src-access-node-id`' />\n<parameter name='dst-node-id' value='`$tmp.aai.vpn-bindingG.dst-access-node-id`' />\n<!--<parameter name='dst-tpn-id' value='1' />-->\n<parameter name='src-tpn-id' value='`$tmp.aai.vpn-bindingG.customer-vpn-id`' />\n<parameter name='dst-tpn-id' value='`$tmp.aai.vpn-bindingG.customer-vpn-id`' />\n<parameter name='src-ttp-id' value='`$tmp.aai.vpn-bindingG.src-access-ltp-id`' />\n<parameter name='dst-ttp-id' value='`$tmp.aai.vpn-bindingG.dst-access-ltp-id`' />\n<parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />\n<parameter name='otn-tunnel-name-domainG' value='`$tmp.aai.vpn-bindingG.vpn-name`' />\n<parameter name='client-id' value='`$tmp.aai.vpn-bindingG.access-client-id`' />\n<parameter name='provider-id' value='`$tmp.aai.vpn-bindingG.access-provider-id`' />\n<parameter name='topology-id' value='`$tmp.aai.vpn-bindingG.access-topology-id`' />\n",
+        "comments": "",
+        "x": 4092,
+        "y": 974,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "ecd7f356.de7408",
+        "type": "execute",
+        "name": "execute RestApiCallNode Create OTN tunnel with token",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n<parameter name=\"templateFileName\" value=\"`$prop.restapi.templateDir + '/' + $prop.restapi.cll-otn-domainG-creation.templatefile`\" />\n<parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.domainG.url + '/restconf/data/ietf-te:te'`\" />\n<parameter name=\"restapiUser\" value=\"`$prop.sdncRestApi.thirdpartySdnc.domainG.user`\" />\n<parameter name=\"restapiPassword\" value=\"`$prop.sdncRestApi.thirdpartySdnc.domainG.password`\" />\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"patch\"/>\n<parameter name=\"responsePrefix\" value=\"otn-oof\"/>\n<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>\n<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>\n<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>\n<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>\n<parameter name='customHttpHeaders' value=\"`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`\" />",
+        "comments": "",
+        "outputs": 1,
+        "x": 4173,
+        "y": 1289,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "e0518882.6fa588",
+                "87218147.0fa418"
+            ]
+        ]
+    },
+    {
+        "id": "e0518882.6fa588",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4482.5,
+        "y": 1258,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "57c63933.072c5"
+            ]
+        ]
+    },
+    {
+        "id": "87218147.0fa418",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4487.5,
+        "y": 1323,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "7dd1782c.b2154"
+            ]
+        ]
+    },
+    {
+        "id": "57c63933.072c5",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error executing Create OTN tunnel rest api\" />\n",
+        "comments": "",
+        "x": 4658.5,
+        "y": 1258,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "7dd1782c.b2154",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 4654,
+        "y": 1323,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "9005ec38.4e5e88",
+        "type": "set",
+        "name": "set pnf-name",
+        "xml": "<set>\n<parameter name='tmp.domainG.pnf-name' value=\"`'networkId-providerId-' +\n                                                   $tmp.aai.vpn-bindingG.access-provider-id + '-clientId-' +\n                                                   $tmp.aai.vpn-bindingG.access-client-id + '-topologyId-' +\n                                                   $tmp.aai.vpn-bindingG.access-topology-id + '-nodeId-' +\n                                                   $tmp.aai.vpn-bindingG.src-access-node-id`\" />\n",
+        "comments": "",
+        "x": 4030,
+        "y": 1022,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "dd0899e7.f82f08",
+        "type": "get-resource",
+        "name": "get-resource src pnf",
+        "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"pnf\" \n\t\tkey=\"pnf.pnf-name = $tmp.domainG.pnf-name\"\n        pfx='tmp.aai.domainG-pnf' local-only='false' >\n\n        <!--AND depth = '0'\"-->\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4056,
+        "y": 1139,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "7a284ffa.3cc17",
+                "aa72c818.28213",
+                "f0ca75e3.4407d"
+            ]
+        ]
+    },
+    {
+        "id": "7a284ffa.3cc17",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4251.5001220703125,
+        "y": 1091,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "25701aeb.93625e"
+            ]
+        ]
+    },
+    {
+        "id": "aa72c818.28213",
+        "type": "not-found",
+        "name": "not-found",
+        "xml": "<outcome value='not-found'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4243.5001220703125,
+        "y": 1146,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "f502d128.6eafe8"
+            ]
+        ]
+    },
+    {
+        "id": "25701aeb.93625e",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 4395.8824462890625,
+        "y": 1090.6556701660156,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "86d32773.3465f8"
+            ]
+        ]
+    },
+    {
+        "id": "86d32773.3465f8",
+        "type": "for",
+        "name": "for each relationship",
+        "xml": "<for silentFailure='true' index='spvidx' start='0' end='`$tmp.aai.domainG-pnf.relationship-list.relationship_length`' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4580,
+        "y": 1089,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "e526c1c.efff3c"
+            ]
+        ]
+    },
+    {
+        "id": "e526c1c.efff3c",
+        "type": "switchNode",
+        "name": "switch related-to",
+        "xml": "<switch test='`$tmp.aai.domainG-pnf.relationship-list.relationship[$spvidx].related-to`'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4775,
+        "y": 1089,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "b3ad7614.48799"
+            ]
+        ]
+    },
+    {
+        "id": "f0ca75e3.4407d",
+        "type": "other",
+        "name": "other",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4248.5001220703125,
+        "y": 1203,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "f3b0b426.0ebd8"
+            ]
+        ]
+    },
+    {
+        "id": "f3b0b426.0ebd8",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`\" />\n\n",
+        "comments": "",
+        "x": 4400.5001220703125,
+        "y": 1204,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "f502d128.6eafe8",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`\" />\n\n",
+        "comments": "",
+        "x": 4411.5001220703125,
+        "y": 1147,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "1793312b.927ef7",
+        "type": "set",
+        "name": "set vpn-bindingG and connectivityG",
+        "xml": "<set>\n<parameter name='tmp.aai.vpn-bindingG.' value=\"`$tmp.aai.vpn-binding.`\" />\n<parameter name='tmp.aai.connectivityG.' value=\"`$tmp.aai.connectivity.`\" />\n",
+        "comments": "",
+        "x": 4087,
+        "y": 914,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "b3ad7614.48799",
+        "type": "outcome",
+        "name": "esr-thirdparty-sdnc",
+        "xml": "<outcome value='esr-thirdparty-sdnc'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4978,
+        "y": 1093,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "96db10e5.ea83"
+            ]
+        ]
+    },
+    {
+        "id": "306d874d.b412d8",
+        "type": "execute",
+        "name": "get esr-thirdparty-sdnc",
+        "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\t\tresource=\"esr-thirdparty-sdnc\" \n\t\tkey=\"esr-thirdparty-sdnc.thirdparty-sdnc-id = $tmp.domainG.esr-thirdparty-id AND \n\t\t     depth = '1'\"\n        pfx='tmp.aai.domainG.esr-thirdparty-sdnc' local-only='false' >",
+        "comments": "",
+        "outputs": 1,
+        "x": 5363,
+        "y": 1106,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "c6eb6256.83f998",
+                "45038891.4f4538",
+                "daa4d789.597db8"
+            ]
+        ]
+    },
+    {
+        "id": "96db10e5.ea83",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "outputs": 1,
+        "x": 5157,
+        "y": 1093,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "d230885e.9519f8",
+                "306d874d.b412d8"
+            ]
+        ]
+    },
+    {
+        "id": "d230885e.9519f8",
+        "type": "set",
+        "name": "set esr-thirdparty-sdnc domainG id",
+        "xml": "<set>\n<parameter name='tmp.domainG.esr-thirdparty-id' value=\"`$tmp.aai.domainG-pnf.relationship-list.relationship[$spvidx].relationship-data[0].relationship-value`\" />\n",
+        "comments": "",
+        "x": 5393,
+        "y": 1054,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "c6eb6256.83f998",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 5573,
+        "y": 1097,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "a3266db3.e5e668"
+            ]
+        ]
+    },
+    {
+        "id": "45038891.4f4538",
+        "type": "not-found",
+        "name": "not-found",
+        "xml": "<outcome value='not-found'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 5565,
+        "y": 1152,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "c1656fec.754d9"
+            ]
+        ]
+    },
+    {
+        "id": "daa4d789.597db8",
+        "type": "other",
+        "name": "other",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 5570,
+        "y": 1209,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "e2730778.5b349"
+            ]
+        ]
+    },
+    {
+        "id": "e2730778.5b349",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`\" />\n\n",
+        "comments": "",
+        "x": 5722,
+        "y": 1210,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "c1656fec.754d9",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`\" />\n\n",
+        "comments": "",
+        "x": 5733,
+        "y": 1155,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "a3266db3.e5e668",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>\n",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 5717.38232421875,
+        "y": 1094.6556701660156,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "eeffd7c6.a525f"
+            ]
+        ]
+    },
+    {
+        "id": "eeffd7c6.a525f",
+        "type": "set",
+        "name": "set controller domainG data",
+        "xml": "<set>\n<parameter name='prop.sdncRestApi.thirdpartySdnc.domainG.url' value=\"`$tmp.aai.domainG.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].service-url`\" />\n<parameter name='prop.sdncRestApi.thirdpartySdnc.domainG.user' value=\"`$tmp.aai.domainG.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].user-name`\" />\n<parameter name='prop.sdncRestApi.thirdpartySdnc.domainG.password' value=\"`$tmp.aai.domainG.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].password`\" />\n\n\n<!--<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >-->\n<!--<parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-network:networks'`\" />-->\n<!--<parameter name=\"restapiUser\" value=\"`$prop.sdncRestApi.thirdpartySdnc.user`\" />-->\n<!--<parameter name=\"restapiPassword\" value=\"`$prop.sdncRestApi.thirdpartySdnc.password`\" />-->\n<!--<parameter name=\"format\" value=\"json\"/>-->\n<!--<parameter name=\"httpMethod\" value=\"get\"/>-->\n<!--<parameter name=\"responsePrefix\" value=\"topology\"/>-->\n<!--<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>-->\n<!--<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>-->\n<!--<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>-->\n<!--<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>-->\n",
+        "comments": "",
+        "x": 5932,
+        "y": 1091,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "24ea3ba5.00c9cc",
+        "type": "comment",
+        "name": "both src and dst exist",
+        "info": "",
+        "comments": "",
+        "x": 3706,
+        "y": 1032,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "171d3657.f2327a",
+        "type": "switchNode",
+        "name": "switch vpn-binding is not already Activated (i.e. is either Created or Modified)",
+        "xml": "<switch test=\"`$tmp.aai.vpn-binding.operational-status != 'Activated' `\">\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2268,
+        "y": 759,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "76b248ab.29f1f8",
+                "a2a1c5ad.da7c28"
+            ]
+        ]
+    },
+    {
+        "id": "a2a1c5ad.da7c28",
+        "type": "outcomeFalse",
+        "name": "false",
+        "xml": "<outcome value='false'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2675,
+        "y": 777,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "4b53f5cd.6e4a64"
+            ]
+        ]
+    },
+    {
+        "id": "76b248ab.29f1f8",
+        "type": "outcomeTrue",
+        "name": "true",
+        "xml": "<outcome value='true'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 2675,
+        "y": 722,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "ed700187.4c0438"
+            ]
+        ]
+    },
+    {
+        "id": "ed700187.4c0438",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "outputs": 1,
+        "x": 2831,
+        "y": 720,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "adf25f68.f6874",
+                "79f7771a.baa2f"
+            ]
+        ]
+    },
+    {
+        "id": "4b53f5cd.6e4a64",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 2808,
+        "y": 778,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "1d423866.3abba8",
+        "type": "set",
+        "name": "unset tmp.aai.all-vpn-bindings",
+        "xml": "<set>\n<parameter name='tmp.aai.all-vpn-bindings.' value=\"\" />\n",
+        "comments": "",
+        "x": 985,
+        "y": 194,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "b7ea63f5.b58c8",
+        "type": "comment",
+        "name": "CLL new",
+        "info": "construct two array structures like these:\n\n${otn-tunnels-name-list[${1}].otn-tunnel-name}\n\n----------------\n${ethernet-srv-end-points-list[${1}].ethernet-end-point-name}\n${ethernet-srv-end-points-list[${1}].index-number},\n${ethernet-srv-end-points-list[${1}].eth-node-id},\n${ethernet-srv-end-points-list[${1}].eth-node-tp-id},\n${ethernet-srv-end-points-list[${1}].leafOrRootAccess}\n${ethernet-srv-end-points-list[${1}].cvlan}\n${ethernet-srv-end-points-list[${1}].CIR}\n${ethernet-srv-end-points-list[${1}].EIR}",
+        "comments": "",
+        "x": 4102,
+        "y": 612,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "7d01ae3.e59e8d",
+        "type": "set",
+        "name": "set leaf-otn-tunnels-list array",
+        "xml": "<set>\n<parameter name='`leaf-tunnels-list[$leaftunsidx].tunnel-name`' value='`$tmp.aai.vpn-binding.vpn-name`' />\n<parameter name='`leaf-tunnels-list[$leaftunsidx].vpn-id`' value='`$tmp.aai.vpn-binding.vpn-id`' />\n<parameter name='`leaf-tunnels-list_length`' value='`$leaftunsidx + 1`' />\n",
+        "comments": "",
+        "x": 4162,
+        "y": 651,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "63268214.354d14",
+        "type": "set",
+        "name": "unset leaf-otn-tunnels-list array",
+        "xml": "<set>\n<parameter name='`leaf-tunnels-list.`' value='' />\n<parameter name='`leaf-tunnels-list_length`' value='0' />\n<parameter name='`leaftunsidx`' value='0' />\n",
+        "comments": "",
+        "x": 978,
+        "y": 102,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "ad2fff57.f164d",
+        "type": "comment",
+        "name": "CLL new",
+        "info": "construct two array structures like these:\n\n${otn-tunnels-name-list[${1}].otn-tunnel-name}\n\n----------------\n${ethernet-srv-end-points-list[${1}].ethernet-end-point-name}\n${ethernet-srv-end-points-list[${1}].index-number},\n${ethernet-srv-end-points-list[${1}].eth-node-id},\n${ethernet-srv-end-points-list[${1}].eth-node-tp-id},\n${ethernet-srv-end-points-list[${1}].leafOrRootAccess}\n${ethernet-srv-end-points-list[${1}].cvlan}\n${ethernet-srv-end-points-list[${1}].CIR}\n${ethernet-srv-end-points-list[${1}].EIR}",
+        "comments": "",
+        "x": 3514,
+        "y": 2128,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "605c7758.9853c8",
+        "type": "set",
+        "name": "set root-otn-tunnels-list array",
+        "xml": "<set>\n<parameter name='`root-tunnels-list[$roottunsidx].tunnel-name`' value='`$tmp.aai.vpn-binding.vpn-name`' />\n<parameter name='`root-tunnels-list[$roottunsidx].vpn-id`' value='`$tmp.aai.vpn-binding.vpn-id`' />\n<parameter name='`root-tunnels-list_length`' value='`$roottunsidx + 1`' />\n",
+        "comments": "",
+        "x": 3570,
+        "y": 2177,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "45ce7d67.6029dc",
+        "type": "set",
+        "name": "unset root-otn-tunnels-list array",
+        "xml": "<set>\n<parameter name='`root-tunnels-list.`' value='' />\n<parameter name='`root-tunnels-list_length`' value='0' />\n<parameter name='`roottunsidx`' value='0' />\n",
+        "comments": "",
+        "x": 978,
+        "y": 141,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "2b86835c.8d9024",
+        "type": "execute",
+        "name": "execute properties",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >\n    <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />\n    <parameter name='contextPrefix' value='prop' />",
+        "comments": "",
+        "outputs": 1,
+        "x": 1009,
+        "y": 242,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "5a6a7d0e.a2f89c",
+        "type": "save",
+        "name": "get service-instance from aai",
+        "xml": "<!--<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" -->\n<!--\tresource=\"service-instance\"-->\n<!--\tkey='service-instance.service-instance-id = $service-data.vnfs.vnf[$tmp.vidx].vnf-data.service-information.service-instance-id-->\n<!--         AND customer.global-customer-id = $service-data.vnfs.vnf[$tmp.vidx].vnf-data.service-information.global-customer-id -->\n<!--         AND service-subscription.service-type = $service-data.vnfs.vnf[$tmp.vidx].vnf-data.service-information.subscription-service-type'-->\n<!--\tlocal-only=\"false\"-->\n<!--\tforce=\"true\" pfx=\"tmp.aai.service-instance\">-->\n\n<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\tresource=\"service-instance\"\n\tkey='service-instance.service-instance-id = $vnf-topology-operation-input.service-information.service-instance-id\n         AND customer.global-customer-id = $vnf-topology-operation-input.service-information.global-customer-id \n         AND service-subscription.service-type = $vnf-topology-operation-input.service-information.subscription-service-type'\n\tlocal-only=\"false\"\n\tforce=\"true\" pfx=\"tmp.aai.service-instance\">\n\n\n<!--$vnf-topology-operation-input.service-information.service-instance-id-->",
+        "comments": "",
+        "outputs": 1,
+        "x": 219,
+        "y": 717,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "bd2f8dbe.e61408",
+                "cacc237e.394a4",
+                "f05100c1.a77fd8"
+            ]
+        ]
+    },
+    {
+        "id": "bd2f8dbe.e61408",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 438,
+        "y": 655,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "64d16331.36ee54"
+            ]
+        ]
+    },
+    {
+        "id": "cacc237e.394a4",
+        "type": "not-found",
+        "name": "not-found",
+        "xml": "<outcome value='not-found'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 447.490966796875,
+        "y": 697.5740356445312,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "537fe800.387e68"
+            ]
+        ]
+    },
+    {
+        "id": "f05100c1.a77fd8",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 436,
+        "y": 744,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "4626cafb.2ab55c"
+            ]
+        ]
+    },
+    {
+        "id": "64d16331.36ee54",
+        "type": "for",
+        "name": "for each relationship",
+        "xml": "<for index='rel-index' start='0' end='`$tmp.aai.service-instance.relationship-list.relationship_length`' >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 635,
+        "y": 651,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "f0f139f4.8e2a48"
+            ]
+        ]
+    },
+    {
+        "id": "537fe800.387e68",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.l3vpn.pe1_id`\" />\n\n",
+        "comments": "",
+        "x": 601.0623779296875,
+        "y": 700.8597717285156,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "4626cafb.2ab55c",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n<parameter name='error-code' value='' />\n<parameter name='error-message' value='' />\n",
+        "comments": "",
+        "x": 605,
+        "y": 745,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "f0f139f4.8e2a48",
+        "type": "switchNode",
+        "name": "switch related-to",
+        "xml": "<switch test='`$tmp.aai.service-instance.relationship-list.relationship[$rel-index].related-to`'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 858.33349609375,
+        "y": 650.9999389648438,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "2762e6c2.94358a"
+            ]
+        ]
+    },
+    {
+        "id": "2762e6c2.94358a",
+        "type": "outcome",
+        "name": "connectivity",
+        "xml": "<outcome value='connectivity'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1059.0001335144043,
+        "y": 652.000020980835,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "37a60584.767442"
+            ]
+        ]
+    },
+    {
+        "id": "37a60584.767442",
+        "type": "save",
+        "name": "get connectivity from aai",
+        "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\tresource=\"connectivity\"\n\t    key=\"connectivity.connectivity-id = $tmp.aai.service-instance.relationship-list.relationship[$rel-index].relationship-data[0].relationship-value\"\n\t\tlocal-only=\"false\" \n\t\tpfx=\"tmp.aai.connectivity\" >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 189,
+        "y": 914,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "99239678.d76be8",
+                "87a24056.0cfc9",
+                "b29ec635.8a7db"
+            ]
+        ]
+    },
+    {
+        "id": "99239678.d76be8",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 397,
+        "y": 878,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "bb3094ff.e3cd78"
+            ]
+        ]
+    },
+    {
+        "id": "87a24056.0cfc9",
+        "type": "not-found",
+        "name": "not-found",
+        "xml": "<outcome value='not-found'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 397.490966796875,
+        "y": 923.5740356445312,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "816ef02e.772828"
+            ]
+        ]
+    },
+    {
+        "id": "b29ec635.8a7db",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 395,
+        "y": 967,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "b9990c7b.83fc7"
+            ]
+        ]
+    },
+    {
+        "id": "816ef02e.772828",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.l3vpn.pe1_id`\" />\n\n",
+        "comments": "",
+        "x": 560.0623779296875,
+        "y": 923.8597717285156,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "b9990c7b.83fc7",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n<parameter name='error-code' value='' />\n<parameter name='error-message' value='' />\n",
+        "comments": "",
+        "x": 564,
+        "y": 968,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "30524cd6.9ca834",
+        "type": "for",
+        "name": "for each relationship",
+        "xml": "<for silentFailure='true' index='cridx' start='0' end='`$tmp.aai.connectivity.relationship-list.relationship_length`' >\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 534,
+        "y": 1474,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "b7324e21.fe4538"
+            ]
+        ]
+    },
+    {
+        "id": "b7324e21.fe4538",
+        "type": "switchNode",
+        "name": "switch related-to",
+        "xml": "<switch test='`$tmp.aai.connectivity.relationship-list.relationship[$cridx].related-to`'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 739,
+        "y": 1474,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "fd6dca36.4f2ef"
+            ]
+        ]
+    },
+    {
+        "id": "fd6dca36.4f2ef",
+        "type": "outcome",
+        "name": "UNI",
+        "xml": "<outcome value='uni'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 905,
+        "y": 1471,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "14e5640a.2c60e4"
+            ]
+        ]
+    },
+    {
+        "id": "14e5640a.2c60e4",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "outputs": 1,
+        "x": 1066,
+        "y": 1468,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "a961c0c2.954588",
+                "bfc93479.bb02c8",
+                "ea108501.b7cec8",
+                "9c9a6caf.c302e",
+                "520b6d65.f95b0c"
+            ]
+        ]
+    },
+    {
+        "id": "bfc93479.bb02c8",
+        "type": "set",
+        "name": "unset tmp.aai.uni",
+        "xml": "<set>\n<parameter name='tmp.aai.uni.' value='' />\n",
+        "comments": "",
+        "x": 1270,
+        "y": 1426,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "a961c0c2.954588",
+        "type": "save",
+        "name": "get uni from aai",
+        "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\tresource=\"uni\"\n\t    key=\"uni.id = $tmp.aai.connectivity.relationship-list.relationship[$cridx].relationship-data[0].relationship-value\"\n\t\tlocal-only=\"false\" \n\t\tpfx=\"tmp.aai.uni\" >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1267,
+        "y": 1471,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "ae34427.3665d4",
+                "2e0f53f9.af66fc",
+                "e67056c5.33255"
+            ]
+        ]
+    },
+    {
+        "id": "2e0f53f9.af66fc",
+        "type": "not-found",
+        "name": "not-found",
+        "xml": "<outcome value='not-found'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1462.490966796875,
+        "y": 1444.573974609375,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "c471a2c5.a52548"
+            ]
+        ]
+    },
+    {
+        "id": "e67056c5.33255",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1458,
+        "y": 1488.9999389648438,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "ff2d9a38.ef94a"
+            ]
+        ]
+    },
+    {
+        "id": "c471a2c5.a52548",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.l3vpn.pe1_id`\" />\n\n",
+        "comments": "",
+        "x": 1625.0625,
+        "y": 1443.8596801757812,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "ff2d9a38.ef94a",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n<parameter name='error-code' value='' />\n<parameter name='error-message' value='' />\n",
+        "comments": "",
+        "x": 1626,
+        "y": 1488.9999389648438,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "de28fbd6.aeb6d8",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "outputs": 1,
+        "x": 1628,
+        "y": 1535.9999389648438,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "ae34427.3665d4",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1459,
+        "y": 1535.9999389648438,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "de28fbd6.aeb6d8"
+            ]
+        ]
+    },
+    {
+        "id": "30e36623.144df2",
+        "type": "switchNode",
+        "name": "switch conn type",
+        "xml": "<switch test=\"`$tmp.aai.connectivity.vpn-type`\">\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 148.5,
+        "y": 1133,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "f6f4ecca.51b1b8",
+                "c489f9fc.e5ffb8",
+                "a9b0c19e.2c84b8"
+            ]
+        ]
+    },
+    {
+        "id": "3438a7d7.53b84",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 278.5,
+        "y": 1491,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "f6f4ecca.51b1b8",
+        "type": "outcome",
+        "name": "leaf",
+        "xml": "<outcome value='leaf'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 134.5,
+        "y": 1379,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "96322198.44279"
+            ]
+        ]
+    },
+    {
+        "id": "c489f9fc.e5ffb8",
+        "type": "outcome",
+        "name": "root",
+        "xml": "<outcome value='root'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 135.5,
+        "y": 1437,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "398da5.544e025c"
+            ]
+        ]
+    },
+    {
+        "id": "a9b0c19e.2c84b8",
+        "type": "other",
+        "name": "other",
+        "xml": "<outcome value='Other'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 137.5,
+        "y": 1491,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "3438a7d7.53b84"
+            ]
+        ]
+    },
+    {
+        "id": "e5287808.34bdc8",
+        "type": "comment",
+        "name": "CLL new",
+        "info": "construct two array structures like these:\n\n${otn-tunnels-name-list[${1}].otn-tunnel-name}\n\n----------------\n${ethernet-srv-end-points-list[${1}].ethernet-end-point-name}\n${ethernet-srv-end-points-list[${1}].index-number},\n${ethernet-srv-end-points-list[${1}].eth-node-id},\n${ethernet-srv-end-points-list[${1}].eth-node-tp-id},\n${ethernet-srv-end-points-list[${1}].leafOrRootAccess}\n${ethernet-srv-end-points-list[${1}].cvlan}\n${ethernet-srv-end-points-list[${1}].CIR}\n${ethernet-srv-end-points-list[${1}].EIR}",
+        "comments": "",
+        "x": 1243,
+        "y": 1699,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "ea108501.b7cec8",
+        "type": "set",
+        "name": "set ethernet-srv-end-points-list array",
+        "xml": "<set>\n<parameter name='`ethernet-srv-end-points-list[$epidx].ethernet-end-point-name`' value='`$tmp.aai.connectivity.connectivity-id`' />\n<parameter name='`ethernet-srv-end-points-list[$epidx].index-number`' value='0' />\n<parameter name='`ethernet-srv-end-points-list[$epidx].eth-node-id`' value='`$tmp.uni-node-id-short`' />\n<parameter name='`ethernet-srv-end-points-list[$epidx].eth-node-tp-id`' value='`$tmp.aai.uni.tp-id`' />\n<parameter name='`ethernet-srv-end-points-list[$epidx].leafOrRootAccess`' value='`$leafOrRootAccess`' />\n<parameter name='`ethernet-srv-end-points-list[$epidx].cvlan`' value='`$tmp.aai.connectivity.cvlan`' />\n<parameter name='`ethernet-srv-end-points-list[$epidx].CIR`' value='`$tmp.aai.connectivity.cir`' />\n<parameter name='`ethernet-srv-end-points-list[$epidx].EIR`' value='`$tmp.aai.connectivity.eir`' />\n\n<parameter name='`ethernet-srv-end-points-list_length`' value='`$epidx + 1`' />\n",
+        "comments": "",
+        "x": 1334,
+        "y": 1753,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "398da5.544e025c",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 277.5,
+        "y": 1437,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "f5ac679b.0c3448",
+                "30524cd6.9ca834",
+                "4bb59d5e.d5f6bc",
+                "c1ca24e2.0ded08",
+                "f1761a56.ef5438",
+                "6a3c09b5.9a3f5",
+                "62e9a9e6.6ea9a8",
+                "94499eb7.5f7bf8",
+                "24306e49.ece4e2",
+                "527621da.e42f6",
+                "f1193850.b7d1f"
+            ]
+        ]
+    },
+    {
+        "id": "96322198.44279",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 276.5,
+        "y": 1379,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "30524cd6.9ca834",
+                "4806b9e7.4221c",
+                "4f3ecf27.4c11b",
+                "c1ca24e2.0ded08",
+                "f1761a56.ef5438",
+                "6a3c09b5.9a3f5",
+                "62e9a9e6.6ea9a8",
+                "94499eb7.5f7bf8",
+                "24306e49.ece4e2",
+                "527621da.e42f6",
+                "f1193850.b7d1f"
+            ]
+        ]
+    },
+    {
+        "id": "4806b9e7.4221c",
+        "type": "set",
+        "name": "unset ethernet-srv-end-points-list",
+        "xml": "<set>\n<parameter name='`ethernet-srv-end-points-list.`' value='' />\n<parameter name='`ethernet-srv-end-points-list_length`' value='0' />\n<parameter name='`epidx`' value='0' />",
+        "comments": "",
+        "x": 555.5,
+        "y": 1255,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "f5ac679b.0c3448",
+        "type": "set",
+        "name": "unset ethernet-srv-end-points-list",
+        "xml": "<set>\n<parameter name='`ethernet-srv-end-points-list.`' value='' />\n<parameter name='`ethernet-srv-end-points-list_length`' value='0' />\n<parameter name='`epidx`' value='0' />",
+        "comments": "",
+        "x": 572.5,
+        "y": 1349,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "c1ca24e2.0ded08",
+        "type": "for",
+        "name": "for each relationship",
+        "xml": "<for silentFailure='true' index='cridx' start='0' end='`$tmp.aai.connectivity.relationship-list.relationship_length`' >\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 479,
+        "y": 1714,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "835a7483.88e81"
+            ]
+        ]
+    },
+    {
+        "id": "835a7483.88e81",
+        "type": "switchNode",
+        "name": "switch related-to",
+        "xml": "<switch test='`$tmp.aai.connectivity.relationship-list.relationship[$cridx].related-to`'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 731,
+        "y": 1717,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "51c29716.e56f9"
+            ]
+        ]
+    },
+    {
+        "id": "51c29716.e56f9",
+        "type": "outcome",
+        "name": "vpn-binding",
+        "xml": "<outcome value='vpn-binding'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 943,
+        "y": 1718,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "ed212632.132b88"
+            ]
+        ]
+    },
+    {
+        "id": "ed212632.132b88",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "outputs": 1,
+        "x": 199,
+        "y": 1874,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "56f85a0e.adc1bc",
+                "4a52a34d.b3a154"
+            ]
+        ]
+    },
+    {
+        "id": "4a52a34d.b3a154",
+        "type": "set",
+        "name": "unset tmp.aai.vpn-binding",
+        "xml": "<set>\n<parameter name='tmp.aai.vpn-binding.' value='' />\n",
+        "comments": "",
+        "x": 434,
+        "y": 1861,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "56f85a0e.adc1bc",
+        "type": "save",
+        "name": "get vpn-binding from aai",
+        "xml": "<get-resource plugin=\"org.onap.ccsdk.sli.adaptors.aai.AAIService\" \n\tresource=\"vpn-binding\"\n\t    key=\"vpn-binding.vpn-id = $tmp.aai.connectivity.relationship-list.relationship[$cridx].relationship-data[0].relationship-value\"\n\t\tlocal-only=\"false\" \n\t\tpfx=\"tmp.aai.vpn-binding\" >\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 424,
+        "y": 1922,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "29bd05cb.6887aa",
+                "769c56b6.046928",
+                "2ae22544.9de39a"
+            ]
+        ]
+    },
+    {
+        "id": "769c56b6.046928",
+        "type": "not-found",
+        "name": "not-found",
+        "xml": "<outcome value='not-found'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 637.490966796875,
+        "y": 1906.5740356445312,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "9a05194a.a2cf9"
+            ]
+        ]
+    },
+    {
+        "id": "2ae22544.9de39a",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 633,
+        "y": 1951,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "55ecc37f.47d76c"
+            ]
+        ]
+    },
+    {
+        "id": "29bd05cb.6887aa",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 635,
+        "y": 2011,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "d6336d05.5f3c98"
+            ]
+        ]
+    },
+    {
+        "id": "9a05194a.a2cf9",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.l3vpn.pe1_id`\" />\n\n",
+        "comments": "",
+        "x": 800.0625,
+        "y": 1905.8597412109375,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "55ecc37f.47d76c",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n<parameter name='error-code' value='' />\n<parameter name='error-message' value='' />\n",
+        "comments": "",
+        "x": 801,
+        "y": 1951,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "d6336d05.5f3c98",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "outputs": 1,
+        "x": 804,
+        "y": 2010,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "84a52064.39d0f",
+                "fd245192.c0f68"
+            ]
+        ]
+    },
+    {
+        "id": "62e9a9e6.6ea9a8",
+        "type": "set",
+        "name": "set sotn_value",
+        "xml": "<set>\n<!--<parameter name='eth-service-name' value='`$tmp.aai.connectivityA.connectivity-id`' />-->\n<parameter name='eth-service-name' value='`$tmp.aai.connectivity.etht-svc-name`' />\n<parameter name='slice-id' value='`$vnf-topology-operation-input.service-information.service-instance-id`' />\n<parameter name='provider-id' value='`$tmp.aai.connectivity.access-provider-id`' />\n<parameter name='client-id' value='`$tmp.aai.connectivity.access-client-id`' />\n<parameter name='topology-id' value='`$tmp.aai.connectivity.access-topology-id`' />\n<!--<parameter name='otn-tunnel-name' value='`$tmp.aai.vpn-bindingA.vpn-name`' />-->\n<!--<parameter name='ethernet-end-point-name' value='`$tmp.aai.connectivityA.connectivity-id`' />-->\n<!--<parameter name='index-number' value='0' />-->\n<!--<parameter name='eth-node-id' value='`$tmp.aai.connectivityA.access-node-id`' />-->\n<!--<parameter name='eth-node-tp-id' value='`$tmp.aai.connectivityA.access-ltp-id`' />-->\n<!--<parameter name='CIR' value='`$tmp.aai.vpn-bindingA.route-distinguisher *1000000`' />-->\n<!--<parameter name='EIR' value='`$tmp.aai.vpn-bindingA.route-distinguisher *1000000`' />-->\n<!--<parameter name='cvlan' value='`$tmp.aai.connectivityA.cvlan`' />-->\n",
+        "comments": "",
+        "x": 213,
+        "y": 2153,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "94499eb7.5f7bf8",
+        "type": "execute",
+        "name": "execute RestApiCallNode Create ethernet Service without token",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >\n<parameter name=\"templateFileName\" value=\"`$prop.restapi.templateDir + '/' + $prop.restapi.cll-ethernet-service-loop.templatefile`\" />\n<parameter name=\"restapiUrl\" value=\"`$prop.sdncRestApi.thirdpartySdnc.domainA.url + '/restconf/data/ietf-eth-tran-service:etht-svc'`\" />\n<!--<parameter name=\"restapiUrl\" value=\"`$prop.restapi.connection-oof-url`\" />-->\n<parameter name=\"restapiUser\" value=\"`$prop.sdncRestApi.thirdpartySdnc.domainA.user`\" />\n<parameter name=\"restapiPassword\" value=\"`$prop.sdncRestApi.thirdpartySdnc.domainA.password`\" />\n<parameter name=\"format\" value=\"json\"/>\n<parameter name=\"httpMethod\" value=\"patch\"/>\n<parameter name='dirPath' value=\"/opt/onap/sdnc/restconfapi/yang\" />\n<parameter name=\"responsePrefix\" value=\"vpn-result\"/>\n<parameter name=\"trustStoreFileName\" value=\"/opt/onap/sdnc/data/stores/truststore.onap.client.jks\"/>\n<parameter name=\"trustStorePassword\" value=\"adminadmin\"/>\n<parameter name=\"keyStoreFileName\" value=\"/opt/onap/sdnc/data/stores/sdnc.p12\"/>\n<parameter name=\"keyStorePassword\" value=\"adminadmin\"/>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 369,
+        "y": 2201,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "a73a5a95.120de",
+                "bca2a5aa.f6cc3"
+            ]
+        ]
+    },
+    {
+        "id": "a73a5a95.120de",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 681.5,
+        "y": 2178,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "bca2a5aa.f6cc3",
+        "type": "success",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 685.5,
+        "y": 2218,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "10f6c019.f86f7"
+            ]
+        ]
+    },
+    {
+        "id": "60ee3bcb.03ac64",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n\t<parameter name='ack-final' value='Y'/>\n\t<parameter name=\"error-code\" value=\"500\" />\n    <parameter name=\"error-message\" value=\"Error executing Create ethernet service rest api\" />\n",
+        "comments": "",
+        "x": 861.5,
+        "y": 2182,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "10f6c019.f86f7",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "comments": "",
+        "outputs": 1,
+        "x": 877,
+        "y": 2236,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "67f0aa7d.43690c"
+            ]
+        ]
+    },
+    {
+        "id": "ca5ee847.cad2",
+        "type": "save",
+        "name": "update vpn-binding resource (aka. OTN ) in AAI",
+        "xml": "<update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding' \n      key='vpn-binding.vpn-id = $tmp.aai.vpn-binding.vpn-id' >\n<parameter name='vpn-id' value='`$tmp.aai.vpn-binding.vpn-id`' />\n<parameter name='vpn-name' value='`$tmp.aai.vpn-binding.vpn-name`' />\n\n<parameter name='operational-status' value='Activated' />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1172.5,
+        "y": 2205,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "c6e95b64.3418d8",
+        "type": "comment",
+        "name": "TODO: FIXME",
+        "info": "use proper vpn-binding id and connectivity id\n\nAlso, does CCSDK support \"update\" operation for vpn-binding and connectivity?",
+        "comments": "",
+        "x": 2616.5,
+        "y": 1924,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "67f0aa7d.43690c",
+        "type": "save",
+        "name": "update connectivity resource in AAI",
+        "xml": "<update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity' \n      key='connectivity.connectivity-id = $tmp.aai.connectivity.connectivity-id'>\n<parameter name='connectivity-id' value='`$tmp.aai.connectivity.connectivity-id`' />\n<parameter name='operational-status' value='Activated' />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1134.5,
+        "y": 2247,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "4f3ecf27.4c11b",
+        "type": "set",
+        "name": "set leafOrRootAccess",
+        "xml": "<set>\n<parameter name='`leafOrRootAccess`' value='ietf-eth-tran-types:leaf-access' />\n",
+        "comments": "",
+        "x": 521.5,
+        "y": 1293,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "4bb59d5e.d5f6bc",
+        "type": "set",
+        "name": "set leafOrRootAccess",
+        "xml": "<set>\n<parameter name='`leafOrRootAccess`' value='ietf-eth-tran-types:root-primary' />\n",
+        "comments": "",
+        "x": 534.5,
+        "y": 1389,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "91a8f363.33b6d",
+        "type": "save",
+        "name": "update vpn-binding A resource (aka. OTN domainA) in AAI",
+        "xml": "<update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding' \n      key='vpn-binding.vpn-id = $tmp.aai.vpn-bindingA.vpn-id' >\n<parameter name='vpn-id' value='`$tmp.aai.vpn-bindingA.vpn-id`' />\n<parameter name='vpn-name' value='`$tmp.aai.vpn-bindingA.vpn-name`' />\n\n<parameter name='operational-status' value='Activated' />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4271,
+        "y": 565,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "b3054d0f.9c60c",
+        "type": "save",
+        "name": "update vpn-binding G resource (aka. OTN domainA) in AAI",
+        "xml": "<update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding' \n      key='vpn-binding.vpn-id = $tmp.aai.vpn-bindingG.vpn-id' >\n<parameter name='vpn-id' value='`$tmp.aai.vpn-bindingG.vpn-id`' />\n<parameter name='vpn-name' value='`$tmp.aai.vpn-bindingG.vpn-name`' />\n\n<parameter name='operational-status' value='Activated' />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 4174,
+        "y": 1384,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "d3fdc974.92df9",
+        "type": "save",
+        "name": "update vpn-binding B resource (aka. OTN domainB) in AAI",
+        "xml": "<update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding' \n      key='vpn-binding.vpn-id = $tmp.aai.vpn-bindingB.vpn-id' >\n<parameter name='vpn-id' value='`$tmp.aai.vpn-bindingB.vpn-id`' />\n<parameter name='vpn-name' value='`$tmp.aai.vpn-bindingB.vpn-name`' />\n\n<parameter name='operational-status' value='Activated' />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 3668,
+        "y": 2056,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "bb3094ff.e3cd78",
+        "type": "switchNode",
+        "name": "switch connectivity is not already Activated (i.e. is either Created or Modified)",
+        "xml": "<switch test=\"`$tmp.aai.connectivity.operational-status != 'Activated' `\">\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 769,
+        "y": 864,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "282392e2.d6f746",
+                "f0518341.6afb1"
+            ]
+        ]
+    },
+    {
+        "id": "282392e2.d6f746",
+        "type": "outcomeTrue",
+        "name": "true",
+        "xml": "<outcome value='true'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1132,
+        "y": 887,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "77c0bd36.331cac"
+            ]
+        ]
+    },
+    {
+        "id": "f0518341.6afb1",
+        "type": "outcomeFalse",
+        "name": "false",
+        "xml": "<outcome value='false'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1132,
+        "y": 836,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "e54c87c8.43eeb8"
+            ]
+        ]
+    },
+    {
+        "id": "77c0bd36.331cac",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "outputs": 1,
+        "x": 1288,
+        "y": 885,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "30e36623.144df2"
+            ]
+        ]
+    },
+    {
+        "id": "e54c87c8.43eeb8",
+        "type": "block",
+        "name": "block",
+        "xml": "<block>",
+        "atomic": "false",
+        "comments": "",
+        "outputs": 1,
+        "x": 1265,
+        "y": 837,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "e9e324cf.d34fa8",
+        "type": "set",
+        "name": "unset tmp.aai.vpn-binding",
+        "xml": "<set>\n<parameter name='tmp.aai.vpn-binding.' value=\"\" />\n",
+        "comments": "",
+        "x": 2025,
+        "y": 235,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "52902dc6.5c041c",
+        "type": "set",
+        "name": "set root-otn-tunnels-list array",
+        "xml": "<set>\n<parameter name='`roottunsidx`' value='`$roottunsidx + 1`' />\n",
+        "comments": "",
+        "x": 3567,
+        "y": 2216,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "8c296a00.ae82e8",
+        "type": "set",
+        "name": "set leaf-otn-tunnels-list array",
+        "xml": "<set>\n<parameter name='`leaftunsidx`' value='`$leaftunsidx + 1`' />\n",
+        "comments": "",
+        "x": 4157,
+        "y": 689,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "9c9a6caf.c302e",
+        "type": "set",
+        "name": "set ethernet-srv-end-points-list array",
+        "xml": "<set>\n<parameter name='`epidx`' value='`$epidx + 1`' />\n",
+        "comments": "",
+        "x": 1331,
+        "y": 1795,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "f1761a56.ef5438",
+        "type": "set",
+        "name": "set filename",
+        "xml": "<set>\n<parameter name='filenameclleths' value=\"`$leafOrRootAccess + $tmp.aai.connectivity.access-node-id`\" />",
+        "comments": "",
+        "x": 510,
+        "y": 1529,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "6a3c09b5.9a3f5",
+        "type": "execute",
+        "name": "execute printContext",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >\n    <parameter name=\"filename\" value=\"`$filenameclleths`\" />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 541,
+        "y": 1569,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "84a52064.39d0f",
+        "type": "set",
+        "name": "set otn-tunnels-name-list array",
+        "xml": "<set>\n<parameter name='`otn-tunnels-name-list[$otntunsidx].otn-tunnel-name`' value='`$tmp.aai.vpn-binding.vpn-name`' />\n<parameter name='`otn-tunnels-name-list[$otntunsidx].vpn-id`' value='`$tmp.aai.vpn-binding.vpn-id`' />\n<parameter name='`otn-tunnels-name-list_length`' value='`$otntunsidx + 1`' />\n",
+        "comments": "",
+        "x": 1089,
+        "y": 1977,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "fd245192.c0f68",
+        "type": "set",
+        "name": "set otn-tunnels-name-list array",
+        "xml": "<set>\n<parameter name='`otntunsidx`' value='`$otntunsidx + 1`' />\n",
+        "comments": "",
+        "x": 1092,
+        "y": 2019,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "24306e49.ece4e2",
+        "type": "set",
+        "name": "unset otn-tunnels-name-list array",
+        "xml": "<set>\n<parameter name='`otn-tunnels-name-list.`' value='' />\n<parameter name='`otn-tunnels-name-list_length`' value='0' />\n<parameter name='`otntunsidx`' value='0' />\n",
+        "comments": "",
+        "x": 516,
+        "y": 1663,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "527621da.e42f6",
+        "type": "set",
+        "name": "set filename",
+        "xml": "<set>\n<parameter name='filenamecllotns' value=\"`leafrootOTNtunnelnames`\" />",
+        "comments": "",
+        "x": 290,
+        "y": 2038,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "f1193850.b7d1f",
+        "type": "execute",
+        "name": "execute printContext",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >\n    <parameter name=\"filename\" value=\"`$filenamecllotns`\" />\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 298,
+        "y": 2095,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "520b6d65.f95b0c",
+        "type": "execute",
+        "name": "execute split tp-id to get pnf-name",
+        "xml": "<execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >\n<parameter name=\"original_string\" value='`$tmp.aai.uni.id`'/>\n<!--<parameter name=\"regex\" value=\"[^-]+$\"/>-->\n<parameter name=\"regex\" value=\"[-]+\"/>\n<parameter name=\"ctx_memory_result_key\" value=\"param-prefix-uni\"/>\n\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1309,
+        "y": 1644,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "19e13e29.006812",
+                "9d0e6726.e149c8"
+            ]
+        ]
+    },
+    {
+        "id": "9d0e6726.e149c8",
+        "type": "failure",
+        "name": "success",
+        "xml": "<outcome value='success'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1532,
+        "y": 1599,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "2d20dd4b.751b72"
+            ]
+        ]
+    },
+    {
+        "id": "19e13e29.006812",
+        "type": "failure",
+        "name": "failure",
+        "xml": "<outcome value='failure'>\n",
+        "comments": "",
+        "outputs": 1,
+        "x": 1534,
+        "y": 1663,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "1dc48abe.a6b4ad"
+            ]
+        ]
+    },
+    {
+        "id": "2d20dd4b.751b72",
+        "type": "block",
+        "name": "block : atomic",
+        "xml": "<block atomic=\"true\">",
+        "atomic": "true",
+        "outputs": 1,
+        "x": 1697,
+        "y": 1596,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": [
+            [
+                "c6b49f04.8bee18"
+            ]
+        ]
+    },
+    {
+        "id": "1dc48abe.a6b4ad",
+        "type": "returnFailure",
+        "name": "return failure",
+        "xml": "<return status='failure'>\n<parameter name='error-code' value='' />\n<parameter name='error-message' value=\"An error occured while splitting sna1_route\" />\n",
+        "comments": "",
+        "x": 1696,
+        "y": 1659,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    },
+    {
+        "id": "c6b49f04.8bee18",
+        "type": "set",
+        "name": "set tmp.uni-node-id-short",
+        "xml": "<set>\n<parameter name='tmp.uni-node-id-short' value='`$param-prefix-uni[$param-prefix-uni_length -3]`' />\n",
+        "comments": "",
+        "x": 1917,
+        "y": 1610,
+        "z": "bbeb6c6b.9e8ac8",
+        "wires": []
+    }
+]

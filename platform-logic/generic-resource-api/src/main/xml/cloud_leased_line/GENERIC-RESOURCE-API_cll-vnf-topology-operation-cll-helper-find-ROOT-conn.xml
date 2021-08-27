@@ -1,0 +1,54 @@
+<service-logic
+        xmlns='http://www.onap.org/sdnc/svclogic'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    <method rpc='cll-vnf-topology-operation-cll-helper-find-ROOT-conn' mode='sync'>
+        <block atomic="true">
+            <set>
+                <parameter name='found-root-connectivity' value="false" />
+            </set>
+            <set>
+                <parameter name='tmp.aai.ROOT.connectivity.' value="" />
+            </set>
+            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                          resource="connectivities"
+                          key="selflink = 'https://aai.onap:8443/aai/v24/network/connectivities/'"
+                          local-only="false"
+                          pfx="tmp.aai.helper-root-all-connectivities" >
+                <outcome value='success'>
+                    <block atomic="true">
+                        <for index='helprconnidx' start='0' end='`$tmp.aai.helper-root-all-connectivities.connectivity_length`' >
+                            <block atomic='true'>
+                                <switch test="`$tmp.aai.helper-root-all-connectivities.connectivity[$helprconnidx].color-aware == $tmp.ROOT.uni-p-interface-long`">
+                                    <outcome value='true'>
+                                        <block atomic='true'>
+                                            <set>
+                                                <parameter name='found-root-connectivity' value="true" />
+                                            </set>
+                                            <set>
+                                                <parameter name='tmp.aai.ROOT.connectivity.' value="`$tmp.aai.helper-root-all-connectivities.connectivity[$helprconnidx].`" />
+                                            </set>
+                                            <break/>
+                                        </block>
+                                    </outcome>
+                                </switch>
+                            </block>
+                        </for>
+                    </block>
+                </outcome>
+                <outcome value='not-found'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.l3vpn.pe1_id`" />
+                    </return>
+                </outcome>
+                <outcome value='failure'>
+                    <return status='failure'>
+                        <parameter name='error-code' value='' />
+                        <parameter name='error-message' value='' />
+                    </return>
+                </outcome>
+            </get-resource>
+        </block>
+    </method>
+</service-logic>

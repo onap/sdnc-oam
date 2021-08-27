@@ -1,0 +1,46 @@
+<service-logic
+        xmlns='http://www.onap.org/sdnc/svclogic'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    <method rpc='cll-vnf-topology-operation-find-maximum-used-tpn' mode='sync'>
+        <block atomic="true">
+            <set>
+                <parameter name='maxtpn' value='1' />
+                <parameter name='newToBeUsedMaxtpn' value='1' />
+            </set>
+            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                          resource="vpn-bindings"
+                          key="selflink = 'https://aai.onap:8443/aai/v21/network/vpn-bindings"
+                          local-only="false"
+                          pfx="tmp.aai.allvpnbindings" >
+                <outcome value='not-found'></outcome>
+                <outcome value='failure'>
+                    <return status='failure'>
+                        <parameter name='error-code' value='' />
+                        <parameter name='error-message' value='' />
+                    </return>
+                </outcome>
+                <outcome value='success'>
+                    <block atomic="true">
+                        <for index='allvpnbidx' start='0' end='`$tmp.aai.allvpnbindings.vpn-binding_length`' >
+                            <block atomic='true'>
+                                <switch test="`$tmp.aai.allvpnbindings.vpn-binding[$allvpnbidx].customer-vpn-id >= $maxtpn `">
+                                    <outcome value='true'>
+                                        <block atomic='true'>
+                                            <set>
+                                                <parameter name='maxtpn' value='`$tmp.aai.allvpnbindings.vpn-binding[$allvpnbidx].customer-vpn-id`' />
+                                            </set>
+                                            <set>
+                                                <parameter name='newToBeUsedMaxtpn' value='`$maxtpn + $tmp.aai.allvpnbindings.vpn-binding[$allvpnbidx].route-distinguisher`' />
+                                            </set>
+                                        </block>
+                                    </outcome>
+                                    <outcome value='false'></outcome>
+                                </switch>
+                            </block>
+                        </for>
+                    </block>
+                </outcome>
+            </get-resource>
+        </block>
+    </method>
+</service-logic>

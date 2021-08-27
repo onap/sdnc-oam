@@ -1,0 +1,932 @@
+<service-logic
+        xmlns='http://www.onap.org/sdnc/svclogic'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    <method rpc='cll-vnf-topology-operation-cll-F1-Activate' mode='sync'>
+        <block atomic="true">
+            <set>
+                <parameter name='`leaf-tunnels-list.`' value='' />
+                <parameter name='`leaf-tunnels-list_length`' value='0' />
+                <parameter name='`leaftunsidx`' value='0' />
+            </set>
+            <set>
+                <parameter name='tmp.aai.all-vpn-bindings.' value="" />
+            </set>
+            <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
+                <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />
+                <parameter name='contextPrefix' value='prop' />
+            </execute>
+            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                          resource="vpn-bindings"
+                          key="selflink = 'https://aai.onap:8443/aai/v24/network/vpn-bindings"
+                          local-only="false"
+                          pfx="tmp.aai.all-vpn-bindings" >
+                <outcome value='success'>
+                    <block atomic="true">
+                        <for index='vpnbidx' start='0' end='`$tmp.aai.all-vpn-bindings.vpn-binding_length`' >
+                            <block atomic='true'>
+                                <!--<switch test="`$tmp.slicevpnuuids[$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-id] != '' `">-->
+                                <!-- Replace vpn-type with slice-id (a new attribbute in the latest AAI) -->
+                                <switch test="`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].slice-id == $tmp.aai.service-instance.service-instance-id `">
+                                    <outcome value='true'>
+                                        <block atomic='true'>
+                                            <set>
+                                                <parameter name='tmp.aai.vpn-binding.' value="" />
+                                            </set>
+                                            <set>
+                                                <parameter name='tmp.aai.vpn-binding.' value="`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].`" />
+                                            </set>
+                                            <switch test="`$tmp.aai.vpn-binding.operational-status != 'Activated' `">
+                                                <outcome value='true'>
+                                                    <block atomic="true">
+                                                        <set>
+                                                            <parameter name='gfp-n' value='`$tmp.aai.vpn-binding.route-distinguisher`' />
+                                                        </set>
+                                                        <switch test='`$tmp.aai.vpn-binding.dst-access-ltp-id`'>
+                                                            <outcome value='Other'>
+                                                                <switch test='`$tmp.aai.vpn-binding.src-access-ltp-id`'>
+                                                                    <outcome value=''>
+                                                                        <block atomic="true">
+                                                                            <set>
+                                                                                <parameter name='tmp.aai.vpn-bindingA.' value="`$tmp.aai.vpn-binding.`" />
+                                                                                <parameter name='tmp.aai.connectivityA.' value="`$tmp.aai.connectivity.`" />
+                                                                            </set>
+                                                                            <set>
+                                                                                <parameter name='src-node-id' value='`$tmp.aai.vpn-bindingA.src-access-node-id`' />
+                                                                                <parameter name='dst-node-id' value='`$tmp.aai.vpn-bindingA.dst-access-node-id`' />
+                                                                                <!--<parameter name='dst-tpn-id' value='1' />-->
+                                                                                <parameter name='dst-tpn-id' value='`$tmp.aai.vpn-bindingA.customer-vpn-id`' />
+                                                                                <parameter name='dst-ttp-id' value='`$tmp.aai.vpn-bindingA.dst-access-ltp-id`' />
+                                                                                <parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />
+                                                                                <parameter name='otn-tunnel-name-src-domain' value='`$tmp.aai.vpn-bindingA.vpn-name`' />
+                                                                                <parameter name='client-id' value='`$tmp.aai.vpn-bindingA.access-client-id`' />
+                                                                                <parameter name='provider-id' value='`$tmp.aai.vpn-bindingA.access-provider-id`' />
+                                                                                <parameter name='topology-id' value='`$tmp.aai.vpn-bindingA.access-topology-id`' />
+                                                                            </set>
+                                                                            <set>
+                                                                                <parameter name='tmp.src.domainA.pnf-name' value="`'networkId-providerId-' +
+                                                   $tmp.aai.vpn-bindingA.access-provider-id + '-clientId-' +
+                                                   $tmp.aai.vpn-bindingA.access-client-id + '-topologyId-' +
+                                                   $tmp.aai.vpn-bindingA.access-topology-id + '-nodeId-' +
+                                                   $tmp.aai.vpn-bindingA.src-access-node-id`" />
+                                                                            </set>
+                                                                            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                          resource="pnf"
+                                                                                          key="pnf.pnf-name = $tmp.src.domainA.pnf-name"
+                                                                                          pfx='tmp.aai.source-pnf' local-only='false' >
+                                                                                <!--AND depth = '0'"-->
+                                                                                <outcome value='success'>
+                                                                                    <block>
+                                                                                        <for silentFailure='true' index='spvidx' start='0' end='`$tmp.aai.source-pnf.relationship-list.relationship_length`' >
+                                                                                            <switch test='`$tmp.aai.source-pnf.relationship-list.relationship[$spvidx].related-to`'>
+                                                                                                <outcome value='esr-thirdparty-sdnc'>
+                                                                                                    <block atomic="true">
+                                                                                                        <set>
+                                                                                                            <parameter name='tmp.domainA.esr-thirdparty-id' value="`$tmp.aai.source-pnf.relationship-list.relationship[$spvidx].relationship-data[0].relationship-value`" />
+                                                                                                        </set>
+                                                                                                        <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                                                      resource="esr-thirdparty-sdnc"
+                                                                                                                      key="esr-thirdparty-sdnc.thirdparty-sdnc-id = $tmp.domainA.esr-thirdparty-id AND
+		     depth = '1'"
+                                                                                                                      pfx='tmp.aai.domainA.esr-thirdparty-sdnc' local-only='false' >
+                                                                                                            <outcome value='success'>
+                                                                                                                <block>
+                                                                                                                    <set>
+                                                                                                                        <parameter name='prop.sdncRestApi.thirdpartySdnc.domainA.url' value="`$tmp.aai.domainA.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].service-url`" />
+                                                                                                                        <parameter name='prop.sdncRestApi.thirdpartySdnc.domainA.user' value="`$tmp.aai.domainA.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].user-name`" />
+                                                                                                                        <parameter name='prop.sdncRestApi.thirdpartySdnc.domainA.password' value="`$tmp.aai.domainA.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].password`" />
+                                                                                                                        <!--<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >-->
+                                                                                                                        <!--<parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-network:networks'`" />-->
+                                                                                                                        <!--<parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />-->
+                                                                                                                        <!--<parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />-->
+                                                                                                                        <!--<parameter name="format" value="json"/>-->
+                                                                                                                        <!--<parameter name="httpMethod" value="get"/>-->
+                                                                                                                        <!--<parameter name="responsePrefix" value="topology"/>-->
+                                                                                                                        <!--<parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>-->
+                                                                                                                        <!--<parameter name="trustStorePassword" value="adminadmin"/>-->
+                                                                                                                        <!--<parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>-->
+                                                                                                                        <!--<parameter name="keyStorePassword" value="adminadmin"/>-->
+                                                                                                                    </set>
+                                                                                                                </block>
+                                                                                                            </outcome>
+                                                                                                            <outcome value='not-found'>
+                                                                                                                <return status='failure'>
+                                                                                                                    <parameter name='ack-final' value='Y'/>
+                                                                                                                    <parameter name="error-code" value="500" />
+                                                                                                                    <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                                                                </return>
+                                                                                                            </outcome>
+                                                                                                            <outcome value='Other'>
+                                                                                                                <return status='failure'>
+                                                                                                                    <parameter name='ack-final' value='Y'/>
+                                                                                                                    <parameter name="error-code" value="500" />
+                                                                                                                    <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                                                                </return>
+                                                                                                            </outcome>
+                                                                                                        </get-resource>
+                                                                                                    </block>
+                                                                                                </outcome>
+                                                                                            </switch>
+                                                                                        </for>
+                                                                                    </block>
+                                                                                </outcome>
+                                                                                <outcome value='not-found'>
+                                                                                    <return status='failure'>
+                                                                                        <parameter name='ack-final' value='Y'/>
+                                                                                        <parameter name="error-code" value="500" />
+                                                                                        <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                                    </return>
+                                                                                </outcome>
+                                                                                <outcome value='Other'>
+                                                                                    <return status='failure'>
+                                                                                        <parameter name='ack-final' value='Y'/>
+                                                                                        <parameter name="error-code" value="500" />
+                                                                                        <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                                    </return>
+                                                                                </outcome>
+                                                                            </get-resource>
+                                                                            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                                                                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/' + $prop.restapi.cll-otn-src-domain-creation.templatefile`" />
+                                                                                <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.domainA.url + '/restconf/data/ietf-te:te'`" />
+                                                                                <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.domainA.user`" />
+                                                                                <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.domainA.password`" />
+                                                                                <parameter name="format" value="json"/>
+                                                                                <parameter name="httpMethod" value="patch"/>
+                                                                                <parameter name="responsePrefix" value="otn-oof"/>
+                                                                                <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
+                                                                                <parameter name="trustStorePassword" value="adminadmin"/>
+                                                                                <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                                                                                <parameter name="keyStorePassword" value="adminadmin"/>
+                                                                                <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
+                                                                                <outcome value='failure'>
+                                                                                    <return status='failure'>
+                                                                                        <parameter name='ack-final' value='Y'/>
+                                                                                        <parameter name="error-code" value="500" />
+                                                                                        <parameter name="error-message" value="Error executing Create OTN tunnel rest api" />
+                                                                                    </return>
+                                                                                </outcome>
+                                                                                <outcome value='success'>
+                                                                                    <block atomic="true"></block>
+                                                                                </outcome>
+                                                                            </execute>
+                                                                            <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding'
+                                                                                    key='vpn-binding.vpn-id = $tmp.aai.vpn-bindingA.vpn-id' >
+                                                                                <parameter name='vpn-id' value='`$tmp.aai.vpn-bindingA.vpn-id`' />
+                                                                                <parameter name='vpn-name' value='`$tmp.aai.vpn-bindingA.vpn-name`' />
+                                                                                <parameter name='operational-status' value='Activated' />
+                                                                            </update>
+                                                                            <set>
+                                                                                <parameter name='`leaf-tunnels-list[$leaftunsidx].tunnel-name`' value='`$tmp.aai.vpn-binding.vpn-name`' />
+                                                                                <parameter name='`leaf-tunnels-list[$leaftunsidx].vpn-id`' value='`$tmp.aai.vpn-binding.vpn-id`' />
+                                                                                <parameter name='`leaf-tunnels-list_length`' value='`$leaftunsidx + 1`' />
+                                                                            </set>
+                                                                            <set>
+                                                                                <parameter name='`leaftunsidx`' value='`$leaftunsidx + 1`' />
+                                                                            </set>
+                                                                        </block>
+                                                                    </outcome>
+                                                                    <outcome value='Other'>
+                                                                        <block atomic="true">
+                                                                            <set>
+                                                                                <parameter name='tmp.aai.vpn-bindingG.' value="`$tmp.aai.vpn-binding.`" />
+                                                                                <parameter name='tmp.aai.connectivityG.' value="`$tmp.aai.connectivity.`" />
+                                                                            </set>
+                                                                            <set>
+                                                                                <parameter name='src-node-id' value='`$tmp.aai.vpn-bindingG.src-access-node-id`' />
+                                                                                <parameter name='dst-node-id' value='`$tmp.aai.vpn-bindingG.dst-access-node-id`' />
+                                                                                <!--<parameter name='dst-tpn-id' value='1' />-->
+                                                                                <parameter name='src-tpn-id' value='`$tmp.aai.vpn-bindingG.customer-vpn-id`' />
+                                                                                <parameter name='dst-tpn-id' value='`$tmp.aai.vpn-bindingG.customer-vpn-id`' />
+                                                                                <parameter name='src-ttp-id' value='`$tmp.aai.vpn-bindingG.src-access-ltp-id`' />
+                                                                                <parameter name='dst-ttp-id' value='`$tmp.aai.vpn-bindingG.dst-access-ltp-id`' />
+                                                                                <parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />
+                                                                                <parameter name='otn-tunnel-name-domainG' value='`$tmp.aai.vpn-bindingG.vpn-name`' />
+                                                                                <parameter name='client-id' value='`$tmp.aai.vpn-bindingG.access-client-id`' />
+                                                                                <parameter name='provider-id' value='`$tmp.aai.vpn-bindingG.access-provider-id`' />
+                                                                                <parameter name='topology-id' value='`$tmp.aai.vpn-bindingG.access-topology-id`' />
+                                                                            </set>
+                                                                            <set>
+                                                                                <parameter name='tmp.domainG.pnf-name' value="`'networkId-providerId-' +
+                                                   $tmp.aai.vpn-bindingG.access-provider-id + '-clientId-' +
+                                                   $tmp.aai.vpn-bindingG.access-client-id + '-topologyId-' +
+                                                   $tmp.aai.vpn-bindingG.access-topology-id + '-nodeId-' +
+                                                   $tmp.aai.vpn-bindingG.src-access-node-id`" />
+                                                                            </set>
+                                                                            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                          resource="pnf"
+                                                                                          key="pnf.pnf-name = $tmp.domainG.pnf-name"
+                                                                                          pfx='tmp.aai.domainG-pnf' local-only='false' >
+                                                                                <!--AND depth = '0'"-->
+                                                                                <outcome value='success'>
+                                                                                    <block>
+                                                                                        <for silentFailure='true' index='spvidx' start='0' end='`$tmp.aai.domainG-pnf.relationship-list.relationship_length`' >
+                                                                                            <switch test='`$tmp.aai.domainG-pnf.relationship-list.relationship[$spvidx].related-to`'>
+                                                                                                <outcome value='esr-thirdparty-sdnc'>
+                                                                                                    <block atomic="true">
+                                                                                                        <set>
+                                                                                                            <parameter name='tmp.domainG.esr-thirdparty-id' value="`$tmp.aai.domainG-pnf.relationship-list.relationship[$spvidx].relationship-data[0].relationship-value`" />
+                                                                                                        </set>
+                                                                                                        <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                                                      resource="esr-thirdparty-sdnc"
+                                                                                                                      key="esr-thirdparty-sdnc.thirdparty-sdnc-id = $tmp.domainG.esr-thirdparty-id AND
+		     depth = '1'"
+                                                                                                                      pfx='tmp.aai.domainG.esr-thirdparty-sdnc' local-only='false' >
+                                                                                                            <outcome value='success'>
+                                                                                                                <block>
+                                                                                                                    <set>
+                                                                                                                        <parameter name='prop.sdncRestApi.thirdpartySdnc.domainG.url' value="`$tmp.aai.domainG.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].service-url`" />
+                                                                                                                        <parameter name='prop.sdncRestApi.thirdpartySdnc.domainG.user' value="`$tmp.aai.domainG.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].user-name`" />
+                                                                                                                        <parameter name='prop.sdncRestApi.thirdpartySdnc.domainG.password' value="`$tmp.aai.domainG.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].password`" />
+                                                                                                                        <!--<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >-->
+                                                                                                                        <!--<parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-network:networks'`" />-->
+                                                                                                                        <!--<parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />-->
+                                                                                                                        <!--<parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />-->
+                                                                                                                        <!--<parameter name="format" value="json"/>-->
+                                                                                                                        <!--<parameter name="httpMethod" value="get"/>-->
+                                                                                                                        <!--<parameter name="responsePrefix" value="topology"/>-->
+                                                                                                                        <!--<parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>-->
+                                                                                                                        <!--<parameter name="trustStorePassword" value="adminadmin"/>-->
+                                                                                                                        <!--<parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>-->
+                                                                                                                        <!--<parameter name="keyStorePassword" value="adminadmin"/>-->
+                                                                                                                    </set>
+                                                                                                                </block>
+                                                                                                            </outcome>
+                                                                                                            <outcome value='not-found'>
+                                                                                                                <return status='failure'>
+                                                                                                                    <parameter name='ack-final' value='Y'/>
+                                                                                                                    <parameter name="error-code" value="500" />
+                                                                                                                    <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                                                                </return>
+                                                                                                            </outcome>
+                                                                                                            <outcome value='Other'>
+                                                                                                                <return status='failure'>
+                                                                                                                    <parameter name='ack-final' value='Y'/>
+                                                                                                                    <parameter name="error-code" value="500" />
+                                                                                                                    <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                                                                </return>
+                                                                                                            </outcome>
+                                                                                                        </get-resource>
+                                                                                                    </block>
+                                                                                                </outcome>
+                                                                                            </switch>
+                                                                                        </for>
+                                                                                    </block>
+                                                                                </outcome>
+                                                                                <outcome value='not-found'>
+                                                                                    <return status='failure'>
+                                                                                        <parameter name='ack-final' value='Y'/>
+                                                                                        <parameter name="error-code" value="500" />
+                                                                                        <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                                    </return>
+                                                                                </outcome>
+                                                                                <outcome value='Other'>
+                                                                                    <return status='failure'>
+                                                                                        <parameter name='ack-final' value='Y'/>
+                                                                                        <parameter name="error-code" value="500" />
+                                                                                        <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                                    </return>
+                                                                                </outcome>
+                                                                            </get-resource>
+                                                                            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                                                                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/' + $prop.restapi.cll-otn-domainG-creation.templatefile`" />
+                                                                                <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.domainG.url + '/restconf/data/ietf-te:te'`" />
+                                                                                <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.domainG.user`" />
+                                                                                <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.domainG.password`" />
+                                                                                <parameter name="format" value="json"/>
+                                                                                <parameter name="httpMethod" value="patch"/>
+                                                                                <parameter name="responsePrefix" value="otn-oof"/>
+                                                                                <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
+                                                                                <parameter name="trustStorePassword" value="adminadmin"/>
+                                                                                <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                                                                                <parameter name="keyStorePassword" value="adminadmin"/>
+                                                                                <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
+                                                                                <outcome value='failure'>
+                                                                                    <return status='failure'>
+                                                                                        <parameter name='ack-final' value='Y'/>
+                                                                                        <parameter name="error-code" value="500" />
+                                                                                        <parameter name="error-message" value="Error executing Create OTN tunnel rest api" />
+                                                                                    </return>
+                                                                                </outcome>
+                                                                                <outcome value='success'>
+                                                                                    <block atomic="true"></block>
+                                                                                </outcome>
+                                                                            </execute>
+                                                                            <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding'
+                                                                                    key='vpn-binding.vpn-id = $tmp.aai.vpn-bindingG.vpn-id' >
+                                                                                <parameter name='vpn-id' value='`$tmp.aai.vpn-bindingG.vpn-id`' />
+                                                                                <parameter name='vpn-name' value='`$tmp.aai.vpn-bindingG.vpn-name`' />
+                                                                                <parameter name='operational-status' value='Activated' />
+                                                                            </update>
+                                                                        </block>
+                                                                    </outcome>
+                                                                </switch>
+                                                            </outcome>
+                                                            <outcome value=''>
+                                                                <switch test='`$tmp.aai.vpn-binding.src-access-ltp-id`'>
+                                                                    <outcome value='Other'>
+                                                                        <block atomic="true">
+                                                                            <set>
+                                                                                <parameter name='tmp.aai.vpn-bindingB.' value="`$tmp.aai.vpn-binding.`" />
+                                                                                <parameter name='tmp.aai.connectivityB.' value="`$tmp.aai.connectivity.`" />
+                                                                            </set>
+                                                                            <set>
+                                                                                <parameter name='src-node-id' value='`$tmp.aai.vpn-bindingB.src-access-node-id`' />
+                                                                                <parameter name='dst-node-id' value='`$tmp.aai.vpn-bindingB.dst-access-node-id`' />
+                                                                                <!--<parameter name='src-tpn-id' value='1' />-->
+                                                                                <parameter name='src-tpn-id' value='`$tmp.aai.vpn-bindingB.customer-vpn-id`' />
+                                                                                <parameter name='src-ttp-id' value='`$tmp.aai.vpn-bindingB.src-access-ltp-id`' />
+                                                                                <parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />
+                                                                                <parameter name='otn-tunnel-name-dst-domain' value='`$tmp.aai.vpn-bindingB.vpn-name`' />
+                                                                                <parameter name='client-id' value='`$tmp.aai.vpn-bindingB.access-client-id`' />
+                                                                                <parameter name='provider-id' value='`$tmp.aai.vpn-bindingB.access-provider-id`' />
+                                                                                <parameter name='topology-id' value='`$tmp.aai.vpn-bindingB.access-topology-id`' />
+                                                                            </set>
+                                                                            <set>
+                                                                                <parameter name='tmp.dst.domainB.pnf-name' value="`'networkId-providerId-' +
+                                                   $tmp.aai.vpn-bindingB.access-provider-id + '-clientId-' +
+                                                   $tmp.aai.vpn-bindingB.access-client-id + '-topologyId-' +
+                                                   $tmp.aai.vpn-bindingB.access-topology-id + '-nodeId-' +
+                                                   $tmp.aai.vpn-bindingB.dst-access-node-id`" />
+                                                                            </set>
+                                                                            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                          resource="pnf"
+                                                                                          key="pnf.pnf-name = $tmp.dst.domainB.pnf-name"
+                                                                                          pfx='tmp.aai.destination-pnf' local-only='false' >
+                                                                                <!--AND depth = '0'"-->
+                                                                                <outcome value='success'>
+                                                                                    <block>
+                                                                                        <for silentFailure='true' index='dpvidx' start='0' end='`$tmp.aai.destination-pnf.relationship-list.relationship_length`' >
+                                                                                            <switch test='`$tmp.aai.destination-pnf.relationship-list.relationship[$dpvidx].related-to`'>
+                                                                                                <outcome value='esr-thirdparty-sdnc'>
+                                                                                                    <block atomic="true">
+                                                                                                        <set>
+                                                                                                            <parameter name='tmp.domainB.esr-thirdparty-id' value="`$tmp.aai.destination-pnf.relationship-list.relationship[$dpvidx].relationship-data[0].relationship-value`" />
+                                                                                                        </set>
+                                                                                                        <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                                                      resource="esr-thirdparty-sdnc"
+                                                                                                                      key="esr-thirdparty-sdnc.thirdparty-sdnc-id = $tmp.domainB.esr-thirdparty-id AND
+		     depth = '1'"
+                                                                                                                      pfx='tmp.aai.domainB.esr-thirdparty-sdnc' local-only='false' >
+                                                                                                            <outcome value='success'>
+                                                                                                                <block>
+                                                                                                                    <set>
+                                                                                                                        <parameter name='prop.sdncRestApi.thirdpartySdnc.domainB.url' value="`$tmp.aai.domainB.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].service-url`" />
+                                                                                                                        <parameter name='prop.sdncRestApi.thirdpartySdnc.domainB.user' value="`$tmp.aai.domainB.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].user-name`" />
+                                                                                                                        <parameter name='prop.sdncRestApi.thirdpartySdnc.domainB.password' value="`$tmp.aai.domainB.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].password`" />
+                                                                                                                        <!--<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >-->
+                                                                                                                        <!--<parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-network:networks'`" />-->
+                                                                                                                        <!--<parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />-->
+                                                                                                                        <!--<parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />-->
+                                                                                                                        <!--<parameter name="format" value="json"/>-->
+                                                                                                                        <!--<parameter name="httpMethod" value="get"/>-->
+                                                                                                                        <!--<parameter name="responsePrefix" value="topology"/>-->
+                                                                                                                        <!--<parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>-->
+                                                                                                                        <!--<parameter name="trustStorePassword" value="adminadmin"/>-->
+                                                                                                                        <!--<parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>-->
+                                                                                                                        <!--<parameter name="keyStorePassword" value="adminadmin"/>-->
+                                                                                                                    </set>
+                                                                                                                </block>
+                                                                                                            </outcome>
+                                                                                                            <outcome value='not-found'>
+                                                                                                                <return status='failure'>
+                                                                                                                    <parameter name='ack-final' value='Y'/>
+                                                                                                                    <parameter name="error-code" value="500" />
+                                                                                                                    <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                                                                </return>
+                                                                                                            </outcome>
+                                                                                                            <outcome value='Other'>
+                                                                                                                <return status='failure'>
+                                                                                                                    <parameter name='ack-final' value='Y'/>
+                                                                                                                    <parameter name="error-code" value="500" />
+                                                                                                                    <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                                                                </return>
+                                                                                                            </outcome>
+                                                                                                        </get-resource>
+                                                                                                    </block>
+                                                                                                </outcome>
+                                                                                            </switch>
+                                                                                        </for>
+                                                                                    </block>
+                                                                                </outcome>
+                                                                                <outcome value='not-found'>
+                                                                                    <return status='failure'>
+                                                                                        <parameter name='ack-final' value='Y'/>
+                                                                                        <parameter name="error-code" value="500" />
+                                                                                        <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                                    </return>
+                                                                                </outcome>
+                                                                                <outcome value='Other'>
+                                                                                    <return status='failure'>
+                                                                                        <parameter name='ack-final' value='Y'/>
+                                                                                        <parameter name="error-code" value="500" />
+                                                                                        <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                                    </return>
+                                                                                </outcome>
+                                                                            </get-resource>
+                                                                            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                                                                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/' + $prop.restapi.cll-otn-dst-domain-creation.templatefile`" />
+                                                                                <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.domainB.url + '/restconf/data/ietf-te:te'`" />
+                                                                                <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.domainB.user`" />
+                                                                                <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.domainB.password`" />
+                                                                                <parameter name="format" value="json"/>
+                                                                                <parameter name="httpMethod" value="patch"/>
+                                                                                <parameter name="responsePrefix" value="otn-oof"/>
+                                                                                <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
+                                                                                <parameter name="trustStorePassword" value="adminadmin"/>
+                                                                                <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                                                                                <parameter name="keyStorePassword" value="adminadmin"/>
+                                                                                <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
+                                                                                <outcome value='failure'>
+                                                                                    <return status='failure'>
+                                                                                        <parameter name='ack-final' value='Y'/>
+                                                                                        <parameter name="error-code" value="500" />
+                                                                                        <parameter name="error-message" value="Error executing Create OTN tunnel rest api" />
+                                                                                    </return>
+                                                                                </outcome>
+                                                                                <outcome value='success'>
+                                                                                    <block atomic="true"></block>
+                                                                                </outcome>
+                                                                            </execute>
+                                                                            <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding'
+                                                                                    key='vpn-binding.vpn-id = $tmp.aai.vpn-bindingB.vpn-id' >
+                                                                                <parameter name='vpn-id' value='`$tmp.aai.vpn-bindingB.vpn-id`' />
+                                                                                <parameter name='vpn-name' value='`$tmp.aai.vpn-bindingB.vpn-name`' />
+                                                                                <parameter name='operational-status' value='Activated' />
+                                                                            </update>
+                                                                            <set>
+                                                                                <parameter name='`root-tunnels-list[$roottunsidx].tunnel-name`' value='`$tmp.aai.vpn-binding.vpn-name`' />
+                                                                                <parameter name='`root-tunnels-list[$roottunsidx].vpn-id`' value='`$tmp.aai.vpn-binding.vpn-id`' />
+                                                                                <parameter name='`root-tunnels-list_length`' value='`$roottunsidx + 1`' />
+                                                                            </set>
+                                                                            <set>
+                                                                                <parameter name='`roottunsidx`' value='`$roottunsidx + 1`' />
+                                                                            </set>
+                                                                        </block>
+                                                                    </outcome>
+                                                                    <outcome value=''>
+                                                                        <return status='failure'>
+                                                                            <parameter name='error-code' value='' />
+                                                                            <parameter name='error-message' value='' />
+                                                                        </return>
+                                                                    </outcome>
+                                                                </switch>
+                                                            </outcome>
+                                                        </switch>
+                                                    </block>
+                                                </outcome>
+                                                <outcome value='false'>
+                                                    <block></block>
+                                                </outcome>
+                                            </switch>
+                                        </block>
+                                    </outcome>
+                                    <outcome value='false'></outcome>
+                                </switch>
+                            </block>
+                        </for>
+                    </block>
+                </outcome>
+                <outcome value='not-found'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.l3vpn.pe1_id`" />
+                    </return>
+                </outcome>
+                <outcome value='failure'>
+                    <return status='failure'>
+                        <parameter name='error-code' value='' />
+                        <parameter name='error-message' value='' />
+                    </return>
+                </outcome>
+            </get-resource>
+            <!--<get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" -->
+            <!--	resource="service-instance"-->
+            <!--	key='service-instance.service-instance-id = $service-data.vnfs.vnf[$tmp.vidx].vnf-data.service-information.service-instance-id-->
+            <!--         AND customer.global-customer-id = $service-data.vnfs.vnf[$tmp.vidx].vnf-data.service-information.global-customer-id -->
+            <!--         AND service-subscription.service-type = $service-data.vnfs.vnf[$tmp.vidx].vnf-data.service-information.subscription-service-type'-->
+            <!--	local-only="false"-->
+            <!--	force="true" pfx="tmp.aai.service-instance">-->
+            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                          resource="service-instance"
+                          key='service-instance.service-instance-id = $vnf-topology-operation-input.service-information.service-instance-id
+         AND customer.global-customer-id = $vnf-topology-operation-input.service-information.global-customer-id
+         AND service-subscription.service-type = $vnf-topology-operation-input.service-information.subscription-service-type'
+                          local-only="false"
+                          force="true" pfx="tmp.aai.service-instance">
+                <!--$vnf-topology-operation-input.service-information.service-instance-id-->
+                <outcome value='success'>
+                    <for index='rel-index' start='0' end='`$tmp.aai.service-instance.relationship-list.relationship_length`' >
+                        <switch test='`$tmp.aai.service-instance.relationship-list.relationship[$rel-index].related-to`'>
+                            <outcome value='connectivity'>
+                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                              resource="connectivity"
+                                              key="connectivity.connectivity-id = $tmp.aai.service-instance.relationship-list.relationship[$rel-index].relationship-data[0].relationship-value"
+                                              local-only="false"
+                                              pfx="tmp.aai.connectivity" >
+                                    <outcome value='success'>
+                                        <switch test="`$tmp.aai.connectivity.operational-status != 'Activated' `">
+                                            <outcome value='false'>
+                                                <block></block>
+                                            </outcome>
+                                            <outcome value='true'>
+                                                <block atomic="true">
+                                                    <switch test="`$tmp.aai.connectivity.vpn-type`">
+                                                        <outcome value='leaf'>
+                                                            <block>
+                                                                <set>
+                                                                    <parameter name='`ethernet-srv-end-points-list.`' value='' />
+                                                                    <parameter name='`ethernet-srv-end-points-list_length`' value='0' />
+                                                                    <parameter name='`epidx`' value='0' />
+                                                                </set>
+                                                                <set>
+                                                                    <parameter name='`leafOrRootAccess`' value='ietf-eth-tran-types:leaf-access' />
+                                                                </set>
+                                                                <for silentFailure='true' index='cridx' start='0' end='`$tmp.aai.connectivity.relationship-list.relationship_length`' >
+                                                                    <switch test='`$tmp.aai.connectivity.relationship-list.relationship[$cridx].related-to`'>
+                                                                        <outcome value='uni'>
+                                                                            <block atomic="true">
+                                                                                <set>
+                                                                                    <parameter name='tmp.aai.uni.' value='' />
+                                                                                </set>
+                                                                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                              resource="uni"
+                                                                                              key="uni.id = $tmp.aai.connectivity.relationship-list.relationship[$cridx].relationship-data[0].relationship-value"
+                                                                                              local-only="false"
+                                                                                              pfx="tmp.aai.uni" >
+                                                                                    <outcome value='not-found'>
+                                                                                        <return status='failure'>
+                                                                                            <parameter name='ack-final' value='Y'/>
+                                                                                            <parameter name="error-code" value="500" />
+                                                                                            <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.l3vpn.pe1_id`" />
+                                                                                        </return>
+                                                                                    </outcome>
+                                                                                    <outcome value='failure'>
+                                                                                        <return status='failure'>
+                                                                                            <parameter name='error-code' value='' />
+                                                                                            <parameter name='error-message' value='' />
+                                                                                        </return>
+                                                                                    </outcome>
+                                                                                    <outcome value='success'>
+                                                                                        <block atomic="true"></block>
+                                                                                    </outcome>
+                                                                                </get-resource>
+                                                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                                                                                    <parameter name="original_string" value='`$tmp.aai.uni.id`'/>
+                                                                                    <!--<parameter name="regex" value="[^-]+$"/>-->
+                                                                                    <parameter name="regex" value="[-]+"/>
+                                                                                    <parameter name="ctx_memory_result_key" value="param-prefix-uni"/>
+                                                                                    <outcome value='success'>
+                                                                                        <block atomic="true">
+                                                                                            <set>
+                                                                                                <parameter name='tmp.uni-node-id-short' value='`$param-prefix-uni[$param-prefix-uni_length -3]`' />
+                                                                                            </set>
+                                                                                        </block>
+                                                                                    </outcome>
+                                                                                    <outcome value='failure'>
+                                                                                        <return status='failure'>
+                                                                                            <parameter name='error-code' value='' />
+                                                                                            <parameter name='error-message' value="An error occured while splitting sna1_route" />
+                                                                                        </return>
+                                                                                    </outcome>
+                                                                                </execute>
+                                                                                <set>
+                                                                                    <parameter name='`ethernet-srv-end-points-list[$epidx].ethernet-end-point-name`' value='`$tmp.aai.connectivity.connectivity-id`' />
+                                                                                    <parameter name='`ethernet-srv-end-points-list[$epidx].index-number`' value='0' />
+                                                                                    <parameter name='`ethernet-srv-end-points-list[$epidx].eth-node-id`' value='`$tmp.uni-node-id-short`' />
+                                                                                    <parameter name='`ethernet-srv-end-points-list[$epidx].eth-node-tp-id`' value='`$tmp.aai.uni.tp-id`' />
+                                                                                    <parameter name='`ethernet-srv-end-points-list[$epidx].leafOrRootAccess`' value='`$leafOrRootAccess`' />
+                                                                                    <parameter name='`ethernet-srv-end-points-list[$epidx].cvlan`' value='`$tmp.aai.connectivity.cvlan`' />
+                                                                                    <parameter name='`ethernet-srv-end-points-list[$epidx].CIR`' value='`$tmp.aai.connectivity.cir`' />
+                                                                                    <parameter name='`ethernet-srv-end-points-list[$epidx].EIR`' value='`$tmp.aai.connectivity.eir`' />
+                                                                                    <parameter name='`ethernet-srv-end-points-list_length`' value='`$epidx + 1`' />
+                                                                                </set>
+                                                                                <set>
+                                                                                    <parameter name='`epidx`' value='`$epidx + 1`' />
+                                                                                </set>
+                                                                            </block>
+                                                                        </outcome>
+                                                                    </switch>
+                                                                </for>
+                                                                <set>
+                                                                    <parameter name='filenameclleths' value="`$leafOrRootAccess + $tmp.aai.connectivity.access-node-id`" />
+                                                                </set>
+                                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
+                                                                    <parameter name="filename" value="`$filenameclleths`" />
+                                                                </execute>
+                                                                <set>
+                                                                    <parameter name='`otn-tunnels-name-list.`' value='' />
+                                                                    <parameter name='`otn-tunnels-name-list_length`' value='0' />
+                                                                    <parameter name='`otntunsidx`' value='0' />
+                                                                </set>
+                                                                <for silentFailure='true' index='cridx' start='0' end='`$tmp.aai.connectivity.relationship-list.relationship_length`' >
+                                                                    <switch test='`$tmp.aai.connectivity.relationship-list.relationship[$cridx].related-to`'>
+                                                                        <outcome value='vpn-binding'>
+                                                                            <block atomic="true">
+                                                                                <set>
+                                                                                    <parameter name='tmp.aai.vpn-binding.' value='' />
+                                                                                </set>
+                                                                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                              resource="vpn-binding"
+                                                                                              key="vpn-binding.vpn-id = $tmp.aai.connectivity.relationship-list.relationship[$cridx].relationship-data[0].relationship-value"
+                                                                                              local-only="false"
+                                                                                              pfx="tmp.aai.vpn-binding" >
+                                                                                    <outcome value='not-found'>
+                                                                                        <return status='failure'>
+                                                                                            <parameter name='ack-final' value='Y'/>
+                                                                                            <parameter name="error-code" value="500" />
+                                                                                            <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.l3vpn.pe1_id`" />
+                                                                                        </return>
+                                                                                    </outcome>
+                                                                                    <outcome value='failure'>
+                                                                                        <return status='failure'>
+                                                                                            <parameter name='error-code' value='' />
+                                                                                            <parameter name='error-message' value='' />
+                                                                                        </return>
+                                                                                    </outcome>
+                                                                                    <outcome value='success'>
+                                                                                        <block atomic="true">
+                                                                                            <set>
+                                                                                                <parameter name='`otn-tunnels-name-list[$otntunsidx].otn-tunnel-name`' value='`$tmp.aai.vpn-binding.vpn-name`' />
+                                                                                                <parameter name='`otn-tunnels-name-list[$otntunsidx].vpn-id`' value='`$tmp.aai.vpn-binding.vpn-id`' />
+                                                                                                <parameter name='`otn-tunnels-name-list_length`' value='`$otntunsidx + 1`' />
+                                                                                            </set>
+                                                                                            <set>
+                                                                                                <parameter name='`otntunsidx`' value='`$otntunsidx + 1`' />
+                                                                                            </set>
+                                                                                        </block>
+                                                                                    </outcome>
+                                                                                </get-resource>
+                                                                            </block>
+                                                                        </outcome>
+                                                                    </switch>
+                                                                </for>
+                                                                <set>
+                                                                    <parameter name='filenamecllotns' value="`leafrootOTNtunnelnames`" />
+                                                                </set>
+                                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
+                                                                    <parameter name="filename" value="`$filenamecllotns`" />
+                                                                </execute>
+                                                                <set>
+                                                                    <!--<parameter name='eth-service-name' value='`$tmp.aai.connectivityA.connectivity-id`' />-->
+                                                                    <parameter name='eth-service-name' value='`$tmp.aai.connectivity.etht-svc-name`' />
+                                                                    <parameter name='slice-id' value='`$vnf-topology-operation-input.service-information.service-instance-id`' />
+                                                                    <parameter name='provider-id' value='`$tmp.aai.connectivity.access-provider-id`' />
+                                                                    <parameter name='client-id' value='`$tmp.aai.connectivity.access-client-id`' />
+                                                                    <parameter name='topology-id' value='`$tmp.aai.connectivity.access-topology-id`' />
+                                                                    <!--<parameter name='otn-tunnel-name' value='`$tmp.aai.vpn-bindingA.vpn-name`' />-->
+                                                                    <!--<parameter name='ethernet-end-point-name' value='`$tmp.aai.connectivityA.connectivity-id`' />-->
+                                                                    <!--<parameter name='index-number' value='0' />-->
+                                                                    <!--<parameter name='eth-node-id' value='`$tmp.aai.connectivityA.access-node-id`' />-->
+                                                                    <!--<parameter name='eth-node-tp-id' value='`$tmp.aai.connectivityA.access-ltp-id`' />-->
+                                                                    <!--<parameter name='CIR' value='`$tmp.aai.vpn-bindingA.route-distinguisher *1000000`' />-->
+                                                                    <!--<parameter name='EIR' value='`$tmp.aai.vpn-bindingA.route-distinguisher *1000000`' />-->
+                                                                    <!--<parameter name='cvlan' value='`$tmp.aai.connectivityA.cvlan`' />-->
+                                                                </set>
+                                                                <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                                                    <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/' + $prop.restapi.cll-ethernet-service-loop.templatefile`" />
+                                                                    <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.domainA.url + '/restconf/data/ietf-eth-tran-service:etht-svc'`" />
+                                                                    <!--<parameter name="restapiUrl" value="`$prop.restapi.connection-oof-url`" />-->
+                                                                    <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.domainA.user`" />
+                                                                    <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.domainA.password`" />
+                                                                    <parameter name="format" value="json"/>
+                                                                    <parameter name="httpMethod" value="patch"/>
+                                                                    <parameter name='dirPath' value="/opt/onap/sdnc/restconfapi/yang" />
+                                                                    <parameter name="responsePrefix" value="vpn-result"/>
+                                                                    <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
+                                                                    <parameter name="trustStorePassword" value="adminadmin"/>
+                                                                    <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                                                                    <parameter name="keyStorePassword" value="adminadmin"/>
+                                                                    <outcome value='failure'></outcome>
+                                                                    <outcome value='success'>
+                                                                        <block atomic="true">
+                                                                            <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity'
+                                                                                    key='connectivity.connectivity-id = $tmp.aai.connectivity.connectivity-id'>
+                                                                                <parameter name='connectivity-id' value='`$tmp.aai.connectivity.connectivity-id`' />
+                                                                                <parameter name='operational-status' value='Activated' />
+                                                                            </update>
+                                                                        </block>
+                                                                    </outcome>
+                                                                </execute>
+                                                            </block>
+                                                        </outcome>
+                                                        <outcome value='root'>
+                                                            <block>
+                                                                <set>
+                                                                    <parameter name='`ethernet-srv-end-points-list.`' value='' />
+                                                                    <parameter name='`ethernet-srv-end-points-list_length`' value='0' />
+                                                                    <parameter name='`epidx`' value='0' />
+                                                                </set>
+                                                                <set>
+                                                                    <parameter name='`leafOrRootAccess`' value='ietf-eth-tran-types:root-primary' />
+                                                                </set>
+                                                                <for silentFailure='true' index='cridx' start='0' end='`$tmp.aai.connectivity.relationship-list.relationship_length`' >
+                                                                    <switch test='`$tmp.aai.connectivity.relationship-list.relationship[$cridx].related-to`'>
+                                                                        <outcome value='uni'>
+                                                                            <block atomic="true">
+                                                                                <set>
+                                                                                    <parameter name='tmp.aai.uni.' value='' />
+                                                                                </set>
+                                                                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                              resource="uni"
+                                                                                              key="uni.id = $tmp.aai.connectivity.relationship-list.relationship[$cridx].relationship-data[0].relationship-value"
+                                                                                              local-only="false"
+                                                                                              pfx="tmp.aai.uni" >
+                                                                                    <outcome value='not-found'>
+                                                                                        <return status='failure'>
+                                                                                            <parameter name='ack-final' value='Y'/>
+                                                                                            <parameter name="error-code" value="500" />
+                                                                                            <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.l3vpn.pe1_id`" />
+                                                                                        </return>
+                                                                                    </outcome>
+                                                                                    <outcome value='failure'>
+                                                                                        <return status='failure'>
+                                                                                            <parameter name='error-code' value='' />
+                                                                                            <parameter name='error-message' value='' />
+                                                                                        </return>
+                                                                                    </outcome>
+                                                                                    <outcome value='success'>
+                                                                                        <block atomic="true"></block>
+                                                                                    </outcome>
+                                                                                </get-resource>
+                                                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                                                                                    <parameter name="original_string" value='`$tmp.aai.uni.id`'/>
+                                                                                    <!--<parameter name="regex" value="[^-]+$"/>-->
+                                                                                    <parameter name="regex" value="[-]+"/>
+                                                                                    <parameter name="ctx_memory_result_key" value="param-prefix-uni"/>
+                                                                                    <outcome value='success'>
+                                                                                        <block atomic="true">
+                                                                                            <set>
+                                                                                                <parameter name='tmp.uni-node-id-short' value='`$param-prefix-uni[$param-prefix-uni_length -3]`' />
+                                                                                            </set>
+                                                                                        </block>
+                                                                                    </outcome>
+                                                                                    <outcome value='failure'>
+                                                                                        <return status='failure'>
+                                                                                            <parameter name='error-code' value='' />
+                                                                                            <parameter name='error-message' value="An error occured while splitting sna1_route" />
+                                                                                        </return>
+                                                                                    </outcome>
+                                                                                </execute>
+                                                                                <set>
+                                                                                    <parameter name='`ethernet-srv-end-points-list[$epidx].ethernet-end-point-name`' value='`$tmp.aai.connectivity.connectivity-id`' />
+                                                                                    <parameter name='`ethernet-srv-end-points-list[$epidx].index-number`' value='0' />
+                                                                                    <parameter name='`ethernet-srv-end-points-list[$epidx].eth-node-id`' value='`$tmp.uni-node-id-short`' />
+                                                                                    <parameter name='`ethernet-srv-end-points-list[$epidx].eth-node-tp-id`' value='`$tmp.aai.uni.tp-id`' />
+                                                                                    <parameter name='`ethernet-srv-end-points-list[$epidx].leafOrRootAccess`' value='`$leafOrRootAccess`' />
+                                                                                    <parameter name='`ethernet-srv-end-points-list[$epidx].cvlan`' value='`$tmp.aai.connectivity.cvlan`' />
+                                                                                    <parameter name='`ethernet-srv-end-points-list[$epidx].CIR`' value='`$tmp.aai.connectivity.cir`' />
+                                                                                    <parameter name='`ethernet-srv-end-points-list[$epidx].EIR`' value='`$tmp.aai.connectivity.eir`' />
+                                                                                    <parameter name='`ethernet-srv-end-points-list_length`' value='`$epidx + 1`' />
+                                                                                </set>
+                                                                                <set>
+                                                                                    <parameter name='`epidx`' value='`$epidx + 1`' />
+                                                                                </set>
+                                                                            </block>
+                                                                        </outcome>
+                                                                    </switch>
+                                                                </for>
+                                                                <set>
+                                                                    <parameter name='filenameclleths' value="`$leafOrRootAccess + $tmp.aai.connectivity.access-node-id`" />
+                                                                </set>
+                                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
+                                                                    <parameter name="filename" value="`$filenameclleths`" />
+                                                                </execute>
+                                                                <set>
+                                                                    <parameter name='`otn-tunnels-name-list.`' value='' />
+                                                                    <parameter name='`otn-tunnels-name-list_length`' value='0' />
+                                                                    <parameter name='`otntunsidx`' value='0' />
+                                                                </set>
+                                                                <for silentFailure='true' index='cridx' start='0' end='`$tmp.aai.connectivity.relationship-list.relationship_length`' >
+                                                                    <switch test='`$tmp.aai.connectivity.relationship-list.relationship[$cridx].related-to`'>
+                                                                        <outcome value='vpn-binding'>
+                                                                            <block atomic="true">
+                                                                                <set>
+                                                                                    <parameter name='tmp.aai.vpn-binding.' value='' />
+                                                                                </set>
+                                                                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                              resource="vpn-binding"
+                                                                                              key="vpn-binding.vpn-id = $tmp.aai.connectivity.relationship-list.relationship[$cridx].relationship-data[0].relationship-value"
+                                                                                              local-only="false"
+                                                                                              pfx="tmp.aai.vpn-binding" >
+                                                                                    <outcome value='not-found'>
+                                                                                        <return status='failure'>
+                                                                                            <parameter name='ack-final' value='Y'/>
+                                                                                            <parameter name="error-code" value="500" />
+                                                                                            <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.l3vpn.pe1_id`" />
+                                                                                        </return>
+                                                                                    </outcome>
+                                                                                    <outcome value='failure'>
+                                                                                        <return status='failure'>
+                                                                                            <parameter name='error-code' value='' />
+                                                                                            <parameter name='error-message' value='' />
+                                                                                        </return>
+                                                                                    </outcome>
+                                                                                    <outcome value='success'>
+                                                                                        <block atomic="true">
+                                                                                            <set>
+                                                                                                <parameter name='`otn-tunnels-name-list[$otntunsidx].otn-tunnel-name`' value='`$tmp.aai.vpn-binding.vpn-name`' />
+                                                                                                <parameter name='`otn-tunnels-name-list[$otntunsidx].vpn-id`' value='`$tmp.aai.vpn-binding.vpn-id`' />
+                                                                                                <parameter name='`otn-tunnels-name-list_length`' value='`$otntunsidx + 1`' />
+                                                                                            </set>
+                                                                                            <set>
+                                                                                                <parameter name='`otntunsidx`' value='`$otntunsidx + 1`' />
+                                                                                            </set>
+                                                                                        </block>
+                                                                                    </outcome>
+                                                                                </get-resource>
+                                                                            </block>
+                                                                        </outcome>
+                                                                    </switch>
+                                                                </for>
+                                                                <set>
+                                                                    <parameter name='filenamecllotns' value="`leafrootOTNtunnelnames`" />
+                                                                </set>
+                                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='printContext' >
+                                                                    <parameter name="filename" value="`$filenamecllotns`" />
+                                                                </execute>
+                                                                <set>
+                                                                    <!--<parameter name='eth-service-name' value='`$tmp.aai.connectivityA.connectivity-id`' />-->
+                                                                    <parameter name='eth-service-name' value='`$tmp.aai.connectivity.etht-svc-name`' />
+                                                                    <parameter name='slice-id' value='`$vnf-topology-operation-input.service-information.service-instance-id`' />
+                                                                    <parameter name='provider-id' value='`$tmp.aai.connectivity.access-provider-id`' />
+                                                                    <parameter name='client-id' value='`$tmp.aai.connectivity.access-client-id`' />
+                                                                    <parameter name='topology-id' value='`$tmp.aai.connectivity.access-topology-id`' />
+                                                                    <!--<parameter name='otn-tunnel-name' value='`$tmp.aai.vpn-bindingA.vpn-name`' />-->
+                                                                    <!--<parameter name='ethernet-end-point-name' value='`$tmp.aai.connectivityA.connectivity-id`' />-->
+                                                                    <!--<parameter name='index-number' value='0' />-->
+                                                                    <!--<parameter name='eth-node-id' value='`$tmp.aai.connectivityA.access-node-id`' />-->
+                                                                    <!--<parameter name='eth-node-tp-id' value='`$tmp.aai.connectivityA.access-ltp-id`' />-->
+                                                                    <!--<parameter name='CIR' value='`$tmp.aai.vpn-bindingA.route-distinguisher *1000000`' />-->
+                                                                    <!--<parameter name='EIR' value='`$tmp.aai.vpn-bindingA.route-distinguisher *1000000`' />-->
+                                                                    <!--<parameter name='cvlan' value='`$tmp.aai.connectivityA.cvlan`' />-->
+                                                                </set>
+                                                                <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                                                    <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/' + $prop.restapi.cll-ethernet-service-loop.templatefile`" />
+                                                                    <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.domainA.url + '/restconf/data/ietf-eth-tran-service:etht-svc'`" />
+                                                                    <!--<parameter name="restapiUrl" value="`$prop.restapi.connection-oof-url`" />-->
+                                                                    <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.domainA.user`" />
+                                                                    <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.domainA.password`" />
+                                                                    <parameter name="format" value="json"/>
+                                                                    <parameter name="httpMethod" value="patch"/>
+                                                                    <parameter name='dirPath' value="/opt/onap/sdnc/restconfapi/yang" />
+                                                                    <parameter name="responsePrefix" value="vpn-result"/>
+                                                                    <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
+                                                                    <parameter name="trustStorePassword" value="adminadmin"/>
+                                                                    <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                                                                    <parameter name="keyStorePassword" value="adminadmin"/>
+                                                                    <outcome value='failure'></outcome>
+                                                                    <outcome value='success'>
+                                                                        <block atomic="true">
+                                                                            <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity'
+                                                                                    key='connectivity.connectivity-id = $tmp.aai.connectivity.connectivity-id'>
+                                                                                <parameter name='connectivity-id' value='`$tmp.aai.connectivity.connectivity-id`' />
+                                                                                <parameter name='operational-status' value='Activated' />
+                                                                            </update>
+                                                                        </block>
+                                                                    </outcome>
+                                                                </execute>
+                                                            </block>
+                                                        </outcome>
+                                                        <outcome value='Other'>
+                                                            <block></block>
+                                                        </outcome>
+                                                    </switch>
+                                                </block>
+                                            </outcome>
+                                        </switch>
+                                    </outcome>
+                                    <outcome value='not-found'>
+                                        <return status='failure'>
+                                            <parameter name='ack-final' value='Y'/>
+                                            <parameter name="error-code" value="500" />
+                                            <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.l3vpn.pe1_id`" />
+                                        </return>
+                                    </outcome>
+                                    <outcome value='failure'>
+                                        <return status='failure'>
+                                            <parameter name='error-code' value='' />
+                                            <parameter name='error-message' value='' />
+                                        </return>
+                                    </outcome>
+                                </get-resource>
+                            </outcome>
+                        </switch>
+                    </for>
+                </outcome>
+                <outcome value='not-found'>
+                    <return status='failure'>
+                        <parameter name='ack-final' value='Y'/>
+                        <parameter name="error-code" value="500" />
+                        <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.l3vpn.pe1_id`" />
+                    </return>
+                </outcome>
+                <outcome value='failure'>
+                    <return status='failure'>
+                        <parameter name='error-code' value='' />
+                        <parameter name='error-message' value='' />
+                    </return>
+                </outcome>
+            </get-resource>
+        </block>
+    </method>
+</service-logic>
