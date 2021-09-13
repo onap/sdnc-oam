@@ -15,17 +15,6 @@ MAINTAINER SDNC Team (onap-sdnc@lists.onap.org)
 ENV SDNC_CONFIG_DIR /opt/onap/sdnc/data/properties
 
 USER root
-RUN apk update && apk add \
-    bash \
-    git \
-    maven \
-    mysql-client \
-    nodejs \
-    py3-pip \
-    graphviz \
-    unzip \
-    rsync
-
 
 # Create sdnc user
 RUN addgroup -S sdnc && adduser -S sdnc -G sdnc
