@@ -195,6 +195,10 @@
                                                                                                         <parameter name="ctx-destination" value="prop.otn-tunnel-name"/>
                                                                                                     </execute>
                                                                                                     <set>
+                                                                                                        <!--<parameter name='prop.ethernet-service-name' value="`$tmp.aai.logical-link.link-name`" />-->
+                                                                                                        <parameter name='prop.ethernet-service-name' value="`$tmp.aai.logical-link.link-id`" />
+                                                                                                    </set>
+                                                                                                    <set>
                                                                                                         <parameter name='network-route-one' value="`$tmp.aai.logical-link.link-name`" />
                                                                                                     </set>
                                                                                                     <set>
@@ -748,6 +752,7 @@
                                                                                                                     <parameter name='id' value='`$tmp.LEAF.uni-p-interface-long`' />
                                                                                                                     <parameter name='tp-id' value='`$tmp.LEAF.uni-tp-id`' />
                                                                                                                     <parameter name='cvlan' value='`$tmp.aai.network-route-A.logical-interface-id`' />
+                                                                                                                    <parameter name='data-source' value='`$gfp`' />
                                                                                                                 </save>
                                                                                                                 <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity:relationship-list'
                                                                                                                       key='connectivity.connectivity-id = $uuid.connectivity-domainA-uuid'
@@ -813,6 +818,7 @@
                                                                                                                     <parameter name='id' value='`$tmp.ROOT.uni-p-interface-long`' />
                                                                                                                     <parameter name='tp-id' value='`$tmp.ROOT.uni-tp-id`' />
                                                                                                                     <parameter name='cvlan' value='`$tmp.aai.network-route-B.logical-interface-id`' />
+                                                                                                                    <parameter name='data-source' value='`$gfp`' />
                                                                                                                 </save>
                                                                                                                 <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity:relationship-list'
                                                                                                                       key='connectivity.connectivity-id = $prop.connectivity-domainB-uuid'
@@ -896,6 +902,22 @@
                                                                                                                 <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity:relationship-list'
                                                                                                                       key='connectivity.connectivity-id = $middle-man-conn.connectivity-id'
                                                                                                                       force="true" pfx="tmp.AnAI-data">
+                                                                                                                    <parameter name="relationship-list.relationship[0].related-to" value="uni" />
+                                                                                                                    <parameter name="relationship-list.relationship[0].related-link" value="`'/network/unis/uni/' + $tmp.LEAF.uni-p-interface-long`" />
+                                                                                                                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="uni.id" />
+                                                                                                                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$tmp.LEAF.uni-p-interface-long`" />
+                                                                                                                </save>
+                                                                                                                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity:relationship-list'
+                                                                                                                      key='connectivity.connectivity-id = $middle-man-conn.connectivity-id'
+                                                                                                                      force="true" pfx="tmp.AnAI-data">
+                                                                                                                    <parameter name="relationship-list.relationship[0].related-to" value="uni" />
+                                                                                                                    <parameter name="relationship-list.relationship[0].related-link" value="`'/network/unis/uni/' + $tmp.ROOT.uni-p-interface-long`" />
+                                                                                                                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="uni.id" />
+                                                                                                                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$tmp.ROOT.uni-p-interface-long`" />
+                                                                                                                </save>
+                                                                                                                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity:relationship-list'
+                                                                                                                      key='connectivity.connectivity-id = $middle-man-conn.connectivity-id'
+                                                                                                                      force="true" pfx="tmp.AnAI-data">
                                                                                                                     <parameter name="relationship-list.relationship[0].related-to" value="connectivity" />
                                                                                                                     <parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $uuid.connectivity-domainA-uuid`" />
                                                                                                                     <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />
@@ -914,6 +936,56 @@
                                                                                                         </outcome>
                                                                                                         <outcome value='true'>
                                                                                                             <block atomic='true'>
+                                                                                                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                                                              resource="uni"
+                                                                                                                              key="uni.id = $tmp.ROOT.uni-p-interface-long"
+                                                                                                                              local-only="false"
+                                                                                                                              pfx="tmp.aai.rootuni" >
+                                                                                                                    <outcome value='not-found'>
+                                                                                                                        <return status='failure'>
+                                                                                                                            <parameter name='ack-final' value='Y'/>
+                                                                                                                            <parameter name="error-code" value="500" />
+                                                                                                                            <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.l3vpn.pe1_id`" />
+                                                                                                                        </return>
+                                                                                                                    </outcome>
+                                                                                                                    <outcome value='failure'>
+                                                                                                                        <return status='failure'>
+                                                                                                                            <parameter name='error-code' value='' />
+                                                                                                                            <parameter name='error-message' value='' />
+                                                                                                                        </return>
+                                                                                                                    </outcome>
+                                                                                                                    <outcome value='success'>
+                                                                                                                        <block atomic="true">
+                                                                                                                            <set>
+                                                                                                                                <parameter name='tmp.newbw' value='`$tmp.aai.rootuni.data-source + $gfp`' />
+                                                                                                                            </set>
+                                                                                                                            <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='uni'
+                                                                                                                                    key='uni.id = $tmp.ROOT.uni-p-interface-long'>
+                                                                                                                                <parameter name='id' value='`$tmp.ROOT.uni-p-interface-long`' />
+                                                                                                                                <parameter name='data-source' value='`$tmp.newbw`' />
+                                                                                                                            </update>
+                                                                                                                        </block>
+                                                                                                                    </outcome>
+                                                                                                                </get-resource>
+                                                                                                                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list'
+                                                                                                                      key='service-instance.service-instance-id = $vnf-topology-operation-input.service-information.service-instance-id
+         AND customer.global-customer-id = $vnf-topology-operation-input.service-information.global-customer-id
+         AND service-subscription.service-type = $vnf-topology-operation-input.service-information.subscription-service-type'
+                                                                                                                      force="true" pfx="tmp.AnAI-data">
+                                                                                                                    <parameter name="relationship-list.relationship[0].related-to" value="connectivity" />
+                                                                                                                    <parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $middle-man-conn.connectivity-id`" />
+                                                                                                                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />
+                                                                                                                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$middle-man-conn.connectivity-id`" />
+                                                                                                                    <!--<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list' -->
+                                                                                                                    <!--      key='service-instance.service-instance-id = $service-data.service-information.service-instance-id -->
+                                                                                                                    <!--         AND customer.global-customer-id = $service-data.networks.network[$nidx].network-data.service-information.global-customer-id -->
+                                                                                                                    <!--         AND service-subscription.service-type = $service-data.networks.network[$nidx].network-data.service-information.subscription-service-type' -->
+                                                                                                                    <!--      force="true" pfx="tmp.AnAI-data">-->
+                                                                                                                    <!--<parameter name="relationship-list.relationship[0].related-to" value="connectivity" />-->
+                                                                                                                    <!--<parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $prop.sotn.network-id`" />-->
+                                                                                                                    <!--<parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />-->
+                                                                                                                    <!--<parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$prop.sotn.network-id`" />-->
+                                                                                                                </save>
                                                                                                                 <set>
                                                                                                                     <parameter name='tmp.current-provider-id' value='`$param-prefix-domainA[$param-prefix-domainA_length -9]`' />
                                                                                                                     <parameter name='tmp.current-cvlan-id' value='`$tmp.aai.network-route-A.logical-interface-id`' />
@@ -933,6 +1005,7 @@
                                                                                                                                 <parameter name='id' value='`$tmp.LEAF.uni-p-interface-long`' />
                                                                                                                                 <parameter name='tp-id' value='`$tmp.LEAF.uni-tp-id`' />
                                                                                                                                 <parameter name='cvlan' value='`$tmp.aai.network-route-A.logical-interface-id`' />
+                                                                                                                                <parameter name='data-source' value='`$gfp`' />
                                                                                                                             </save>
                                                                                                                             <switch test="`$found-connectivity`">
                                                                                                                                 <outcome value='false'>
@@ -999,9 +1072,41 @@
                                                                                                                                         <set>
                                                                                                                                             <parameter name='uuid.connectivity-domainA-uuid' value="`$tmp.the-connectivity.connectivity-id`" />
                                                                                                                                         </set>
+                                                                                                                                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list'
+                                                                                                                                              key='service-instance.service-instance-id = $vnf-topology-operation-input.service-information.service-instance-id
+         AND customer.global-customer-id = $vnf-topology-operation-input.service-information.global-customer-id
+         AND service-subscription.service-type = $vnf-topology-operation-input.service-information.subscription-service-type'
+                                                                                                                                              force="true" pfx="tmp.AnAI-data">
+                                                                                                                                            <parameter name="relationship-list.relationship[0].related-to" value="connectivity" />
+                                                                                                                                            <parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $tmp.the-connectivity.connectivity-id`" />
+                                                                                                                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />
+                                                                                                                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$tmp.the-connectivity.connectivity-id`" />
+                                                                                                                                            <!--<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list' -->
+                                                                                                                                            <!--      key='service-instance.service-instance-id = $service-data.service-information.service-instance-id -->
+                                                                                                                                            <!--         AND customer.global-customer-id = $service-data.networks.network[$nidx].network-data.service-information.global-customer-id -->
+                                                                                                                                            <!--         AND service-subscription.service-type = $service-data.networks.network[$nidx].network-data.service-information.subscription-service-type' -->
+                                                                                                                                            <!--      force="true" pfx="tmp.AnAI-data">-->
+                                                                                                                                            <!--<parameter name="relationship-list.relationship[0].related-to" value="connectivity" />-->
+                                                                                                                                            <!--<parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $prop.sotn.network-id`" />-->
+                                                                                                                                            <!--<parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />-->
+                                                                                                                                            <!--<parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$prop.sotn.network-id`" />-->
+                                                                                                                                        </save>
+                                                                                                                                        <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity'
+                                                                                                                                                key='connectivity.connectivity-id = $uuid.connectivity-domainA-uuid'>
+                                                                                                                                            <parameter name='connectivity-id' value='`$uuid.connectivity-domainA-uuid`' />
+                                                                                                                                            <parameter name='operational-status' value='Modified' />
+                                                                                                                                        </update>
                                                                                                                                     </block>
                                                                                                                                 </outcome>
                                                                                                                             </switch>
+                                                                                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity:relationship-list'
+                                                                                                                                  key='connectivity.connectivity-id = $middle-man-conn.connectivity-id'
+                                                                                                                                  force="true" pfx="tmp.AnAI-data">
+                                                                                                                                <parameter name="relationship-list.relationship[0].related-to" value="uni" />
+                                                                                                                                <parameter name="relationship-list.relationship[0].related-link" value="`'/network/unis/uni/' + $tmp.LEAF.uni-p-interface-long`" />
+                                                                                                                                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="uni.id" />
+                                                                                                                                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$tmp.LEAF.uni-p-interface-long`" />
+                                                                                                                            </save>
                                                                                                                             <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity:relationship-list'
                                                                                                                                   key='connectivity.connectivity-id = $uuid.connectivity-domainA-uuid'
                                                                                                                                   force="true" pfx="tmp.AnAI-data">
@@ -1019,6 +1124,30 @@
                                                                                                                                             <!--OR-->
                                                                                                                                             <parameter name='prop.connectivity-domainB-uuid' value="`$tmp.aai.ROOT.connectivity.connectivity-id`" />
                                                                                                                                         </set>
+                                                                                                                                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list'
+                                                                                                                                              key='service-instance.service-instance-id = $vnf-topology-operation-input.service-information.service-instance-id
+         AND customer.global-customer-id = $vnf-topology-operation-input.service-information.global-customer-id
+         AND service-subscription.service-type = $vnf-topology-operation-input.service-information.subscription-service-type'
+                                                                                                                                              force="true" pfx="tmp.AnAI-data">
+                                                                                                                                            <parameter name="relationship-list.relationship[0].related-to" value="connectivity" />
+                                                                                                                                            <parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $tmp.aai.ROOT.connectivity.connectivity-id`" />
+                                                                                                                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />
+                                                                                                                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$tmp.aai.ROOT.connectivity.connectivity-id`" />
+                                                                                                                                            <!--<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list' -->
+                                                                                                                                            <!--      key='service-instance.service-instance-id = $service-data.service-information.service-instance-id -->
+                                                                                                                                            <!--         AND customer.global-customer-id = $service-data.networks.network[$nidx].network-data.service-information.global-customer-id -->
+                                                                                                                                            <!--         AND service-subscription.service-type = $service-data.networks.network[$nidx].network-data.service-information.subscription-service-type' -->
+                                                                                                                                            <!--      force="true" pfx="tmp.AnAI-data">-->
+                                                                                                                                            <!--<parameter name="relationship-list.relationship[0].related-to" value="connectivity" />-->
+                                                                                                                                            <!--<parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $prop.sotn.network-id`" />-->
+                                                                                                                                            <!--<parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />-->
+                                                                                                                                            <!--<parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$prop.sotn.network-id`" />-->
+                                                                                                                                        </save>
+                                                                                                                                        <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity'
+                                                                                                                                                key='connectivity.connectivity-id = $prop.connectivity-domainB-uuid'>
+                                                                                                                                            <parameter name='connectivity-id' value='`$prop.connectivity-domainB-uuid`' />
+                                                                                                                                            <parameter name='operational-status' value='Modified' />
+                                                                                                                                        </update>
                                                                                                                                     </block>
                                                                                                                                 </outcome>
                                                                                                                                 <outcome value='false'>
@@ -1038,6 +1167,15 @@
                                                                                                                                 <parameter name='id' value='`$tmp.LEAF.uni-p-interface-long`' />
                                                                                                                                 <parameter name='tp-id' value='`$tmp.LEAF.uni-tp-id`' />
                                                                                                                                 <parameter name='cvlan' value='`$tmp.aai.network-route-A.logical-interface-id`' />
+                                                                                                                                <parameter name='data-source' value='`$gfp`' />
+                                                                                                                            </save>
+                                                                                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity:relationship-list'
+                                                                                                                                  key='connectivity.connectivity-id = $middle-man-conn.connectivity-id'
+                                                                                                                                  force="true" pfx="tmp.AnAI-data">
+                                                                                                                                <parameter name="relationship-list.relationship[0].related-to" value="uni" />
+                                                                                                                                <parameter name="relationship-list.relationship[0].related-link" value="`'/network/unis/uni/' + $tmp.LEAF.uni-p-interface-long`" />
+                                                                                                                                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="uni.id" />
+                                                                                                                                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$tmp.LEAF.uni-p-interface-long`" />
                                                                                                                             </save>
                                                                                                                             <set>
                                                                                                                                 <parameter name='tmp.current-provider-id' value='`$param-prefix-domainA[$param-prefix-domainA_length -9]`' />
@@ -1059,6 +1197,50 @@
                                                                                                                                 </outcome>
                                                                                                                                 <outcome value='true'>
                                                                                                                                     <block>
+                                                                                                                                        <block>
+                                                                                                                                            <call module='GENERIC-RESOURCE-API' rpc='cll-vnf-topology-operation-cll-helper-find-ROOT-conn' mode='sync' ></call>
+                                                                                                                                            <switch test="`$found-root-connectivity`">
+                                                                                                                                                <outcome value='true'>
+                                                                                                                                                    <block atomic='true'>
+                                                                                                                                                        <set>
+                                                                                                                                                            <!--<parameter name='prop.connectivity-domainB-uuid' value="`$tmp.ROOT.uni-p-interface-long`" />-->
+                                                                                                                                                            <!--OR-->
+                                                                                                                                                            <parameter name='prop.connectivity-domainB-uuid' value="`$tmp.aai.ROOT.connectivity.connectivity-id`" />
+                                                                                                                                                        </set>
+                                                                                                                                                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list'
+                                                                                                                                                              key='service-instance.service-instance-id = $vnf-topology-operation-input.service-information.service-instance-id
+         AND customer.global-customer-id = $vnf-topology-operation-input.service-information.global-customer-id
+         AND service-subscription.service-type = $vnf-topology-operation-input.service-information.subscription-service-type'
+                                                                                                                                                              force="true" pfx="tmp.AnAI-data">
+                                                                                                                                                            <parameter name="relationship-list.relationship[0].related-to" value="connectivity" />
+                                                                                                                                                            <parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $tmp.aai.ROOT.connectivity.connectivity-id`" />
+                                                                                                                                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />
+                                                                                                                                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$tmp.aai.ROOT.connectivity.connectivity-id`" />
+                                                                                                                                                            <!--<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list' -->
+                                                                                                                                                            <!--      key='service-instance.service-instance-id = $service-data.service-information.service-instance-id -->
+                                                                                                                                                            <!--         AND customer.global-customer-id = $service-data.networks.network[$nidx].network-data.service-information.global-customer-id -->
+                                                                                                                                                            <!--         AND service-subscription.service-type = $service-data.networks.network[$nidx].network-data.service-information.subscription-service-type' -->
+                                                                                                                                                            <!--      force="true" pfx="tmp.AnAI-data">-->
+                                                                                                                                                            <!--<parameter name="relationship-list.relationship[0].related-to" value="connectivity" />-->
+                                                                                                                                                            <!--<parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $prop.sotn.network-id`" />-->
+                                                                                                                                                            <!--<parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />-->
+                                                                                                                                                            <!--<parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$prop.sotn.network-id`" />-->
+                                                                                                                                                        </save>
+                                                                                                                                                        <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity'
+                                                                                                                                                                key='connectivity.connectivity-id = $prop.connectivity-domainB-uuid'>
+                                                                                                                                                            <parameter name='connectivity-id' value='`$prop.connectivity-domainB-uuid`' />
+                                                                                                                                                            <parameter name='operational-status' value='Modified' />
+                                                                                                                                                        </update>
+                                                                                                                                                    </block>
+                                                                                                                                                </outcome>
+                                                                                                                                                <outcome value='false'>
+                                                                                                                                                    <return status='failure'>
+                                                                                                                                                        <parameter name='error-code' value='' />
+                                                                                                                                                        <parameter name='error-message' value='Root Connectivity was not found' />
+                                                                                                                                                    </return>
+                                                                                                                                                </outcome>
+                                                                                                                                            </switch>
+                                                                                                                                        </block>
                                                                                                                                         <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity:relationship-list'
                                                                                                                                               key='connectivity.connectivity-id = $tmp.the-connectivity.connectivity-id'
                                                                                                                                               force="true" pfx="tmp.AnAI-data">
@@ -1072,6 +1254,25 @@
                                                                                                                                             <parameter name='connectivity-id' value='`$tmp.the-connectivity.connectivity-id`' />
                                                                                                                                             <parameter name='operational-status' value='Modified' />
                                                                                                                                         </update>
+                                                                                                                                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list'
+                                                                                                                                              key='service-instance.service-instance-id = $vnf-topology-operation-input.service-information.service-instance-id
+         AND customer.global-customer-id = $vnf-topology-operation-input.service-information.global-customer-id
+         AND service-subscription.service-type = $vnf-topology-operation-input.service-information.subscription-service-type'
+                                                                                                                                              force="true" pfx="tmp.AnAI-data">
+                                                                                                                                            <parameter name="relationship-list.relationship[0].related-to" value="connectivity" />
+                                                                                                                                            <parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $tmp.the-connectivity.connectivity-id`" />
+                                                                                                                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />
+                                                                                                                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$tmp.the-connectivity.connectivity-id`" />
+                                                                                                                                            <!--<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list' -->
+                                                                                                                                            <!--      key='service-instance.service-instance-id = $service-data.service-information.service-instance-id -->
+                                                                                                                                            <!--         AND customer.global-customer-id = $service-data.networks.network[$nidx].network-data.service-information.global-customer-id -->
+                                                                                                                                            <!--         AND service-subscription.service-type = $service-data.networks.network[$nidx].network-data.service-information.subscription-service-type' -->
+                                                                                                                                            <!--      force="true" pfx="tmp.AnAI-data">-->
+                                                                                                                                            <!--<parameter name="relationship-list.relationship[0].related-to" value="connectivity" />-->
+                                                                                                                                            <!--<parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $prop.sotn.network-id`" />-->
+                                                                                                                                            <!--<parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />-->
+                                                                                                                                            <!--<parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$prop.sotn.network-id`" />-->
+                                                                                                                                        </save>
                                                                                                                                         <set>
                                                                                                                                             <parameter name='allNetworksList.' value='' />
                                                                                                                                         </set>
@@ -1136,36 +1337,29 @@
                                                                                                                                                 <block atomic="true">
                                                                                                                                                     <for index='vpnbidx' start='0' end='`$tmp.aai.all-vpn-bindings.vpn-binding_length`' >
                                                                                                                                                         <block atomic='true'>
-                                                                                                                                                            <!--<switch test="`$tmp.slicevpnuuids[$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-id] != '' `">-->
-                                                                                                                                                            <!-- Replace vpn-type with slice-id (a new attribbute in the latest AAI) -->
-                                                                                                                                                            <switch test="`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].slice-id == $tmp.aai.service-instance.service-instance-id `">
-                                                                                                                                                                <outcome value='false'></outcome>
-                                                                                                                                                                <outcome value='true'>
-                                                                                                                                                                    <block atomic='true'>
-                                                                                                                                                                        <switch test="`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].ops-note == $tmp.srcTtpOtnLayer `">
-                                                                                                                                                                            <outcome value='true'>
-                                                                                                                                                                                <block atomic='true'>
-                                                                                                                                                                                    <set>
-                                                                                                                                                                                        <parameter name='tmp.aai.the-vpn-binding.' value="" />
-                                                                                                                                                                                    </set>
-                                                                                                                                                                                    <set>
-                                                                                                                                                                                        <parameter name='tmp.aai.the-vpn-binding.' value="`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].`" />
-                                                                                                                                                                                    </set>
-                                                                                                                                                                                    <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding'
-                                                                                                                                                                                            key='vpn-binding.vpn-id = $tmp.aai.the-vpn-binding.vpn-id' >
-                                                                                                                                                                                        <parameter name='vpn-id' value='`$tmp.aai.the-vpn-binding.vpn-id`' />
-                                                                                                                                                                                        <!--<parameter name='vpn-name' value='`$prop.otn-tunnel-name`' />-->
-                                                                                                                                                                                        <parameter name='customer-vpn-id' value='`$newToBeUsedMaxtpn`' />
-                                                                                                                                                                                        <parameter name='route-distinguisher' value='`$tmp.aai.the-vpn-binding.route-distinguisher + $gfp`' />
-                                                                                                                                                                                        <parameter name='operational-status' value='Modified' />
-                                                                                                                                                                                    </update>
-                                                                                                                                                                                </block>
-                                                                                                                                                                            </outcome>
-                                                                                                                                                                            <outcome value='false'></outcome>
-                                                                                                                                                                        </switch>
-                                                                                                                                                                    </block>
-                                                                                                                                                                </outcome>
-                                                                                                                                                            </switch>
+                                                                                                                                                            <block atomic='true'>
+                                                                                                                                                                <switch test="`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].ops-note == $tmp.srcTtpOtnLayer `">
+                                                                                                                                                                    <outcome value='true'>
+                                                                                                                                                                        <block atomic='true'>
+                                                                                                                                                                            <set>
+                                                                                                                                                                                <parameter name='tmp.aai.the-vpn-binding.' value="" />
+                                                                                                                                                                            </set>
+                                                                                                                                                                            <set>
+                                                                                                                                                                                <parameter name='tmp.aai.the-vpn-binding.' value="`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].`" />
+                                                                                                                                                                            </set>
+                                                                                                                                                                            <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding'
+                                                                                                                                                                                    key='vpn-binding.vpn-id = $tmp.aai.the-vpn-binding.vpn-id' >
+                                                                                                                                                                                <parameter name='vpn-id' value='`$tmp.aai.the-vpn-binding.vpn-id`' />
+                                                                                                                                                                                <!--<parameter name='vpn-name' value='`$prop.otn-tunnel-name`' />-->
+                                                                                                                                                                                <parameter name='customer-vpn-id' value='`$newToBeUsedMaxtpn`' />
+                                                                                                                                                                                <parameter name='route-distinguisher' value='`$tmp.aai.the-vpn-binding.route-distinguisher + $gfp`' />
+                                                                                                                                                                                <parameter name='operational-status' value='Modified' />
+                                                                                                                                                                            </update>
+                                                                                                                                                                        </block>
+                                                                                                                                                                    </outcome>
+                                                                                                                                                                    <outcome value='false'></outcome>
+                                                                                                                                                                </switch>
+                                                                                                                                                            </block>
                                                                                                                                                         </block>
                                                                                                                                                     </for>
                                                                                                                                                 </block>
