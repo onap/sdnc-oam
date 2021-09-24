@@ -1,0 +1,52 @@
+version: '2.1'
+
+networks:
+  default:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: ${MTU}
+
+
+services:
+
+  db:
+    image: mariadb:10.5
+    container_name: sdnc_db_container
+    ports:
+      - "23306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_ROOT_HOST=%
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+    logging:
+      driver:   "json-file"
+      options:
+        max-size: "30m"
+        max-file: "5"
+
+  ansible:
+    image: onap/sdnc-ansible-server-image:latest
+    depends_on :
+      - db
+    container_name: sdnc_ansible_container
+    entrypoint: ["/opt/ansible-server/startAnsibleServer.sh"]
+    ports:
+      - "8000"
+    links:
+      - db:dbhost
+      - db:sdnctldb01
+      - db:sdnctldb02
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - ANSIBLE_TRUSTSTORE_PASSWORD=${ANSIBLE_TRUSTSTORE_PASSWORD}
+    logging:
+      driver:   "json-file"
+      options:
+        max-size: "30m"
+        max-file: "5"
+
