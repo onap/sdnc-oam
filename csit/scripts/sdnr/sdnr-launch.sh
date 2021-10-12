@@ -87,7 +87,7 @@ function sdnr_launch() {
       #sdnrwtbootfeatures="-e SDNRWT_BOOTFEATURES=odl-netconf-callhome-ssh,sdnr-wt-feature-aggregator "
       #callhomeport="-p ${CALL_HOME_PORT}:6666 "
     #fi
-    if [ $SDNR_CLUSTER_MODE == "true" ]; then
+    if [ "$SDNR_CLUSTER_MODE" == "true" ]; then
         sdnr_launch_cluster $1
     else
         sdnr_launch_single_node $1
