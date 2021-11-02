@@ -12,15 +12,18 @@ SDNC Release Notes
 Abstract
 ========
 
-This document provides the release notes for the Honolulu release of the Software Defined
+This document provides the release notes for the Istanbul release of the Software Defined
 Network Controller (SDNC)
 
 Summary
 =======
 
-The Honolulu release of SDNC introduces new functionality to support network slicing and extends support
-for Netconf/TLS to address certificate management.  It also includes a major OpenDaylight release
-upgrade (to Sodium), as well as a major Java upgrade (from Java 8 to Java 11).
+The Istanbul release of SDNC includes enhancements network slicing as well as a major OpenDaylight release
+upgrade (to Silicon).
+
+The Istanbul release of SDNC also includes substantial improvements in automated test coverage integrated into
+the project's CI/CD framework.  In this release, each time a new SDNC is built, a regression suite is run
+and the docker is only saved if it passes this regression suite.
 
 
 
@@ -33,10 +36,7 @@ Release Data
 +-------------------------+-------------------------------------------+
 | **Docker images**       | See :ref:`dockercontainers` section below |
 +-------------------------+-------------------------------------------+
-| **Release designation** | Honolulu                                  |
-|                         |                                           |
-+-------------------------+-------------------------------------------+
-| **Release date**        | 4/22/2021                                 |
+| **Release designation** | Istanbul                                  |
 |                         |                                           |
 +-------------------------+-------------------------------------------+
 
@@ -44,20 +44,20 @@ Release Data
 New features
 ------------
 
-The SDNC Honolulu release includes the following features:
+The SDNC Istanbul release includes the following features, most of which are inherited from CCSDK:
 
-* SDN-C (SDN-R) support of E2E Network Slicing in Honolulu (Jira `SDNC-1415 <https://jira.onap.org/browse/SDNC-1415>`_)
-* ONAP CNF Orchestration - Honolulu Enhancements (SDNC) (Jira `SDNC-1451 <https://jira.onap.org/browse/SDNC-1451>`_)
-* Decouple SDNC from OpenDaylight / Karaf : phase 3 (Jira `SDNC-1348 <https://jira.onap.org/browse/SDNC-1348>`_)
+* Enhance CSIT testing for SDNC (Jira `SDNC-1544 <https://jira.onap.org/browse/SDNC-1544>`)
+* Upgrade to OpenDaylight Silicon Release (Jira `CCSDK-3390 <https://jira.onap.org/browse/CCSDK-3390>`_)
+* A1 Adapter and A1 Policy Management Extensions in Istanbul Release - CCSDK (Jira `CCSDK-3229 <https://jira.onap.org/browse/CCSDK-3229>`_)
+* Support of O-RAN-SC D-Release (Jira `CCSDK-3158 <https://jira.onap.org/browse/CCSDK-3158>`_)
+* CCSDK impacts for Network slicing in Istanbul Release (Jira `CCSDK-3297 <https://jira.onap.org/browse/CCSDK-3297>`_)
 
-This release also includes an upgrade to the OpenDaylight Aluminum release, which SDNC consumes from CCSDK.
-
-For the complete list of `SDNC Honolulu release epics <https://jira.onap.org/issues/?filter=12498>`_ and 
-`SDNC Honolulu release user stories <https://jira.onap.org/issues/?filter=12499>`_ , please see the `ONAP Jira`_.
+For the complete list of `SDNC Istanbul release epics <https://jira.onap.org/issues/?filter=12638>`_ and 
+`SDNC Honolulu release user stories <https://jira.onap.org/issues/?filter=12637>`_ , please see the `ONAP Jira`_.
 
 **Bug fixes**
 
-The full list of `bugs fixed in the SDNC Honolulu release <https://jira.onap.org/issues/?filter=12500>`_ is maintained on the `ONAP Jira`_.
+The full list of `bugs fixed in the SDNC Istanbul release <https://jira.onap.org/issues/?filter=12643>`_ is maintained on the `ONAP Jira`_.
 
 **Known Issues**
 
@@ -88,17 +88,17 @@ with the following command::
 +--------------------------------+-----------------------------------------------------+---------+
 | Image name                     | Description                                         | Version |
 +================================+=====================================================+=========+
-| onap/sdnc-aaf-image            | SDNC controller image, integrated with AAF for RBAC | 2.1.5   |
+| onap/sdnc-aaf-image            | SDNC controller image, integrated with AAF for RBAC | 2.2.1   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-ansible-server-image | Ansible server                                      | 2.1.5   |
+| onap/sdnc-ansible-server-image | Ansible server                                      | 2.2.1   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-dmaap-listener-image | DMaaP listener                                      | 2.1.5   |
+| onap/sdnc-dmaap-listener-image | DMaaP listener                                      | 2.2.1   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-image                | SDNC controller image, without AAF integration      | 2.1.5   |
+| onap/sdnc-image                | SDNC controller image, without AAF integration      | 2.2.1   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-ueb-listener-image   | SDC listener                                        | 2.1.5   |
+| onap/sdnc-ueb-listener-image   | SDC listener                                        | 2.2.1   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-web-image            | Web tier (currently only used by SDN-R persona)     | 2.1.5   |
+| onap/sdnc-web-image            | Web tier (currently only used by SDN-R persona)     | 2.2.1   |
 +--------------------------------+-----------------------------------------------------+---------+
 
 
@@ -136,7 +136,7 @@ Security Notes
 Known Security Issues
 ~~~~~~~~~~~~~~~~~~~~~
 
-There are no known outstanding security issues related to SDNC Honolulu.
+There are no known outstanding security issues related to SDNC Istanbul.
 
 
 Test Results
@@ -147,7 +147,7 @@ Not applicable
 References
 ==========
 
-For more information on the ONAP Honolulu release, please see:
+For more information on the ONAP Istanbul release, please see:
 
 #. `ONAP Home Page`_
 #. `ONAP Documentation`_
@@ -160,4 +160,4 @@ For more information on the ONAP Honolulu release, please see:
 .. _`ONAP Documentation`: https://docs.onap.org
 .. _`ONAP Release Downloads`: https://git.onap.org
 .. _`ONAP Jira`: https://jira.onap.org
-.. _`SDN Controller for Radio user guide`: https://docs.onap.org/en/frankfurt/submodules/ccsdk/features.git/docs/guides/onap-user/home.html
+.. _`SDN Controller for Radio user guide`: https://docs.onap.org/projects/onap-ccsdk-features/en/latest/guides/onap-user/home.html
