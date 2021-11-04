@@ -1,0 +1,85 @@
+<service-logic
+        xmlns='http://www.onap.org/sdnc/svclogic'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    <method rpc='cll-vnf-topology-operation-cll-searchVpnName' mode='sync'>
+        <block atomic="true">
+            <set>
+                <parameter name='foundVpnName' value='false' />
+            </set>
+            <for silentFailure='true' index='mmridx' start='0' end='`$middle-man-conn.relationship-list.relationship_length`' >
+                <set>
+                    <parameter name='tmp.aai.mmrconnectivity.' value='' />
+                </set>
+                <switch test='`$middle-man-conn.relationship-list.relationship[$mmridx].related-to`'>
+                    <outcome value='connectivity'>
+                        <block atomic="true">
+                            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                          resource="connectivity"
+                                          key="connectivity.connectivity-id = $middle-man-conn.relationship-list.relationship[$mmridx].relationship-data[0].relationship-value"
+                                          local-only="false"
+                                          pfx="tmp.aai.mmrconnectivity" >
+                                <outcome value='success'>
+                                    <block>
+                                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                            <parameter name="logger" value="message-log" />
+                                            <parameter name="level" value="info" />
+                                            <parameter name="field1" value="`$tmp.aai.mmrconnectivity.cvlan`"/>
+                                            <parameter name="field2" value="`$tmp.aai.network-route-LEAF.logical-interface-id`"/>
+                                        </record>
+                                        <!--<switch test="`$tmp.aai.all-connectivities.connectivity[$connidx].cvlan == $tmp.aai.network-route-LEAF.logical-interface-id `">-->
+                                        <switch test="`$tmp.aai.mmrconnectivity.cvlan == $tmp.aai.network-route-LEAF.logical-interface-id `">
+                                            <outcome value='false'>
+                                                <block></block>
+                                            </outcome>
+                                            <outcome value='true'>
+                                                <for silentFailure='true' index='connrelidx' start='0' end='`$tmp.aai.mmrconnectivity.relationship-list.relationship_length`' >
+                                                    <set>
+                                                        <parameter name='tmp.aai.mmrvpn-binding.' value='' />
+                                                    </set>
+                                                    <switch test='`$tmp.aai.mmrconnectivity.relationship-list.relationship[$connrelidx].related-to`'>
+                                                        <outcome value='vpn-binding'>
+                                                            <block atomic="true">
+                                                                <switch test='`$vpnNameToSearch == $tmp.aai.mmrconnectivity.relationship-list.relationship[$connrelidx].related-to-property[0].property-value`'>
+                                                                    <outcome value='true'>
+                                                                        <block>
+                                                                            <set>
+                                                                                <parameter name='foundVpnName' value='true' />
+                                                                            </set>
+                                                                            <break/>
+                                                                        </block>
+                                                                    </outcome>
+                                                                </switch>
+                                                            </block>
+                                                        </outcome>
+                                                    </switch>
+                                                </for>
+                                            </outcome>
+                                        </switch>
+                                    </block>
+                                </outcome>
+                                <outcome value='not-found'>
+                                    <return status='failure'>
+                                        <parameter name='ack-final' value='Y'/>
+                                        <parameter name="error-code" value="500" />
+                                        <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.l3vpn.pe1_id`" />
+                                    </return>
+                                </outcome>
+                                <outcome value='failure'>
+                                    <return status='failure'>
+                                        <parameter name='error-code' value='' />
+                                        <parameter name='error-message' value='' />
+                                    </return>
+                                </outcome>
+                            </get-resource>
+                        </block>
+                    </outcome>
+                </switch>
+                <switch test='`$foundVpnName`'>
+                    <outcome value='true'>
+                        <break/>
+                    </outcome>
+                </switch>
+            </for>
+        </block>
+    </method>
+</service-logic>

@@ -492,7 +492,7 @@
                                                    $param-prefix-domainA-pnfName[8]`" />
                                                                                                         <!--<parameter name='tmp.LEAF.pnf-name-short' value="`$param-prefix-domainA-pnfName[8]`" />-->
                                                                                                         <parameter name='tmp.LEAF.pnf-name-short' value="`$tmp.src.pnf-name`" />
-                                                                                                        <parameter name='tmp.LEAF.uni-p-interface-long' value="`$tmp.aai.network-route-A.next-hop`" />
+                                                                                                        <parameter name='tmp.LEAF.uni-p-interface-long' value="`$tmp.aai.network-route-A.next-hop + '-' + $tmp.aai.network-route-A.logical-interface-id`" />
                                                                                                         <parameter name='tmp.LEAF.uni-tp-id' value="`$tmp.src.ltpId`" />
                                                                                                     </set>
                                                                                                     <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
@@ -693,7 +693,7 @@
                                                    $param-prefix-domainB-pnfName[8]`" />
                                                                                                         <!--<parameter name='tmp.ROOT.pnf-name-short' value="`$param-prefix-domainB-pnfName[8]`" />-->
                                                                                                         <parameter name='tmp.ROOT.pnf-name-short' value="`$tmp.dst.pnf-name`" />
-                                                                                                        <parameter name='tmp.ROOT.uni-p-interface-long' value="`$tmp.aai.network-route-B.next-hop`" />
+                                                                                                        <parameter name='tmp.ROOT.uni-p-interface-long' value="`$tmp.aai.network-route-B.next-hop + '-' + $tmp.aai.network-route-B.logical-interface-id`" />
                                                                                                         <parameter name='tmp.ROOT.uni-tp-id' value="`$tmp.dst.ltpId`" />
                                                                                                     </set>
                                                                                                     <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
@@ -973,19 +973,29 @@
                                                                                                                                                                 <outcome value='true'>
                                                                                                                                                                     <block atomic='true'>
                                                                                                                                                                         <set>
-                                                                                                                                                                            <parameter name='tmp.aai.the-vpn-binding.' value="" />
+                                                                                                                                                                            <parameter name='vpnNameToSearch' value="`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].vpn-name`" />
                                                                                                                                                                         </set>
-                                                                                                                                                                        <set>
-                                                                                                                                                                            <parameter name='tmp.aai.the-vpn-binding.' value="`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].`" />
-                                                                                                                                                                        </set>
-                                                                                                                                                                        <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding'
-                                                                                                                                                                                key='vpn-binding.vpn-id = $tmp.aai.the-vpn-binding.vpn-id' >
-                                                                                                                                                                            <parameter name='vpn-id' value='`$tmp.aai.the-vpn-binding.vpn-id`' />
-                                                                                                                                                                            <parameter name='vpn-name' value='`$tmp.aai.the-vpn-binding.vpn-name`' />
-                                                                                                                                                                            <parameter name='customer-vpn-id' value='`$newToBeUsedMaxtpn`' />
-                                                                                                                                                                            <parameter name='route-distinguisher' value='`$tmp.aai.the-vpn-binding.route-distinguisher - $bwToBeDecreased`' />
-                                                                                                                                                                            <parameter name='operational-status' value='Modified' />
-                                                                                                                                                                        </update>
+                                                                                                                                                                        <call module='GENERIC-RESOURCE-API' rpc='cll-vnf-topology-operation-cll-searchVpnName' mode='sync' ></call>
+                                                                                                                                                                        <switch test="`$foundVpnName`">
+                                                                                                                                                                            <outcome value='true'>
+                                                                                                                                                                                <block atomic='true'>
+                                                                                                                                                                                    <set>
+                                                                                                                                                                                        <parameter name='tmp.aai.the-vpn-binding.' value="" />
+                                                                                                                                                                                    </set>
+                                                                                                                                                                                    <set>
+                                                                                                                                                                                        <parameter name='tmp.aai.the-vpn-binding.' value="`$tmp.aai.all-vpn-bindings.vpn-binding[$vpnbidx].`" />
+                                                                                                                                                                                    </set>
+                                                                                                                                                                                    <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding'
+                                                                                                                                                                                            key='vpn-binding.vpn-id = $tmp.aai.the-vpn-binding.vpn-id' >
+                                                                                                                                                                                        <parameter name='vpn-id' value='`$tmp.aai.the-vpn-binding.vpn-id`' />
+                                                                                                                                                                                        <parameter name='vpn-name' value='`$tmp.aai.the-vpn-binding.vpn-name`' />
+                                                                                                                                                                                        <parameter name='customer-vpn-id' value='`$newToBeUsedMaxtpn`' />
+                                                                                                                                                                                        <parameter name='route-distinguisher' value='`$tmp.aai.the-vpn-binding.route-distinguisher - $bwToBeDecreased`' />
+                                                                                                                                                                                        <parameter name='operational-status' value='Modified' />
+                                                                                                                                                                                    </update>
+                                                                                                                                                                                </block>
+                                                                                                                                                                            </outcome>
+                                                                                                                                                                        </switch>
                                                                                                                                                                     </block>
                                                                                                                                                                 </outcome>
                                                                                                                                                                 <outcome value='false'></outcome>
