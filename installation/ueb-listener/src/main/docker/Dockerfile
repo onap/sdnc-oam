@@ -1,11 +1,17 @@
 # Base alpine with added packages needed for open ecomp
 FROM onap/ccsdk-alpine-j11-image:${ccsdk.docker.version} AS stage0
-
+USER root
 ENV SDNC_CONFIG_DIR /opt/onap/sdnc/data/properties
 
 
 # copy deliverables to opt
 COPY opt /opt
+
+# Remediate log4shell vuln
+RUN apk add zip
+RUN zip -q -d /opt/onap/sdnc/ueb-listener/lib/log4j-core-*.jar org/apache/logging/log4j/core/lookup/JndiLookup.class
+
+
 
 # End of stage0
 

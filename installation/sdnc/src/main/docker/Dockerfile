@@ -60,8 +60,15 @@ RUN cp /opt/onap/sdnc/data/properties/svclogic-compiler.properties /opt/onap/sdn
 RUN find /opt/opendaylight -name "*features*.xml" -exec sed -i -e 's|4.0.1|3.1.0|g' {} \;
 # Short term fix ends
 
+# Remediate log4shell vuln
+RUN apk add zip
+RUN find /opt/opendaylight/system/org/ops4j/pax/logging/pax-logging-log4j2 -name 'pax-logging-log4j2*.jar' -exec zip -q -d '{}' org/apache/logging/log4j/core/lookup/JndiLookup.class \;
+
+
 # Changing ownership and permission of /opt
 RUN chown -R odl:odl /opt && chmod -R 755 /opt
+
+
 
 ## END OF STAGE0 ##
 
