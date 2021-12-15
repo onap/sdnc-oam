@@ -191,6 +191,12 @@
                                                                                             </outcome>
                                                                                             <outcome value='success'>
                                                                                                 <block>
+                                                                                                    <set>
+                                                                                                        <parameter name='hasSecondary' value="false" />
+                                                                                                        <parameter name='network-route-three' value="" />
+                                                                                                        <parameter name='tmp.aai.network-route-three.' value="" />
+                                                                                                        <parameter name='tmp.aai.network-route-C.' value="" />
+                                                                                                    </set>
                                                                                                     <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
                                                                                                         <parameter name="ctx-destination" value="prop.otn-tunnel-name"/>
                                                                                                     </execute>
@@ -204,6 +210,21 @@
                                                                                                     <set>
                                                                                                         <parameter name='network-route-two' value="`$tmp.aai.logical-link.link-name2`" />
                                                                                                     </set>
+                                                                                                    <set>
+                                                                                                        <parameter name='network-route-three' value="`$tmp.aai.logical-link.segment-id`" />
+                                                                                                    </set>
+                                                                                                    <switch test='`length($network-route-three) == 0`'>
+                                                                                                        <outcome value='true'>
+                                                                                                            <set>
+                                                                                                                <parameter name='hasSecondary' value="false" />
+                                                                                                            </set>
+                                                                                                        </outcome>
+                                                                                                        <outcome value='false'>
+                                                                                                            <set>
+                                                                                                                <parameter name='hasSecondary' value="true" />
+                                                                                                            </set>
+                                                                                                        </outcome>
+                                                                                                    </switch>
                                                                                                     <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
                                                                                                                   resource="network-route"
                                                                                                                   key='network-route.route-id = $network-route-one'
@@ -242,6 +263,16 @@
                                                                                                                             </set>
                                                                                                                             <set>
                                                                                                                                 <parameter name='tmp.aai.network-route-A.' value="`$tmp.aai.network-route-one.`" />
+                                                                                                                            </set>
+                                                                                                                        </block>
+                                                                                                                    </outcome>
+                                                                                                                    <outcome value='SECONDARY-ROOT'>
+                                                                                                                        <block>
+                                                                                                                            <set>
+                                                                                                                                <parameter name='tmp.aai.network-route-SECONDARY-ROOT.' value="`$tmp.aai.network-route-one.`" />
+                                                                                                                            </set>
+                                                                                                                            <set>
+                                                                                                                                <parameter name='tmp.aai.network-route-C.' value="`$tmp.aai.network-route-one.`" />
                                                                                                                             </set>
                                                                                                                         </block>
                                                                                                                     </outcome>
@@ -287,6 +318,60 @@
                                                                                                                             </set>
                                                                                                                             <set>
                                                                                                                                 <parameter name='tmp.aai.network-route-A.' value="`$tmp.aai.network-route-two.`" />
+                                                                                                                            </set>
+                                                                                                                        </block>
+                                                                                                                    </outcome>
+                                                                                                                    <outcome value='SECONDARY-ROOT'>
+                                                                                                                        <block>
+                                                                                                                            <set>
+                                                                                                                                <parameter name='tmp.aai.network-route-SECONDARY-ROOT.' value="`$tmp.aai.network-route-two.`" />
+                                                                                                                            </set>
+                                                                                                                            <set>
+                                                                                                                                <parameter name='tmp.aai.network-route-C.' value="`$tmp.aai.network-route-two.`" />
+                                                                                                                            </set>
+                                                                                                                        </block>
+                                                                                                                    </outcome>
+                                                                                                                </switch>
+                                                                                                            </block>
+                                                                                                        </outcome>
+                                                                                                    </get-resource>
+                                                                                                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                                                  resource="network-route"
+                                                                                                                  key='network-route.route-id = $network-route-three'
+                                                                                                                  local-only="false"
+                                                                                                                  force="true" pfx="tmp.aai.network-route-three">
+                                                                                                        <outcome value='not-found'></outcome>
+                                                                                                        <outcome value='failure'></outcome>
+                                                                                                        <outcome value='success'>
+                                                                                                            <block atomic="true">
+                                                                                                                <switch test='`$tmp.aai.network-route-three.type`'>
+                                                                                                                    <outcome value='ROOT'>
+                                                                                                                        <block>
+                                                                                                                            <set>
+                                                                                                                                <parameter name='tmp.aai.network-route-ROOT.' value="`$tmp.aai.network-route-two.`" />
+                                                                                                                            </set>
+                                                                                                                            <set>
+                                                                                                                                <parameter name='tmp.aai.network-route-B.' value="`$tmp.aai.network-route-two.`" />
+                                                                                                                            </set>
+                                                                                                                        </block>
+                                                                                                                    </outcome>
+                                                                                                                    <outcome value='LEAF'>
+                                                                                                                        <block>
+                                                                                                                            <set>
+                                                                                                                                <parameter name='tmp.aai.network-route-LEAF.' value="`$tmp.aai.network-route-two.`" />
+                                                                                                                            </set>
+                                                                                                                            <set>
+                                                                                                                                <parameter name='tmp.aai.network-route-A.' value="`$tmp.aai.network-route-two.`" />
+                                                                                                                            </set>
+                                                                                                                        </block>
+                                                                                                                    </outcome>
+                                                                                                                    <outcome value='SECONDARY-ROOT'>
+                                                                                                                        <block>
+                                                                                                                            <set>
+                                                                                                                                <parameter name='tmp.aai.network-route-SECONDARY-ROOT.' value="`$tmp.aai.network-route-three.`" />
+                                                                                                                            </set>
+                                                                                                                            <set>
+                                                                                                                                <parameter name='tmp.aai.network-route-C.' value="`$tmp.aai.network-route-three.`" />
                                                                                                                             </set>
                                                                                                                         </block>
                                                                                                                     </outcome>
@@ -696,6 +781,191 @@
                                                                                                         <parameter name='tmp.ROOT.uni-p-interface-long' value="`$tmp.aai.network-route-B.next-hop + '-' + $tmp.aai.network-route-B.logical-interface-id`" />
                                                                                                         <parameter name='tmp.ROOT.uni-tp-id' value="`$tmp.dst.ltpId`" />
                                                                                                     </set>
+                                                                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                                                                                                        <parameter name="original_string" value='`$tmp.aai.network-route-C.next-hop`'/>
+                                                                                                        <!--<parameter name="regex" value="[^-]+$"/>-->
+                                                                                                        <parameter name="regex" value="[-]+"/>
+                                                                                                        <parameter name="ctx_memory_result_key" value="param-prefix-domainC-pnfName"/>
+                                                                                                        <outcome value='success'>
+                                                                                                            <block atomic="true">
+                                                                                                                <set>
+                                                                                                                    <parameter name='tmp.dst.domainC.pnf-name' value="`$param-prefix-domainC-pnfName[0] + '-' +
+                                                   $param-prefix-domainC-pnfName[1] + '-' +
+                                                   $param-prefix-domainC-pnfName[2] + '-' +
+                                                   $param-prefix-domainC-pnfName[3] + '-' +
+                                                   $param-prefix-domainC-pnfName[4] + '-' +
+                                                   $param-prefix-domainC-pnfName[5] + '-' +
+                                                   $param-prefix-domainC-pnfName[6] + '-' +
+                                                   $param-prefix-domainC-pnfName[7] + '-' +
+                                                   $param-prefix-domainC-pnfName[8]`" />
+                                                                                                                </set>
+                                                                                                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                                                              resource="pnf"
+                                                                                                                              key="pnf.pnf-name = $tmp.dst.domainC.pnf-name"
+                                                                                                                              pfx='tmp.aai.destination-secondary-pnf' local-only='false' >
+                                                                                                                    <!--AND depth = '0'"-->
+                                                                                                                    <outcome value='success'>
+                                                                                                                        <block>
+                                                                                                                            <for silentFailure='true' index='dpvidx' start='0' end='`$tmp.aai.destination-secondary-pnf.relationship-list.relationship_length`' >
+                                                                                                                                <switch test='`$tmp.aai.destination-secondary-pnf.relationship-list.relationship[$dpvidx].related-to`'>
+                                                                                                                                    <outcome value='esr-thirdparty-sdnc'>
+                                                                                                                                        <block atomic="true">
+                                                                                                                                            <set>
+                                                                                                                                                <parameter name='tmp.domainC.esr-thirdparty-id' value="`$tmp.aai.destination-secondary-pnf.relationship-list.relationship[$dpvidx].relationship-data[0].relationship-value`" />
+                                                                                                                                            </set>
+                                                                                                                                            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                                                                                          resource="esr-thirdparty-sdnc"
+                                                                                                                                                          key="esr-thirdparty-sdnc.thirdparty-sdnc-id = $tmp.domainC.esr-thirdparty-id AND
+		     depth = '1'"
+                                                                                                                                                          pfx='tmp.aai.domainC.esr-thirdparty-sdnc' local-only='false' >
+                                                                                                                                                <outcome value='success'>
+                                                                                                                                                    <block>
+                                                                                                                                                        <set>
+                                                                                                                                                            <parameter name='prop.sdncRestApi.thirdpartySdnc.domainC.url' value="`$tmp.aai.domainB.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].service-url`" />
+                                                                                                                                                            <parameter name='prop.sdncRestApi.thirdpartySdnc.domainC.user' value="`$tmp.aai.domainB.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].user-name`" />
+                                                                                                                                                            <parameter name='prop.sdncRestApi.thirdpartySdnc.domainC.password' value="`$tmp.aai.domainB.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].password`" />
+                                                                                                                                                            <!--<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >-->
+                                                                                                                                                            <!--<parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-network:networks'`" />-->
+                                                                                                                                                            <!--<parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />-->
+                                                                                                                                                            <!--<parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />-->
+                                                                                                                                                            <!--<parameter name="format" value="json"/>-->
+                                                                                                                                                            <!--<parameter name="httpMethod" value="get"/>-->
+                                                                                                                                                            <!--<parameter name="responsePrefix" value="topology"/>-->
+                                                                                                                                                            <!--<parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>-->
+                                                                                                                                                            <!--<parameter name="trustStorePassword" value="adminadmin"/>-->
+                                                                                                                                                            <!--<parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>-->
+                                                                                                                                                            <!--<parameter name="keyStorePassword" value="adminadmin"/>-->
+                                                                                                                                                        </set>
+                                                                                                                                                    </block>
+                                                                                                                                                </outcome>
+                                                                                                                                                <outcome value='not-found'>
+                                                                                                                                                    <return status='failure'>
+                                                                                                                                                        <parameter name='ack-final' value='Y'/>
+                                                                                                                                                        <parameter name="error-code" value="500" />
+                                                                                                                                                        <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                                                                                                    </return>
+                                                                                                                                                </outcome>
+                                                                                                                                                <outcome value='Other'>
+                                                                                                                                                    <return status='failure'>
+                                                                                                                                                        <parameter name='ack-final' value='Y'/>
+                                                                                                                                                        <parameter name="error-code" value="500" />
+                                                                                                                                                        <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                                                                                                    </return>
+                                                                                                                                                </outcome>
+                                                                                                                                            </get-resource>
+                                                                                                                                        </block>
+                                                                                                                                    </outcome>
+                                                                                                                                    <outcome value='network-resource'>
+                                                                                                                                        <block atomic="true">
+                                                                                                                                            <set>
+                                                                                                                                                <parameter name='tmp.domainC.eth-network-id' value="`$tmp.aai.destination-secondary-pnf.relationship-list.relationship[$dpvidx].relationship-data[0].relationship-value`" />
+                                                                                                                                            </set>
+                                                                                                                                        </block>
+                                                                                                                                    </outcome>
+                                                                                                                                </switch>
+                                                                                                                            </for>
+                                                                                                                        </block>
+                                                                                                                    </outcome>
+                                                                                                                    <outcome value='not-found'>
+                                                                                                                        <return status='failure'>
+                                                                                                                            <parameter name='ack-final' value='Y'/>
+                                                                                                                            <parameter name="error-code" value="500" />
+                                                                                                                            <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                                                                        </return>
+                                                                                                                    </outcome>
+                                                                                                                    <outcome value='Other'>
+                                                                                                                        <return status='failure'>
+                                                                                                                            <parameter name='ack-final' value='Y'/>
+                                                                                                                            <parameter name="error-code" value="500" />
+                                                                                                                            <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                                                                        </return>
+                                                                                                                    </outcome>
+                                                                                                                </get-resource>
+                                                                                                            </block>
+                                                                                                        </outcome>
+                                                                                                        <outcome value='failure'></outcome>
+                                                                                                    </execute>
+                                                                                                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                                                  resource="p-interface"
+                                                                                                                  key="pnf.pnf-name = $tmp.dst.domainC.pnf-name
+	        AND p-interface.interface-name = $tmp.aai.network-route-C.next-hop"
+                                                                                                                  local-only="false"
+                                                                                                                  pfx="tmp.aai.network-route-C.p-interface-dst" >
+                                                                                                        <!--<get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" -->
+                                                                                                        <!--	resource="p-interface"-->
+                                                                                                        <!--	    key="pnf.pnf-name = $unique-src-node-Id-->
+                                                                                                        <!--	        and p-interface.interface-name = $tmp.aai.endpointA.relationship-list.relationship[$rel-index].relationship-data[0].relationship-value"-->
+                                                                                                        <!--		local-only="false" -->
+                                                                                                        <!--		pfx="tmp.aai.endpointA.p-interface-src" >-->
+                                                                                                        <outcome value='success'>
+                                                                                                            <block atomic="true">
+                                                                                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                                                                                                                    <parameter name="original_string" value='`$tmp.aai.network-route-C.p-interface-dst.interface-name`'/>
+                                                                                                                    <!--<parameter name="regex" value="[^-]+$"/>-->
+                                                                                                                    <parameter name="regex" value="[-]+"/>
+                                                                                                                    <parameter name="ctx_memory_result_key" value="param-prefix-domainC"/>
+                                                                                                                    <outcome value='success'>
+                                                                                                                        <block atomic="true">
+                                                                                                                            <set>
+                                                                                                                                <parameter name='tmp.dst-secondary.ltpId' value='`$param-prefix-domainC[$param-prefix-domainC_length -1]`' />
+                                                                                                                            </set>
+                                                                                                                            <set>
+                                                                                                                                <parameter name='tmp.dst-secondary.pnf-name' value='`$param-prefix-domainC[$param-prefix-domainC_length -3]`' />
+                                                                                                                            </set>
+                                                                                                                        </block>
+                                                                                                                    </outcome>
+                                                                                                                    <outcome value='failure'>
+                                                                                                                        <return status='failure'>
+                                                                                                                            <parameter name='error-code' value='' />
+                                                                                                                            <parameter name='error-message' value="An error occured while splitting sna1_route" />
+                                                                                                                        </return>
+                                                                                                                    </outcome>
+                                                                                                                </execute>
+                                                                                                                <for silentFailure='true' index='dividx' start='0' end='`$tmp.aai.network-route-C.p-interface-dst.relationship-list.relationship_length`' >
+                                                                                                                    <switch test='`$tmp.aai.network-route-C.p-interface-dst.relationship-list.relationship[$dividx].related-to`'>
+                                                                                                                        <outcome value='tunnel-termination-point'>
+                                                                                                                            <block atomic="true">
+                                                                                                                                <set>
+                                                                                                                                    <parameter name='tmp.destination-secondary.ttp-id' value="`$tmp.aai.network-route-C.p-interface-dst.relationship-list.relationship[$dividx].relationship-data[0].relationship-value`" />
+                                                                                                                                </set>
+                                                                                                                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                                                                              resource="tunnel-termination-point"
+                                                                                                                                              key="tunnel-termination-point.ttp-id = $tmp.destination-secondary.ttp-id
+		AND depth = '0'"
+                                                                                                                                              pfx='tmp.aai.destination-secondary-ttp' local-only='false' >
+                                                                                                                                    <outcome value='success'>
+                                                                                                                                        <block atomic="true">
+                                                                                                                                            <set>
+                                                                                                                                                <parameter name='destination-secondary.tunnel-tp-id' value="`$tmp.aai.destination-secondary-ttp.tunnel-tp-id`" />
+                                                                                                                                            </set>
+                                                                                                                                        </block>
+                                                                                                                                    </outcome>
+                                                                                                                                </get-resource>
+                                                                                                                                <break/>
+                                                                                                                            </block>
+                                                                                                                        </outcome>
+                                                                                                                    </switch>
+                                                                                                                </for>
+                                                                                                            </block>
+                                                                                                        </outcome>
+                                                                                                        <outcome value='not-found'></outcome>
+                                                                                                        <outcome value='failure'></outcome>
+                                                                                                    </get-resource>
+                                                                                                    <set>
+                                                                                                        <parameter name='tmp.SECONDARY-ROOT.pnf-name-long' value="`$param-prefix-domainC-pnfName[0] + '-' +
+                                                   $param-prefix-domainC-pnfName[1] + '-' +
+                                                   $param-prefix-domainC-pnfName[2] + '-' +
+                                                   $param-prefix-domainC-pnfName[3] + '-' +
+                                                   $param-prefix-domainC-pnfName[4] + '-' +
+                                                   $param-prefix-domainC-pnfName[5] + '-' +
+                                                   $param-prefix-domainC-pnfName[6] + '-' +
+                                                   $param-prefix-domainC-pnfName[7] + '-' +
+                                                   $param-prefix-domainC-pnfName[8]`" />
+                                                                                                        <!--<parameter name='tmp.ROOT.pnf-name-short' value="`$param-prefix-domainB-pnfName[8]`" />-->
+                                                                                                        <parameter name='tmp.SECONDARY-ROOT.pnf-name-short' value="`$tmp.dst-secondary.pnf-name`" />
+                                                                                                        <parameter name='tmp.SECONDARY-ROOT.uni-p-interface-long' value="`$tmp.aai.network-route-C.next-hop + '-' + $tmp.aai.network-route-C.logical-interface-id`" />
+                                                                                                        <parameter name='tmp.SECONDARY-ROOT.uni-tp-id' value="`$tmp.dst-secondary.ltpId`" />
+                                                                                                    </set>
                                                                                                     <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
                                                                                                                   resource="uni"
                                                                                                                   key="uni.id = $tmp.LEAF.uni-p-interface-long"
@@ -754,6 +1024,43 @@
                                                                                                                         </block>
                                                                                                                     </outcome>
                                                                                                                 </get-resource>
+                                                                                                                <switch test='`$hasSecondary`'>
+                                                                                                                    <outcome value='true'>
+                                                                                                                        <block>
+                                                                                                                            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                                                                          resource="uni"
+                                                                                                                                          key="uni.id = $tmp.SECONDARY-ROOT.uni-p-interface-long"
+                                                                                                                                          local-only="false"
+                                                                                                                                          pfx="tmp.aai.secondaryrootuni" >
+                                                                                                                                <outcome value='not-found'>
+                                                                                                                                    <return status='failure'>
+                                                                                                                                        <parameter name='ack-final' value='Y'/>
+                                                                                                                                        <parameter name="error-code" value="500" />
+                                                                                                                                        <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.l3vpn.pe1_id`" />
+                                                                                                                                    </return>
+                                                                                                                                </outcome>
+                                                                                                                                <outcome value='failure'>
+                                                                                                                                    <return status='failure'>
+                                                                                                                                        <parameter name='error-code' value='' />
+                                                                                                                                        <parameter name='error-message' value='' />
+                                                                                                                                    </return>
+                                                                                                                                </outcome>
+                                                                                                                                <outcome value='success'>
+                                                                                                                                    <block atomic="true">
+                                                                                                                                        <set>
+                                                                                                                                            <parameter name='tmp.newbw' value='`$tmp.aai.secondaryrootuni.data-source - $bwToBeDecreased`' />
+                                                                                                                                        </set>
+                                                                                                                                        <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='uni'
+                                                                                                                                                key='uni.id = $tmp.SECONDARY-ROOT.uni-p-interface-long'>
+                                                                                                                                            <parameter name='id' value='`$tmp.SECONDARY-ROOT.uni-p-interface-long`' />
+                                                                                                                                            <parameter name='data-source' value='`$tmp.newbw`' />
+                                                                                                                                        </update>
+                                                                                                                                    </block>
+                                                                                                                                </outcome>
+                                                                                                                            </get-resource>
+                                                                                                                        </block>
+                                                                                                                    </outcome>
+                                                                                                                </switch>
                                                                                                             </block>
                                                                                                         </outcome>
                                                                                                     </get-resource>
@@ -788,15 +1095,19 @@
                                                                                                                                         <block></block>
                                                                                                                                     </outcome>
                                                                                                                                     <outcome value='true'>
-                                                                                                                                        <block atomic="true">
-                                                                                                                                            <set>
-                                                                                                                                                <parameter name='tmp.MMonlyHasROOT' value='false' />
-                                                                                                                                            </set>
-                                                                                                                                            <set>
-                                                                                                                                                <parameter name='tmp.MMstillHasUni' value='true' />
-                                                                                                                                            </set>
-                                                                                                                                            <break/>
-                                                                                                                                        </block>
+                                                                                                                                        <switch test="`$tmp.mmUNI-id-long != $tmp.SECONDARY-ROOT.uni-p-interface-long`">
+                                                                                                                                            <outcome value='true'>
+                                                                                                                                                <block atomic="true">
+                                                                                                                                                    <set>
+                                                                                                                                                        <parameter name='tmp.MMonlyHasROOT' value='false' />
+                                                                                                                                                    </set>
+                                                                                                                                                    <set>
+                                                                                                                                                        <parameter name='tmp.MMstillHasUni' value='true' />
+                                                                                                                                                    </set>
+                                                                                                                                                    <break/>
+                                                                                                                                                </block>
+                                                                                                                                            </outcome>
+                                                                                                                                        </switch>
                                                                                                                                     </outcome>
                                                                                                                                 </switch>
                                                                                                                             </block>
@@ -1149,6 +1460,28 @@
                                                                                                                                                 </return>
                                                                                                                                             </outcome>
                                                                                                                                         </switch>
+                                                                                                                                        <switch test='`$hasSecondary`'>
+                                                                                                                                            <outcome value='true'>
+                                                                                                                                                <block>
+                                                                                                                                                    <!-- This is to check the provider-id of ROOt and SECONDARY-ROOT-->
+                                                                                                                                                    <switch test='`$param-prefix-domainB[$param-prefix-domainB_length -9] == $param-prefix-domainC[$param-prefix-domainC_length -9]`'>
+                                                                                                                                                        <outcome value='true'>
+                                                                                                                                                            <block></block>
+                                                                                                                                                        </outcome>
+                                                                                                                                                        <outcome value='false'>
+                                                                                                                                                            <block>
+                                                                                                                                                                <call module='GENERIC-RESOURCE-API' rpc='cll-vnf-topology-operation-cll-helper-find-SECONDARY-ROOT-conn' mode='sync' ></call>
+                                                                                                                                                                <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity'
+                                                                                                                                                                        key='connectivity.connectivity-id = $tmp.aai.SECONDARY-ROOT.connectivity.connectivity-id'>
+                                                                                                                                                                    <parameter name='connectivity-id' value='`$tmp.aai.SECONDARY-ROOT.connectivity.connectivity-id`' />
+                                                                                                                                                                    <parameter name='operational-status' value='Modified' />
+                                                                                                                                                                </update>
+                                                                                                                                                            </block>
+                                                                                                                                                        </outcome>
+                                                                                                                                                    </switch>
+                                                                                                                                                </block>
+                                                                                                                                            </outcome>
+                                                                                                                                        </switch>
                                                                                                                                     </block>
                                                                                                                                 </outcome>
                                                                                                                                 <outcome value='false'>
@@ -1313,6 +1646,28 @@
                                                                                                                                                             </return>
                                                                                                                                                         </outcome>
                                                                                                                                                     </switch>
+                                                                                                                                                    <switch test='`$hasSecondary`'>
+                                                                                                                                                        <outcome value='true'>
+                                                                                                                                                            <block>
+                                                                                                                                                                <!-- This is to check the provider-id of ROOt and SECONDARY-ROOT-->
+                                                                                                                                                                <switch test='`$param-prefix-domainB[$param-prefix-domainB_length -9] == $param-prefix-domainC[$param-prefix-domainC_length -9]`'>
+                                                                                                                                                                    <outcome value='true'>
+                                                                                                                                                                        <block></block>
+                                                                                                                                                                    </outcome>
+                                                                                                                                                                    <outcome value='false'>
+                                                                                                                                                                        <block>
+                                                                                                                                                                            <call module='GENERIC-RESOURCE-API' rpc='cll-vnf-topology-operation-cll-helper-find-SECONDARY-ROOT-conn' mode='sync' ></call>
+                                                                                                                                                                            <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity'
+                                                                                                                                                                                    key='connectivity.connectivity-id = $tmp.aai.SECONDARY-ROOT.connectivity.connectivity-id'>
+                                                                                                                                                                                <parameter name='connectivity-id' value='`$tmp.aai.SECONDARY-ROOT.connectivity.connectivity-id`' />
+                                                                                                                                                                                <parameter name='operational-status' value='Modified' />
+                                                                                                                                                                            </update>
+                                                                                                                                                                        </block>
+                                                                                                                                                                    </outcome>
+                                                                                                                                                                </switch>
+                                                                                                                                                            </block>
+                                                                                                                                                        </outcome>
+                                                                                                                                                    </switch>
                                                                                                                                                 </block>
                                                                                                                                             </block>
                                                                                                                                         </outcome>
@@ -1450,6 +1805,28 @@
                                                                                                                                                                         <parameter name='error-code' value='' />
                                                                                                                                                                         <parameter name='error-message' value='Root Connectivity was not found' />
                                                                                                                                                                     </return>
+                                                                                                                                                                </outcome>
+                                                                                                                                                            </switch>
+                                                                                                                                                            <switch test='`$hasSecondary`'>
+                                                                                                                                                                <outcome value='true'>
+                                                                                                                                                                    <block>
+                                                                                                                                                                        <!-- This is to check the provider-id of ROOt and SECONDARY-ROOT-->
+                                                                                                                                                                        <switch test='`$param-prefix-domainB[$param-prefix-domainB_length -9] == $param-prefix-domainC[$param-prefix-domainC_length -9]`'>
+                                                                                                                                                                            <outcome value='true'>
+                                                                                                                                                                                <block></block>
+                                                                                                                                                                            </outcome>
+                                                                                                                                                                            <outcome value='false'>
+                                                                                                                                                                                <block>
+                                                                                                                                                                                    <call module='GENERIC-RESOURCE-API' rpc='cll-vnf-topology-operation-cll-helper-find-SECONDARY-ROOT-conn' mode='sync' ></call>
+                                                                                                                                                                                    <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity'
+                                                                                                                                                                                            key='connectivity.connectivity-id = $tmp.aai.SECONDARY-ROOT.connectivity.connectivity-id'>
+                                                                                                                                                                                        <parameter name='connectivity-id' value='`$tmp.aai.SECONDARY-ROOT.connectivity.connectivity-id`' />
+                                                                                                                                                                                        <parameter name='operational-status' value='Modified' />
+                                                                                                                                                                                    </update>
+                                                                                                                                                                                </block>
+                                                                                                                                                                            </outcome>
+                                                                                                                                                                        </switch>
+                                                                                                                                                                    </block>
                                                                                                                                                                 </outcome>
                                                                                                                                                             </switch>
                                                                                                                                                         </block>

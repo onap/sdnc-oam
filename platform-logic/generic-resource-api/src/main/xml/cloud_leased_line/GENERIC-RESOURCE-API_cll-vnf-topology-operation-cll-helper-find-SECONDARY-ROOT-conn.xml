@@ -1,0 +1,88 @@
+<service-logic
+        xmlns='http://www.onap.org/sdnc/svclogic'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    <method rpc='cll-vnf-topology-operation-cll-helper-find-SECONDARY-ROOT-conn' mode='sync'>
+        <block atomic="true">
+            <set>
+                <parameter name='found-secondary-root-connectivity' value="false" />
+            </set>
+            <set>
+                <parameter name='tmp.aai.SECONDARY-ROOT.connectivity.' value="" />
+            </set>
+            <set>
+                <parameter name='tmp.aai.helper-secondary-root-all-connectivities.' value="" />
+            </set>
+            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                          resource="connectivities"
+                          key="selflink = 'https://aai.onap:8443/aai/v24/network/connectivities/'"
+                          local-only="false"
+                          pfx="tmp.aai.helper-secondary-root-all-connectivities" >
+                <outcome value='success'>
+                    <block atomic="true">
+                        <for index='helprconnidx' start='0' end='`$tmp.aai.helper-secondary-root-all-connectivities.connectivity_length`' >
+                            <block atomic='true'>
+                                <switch test='`$hasSecondary`'>
+                                    <outcome value='true'>
+                                        <block>
+                                            <!-- This is to check the provider-id of ROOt and SECONDARY-ROOT-->
+                                            <switch test='`$param-prefix-domainB[$param-prefix-domainB_length -9] == $param-prefix-domainC[$param-prefix-domainC_length -9]`'>
+                                                <outcome value='true'>
+                                                    <block>
+                                                        <switch test="`$tmp.aai.helper-secondary-root-all-connectivities.connectivity[$helprconnidx].vpn-type`">
+                                                            <outcome value='root'>
+                                                                <block>
+                                                                    <switch test="`$tmp.aai.helper-secondary-root-all-connectivities.connectivity[$helprconnidx].color-aware == $tmp.ROOT.uni-p-interface-long`">
+                                                                        <outcome value='true'>
+                                                                            <block atomic='true'>
+                                                                                <set>
+                                                                                    <parameter name='found-secondary-root-connectivity' value="true" />
+                                                                                </set>
+                                                                                <set>
+                                                                                    <parameter name='tmp.aai.SECONDARY-ROOT.connectivity.' value="`$tmp.aai.helper-secondary-root-all-connectivities.connectivity[$helprconnidx].`" />
+                                                                                </set>
+                                                                                <break/>
+                                                                            </block>
+                                                                        </outcome>
+                                                                    </switch>
+                                                                </block>
+                                                            </outcome>
+                                                        </switch>
+                                                    </block>
+                                                </outcome>
+                                                <outcome value='false'>
+                                                    <block>
+                                                        <switch test="`$tmp.aai.helper-secondary-root-all-connectivities.connectivity[$helprconnidx].vpn-type`">
+                                                            <outcome value='secondary-root'>
+                                                                <block>
+                                                                    <switch test="`$tmp.aai.helper-secondary-root-all-connectivities.connectivity[$helprconnidx].color-aware == $tmp.SECONDARY-ROOT.uni-p-interface-long`">
+                                                                        <outcome value='true'>
+                                                                            <block atomic='true'>
+                                                                                <set>
+                                                                                    <parameter name='found-secondary-root-connectivity' value="true" />
+                                                                                </set>
+                                                                                <set>
+                                                                                    <parameter name='tmp.aai.SECONDARY-ROOT.connectivity.' value="`$tmp.aai.helper-secondary-root-all-connectivities.connectivity[$helprconnidx].`" />
+                                                                                </set>
+                                                                                <break/>
+                                                                            </block>
+                                                                        </outcome>
+                                                                    </switch>
+                                                                </block>
+                                                            </outcome>
+                                                        </switch>
+                                                    </block>
+                                                </outcome>
+                                            </switch>
+                                        </block>
+                                    </outcome>
+                                </switch>
+                            </block>
+                        </for>
+                    </block>
+                </outcome>
+                <outcome value='not-found'></outcome>
+                <outcome value='failure'></outcome>
+            </get-resource>
+        </block>
+    </method>
+</service-logic>
