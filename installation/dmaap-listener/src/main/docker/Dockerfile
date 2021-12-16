@@ -1,10 +1,14 @@
 # Base ubuntu with added packages needed for open ecomp
 FROM onap/ccsdk-alpine-j11-image:${ccsdk.docker.version} AS stage0
-
+USER root
 ENV SDNC_CONFIG_DIR /opt/onap/sdnc/data/properties
 
 # copy deliverables to opt
 COPY opt /opt
+
+# Remediate log4shell vuln
+RUN apk add zip
+RUN zip -q -d /opt/onap/sdnc/dmaap-listener/lib/log4j-core-*.jar org/apache/logging/log4j/core/lookup/JndiLookup.class
 
 # End of stage 0
 
@@ -19,8 +23,8 @@ USER root
 # Create sdnc user
 RUN addgroup -S sdnc && adduser -S sdnc -G sdnc
 
-
 # Copy /opt and change owner/group to sdnc
 COPY --from=stage0 --chown=sdnc:sdnc /opt /opt
+
 
 USER sdnc
