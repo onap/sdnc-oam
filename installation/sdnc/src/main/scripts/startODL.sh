@@ -85,7 +85,7 @@ cleanupFeatureBoot() {
 initialize_sdnrdb() {
   printf "SDN-R Database Initialization"
   INITCMD="$JAVA_HOME/bin/java -jar "
-  FN=$(find "$ODL_HOME/system" -name "sdnr-wt-data-provider-setup-${ccsdk.features.version}.jar")
+  FN=$(find "$ODL_HOME/system" -name "sdnr-wt-data-provider-setup-*.jar")
   INITCMD="${INITCMD} ${FN} $SDNRDBCOMMAND"
   printf "%s\n" "Execute: $INITCMD"
   n=0
@@ -219,7 +219,6 @@ FEATURESBOOTMARKER="featuresBoot *="
 REPOSITORIESBOOTMARKER="featuresRepositories *="
 
 ODL_ADMIN_USERNAME=${ODL_ADMIN_USERNAME:-admin}
-ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD:-admin}
 ODL_REMOVEIDMDB=${ODL_REMOVEIDMDB:-true}
 
 if $ODL_REMOVEIDMDB ; then
@@ -259,8 +258,9 @@ SDNRDM_BOOTFEATURES=${SDNRDM_BOOTFEATURES:-sdnr-wt-feature-aggregator-devicemana
 # Whether to Initialize the ElasticSearch DB.
 SDNRINIT=${SDNRINIT:-false}
 SDNRONLY=${SDNRONLY:-false}
+SDNRDBTYPE=${SDNRDBTYPE:-ELASTICSEARCH}
 SDNRDBURL=${SDNRDBURL:-http://sdnrdb:9200}
-SDNRDBCOMMAND=${SDNRDBCOMMAND:--c init -db $SDNRDBURL -dbu $SDNRDBUSERNAME -dbp $SDNRDBPASSWORD $SDNRDBPARAMETER}
+SDNRDBCOMMAND=${SDNRDBCOMMAND:--c init -db $SDNRDBURL -dbt $SDNRDBTYPE -dbu $SDNRDBUSERNAME -dbp $SDNRDBPASSWORD $SDNRDBPARAMETER}
 
 SDNR_NORTHBOUND=${SDNR_NORTHBOUND:-false}
 SDNR_NORTHBOUND_BOOTFEATURES=${SDNR_NORTHBOUND_BOOTFEATURES:-sdnr-northbound-all}
@@ -394,7 +394,8 @@ then
 
   if $SDNRWT ; then install_sdnrwt_features ; fi
   if $ENABLE_OAUTH ; then
-    cp $SDNC_HOME/data/oauth-aaa-app-config.xml $ODL_HOME/system/org/opendaylight/aaa/aaa-shiro/0.12.1/aaa-shiro-0.12.1-aaa-app-config.xml
+    cp $SDNC_HOME/data/oauth-aaa-app-config.xml $(find $ODL_HOME/system/org/opendaylight/aaa/ -name *aaa-app-config.xml)
+    echo -e "\norg.ops4j.pax.web.session.cookie = none" >> $ODL_HOME/etc/org.ops4j.pax.web.cfg
     install_sdnr_oauth_features
   fi
 
