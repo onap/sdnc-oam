@@ -21,19 +21,24 @@
 #============LICENSE_END=========================================================
 ###
  
-/opt/bitnami/nginx/sbin/configure.sh
+python3 /opt/bitnami/nginx/sbin/configure.py
 
 echo "starting sdnc-web"
-echo "================="
+echo "======================="
 echo " WEBPROTOCOL  : $WEBPROTOCOL"
 echo " WEBPORT      : $WEBPORT"
 echo " SDNRPROTOCOL : $SDNRPROTOCOL"
 echo " SDNRHOST     : $SDNRHOST"
 echo " SDNRPORT     : $SDNRPORT"
 echo " DNS_RESOLVER : $DNS_RESOLVER"
+echo " DNS_INTERNAL_RESOLVER : $DNS_INTERNAL_RESOLVER"
 echo " TRPCEURL     : $TRPCEURL"
+echo " TRPCEGUIURL  : $TRPCEGUIURL"
 echo " TOPOURL      : $TOPOURL"
 echo " TILEURL      : $TILEURL"
+echo " SITEDOCURL   : $SITEDOCURL"
+echo " TERRAINURL   : $TERRAINURL"
+echo "======================="
 if [ "$WEBPROTOCOL" == "HTTPS" ]; then
   echo " SSL_CERT_DIR : $SSL_CERT_DIR"
   echo -n " SSL_CERTIFICATE: $SSL_CERTIFICATE"
@@ -71,4 +76,4 @@ if [ ! -z "$DEBUG" ]; then
 fi
 
 # Call the base images' run.sh to start NGINX
-bash /run.sh
+bash /opt/bitnami/scripts/nginx/run.sh

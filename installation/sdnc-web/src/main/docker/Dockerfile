@@ -22,12 +22,14 @@
 # Base bitnami nginx image
 FROM ${base.image.repo}
 LABEL maintainer="CCSDK Team (onap-ccsdk@lists.onap.org)"
-
+USER root
+RUN apt-get update && apt-get install python3-minimal python3-urllib3 unzip openssl -y
+USER 1001
 # copy ODLUX files to nginx
 COPY html /opt/bitnami/nginx/html  
 
 # copy site conf files 
-COPY *.conf /opt/bitnami/nginx/conf/server_blocks/
+COPY conf/* /opt/bitnami/nginx/conf/server_blocks/
 
 # setup environment variables
 ENV WEBPROTOCOL="HTTP" \
@@ -38,20 +40,25 @@ ENV WEBPROTOCOL="HTTP" \
     TRPCEURL="" \
     TOPOURL="" \
     TILEURL="" \
-    DNS_RESOLVER="1.1.1.1" \
+    SITEDOCURL="" \
+    DNS_RESOLVER="1.1.1.1 ipv6=off" \
+    DNS_INTERNAL_RESOLVER="127.0.0.11" \
     SSL_CERT_DIR="/app/cert" \
     SSL_CERTIFICATE="cert.pem" \
     SSL_CERTIFICATE_KEY="cert.key"
 
 # Check if /app can be used. If so, create "custom" directory and copy the files there.
-COPY bin/*.sh /opt/bitnami/nginx/sbin/
+COPY bin/* /opt/bitnami/nginx/sbin/ 
 
 USER root
-RUN chmod +x /opt/bitnami/nginx/sbin/configure.sh /opt/bitnami/nginx/sbin/run.sh
+RUN chmod +x /opt/bitnami/nginx/sbin/run.sh /opt/bitnami/nginx/sbin/opm.py
 # By default, docker copies files with the permissions of the build user. To avoid cases where build user 
 # has 644 which can result in failure of certain commands
-RUN chmod -R g+w /opt/bitnami/nginx/html/odlux
-
+RUN chmod -R g+w /opt/bitnami/nginx/html/odlux && mkdir /app/init.d
+RUN chmod 666 /opt/bitnami/nginx/conf/server_blocks/*.rules
+#RUN chown 1001:1001 /app/odlux.application.list && chmod 777 /app/odlux.application.list
+RUN chown -R 1001:1001 /app
+RUN ln -s /opt/bitnami/nginx/sbin/opm.py /usr/local/bin/opm
 USER 1001
 CMD [ "/opt/bitnami/nginx/sbin/run.sh" ]
 
