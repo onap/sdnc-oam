@@ -1,0 +1,46 @@
+location ~ ^/$  {
+    return 301 " /odlux/index.html";
+}
+location ~ ^/help/$  {
+    try_files /help/$args.json $uri;
+}
+location ~ ^/transportpce  {
+    resolver DNS_INTERNAL_RESOLVER;
+    if ($request_uri ~* "/transportpce/(.*)") { 
+        proxy_pass TRPCEURL/$1;
+    }
+}
+location ~ ^/topology/  {
+    resolver DNS_INTERNAL_RESOLVER;
+    proxy_pass TOPOURL;
+}
+location ~ ^/sitedoc/  {
+  resolver DNS_INTERNAL_RESOLVER;
+  if ($request_uri ~* "/sitedoc/(.*)") {
+    proxy_pass SITEDOCURL/topology/stadok/$1;
+  }
+}
+location ~ ^/tiles/  {
+    resolver DNS_RESOLVER;
+    if ($request_uri ~* "/tiles/(.*)") { 
+        proxy_pass TILEURL/$1;
+    }
+}
+location ~ ^/terrain/  {
+  resolver DNS_INTERNAL_RESOLVER;
+  if ($request_uri ~* "/terrain/(.*)") {
+    proxy_pass TERRAINURL/$1;
+  }
+}
+location /  {
+    try_files $uri $uri/ @backend;
+}
+location /websocket {
+    proxy_pass SDNRPROTOCOL://SDNRHOST:SDNRPORT/websocket;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+}
+location @backend {
+    proxy_pass SDNRPROTOCOL://SDNRHOST:SDNRPORT;
+}
