@@ -36,7 +36,7 @@ Release Data
 +-------------------------+-------------------------------------------+
 | **Docker images**       | See :ref:`dockercontainers` section below |
 +-------------------------+-------------------------------------------+
-| **Release designation** | Istanbul                                  |
+| **Release designation** | Istanbul Maintenance Release 1            |
 |                         |                                           |
 +-------------------------+-------------------------------------------+
 
@@ -56,6 +56,10 @@ For the complete list of `SDNC Istanbul release epics <https://jira.onap.org/iss
 `SDNC Honolulu release user stories <https://jira.onap.org/issues/?filter=12637>`_ , please see the `ONAP Jira`_.
 
 **Bug fixes**
+
+The SDNC Istanbul Maintenance Release 1 addresses a critical vulnerability discovered in log4j by
+upgrading to version 2.17.1 of the log4j-core package.  It also removes the 'data-migrator' package, which
+was an old Proof of Concept that is no longer maintained and which was using a vulnerable version of log4j.
 
 The full list of `bugs fixed in the SDNC Istanbul release <https://jira.onap.org/issues/?filter=12643>`_ is maintained on the `ONAP Jira`_.
 
@@ -88,17 +92,17 @@ with the following command::
 +--------------------------------+-----------------------------------------------------+---------+
 | Image name                     | Description                                         | Version |
 +================================+=====================================================+=========+
-| onap/sdnc-aaf-image            | SDNC controller image, integrated with AAF for RBAC | 2.2.2   |
+| onap/sdnc-aaf-image            | SDNC controller image, integrated with AAF for RBAC | 2.2.5   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-ansible-server-image | Ansible server                                      | 2.2.2   |
+| onap/sdnc-ansible-server-image | Ansible server                                      | 2.2.5   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-dmaap-listener-image | DMaaP listener                                      | 2.2.2   |
+| onap/sdnc-dmaap-listener-image | DMaaP listener                                      | 2.2.5  |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-image                | SDNC controller image, without AAF integration      | 2.2.2   |
+| onap/sdnc-image                | SDNC controller image, without AAF integration      | 2.2.5   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-ueb-listener-image   | SDC listener                                        | 2.2.2   |
+| onap/sdnc-ueb-listener-image   | SDC listener                                        | 2.2.5   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-web-image            | Web tier (currently only used by SDN-R persona)     | 2.2.2   |
+| onap/sdnc-web-image            | Web tier (currently only used by SDN-R persona)     | 2.2.5   |
 +--------------------------------+-----------------------------------------------------+---------+
 
 
