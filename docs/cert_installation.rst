@@ -95,12 +95,13 @@ Once you have this downloaded you need to go the following location.
 
 	*/oam/installation/src/main/yaml*
 
-Once you are there you need to edit the docker-compose.yaml file to include your directory where you have the zip file and certs.properties located. 
+Once you are there you need to edit the docker-compose.yaml file to map the zip file and certs.properties file into the container. 
 
 You need to add in the following lines into the yaml file just below *container_name: sdnc_controller_container* in the file::
 
 	volumes:
-	  - <Your_Workspace>:/opt/opendaylight/current/certs
+ 	  - <Your_Workspace>/certs.properties:/opt/opendaylight/certs/certs.properties
+	  - <Your_Workspace>/keys0.zip:/opt/opendaylight/certs/keys0.zip
 
 Once you have the mount path for your files added into the yaml file you can run the following command::
 
