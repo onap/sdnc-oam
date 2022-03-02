@@ -549,34 +549,25 @@
                                                                         </get-resource>
                                                                         <switch test="`$tmp.aai.uni.type`">
                                                                             <outcome value='leaf'>
-                                                                                <set>
-                                                                                    <parameter name='`ethernet-srv-end-points-list.`' value='' />
-                                                                                    <parameter name='`ethernet-srv-end-points-list_length`' value='0' />
-                                                                                    <parameter name='`epidx`' value='0' />
-                                                                                </set>
-                                                                                <set>
-                                                                                    <parameter name='`leafOrRootAccess`' value='ietf-eth-tran-types:leaf-access' />
-                                                                                </set>
+                                                                                <block>
+                                                                                    <set>
+                                                                                        <parameter name='`leafOrRootAccess`' value='ietf-eth-tran-types:leaf-access' />
+                                                                                    </set>
+                                                                                </block>
                                                                             </outcome>
                                                                             <outcome value='root'>
-                                                                                <set>
-                                                                                    <parameter name='`ethernet-srv-end-points-list.`' value='' />
-                                                                                    <parameter name='`ethernet-srv-end-points-list_length`' value='0' />
-                                                                                    <parameter name='`epidx`' value='0' />
-                                                                                </set>
-                                                                                <set>
-                                                                                    <parameter name='`leafOrRootAccess`' value='ietf-eth-tran-types:root-primary' />
-                                                                                </set>
+                                                                                <block>
+                                                                                    <set>
+                                                                                        <parameter name='`leafOrRootAccess`' value='ietf-eth-tran-types:root-primary' />
+                                                                                    </set>
+                                                                                </block>
                                                                             </outcome>
                                                                             <outcome value='root-secondary'>
-                                                                                <set>
-                                                                                    <parameter name='`ethernet-srv-end-points-list.`' value='' />
-                                                                                    <parameter name='`ethernet-srv-end-points-list_length`' value='0' />
-                                                                                    <parameter name='`epidx`' value='0' />
-                                                                                </set>
-                                                                                <set>
-                                                                                    <parameter name='`leafOrRootAccess`' value='ietf-eth-tran-types:root-secondary' />
-                                                                                </set>
+                                                                                <block>
+                                                                                    <set>
+                                                                                        <parameter name='`leafOrRootAccess`' value='ietf-eth-tran-types:root-secondary' />
+                                                                                    </set>
+                                                                                </block>
                                                                             </outcome>
                                                                             <outcome value='Other'>
                                                                                 <block></block>
@@ -770,6 +761,7 @@
                                                             <parameter name='provider-id' value='`$tmp.aai.connectivity.access-provider-id`' />
                                                             <parameter name='client-id' value='`$tmp.aai.connectivity.access-client-id`' />
                                                             <parameter name='topology-id' value='`$tmp.aai.connectivity.access-topology-id`' />
+                                                            <parameter name='service-instance-id-or-cll-id' value='`$tmp.aai.service-instance.service-instance-id`' />
                                                             <!--<parameter name='otn-tunnel-name' value='`$tmp.aai.vpn-bindingA.vpn-name`' />-->
                                                             <!--<parameter name='ethernet-end-point-name' value='`$tmp.aai.connectivityA.connectivity-id`' />-->
                                                             <!--<parameter name='index-number' value='0' />-->
@@ -801,6 +793,64 @@
                                                                         <parameter name='connectivity-id' value='`$tmp.aai.connectivity.connectivity-id`' />
                                                                         <parameter name='operational-status' value='Activated' />
                                                                     </update>
+                                                                    <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                                                                        <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/' + $prop.restapi.cll-create-pm-data.templatefile`" />
+                                                                        <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.domainConn.url + '/restconf/data'`" />
+                                                                        <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.domainConn.user`" />
+                                                                        <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.domainConn.password`" />
+                                                                        <parameter name="format" value="json"/>
+                                                                        <parameter name="httpMethod" value="post"/>
+                                                                        <parameter name='dirPath' value="/opt/onap/sdnc/restconfapi/yang" />
+                                                                        <parameter name="responsePrefix" value="vpn-result"/>
+                                                                        <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
+                                                                        <parameter name="trustStorePassword" value="adminadmin"/>
+                                                                        <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                                                                        <parameter name="keyStorePassword" value="adminadmin"/>
+                                                                    </execute>
+                                                                    <execute plugin='org.onap.ccsdk.sli.plugins.restconfdiscovery.RestconfDiscoveryNode' method='establishSubscriptionOnly' >
+                                                                        <parameter name="subscriberId" value="`$prop.sdncRestApi.thirdpartySdnc.domainConn.url`" />
+                                                                        <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/' + $prop.restapi.cll-subscribe-notification.templatefile`" />
+                                                                        <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.domainConn.url + '/restconf/operations/ietf-subscribed-notifications:establish-subscription'`" />
+                                                                        <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.domainConn.user`" />
+                                                                        <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.domainConn.password`" />
+                                                                        <parameter name="dirPath" value="/opt/sdnc/restconfapi/yang/notification" />
+                                                                        <!--<parameter name="deviceIp" value="192.168.198.6" />-->
+                                                                        <!--<parameter name="devicePort" value="18181" />-->
+                                                                        <parameter name="sseConnectURL" value="`$prop.sdncRestApi.thirdpartySdnc.domainConn.url + '/restconf/streams/yang-push-json'`" />
+                                                                        <parameter name="format" value="json" />
+                                                                        <parameter name="httpMethod" value="post" />
+                                                                        <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
+                                                                        <parameter name="trustStorePassword" value="adminadmin"/>
+                                                                        <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                                                                        <parameter name="keyStorePassword" value="adminadmin"/>
+                                                                        <parameter name='customHttpHeaders' value="X-ACCESS-TOKEN=x-ik2ps4ikvzupbx0486ft1ebzs7rt85futh9ho6eofy3wjsap7wqktemlqm4bbsmnar3vrtbyrzukbv5itd6m1cftldpjarnyle3sdcqq9hftc4lebz464b5ffxmlbvg9" />
+                                                                        <parameter name="module" value="GENERIC-RESOURCE-API" />
+                                                                        <parameter name="rpc" value="cll-vnf-topology-operation-cll-callbackdg-notification" />
+                                                                        <parameter name="version" value="`$project.version`" />
+                                                                        <parameter name="mode" value="sync" />
+                                                                        <parameter name="responsePrefix" value="restapi-result"/>
+                                                                    </execute>
+                                                                    <execute plugin='org.onap.ccsdk.sli.plugins.restconfdiscovery.RestconfDiscoveryNode' method='establishPersistentSseConnection' >
+                                                                        <parameter name="subscriberId" value="`$prop.sdncRestApi.thirdpartySdnc.domainConn.url`" />
+                                                                        <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/' + $prop.restapi.cll-subscribe-notification.templatefile`" />
+                                                                        <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.domainConn.url + '/restconf/operations/ietf-subscribed-notifications:establish-subscription'`" />
+                                                                        <parameter name="sseConnectURL" value="`$prop.sdncRestApi.thirdpartySdnc.domainConn.url + '/restconf/streams/yang-push-json'`" />
+                                                                        <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.domainConn.user`" />
+                                                                        <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.domainConn.password`" />
+                                                                        <parameter name="dirPath" value="/opt/sdnc/restconfapi/yang/notification" />
+                                                                        <parameter name="format" value="json" />
+                                                                        <parameter name="httpMethod" value="get" />
+                                                                        <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
+                                                                        <parameter name="trustStorePassword" value="adminadmin"/>
+                                                                        <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                                                                        <parameter name="keyStorePassword" value="adminadmin"/>
+                                                                        <parameter name='customHttpHeaders' value="X-ACCESS-TOKEN=x-ik2ps4ikvzupbx0486ft1ebzs7rt85futh9ho6eofy3wjsap7wqktemlqm4bbsmnar3vrtbyrzukbv5itd6m1cftldpjarnyle3sdcqq9hftc4lebz464b5ffxmlbvg9" />
+                                                                        <parameter name="module" value="GENERIC-RESOURCE-API" />
+                                                                        <parameter name="rpc" value="cll-vnf-topology-operation-cll-callbackdg-notification" />
+                                                                        <parameter name="version" value="`$project.version`" />
+                                                                        <parameter name="mode" value="sync" />
+                                                                        <parameter name="responsePrefix" value="notification-get-result"/>
+                                                                    </execute>
                                                                 </block>
                                                             </outcome>
                                                         </execute>
