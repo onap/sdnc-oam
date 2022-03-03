@@ -1,0 +1,62 @@
+<service-logic
+        xmlns='http://www.onap.org/sdnc/svclogic'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    <method rpc='cll-vnf-topology-operation-cll-callbackdg-notification' mode='sync'>
+        <block atomic="true">
+            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                <parameter name="logger" value="message-log" />
+                <parameter name="level" value="info" />
+                <parameter name="field1" value="CallBack DG For SSE CONNECTION is called"/>
+                <!--<parameter name="field2" value="`$rcvdNotif`"/>-->
+            </record>
+            <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
+                <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />
+                <parameter name='contextPrefix' value='prop' />
+            </execute>
+            <set>
+                <!--<parameter name='rcvdNotif' value='`$notifvalue`' />-->
+                <parameter name='rcvd-etht-svc-end-point' value='`$push-change-update.datastore-changes.payload.parameter-value[0].etht-svc-end-point`' />
+                <parameter name='rcvd-subscription-id' value='`$push-change-update.subscription-id`' />
+                <parameter name='rcvd-bandwidth-value' value='`$push-change-update.datastore-changes.payload.parameter-value[0].value`' />
+                <parameter name='rcvd-service-instance-id' value='`$push-change-update.datastore-changes.payload.parameter-value[0].value-description`' />
+            </set>
+            <!--<save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="service-instance:metadata"-->
+            <!-- key="service-instance.service-instance-id = $network-topology-operation-input.service-information.service-id  -->
+            <!--	AND customer.global-customer-id = $network-topology-operation-input.service-information.global-customer-id-->
+            <!--	  AND service-subscription.service-type = $network-topology-operation-input.service-information.subscription-service-type-->
+            <!--	  AND service-instance.service-instance-id =  $rcvd-service-instance-id"  force="true" pfx="tmp.AnAI-data">-->
+            <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="service-instance:metadata"
+                  key="service-instance.service-instance-id =  $rcvd-service-instance-id"  force="true" pfx="tmp.AnAI-data">
+                <parameter name="metadata.metadatum[0].metaname" value="`$rcvd-etht-svc-end-point`" />
+                <parameter name="metadata.metadatum[0].metaval" value="`$rcvd-bandwidth-value`" />
+            </save>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
+                <parameter name="ctx-destination" value="eventId-uuid"/>
+            </execute>
+            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
+                <parameter name="ctx-destination" value="eventName-uuid"/>
+            </execute>
+            <set>
+                <parameter name='eventIdUuid' value="`'BandwidthChanged_' + $eventId-uuid`" />
+                <parameter name='eventNameUuid' value='`$eventName-uuid`' />
+                <parameter name='cclId' value='`$rcvd-service-instance-id`' />
+                <parameter name='uniId' value='`$rcvd-etht-svc-end-point`' />
+                <parameter name='bandwidthValue' value='`$rcvd-bandwidth-value`' />
+            </set>
+            <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/' + $prop.restapi.cll-call-ves.templatefile`" />
+                <parameter name="restapiUrl" value="`$prop.dcaeAddrAndPort + '/eventListener/v7'`" />
+                <!--<parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.domainConn.user`" />-->
+                <!--<parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.domainConn.password`" />-->
+                <parameter name="format" value="json"/>
+                <parameter name="httpMethod" value="post"/>
+                <parameter name='dirPath' value="/opt/onap/sdnc/restconfapi/yang" />
+                <parameter name="responsePrefix" value="ves-result"/>
+                <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
+                <parameter name="trustStorePassword" value="adminadmin"/>
+                <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
+                <parameter name="keyStorePassword" value="adminadmin"/>
+            </execute>
+        </block>
+    </method>
+</service-logic>
