@@ -15,23 +15,28 @@ Suite Teardown  global suite teardown
 
 *** Test Cases ***
 Test Is SDNR Node Available
-    ${server_status}=    server is ready    ${SDNR_PROTOCOL}${SDNR_HOST}    ${SDNR_PORT}
+    ${server_status}=    Server Is Ready
     should be true    ${server_status}
 
 Test Is SDNRDB Available
-    ${es_version_info}=    get elastic search version info as dict
-    ${length_of_response}=    get length    ${es_version_info}
+    ${es_version_info}=    Get Sdnrdb Version Info As Dict
+    ${length_of_response}=    Get Length    ${es_version_info}
     should be true    ${length_of_response}>${0}
 
 Test Is SDNRDB Initialized
-    ${res}=  check aliases
+    ${res}=  Check Aliases
     Log  ${res}  level=INFO  html=False  console=False  repr=False
-    Run Keyword If  not ${res}  Fatal Error
 
 Test Is VES Collector available
     # curl -k -u sample1:sample1 https://172.40.0.1:8443
     ${auth}=  Create List  ${VESCOLLECTOR}[USERNAME]  ${VESCOLLECTOR}[PASSWORD]
-    RequestsLibrary.Create Session  alias=ves  url=${VESCOLLECTOR}[SCHEME]://${VESCOLLECTOR}[IP]:${VESCOLLECTOR}[PORT]  headers=${headers}  auth=${auth}
+    ${IPV6_ENABLED}=  Get Variable Value    ${ENABLE_IPV6}  ${False}
+    Log To Console    ${VESCOLLECTOR}[SCHEME]://[${VESCOLLECTOR}[IP]]:${VESCOLLECTOR}[PORT]
+    IF    ${IPV6_ENABLED} != ${True}
+        RequestsLibrary.Create Session  alias=ves  url=${VESCOLLECTOR}[SCHEME]://${VESCOLLECTOR}[IP]:${VESCOLLECTOR}[PORT]  headers=${headers}  auth=${auth}
+    ELSE
+        RequestsLibrary.Create Session  alias=ves  url=${VESCOLLECTOR}[SCHEME]://[${VESCOLLECTOR}[IP]]:${VESCOLLECTOR}[PORT]  headers=${headers}  auth=${auth}
+    END
     ${resp}=  RequestsLibrary.GET On Session  ves  /
     Should Be Equal As Strings  ${resp.text}  Welcome to VESCollector
     Should Be Equal As Strings  ${resp.status_code}  200
