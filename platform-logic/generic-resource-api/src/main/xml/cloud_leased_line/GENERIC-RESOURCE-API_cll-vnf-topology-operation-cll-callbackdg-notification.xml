@@ -1,6 +1,6 @@
 <service-logic
         xmlns='http://www.onap.org/sdnc/svclogic'
-        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='777'>
     <method rpc='cll-vnf-topology-operation-cll-callbackdg-notification' mode='sync'>
         <block atomic="true">
             <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
@@ -25,8 +25,14 @@
             <!--	AND customer.global-customer-id = $network-topology-operation-input.service-information.global-customer-id-->
             <!--	  AND service-subscription.service-type = $network-topology-operation-input.service-information.subscription-service-type-->
             <!--	  AND service-instance.service-instance-id =  $rcvd-service-instance-id"  force="true" pfx="tmp.AnAI-data">-->
+            <!--<save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="service-instance:metadata"-->
+            <!-- key="service-instance.service-instance-id =  $rcvd-service-instance-id"  force="true" pfx="tmp.AnAI-data">-->
+            <!--    <parameter name="metadata.metadatum[0].metaname" value="`$rcvd-etht-svc-end-point`" />-->
+            <!--    <parameter name="metadata.metadatum[0].metaval" value="`$rcvd-bandwidth-value`" />-->
             <save plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService" resource="service-instance:metadata"
-                  key="service-instance.service-instance-id =  $rcvd-service-instance-id"  force="true" pfx="tmp.AnAI-data">
+                  key="service-instance.service-instance-id =  $rcvd-service-instance-id
+ AND customer.global-customer-id = '5GCustomer'
+ AND service-subscription.service-type = '5G'"  force="true" pfx="tmp.AnAI-data">
                 <parameter name="metadata.metadatum[0].metaname" value="`$rcvd-etht-svc-end-point`" />
                 <parameter name="metadata.metadatum[0].metaval" value="`$rcvd-bandwidth-value`" />
             </save>
@@ -45,17 +51,20 @@
             </set>
             <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
                 <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/' + $prop.restapi.cll-call-ves.templatefile`" />
-                <parameter name="restapiUrl" value="`$prop.dcaeAddrAndPort + '/eventListener/v7'`" />
-                <!--<parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.domainConn.user`" />-->
-                <!--<parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.domainConn.password`" />-->
+                <!--<parameter name="restapiUrl" value="`$prop.dcaeAddrAndPort + '/eventListener/v7'`" />-->
+                <parameter name="restapiUrl" value="https://dcae-ves-collector:8443/eventListener/v7" />
+                <parameter name="restapiUser" value="sample1" />
+                <parameter name="restapiPassword" value="sample1" />
                 <parameter name="format" value="json"/>
                 <parameter name="httpMethod" value="post"/>
                 <parameter name='dirPath' value="/opt/onap/sdnc/restconfapi/yang" />
                 <parameter name="responsePrefix" value="ves-result"/>
                 <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
                 <parameter name="trustStorePassword" value="adminadmin"/>
-                <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
-                <parameter name="keyStorePassword" value="adminadmin"/>
+                <!--<parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>-->
+                <!--<parameter name="keyStorePassword" value="adminadmin"/>-->
+                <parameter name="disableHostVerification" value="true"/>
+                <parameter name="ssl" value="false"/>
             </execute>
         </block>
     </method>
