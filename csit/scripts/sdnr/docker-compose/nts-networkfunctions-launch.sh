@@ -15,6 +15,7 @@
 # * ============LICENSE_END==========================================================================
 
 set -o xtrace
+set +e
 csvfile=$1
 export DOCKER_ENGINE_VERSION=$(docker version --format '{{.Server.APIVersion}}')
 
@@ -34,7 +35,9 @@ fi
 
 firstline=0
 # read each line of nts-networkfunctions.csv and put in into the corresponding variables
-while IFS=',' read NAME NTS_NF_DOCKER_REPOSITORY NTS_NF_IMAGE_NAME NTS_NF_IMAGE_TAG NTS_NF_IP NTS_HOST_NETCONF_SSH_BASE_PORT NTS_HOST_NETCONF_TLS_BASE_PORT NTS_NF_SSH_CONNECTIONS NTS_NF_TLS_CONNECTIONS; do
+while IFS=',' read NAME NTS_NF_DOCKER_REPOSITORY NTS_NF_IMAGE_NAME NTS_NF_IMAGE_TAG NTS_NF_IP NTS_NF_IPv6 \
+                   NTS_HOST_NETCONF_SSH_BASE_PORT NTS_HOST_NETCONF_TLS_BASE_PORT NTS_NF_SSH_CONNECTIONS NTS_NF_TLS_CONNECTIONS \
+                   PORT NETCONF_HOST USER PASSWORD NTS_FUNCTION_TYPE; do
     if [ $firstline -eq 0 ]; then
         firstline=1
         continue
@@ -45,9 +48,11 @@ while IFS=',' read NAME NTS_NF_DOCKER_REPOSITORY NTS_NF_IMAGE_NAME NTS_NF_IMAGE_
         if [[ -z ${USE_DEFAULT_REPO} ]]; then
         export NTS_NF_DOCKER_REPOSITORY=$NTS_NF_DOCKER_REPOSITORY
     fi
+    export NAME=$NAME
     export NTS_NF_IMAGE_NAME=$NTS_NF_IMAGE_NAME
     export NTS_NF_IMAGE_TAG=$NTS_NF_IMAGE_TAG
     export NTS_NF_IP=$NTS_NF_IP
+    export NTS_NF_IPv6=$NTS_NF_IPv6
     export NTS_HOST_NETCONF_SSH_BASE_PORT=$NTS_HOST_NETCONF_SSH_BASE_PORT
     export NTS_HOST_NETCONF_TLS_BASE_PORT=$NTS_HOST_NETCONF_TLS_BASE_PORT
     export NTS_HOST_NETCONF_SSH_BASE_PORT_PLUS_SSH_CON=$(expr $NTS_HOST_NETCONF_SSH_BASE_PORT + $NTS_NF_SSH_CONNECTIONS - 1)
@@ -71,3 +76,4 @@ while IFS=',' read NAME NTS_NF_DOCKER_REPOSITORY NTS_NF_IMAGE_NAME NTS_NF_IMAGE_
     docker-compose -p ${NAME} --env-file $CUR_PATH/.env -f $CUR_PATH/docker-compose-nts-networkfunction.yaml up -d
 done <$csvfile
 docker ps -a --format "table |{{.Names}}\t|{{.Image}}\t|{{printf \"%.70s\" .Ports}}|"| { head -1; sort --field-separator='|' -k 4;}
+set -e

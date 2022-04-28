@@ -47,6 +47,7 @@ fi
 
 HOST_IP=$(ip route get 8.8.8.8 | awk '/8.8.8.8/ {print $7}')
 SDNC_WEB_PORT=${SDNC_WEB_PORT:-8282}
+SDNC_PORT=${SDNC_PORT:-8181}
 
 env_file="--env-file ${SCRIPTS}/sdnr/docker-compose/.env"
 echo $env_file
@@ -61,6 +62,29 @@ else
   sdnrdb_compose_file="docker-compose-sdnrdb-mariadb.yaml"
 fi
 docker ps -a
+
+# Call function with port like:
+# check_for_ready_state 1234
+# export SDNC_READY_RETRY_PERIOD and SDNC_READY_TIMEOUT to overwrite default values
+function check_for_ready_state() {
+  sdnc_port=${1}
+  SDNC_READY_RETRY_PERIOD=${SDNC_READY_RETRY_PERIOD:-15}
+  SDNC_READY_TIMEOUT=${SDNC_READY_TIMEOUT:-450}
+  max_retry=$(expr $SDNC_READY_TIMEOUT / $SDNC_READY_RETRY_PERIOD)
+  for ((i=1; i<=$max_retry; i++)); do
+    wait_time=$(expr $i \* $SDNC_READY_RETRY_PERIOD)
+    echo "[INFO] SDNC/R container not yet ready after: $wait_time seconds, Timeout: $SDNC_READY_TIMEOUT seconds"
+    curl -sS -m 1 -k -D - ${HTTPS_PREFIX}${HOST_IP}:${sdnc_port}/ready | grep 200 && break
+    if [ $i == $max_retry ]; then
+        echo "[ERROR] SDNC/R container not ready after ${SDNC_READY_TIMEOUT} seconds!"
+        export SDNC_READY_STATE_TIME_OUT=true
+        return
+    fi
+    echo sleep ${SDNC_READY_RETRY_PERIOD}
+    sleep ${SDNC_READY_RETRY_PERIOD}
+  done
+  echo "[INFO] SDNC/R container ready after: $wait_time seconds"
+}
 
 function onap_dependent_components_launch() {
     docker-compose $env_file -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose-onap-addons.yaml pull
@@ -92,8 +116,6 @@ function sdnr_launch() {
     else
         sdnr_launch_single_node $1
     fi
-    cd $WORKSPACE
-    ./getAllInfo.sh -c sdnr -kp
 }
 
 
@@ -103,38 +125,23 @@ function sdnr_launch_single_node() {
     #docker-compose $env_file -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose-single-sdnr.yaml \
     #                         -f ${WORKSPACE}/scripts/sdnr/docker-compose/$sdnrdb_compose_file \
     #                         pull
-    docker-compose $env_file -f ${WORKSPACE}/scripts/sdnr/docker-compose/$sdnrdb_compose_file \
-                             pull
     docker-compose $env_file -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose-single-sdnr.yaml \
                              -f ${WORKSPACE}/scripts/sdnr/docker-compose/$sdnrdb_compose_file \
                              up -d
-         for i in {1..50}; do
-             curl -sS -m 1 -D - ${HOST_IP}:8181/ready | grep 200 && break
-             echo sleep $i
-             sleep $i
-             if [ $i == 50 ]; then
-                echo "[ERROR] SDNC/R container not ready"
-                docker ps -a
-                docker logs sdnr
-                # exit 1
-             fi
-         done
+    check_for_ready_state ${SDNC_PORT}
 }
 
 function sdnr_web_launch() {
-    docker-compose $env_file -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose-single-sdnr.yaml \
-                             -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose-single-sdnr-web.override.yaml \
-                             -f ${WORKSPACE}/scripts/sdnr/docker-compose/$sdnrdb_compose_file \
-                             pull
+    # Use locally build sdnr, sdnc-web .. no need to pull
+    #docker-compose $env_file -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose-single-sdnr.yaml \
+    #                         -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose-single-sdnr-web.override.yaml \
+    #                         -f ${WORKSPACE}/scripts/sdnr/docker-compose/$sdnrdb_compose_file \
+    #                         pull
     docker-compose $env_file -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose-single-sdnr.yaml \
                              -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose-single-sdnr-web.override.yaml \
                              -f ${WORKSPACE}/scripts/sdnr/docker-compose/$sdnrdb_compose_file \
                              up -d
-         for i in {1..50}; do
-             curl -sS -m 1 -D - ${HOST_IP}:${SDNC_WEB_PORT}/ready | grep 200 && break
-             echo sleep $i
-             sleep $i
-    done
+    check_for_ready_state ${SDNC_WEB_PORT}
 }
 
 function sdnr_launch_cluster() {
@@ -142,13 +149,7 @@ function sdnr_launch_cluster() {
     SDNRDM="false"
     [[ -n "$1" ]]  && SDNRDM="true" && echo "SDNRDM arg detected - running in headless mode"
     echo "SDNR being launched in Cluster mode"
-    docker-compose $env_file -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose/cluster-sdnr.yaml pull
+    #docker-compose $env_file -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose/cluster-sdnr.yaml pull
     docker-compose $env_file -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose/cluster-sdnr.yaml up -d
-    # Wait for initialization of docker services. At the moment its the master SDNR node
-         HOST_IP=$(ip route get 8.8.8.8 | awk '/8.8.8.8/ {print $7}')
-         for i in {1..50}; do
-             curl -sS -m 1 -D - ${HOST_IP}:${ODLUXPORT}/ready | grep 200 && break
-             echo sleep $i
-             sleep $i
-         done
+    check_for_ready_state ${SDNC_WEB_PORT}
 }

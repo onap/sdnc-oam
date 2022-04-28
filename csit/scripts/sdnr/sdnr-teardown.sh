@@ -15,6 +15,7 @@
 # limitations under the License.
 #
 # Modifications copyright (c) 2018 AT&T Intellectual Property
+# Modifications copyright (C) 2022 highstreet technologies GmbH Intellectual Property
 #
 
 if [[ -z $WORKSPACE ]]; then
@@ -37,7 +38,7 @@ source ${SCRIPTS}/sdnr/sdnrEnv_Common.sh
 env_file="--env-file ${SCRIPTS}/sdnr/docker-compose/.env"
 
 function sdnr_teardown() {
-	running_containers=$(docker ps -aq)
+	running_containers=$(docker ps -a --format "{{.Names}}")
 	if [ -z "$running_containers" ]
 	then
 		echo "No containers to get logs from!"
@@ -50,6 +51,7 @@ function sdnr_teardown() {
 			echo "Getting logs from container $i"
 			docker logs $i >> ${WORKSPACE}/archives/getallinfo/$i.log 2>&1
 		done
+        docker cp sdnr:/opt/opendaylight/data/log/karaf.log ${WORKSPACE}/archives/getallinfo/sdnr_karaf.log
 	fi
 	echo "Starting teardown!"
 	# removes sdnrdb, sdnr AND all of the rest of the containers (--remove-orphans)

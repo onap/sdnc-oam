@@ -21,6 +21,7 @@ Suite Setup  global suite setup    &{GLOBAL_SUITE_SETUP_CONFIG}
 Suite Teardown  global suite teardown
 
 
+
 *** Variables ***
 ${DEVICE_TYPE}  DEFINE_IN_INIT
 ${DEVICE_NAME}  robot-${DEVICE_TYPE}-sim-lifecycle
@@ -42,8 +43,8 @@ ${DEVICE_TO_DELETE}  devices
 *** Test Cases ***
 
 Add network element connection
-  [Documentation]  Add network-function to device manager 
-  ...              verify correct detection of specific device manager 
+  [Documentation]  Add network-function to device manager
+  ...              verify correct detection of specific device manager
   ...              verify correct entries in connection log
   [Tags]  smoke
 
@@ -52,7 +53,8 @@ Add network element connection
   ${start_time} =  Get Current Date  time_zone=UTC  result_format=%Y-%m-%dT%H:%M:%S.%f
   Sleep  1s  reason=insert time delay to account for time differences of container and host
   Log To Console  ${start_time}
-  ConnectApp.Add network element connection    ${DEVICE_NAME_TEST}    ${True}    ${HOST}    ${PORT}    ${USERNAME}    ${PASSWORD}
+  ConnectApp.Add network element connection    device_name=${DEVICE_NAME_TEST}    is_required=${True}
+  ...  host=${HOST}    port=${PORT}    username=${USERNAME}    password=${PASSWORD}
   Run Keyword And Continue On Failure  ConnectApp.Should Be Equal connection status until time  ${DEVICE_NAME_TEST}  Connected
   SDNCRestconfLibrary.should_be_equal_connection_status_until_time  ${DEVICE_NAME_TEST}  connected  time_in_sec=${10}
   Run Keyword And Continue On Failure  ConnectApp.should_be_equal_network_element_connection_details  ${DEVICE_NAME_TEST}
@@ -84,11 +86,11 @@ Retrieve yang capabilities from network element
   Should be True  ${is_yang_correct}  msg=Yang capabilities are different from expected list
 
 Remove network element connection
-  [Documentation]  remove network element connection from device manager 
-  ...              verify if all ressources are removed 
+  [Documentation]  remove network element connection from device manager
+  ...              verify if all ressources are removed
   ...              verify correct entries in connection log
   [Tags]  smoke
-  
+
   Sleep  1s  reason=insert time gap in log files
   ${start_time} =  Get Current Date  time_zone=UTC  result_format=%Y-%m-%dT%H:%M:%S.%f
   Sleep  1s  reason=insert time delay to account for time differences of container and host
@@ -117,7 +119,8 @@ Add network element connection wrong port
   ${start_time} =  Get Current Date  time_zone=UTC  result_format=%Y-%m-%dT%H:%M:%S.%f
   Sleep  1s  reason=insert time delay to account for time differences of container and host
   Set Test Variable  ${DEVICE_NAME_TEST}  ${DEVICE_NAME}-port-nok
-  ConnectApp.Add network element connection    ${DEVICE_NAME_TEST}    ${True}    ${HOST}    ${PORT_NOK}    ${USERNAME}    ${PASSWORD}
+  ConnectApp.Add network element connection    device_name=${DEVICE_NAME_TEST}    is_required=${True}    host=${HOST}
+  ...  port=${PORT_NOK}    username=${USERNAME}    password=${PASSWORD}
   Run Keyword And Continue On Failure  ConnectApp.Should Be Equal connection status until time  ${DEVICE_NAME_TEST}  Connecting
   SDNCRestconfLibrary.should_be_equal_connection_status_until_time  ${DEVICE_NAME_TEST}  connecting  time_in_sec=${10}
   Run Keyword And Continue On Failure  ConnectApp.should_be_equal_network_element_connection_details  ${DEVICE_NAME_TEST}
@@ -174,7 +177,8 @@ Add network element connection wrong ip
   ${start_time} =  Get Current Date  time_zone=UTC  result_format=%Y-%m-%dT%H:%M:%S.%f
   Sleep  1s  reason=insert time delay to account for time differences of container and host
   Set Test Variable  ${DEVICE_NAME_TEST}  ${DEVICE_NAME}-ip-nok
-  ConnectApp.Add network element connection    ${DEVICE_NAME_TEST}    ${True}    ${HOST_NOK}    ${PORT}    ${USERNAME}    ${PASSWORD}
+  ConnectApp.Add network element connection    device_name=${DEVICE_NAME_TEST}    is_required=${True}    host=${HOST_NOK}
+  ...  port=${PORT}    username=${USERNAME}    password=${PASSWORD}
   Run Keyword And Continue On Failure  ConnectApp.Should Be Equal connection status until time  ${DEVICE_NAME_TEST}  Connecting
   Run Keyword And Continue On Failure  SDNCRestconfLibrary.should_be_equal_connection_status_until_time  ${DEVICE_NAME_TEST}  connecting  time_in_sec=${10}
   Run Keyword And Continue On Failure  ConnectApp.should_be_equal_network_element_connection_details  ${DEVICE_NAME_TEST}
@@ -231,7 +235,8 @@ Add network element connection and change is required to false
   ${start_time} =  Get Current Date  time_zone=UTC  result_format=%Y-%m-%dT%H:%M:%S.%f
   Sleep  1s  reason=insert time delay to account for time differences of container and host
   Set Test Variable  ${DEVICE_NAME_TEST}  ${DEVICE_NAME}-required
-  ConnectApp.Add network element connection    ${DEVICE_NAME_TEST}    ${True}    ${HOST}    ${PORT}    ${USERNAME}    ${PASSWORD}
+  ConnectApp.Add network element connection    device_name=${DEVICE_NAME_TEST}    is_required=${True}    host=${HOST}
+  ...  port=${PORT}    username=${USERNAME}    password=${PASSWORD}
   Run Keyword And Continue On Failure  ConnectApp.Should Be Equal connection status until time  ${DEVICE_NAME_TEST}  Connected
   SDNCRestconfLibrary.should_be_equal_connection_status_until_time  ${DEVICE_NAME_TEST}  connected  time_in_sec=${10}
   Run Keyword And Continue On Failure  ConnectApp.should_be_equal_network_element_connection_details  ${DEVICE_NAME_TEST}
@@ -337,6 +342,19 @@ Mount network element
   Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Connected  1  msg=wrong connection log entries for Connected state
   Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Mounted  1    msg=wrong connection log entries for Mounted state
 
+Mount Nts Network Function with VALID TLS Key ID
+  IF    'DOCKER_TLS_PORT' in ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']}
+       Run Keyword And Continue On Failure  Add Network Element Connection     device_name=${DEVICE_NAME}_sim_key_0
+                                  ...  is_required=${True}
+                                  ...  host=${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['IP']}
+                                  ...  port=${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['DOCKER_TLS_PORT']}
+                                  ...  username=${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['USER']}
+                                  ...  tls_key=ODL_private_key_0
+                                  ...  check_connection_status=Connected
+                                  ...  time_to_wait=60
+       ConnectApp.remove_network_element_connection    ${DEVICE_NAME}_sim_key_0
+  END
+
 Remove network element connection
   [Tags]  prio2
   Sleep  1s  reason=insert time gap in log files
@@ -348,7 +366,7 @@ Remove network element connection
   Run Keyword And Continue On Failure  SDNCRestconfLibrary.should_be_equal_connection_status_until_time  ${DEVICE_NAME_TEST}  not existing  time_in_sec=${10}
 
   # Check connection status log entries
-  Sleep  1s  reason=insert time gap to avoid time constrains
+  Sleep  5s  reason=insert time gap to avoid time constrains
   ${connection_status_list} =  FaultManagementApp.get_connection_log_list  node-id=${DEVICE_NAME_TEST}
                                                                      ...   timestamp=>=${start_time}
   Log  ${connection_status_list}
@@ -370,7 +388,8 @@ Remove unmounted network element connection
   ${start_time} =  Get Current Date  time_zone=UTC  result_format=%Y-%m-%dT%H:%M:%S.%f
   Sleep  1s  reason=insert time delay to account for time differences of container and host
   Set Test Variable  ${DEVICE_NAME_TEST}  ${DEVICE_NAME}-required-true
-  ConnectApp.Add network element connection    ${DEVICE_NAME_TEST}    ${True}    ${HOST}    ${PORT}    ${USERNAME}    ${PASSWORD}
+  ConnectApp.Add network element connection    device_name=${DEVICE_NAME_TEST}    is_required=${True}    host=${HOST}
+  ...  port=${PORT}    username=${USERNAME}    password=${PASSWORD}
   Run Keyword And Continue On Failure  ConnectApp.Should Be Equal connection status until time  ${DEVICE_NAME_TEST}  Connected
   Run Keyword And Continue On Failure  SDNCRestconfLibrary.should_be_equal_connection_status_until_time  ${DEVICE_NAME_TEST}  connected  time_in_sec=${10}
 
@@ -397,5 +416,4 @@ Remove unmounted network element connection
   Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Connected  1    msg=wrong connection log entries for Connected state
   Run Keyword And Continue On Failure  Dictionary Should Contain Key  ${conn_status_list_stats}  Unmounted  msg=no connection log entries for Unmounted state
   ConnectApp.Remove Network Element Connection    ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}
-
 

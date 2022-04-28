@@ -43,10 +43,10 @@ ${TIME_PERIOD_SEND_NOTIF}  22s
 Setup NTS function
   [Tags]  nts  bringup
   [Documentation]  configure NTS manager to support restconf registration
-  Add Network Element Connection   ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}    ${True}
-  ...  ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['IP']}     ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['PORT']}
-  ...  ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['USER']}    ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['PASSWORD']}
-  ...  Connected
+  Add Network Element Connection   device_name=${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}  is_required=${True}
+  ...  host=${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['IP']}     port=${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['PORT']}
+  ...  username=${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['USER']}    password=${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['PASSWORD']}
+  ...  check_connection_status=Connected
   SDNCRestconfLibrary.Should Be Equal Connection Status Until Time    ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}    Connected
 
 Set alarm notification
@@ -63,7 +63,7 @@ Set alarm notification
   ${alarm_status_start} =  FaultManagementApp.get_alarm_status
   Set Global Variable  ${alarm_status_start}
   NTSimManagerNG.set_fault_delay_list_nf  ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}  delay-period=${fault_delay}
-  
+
   Log  Send notification every ${FAULT_DELAY} sec for ${TIME_PERIOD_SEND_NOTIF}  level=INFO  html=False  console=True  repr=False
   Sleep  ${TIME_PERIOD_SEND_NOTIF}
 
