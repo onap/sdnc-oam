@@ -29,10 +29,10 @@ ${PNF_REGISTRATION_TIMEOUT}  180
 Setup NTS function
   [Tags]  nts  bringup
   [Documentation]  configure NTS manager to support restconf registration
-  Add Network Element Connection   ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}    ${True}
-  ...  ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['IP']}     ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['PORT']}
-  ...  ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['USER']}    ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['PASSWORD']}
-  ...  Connected
+  Add Network Element Connection   device_name=${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}    is_required=${True}
+  ...  host=${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['IP']}     port=${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['PORT']}
+  ...  username=${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['USER']}    password=${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['PASSWORD']}
+  ...  check_connection_status=Connected
   SDNCRestconfLibrary.Should Be Equal Connection Status Until Time    ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}    Connected
 
 Start pnf ves registration from NTS function

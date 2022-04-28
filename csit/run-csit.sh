@@ -199,18 +199,29 @@ echo ROBOT_VARIABLES="${ROBOT_VARIABLES}"
 echo "Starting Robot test suites ${SUITES} ..."
 relax_set
 
-# Runs an alternative robotframework setup as docker image in $ROBOT_IMAGE
-# test suites will be executed within this docker container
-# and results are stored as usual
-if [[ -z $ROBOT_IMAGE ]]; then
-    echo "*** TRACE **** python is $(which python) [version $(python --version)]"
-    env
-    python -m robot.run -N ${TESTPLAN} -v WORKSPACE:/tmp ${ROBOT_VARIABLES} ${TESTOPTIONS} ${SUITES}
+if [[ -z $SDNC_RELEASE_WITHOUT_ROBOT ]] ; then
+    if [[ -z $SDNC_READY_STATE_TIME_OUT ]] ; then
+        # Runs an alternative robotframework setup as docker image in $ROBOT_IMAGE
+        # test suites will be executed within this docker container
+        # and results are stored as usual
+        if [[ -z $ROBOT_IMAGE ]]; then
+            echo "*** TRACE **** python is $(which python) [version $(python --version)]"
+            env
+            python -m robot.run -N ${TESTPLAN} -v WORKSPACE:/tmp ${ROBOT_VARIABLES} ${TESTOPTIONS} ${SUITES}
+        else
+            echo "*** TRACE **** python is running in a container"
+            docker run --net="host" \
+            -v ${WORKSPACE}:${WORKSPACE} -v ${WORKDIR}:${WORKDIR} $ROBOT_IMAGE  \
+            python3 -B -m robot.run -N ${TESTPLAN} -v WORKSPACE:/tmp --outputdir ${WORKDIR} ${ROBOT_VARIABLES} ${TESTOPTIONS} ${SUITES}
+        fi
+    else
+            echo "[INFO] Skip Robot test suite, because SDNC is not in ready state"
+            echo "[ERROR] SDNC is not in ready state, check karaf.log!"
+            false
+    fi
 else
-    echo "*** TRACE **** python is running in a container"
-    docker run --net="host" \
-    -v ${WORKSPACE}:${WORKSPACE} -v ${WORKDIR}:${WORKDIR} $ROBOT_IMAGE  \
-    python3 -B -m robot.run -N ${TESTPLAN} -v WORKSPACE:/tmp --outputdir ${WORKDIR} ${ROBOT_VARIABLES} ${TESTOPTIONS} ${SUITES}
+   echo "[WARNING] Robot test suite is skipped, but job remains ok. "
+   true
 fi
 RESULT=$?
 load_set
