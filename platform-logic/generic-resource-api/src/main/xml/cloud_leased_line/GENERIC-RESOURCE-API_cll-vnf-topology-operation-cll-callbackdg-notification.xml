@@ -23,12 +23,23 @@
                             <parameter name='rcvd-bandwidth-value' value='`$push-change-update.datastore-changes.payload.parameter-value[0].value`' />
                             <parameter name='rcvd-service-instance-id' value='`$push-change-update.datastore-changes.payload.parameter-value[0].value-description`' />
                         </set>
-                        <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource="service-instance:metadata"
-                                key="service-instance.service-instance-id =  $rcvd-service-instance-id
+                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource="service-instance:metadata"
+                              key="service-instance.service-instance-id =  $rcvd-service-instance-id
  AND customer.global-customer-id = 'IBNCustomer'
  AND service-subscription.service-type = 'IBN'"  force="true" pfx="tmp.AnAI-data">
                             <parameter name="metadata.metadatum[0].metaname" value="`$rcvd-etht-svc-end-point`" />
                             <parameter name="metadata.metadatum[0].metaval" value="`$rcvd-bandwidth-value`" />
+                        </save>
+                        <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource="service-instance"
+                                key="service-instance.service-instance-id =  $rcvd-service-instance-id
+ AND customer.global-customer-id = 'IBNCustomer'
+ AND service-subscription.service-type = 'IBN'
+ AND metadatum.metaname = $rcvd-etht-svc-end-point"  force="true" pfx="tmp.AnAI-data">
+                            <parameter name="metaname" value="`$rcvd-etht-svc-end-point`" />
+                            <parameter name="metaval" value="`$rcvd-bandwidth-value`" />
+                            <!--AND metadatum.metaname = $rcvd-etht-svc-end-point-->
+                            <!--<parameter name="metadata.metadatum[0].metaname" value="`$rcvd-etht-svc-end-point`" />-->
+                            <!--    <parameter name="metadata.metadatum[0].metaval" value="`$rcvd-bandwidth-value`" />-->
                         </update>
                         <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
                             <parameter name="ctx-destination" value="eventId-uuid"/>
