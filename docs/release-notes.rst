@@ -46,14 +46,13 @@ New features
 
 The SDNC Jakarta release includes the following features,  which are inherited from CCSDK:
 
-* Upgrade to OpenDaylight Silicon Release (Jira `CCSDK-3390 <https://jira.onap.org/browse/CCSDK-3390>`_)
-* A1 Adapter and A1 Policy Management Extensions in Istanbul Release - CCSDK (Jira `CCSDK-3229 <https://jira.onap.org/browse/CCSDK-3229>`_)
-* Support of O-RAN-SC D-Release (Jira `CCSDK-3158 <https://jira.onap.org/browse/CCSDK-3158>`_)
-* CCSDK impacts for Network slicing in Istanbul Release (Jira `CCSDK-3297 <https://jira.onap.org/browse/CCSDK-3297>`_)
+* Upgrade to OpenDaylight Phosphorus Release (Jira `CCSDK-3451 <https://jira.onap.org/browse/CCSDK-3451>`_)
+* A1 Adapter and A1 Policy Management Extensions in Jakarta Release - CCSDK (Jira `CCSDK-3463 <https://jira.onap.org/browse/CCSDK-3463>`_)
+* CCSDK impacts for Network slicing in Jakarta Release (Jira `CCSDK-3554 <https://jira.onap.org/browse/CCSDK-3554>`_)
 
 
-For the complete list of `CCSDK Istanbul release epics <https://jira.onap.org/issues/?filter=12635>`_ and
-`CCSDK Istanbul release user stories <https://jira.onap.org/issues/?filter=12636>`_ , please see the `ONAP Jira`_.
+For the complete list of `CCSDK Jakarta release epics <https://jira.onap.org/issues/?filter=12711>`_ and
+`CCSDK Jakarta release user stories <https://jira.onap.org/issues/?filter=12800>`_ , please see the `ONAP Jira`_.
 
 **Bug fixes**
 
@@ -141,7 +140,7 @@ Security Notes
 Known Security Issues
 ~~~~~~~~~~~~~~~~~~~~~
 
-There are no known outstanding security issues related to SDNC Istanbul.
+There are no known outstanding security issues related to SDNC Jakarta.
 
 
 Test Results
@@ -152,7 +151,7 @@ Not applicable
 References
 ==========
 
-For more information on the ONAP Istanbul release, please see:
+For more information on the ONAP Jakarta release, please see:
 
 #. `ONAP Home Page`_
 #. `ONAP Documentation`_
