@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 # Modifications copyright (c) 2017 AT&T Intellectual Property
-# Modifications copyright (c) 2021 highstreet technologies GmbH Property
+# Modifications copyright (c) 2022 highstreet technologies GmbH Property
 #
 
 # Remove all not needed images and clean workspace
@@ -47,5 +47,5 @@ sdnr_launch
 
 #Pass any variables required by Robot test suites in ROBOT_VARIABLES
 ROBOT_VARIABLES="--variablefile=${WORKSPACE}/plans/sdnr/testdata/localhost.py"
-ROBOT_IMAGE="hightec/sdnc-test-lib:v0.10.0"
+ROBOT_IMAGE="hightec/sdnc-test-lib:v0.10.2"
 
