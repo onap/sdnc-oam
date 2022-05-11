@@ -92,17 +92,17 @@ with the following command::
 +--------------------------------+-----------------------------------------------------+---------+
 | Image name                     | Description                                         | Version |
 +================================+=====================================================+=========+
-| onap/sdnc-aaf-image            | SDNC controller image, integrated with AAF for RBAC | 2.3.0   |
+| onap/sdnc-aaf-image            | SDNC controller image, integrated with AAF for RBAC | 2.3.1   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-ansible-server-image | Ansible server                                      | 2.3.0   |
+| onap/sdnc-ansible-server-image | Ansible server                                      | 2.3.1   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-dmaap-listener-image | DMaaP listener                                      | 2.3.0  |
+| onap/sdnc-dmaap-listener-image | DMaaP listener                                      | 2.3.1  |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-image                | SDNC controller image, without AAF integration      | 2.3.0   |
+| onap/sdnc-image                | SDNC controller image, without AAF integration      | 2.3.1   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-ueb-listener-image   | SDC listener                                        | 2.3.0   |
+| onap/sdnc-ueb-listener-image   | SDC listener                                        | 2.3.1   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-web-image            | Web tier (currently only used by SDN-R persona)     | 2.3.0   |
+| onap/sdnc-web-image            | Web tier (currently only used by SDN-R persona)     | 2.3.1   |
 +--------------------------------+-----------------------------------------------------+---------+
 
 
