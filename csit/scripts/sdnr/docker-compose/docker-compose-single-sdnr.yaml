@@ -1,31 +1,123 @@
-version: "2.2"
+version: "3"
 services:
+  mariadb:
+    image: mariadb:latest
+    container_name: sdnr_db
+    ports:
+      - "3306:3306"
+    hostname: dbhost
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_ROOT_HOST=%
+      - MYSQL_USER=${MYSQL_USER:-sdnctl}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-gamma}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-sdnctl}
+    networks:
+      - integration
+    volumes:
+       - ./properties/dump.sql:/docker-entrypoint-initdb.d/dump.sql
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "30m"
+        max-file: "5"
+
   sdnr:
-    image: ${NEXUS_DOCKER_IMAGE_NAME}:${NEXUS_DOCKER_IMAGE_TAG}
+    image: nexus3.onap.org:10001/onap/sdnc-image:${VERSION:-2.3.2-STAGING-latest}
     container_name: sdnr
+    depends_on :
+      - mariadb
+    hostname:
+       sdnr
     ports:
       - "8181:8181"
       - "8101:8101"
-#entrypoint: ["/bin/bash", "/opt/onap/sdnc/bin/startODL.oom.sh"]
+    links:
+      - mariadb:dbhost
+      - mariadb:sdnctldb01
+      - mariadb:sdnctldb02
+    entrypoint: ["/opt/onap/sdnc/bin/startODL.sh"]
     environment:
       - SDNC_CONFIG_DIR=/opt/onap/ccsdk/data/properties
-      - ODL_CERT_DIR=${ODL_CERT_DIR}
-      - ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD}
+      - ODL_CERT_DIR=/opt/opendaylight/certs
+      - ODL_ADMIN_USERNAME=${ODL_USER:-admin}
+      - ODL_ADMIN_PASSWORD=${ODL_ADMIN_PASSWORD:-Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U}
       - ENABLE_ODL_CLUSTER=false
       - SDNC_REPLICAS=0
       - CCSDK_REPLICAS=0
       - DOMAIN=""
       - SDNRWT=true
       - SDNRINIT=true
-      - SDNRONLY=true
       - JAVA_OPTS=-Xms256m -Xmx2g
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_USER=${MYSQL_USER:-sdnctl}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-gamma}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-sdnctl}
+      - SDNR_NORTHBOUND=true
     volumes:
       - ./sdnr/mountpoint-registrar.properties:/opt/opendaylight/etc/mountpoint-registrar.properties
+      - ./sdnr/ran-slice-api-dg.properties:/opt/onap/ccsdk/data/properties/ran-slice-api-dg.properties
       - ./sdnr/certs/certs.properties:${ODL_CERT_DIR}/certs.properties
       - ./sdnr/certs/keys0.zip:${ODL_CERT_DIR}/keys0.zip
     networks:
       integration:
         ipv4_address: ${SDNR_IP}
+    logging:
+      driver:   "json-file"
+      options:
+        max-size: "30m"
+        max-file: "5"
+
+  dmaaplistener:
+    image: onap/sdnc-dmaap-listener-image:2.3.0
+    container_name: sdnc_dmaaplistener_container
+    hostname: dmaaplistener
+    entrypoint: ["/opt/onap/sdnc/dmaap-listener/bin/start-dmaap-listener.sh" ]
+    volumes:
+      - ./properties/dmaap-consumer-RANSlice.properties:/opt/onap/sdnc/data/properties/dmaap-consumer-RANSlice.properties
+    environment:
+      - SDNC_CONFIG_DIR=/opt/onap/sdnc/data/properties
+      - PROPERTY_DIR=/opt/onap/sdnc/data/properties
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - ODL_USER=admin
+      - ODL_PASSWORD=Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U
+      - DMAAP_USER=${DMAAP_USER}
+      - DMAAP_PASSWORD=${DMAAP_PASSWORD}
+      - DMAAP_AUTHKEY=${DMAAP_AUTHKEY}
+    logging:
+      driver:   "json-file"
+      options:
+        max-size: "30m"
+        max-file: "5"
+    networks:
+      - integration
+
+  dgbuilder:
+    image: onap/ccsdk-dgbuilder-image:1.1.1
+    container_name: sdnc_dgbuilder_container
+    entrypoint:
+      - "/bin/bash"
+      - "-c"
+      - "cd /opt/onap/ccsdk/dgbuilder/ && ./start.sh sdnc1.0 && wait"
+    ports:
+      - "3000:3100"
+    links:
+      - mariadb:dbhost
+      - mariadb:sdnctldb01
+      - mariadb:sdnctldb02
+      - sdnr:sdnhost
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - SDNC_CONFIG_DIR=/opt/onap/ccsdk/data/properties
+    volumes:
+      - ./properties/svclogic.properties:/opt/onap/ccsdk/dgbuilder/svclogic/svclogic.properties
+    networks:
+      - integration
     logging:
       driver:   "json-file"
       options:

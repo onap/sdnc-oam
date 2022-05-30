@@ -1,0 +1,40 @@
+version: '2'
+networks:
+        # integration:
+        #external: true
+   default:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1400
+services:
+  mariadb:
+    image: 'mariadb:10.0.34'
+    environment:
+      - MYSQL_ROOT_PASSWORD=secret
+    container_name: mariadb
+    hostname: mariadb
+    command:
+      - '--lower-case-table-names=1'
+    volumes:
+      - './config/db:/docker-entrypoint-initdb.d'
+    ports:
+      - '43306:3306'
+        # networks:
+        #- integration
+  ransim:
+    image: 'onap/ransim:1.0.0-SNAPSHOT'
+    container_name: ransim
+    environment:
+      - SDNR_IP=172.40.0.21
+      - SDNR_PORT=8181
+      - SDNR_USER=admin
+      - SDNR_PASSWORD=Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U
+    hostname: ransim
+    ports:
+      - '8081:8081'
+    command: ransim
+    volumes:
+      - './config/ransim:/tmp/ransim-install/config'
+      - './config/ransim/jssecacerts:/tmp/cert/jssecacerts'
+        #networks:
+        #- integration

@@ -35,6 +35,8 @@ source ${WORKSPACE}/scripts/sdnr/sdnr-launch.sh
 onap_dependent_components_launch
 nts_networkfunctions_launch ${WORKSPACE}/plans/sdnr/testdata/nts-networkfunctions.csv
 sdnr_launch
+cps_launch
+ransim_launch
 
 ## environment for SDNC/R specific robot test runs
 ## Ready state will be checked every SDNC_READY_RETRY_PERIOD seconds

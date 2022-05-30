@@ -89,6 +89,7 @@ function check_for_ready_state() {
 function onap_dependent_components_launch() {
     docker-compose $env_file -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose-onap-addons.yaml pull
     docker-compose $env_file -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose-onap-addons.yaml up -d
+    dmaap_readiness
 }
 function netconfserver_simulator_launch() {
     docker-compose $env_file -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose-netconfserver-simulator.yaml pull
@@ -152,4 +153,33 @@ function sdnr_launch_cluster() {
     #docker-compose $env_file -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose/cluster-sdnr.yaml pull
     docker-compose $env_file -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose/cluster-sdnr.yaml up -d
     check_for_ready_state ${SDNC_WEB_PORT}
+}
+
+function cps_launch() {
+        cd ${WORKSPACE}/scripts/sdnr/docker-compose/cps-setup/
+        sh setup.sh
+}
+function ransim_launch() {
+        cd ${WORKSPACE}/scripts/sdnr/docker-compose/ran-sim/
+        sh ran-sim-setup.sh
+}
+
+function dmaap_readiness() {
+    DMAAP_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' onap-dmaap)
+
+    echo "Waiting for dmaap to come up ..."
+    for i in {1..10}; do
+        dmaap_state=$(curl --write-out '%{http_code}' --silent --output /dev/null $DMAAP_IP:3904/topics)
+        if [ $dmaap_state == "200" ]
+        then
+          break
+        else
+          sleep 60
+        fi
+    done
+    #create topics in dmaap
+    curl --header "Content-type: application/json" \
+    --request POST \
+    --data '{"topicName": "org.onap.dmaap.mr.RAN-Slice-Mgmt"}' \
+    http://$DMAAP_IP:3904/events/RAN-Slice-Mgmt
 }
