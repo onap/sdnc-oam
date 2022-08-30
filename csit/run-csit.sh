@@ -220,7 +220,11 @@ if [[ -z $SDNC_RELEASE_WITHOUT_ROBOT ]] ; then
             false
     fi
 else
-   echo "[WARNING] Robot test suite is skipped, but job remains ok. "
+    echo "[WARNING] SDNC_RELEASE_WITHOUT_ROBOT is TRUE "
+    echo "[WARNING] Dummy Robot test suite is executed, job remains ok. "
+    docker run --net="host" \
+    -v ${WORKSPACE}:${WORKSPACE} -v ${WORKDIR}:${WORKDIR} $ROBOT_IMAGE  \
+    python3 -B -m robot.run -N ${TESTPLAN} -v WORKSPACE:/tmp --outputdir ${WORKDIR} ${ROBOT_VARIABLES} ${TESTOPTIONS} ${WORKSPACE}/tests/sdnr/debug/10_dummy.robot
    true
 fi
 RESULT=$?
