@@ -1,7 +1,7 @@
 <service-logic
         xmlns='http://www.onap.org/sdnc/svclogic'
         xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
-    <method rpc='tsli-vnf-topology-operation-trans-slice-delete' mode='sync'>
+    <method rpc='p2p-vnf-topology-operation-p2p-delete' mode='sync'>
         <block atomic="true">
             <execute plugin='org.onap.ccsdk.sli.plugins.prop.PropertiesNode' method='readProperties' >
                 <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />
@@ -129,30 +129,6 @@
                                                                     <set>
                                                                         <parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />
                                                                     </set>
-                                                                    <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                                                                        <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/' + $prop.restapi.transport-slice-creation.templatefile`" />
-                                                                        <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.domain.url +  '/restconf/operations/ietf-optical-slice:deallocate-optical-slice'`" />
-                                                                        <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.domain.user`" />
-                                                                        <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.domain.password`" />
-                                                                        <parameter name="format" value="json"/>
-                                                                        <parameter name="httpMethod" value="post"/>
-                                                                        <parameter name="responsePrefix" value="otn-oof"/>
-                                                                        <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
-                                                                        <parameter name="trustStorePassword" value="adminadmin"/>
-                                                                        <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
-                                                                        <parameter name="keyStorePassword" value="adminadmin"/>
-                                                                        <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
-                                                                        <outcome value='failure'>
-                                                                            <return status='failure'>
-                                                                                <parameter name='ack-final' value='Y'/>
-                                                                                <parameter name="error-code" value="500" />
-                                                                                <parameter name="error-message" value="Error executing deallocate transport slice rest api" />
-                                                                            </return>
-                                                                        </outcome>
-                                                                        <outcome value='success'>
-                                                                            <block atomic="true"></block>
-                                                                        </outcome>
-                                                                    </execute>
                                                                     <switch test='`$tmp.aai.connectivity.etht-svc-name`'>
                                                                         <outcome value='Other'>
                                                                             <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
