@@ -2,41 +2,64 @@
   "ietf-te:tunnel": [
     {
       "source": ${src-node-id},
-      "destination": ${dst-node-id},
+      "destination": "0.0.0.0",
       "encoding": "ietf-te-types:lsp-encoding-oduk",
       "name": ${otn-tunnel-name-src-domain},
       "restoration": {
         "enable": "false",
         "restoration-reversion-disable": "true",
         "restoration-type": "ietf-te-types:lsp-restoration-restore-any",
-        "wait-to-revert": 0
+        "wait-to-revert": 600
       },
       "te-bandwidth": {
-        "ietf-otn-tunnel:odu-type": "ietf-otn-types:prot-ODU0"
+        "ietf-otn-tunnel:odu-type": "ietf-otn-types:prot-ODUFlex-gfp"
       },
       "switching-type": "ietf-te-types:switching-otn",
       "te-topology-identifier": {
-        "client-id": ${client-id},
-        "provider-id": ${provider-id},
-        "topology-id": ${topology-id}
+        "client-id": 6666,
+        "provider-id": 5555,
+        "topology-id": "11"
       },
       "p2p-primary-paths": {
         "p2p-primary-path": [
           {
             "name": "primary-path",
+            "path-scope": "ietf-te-types:path-scope-segment",
+            "explicit-route-objects": {
+              "route-object-include-exclude": [
+                {
+                  "index": "0",
+                  "explicit-route-usage": "ietf-te-types:route-include-ero",
+                  "unnumbered-hop": {
+                    "hop-type": "LOOSE",
+                    "node-id": ${dst-node-id},
+                    "link-tp-id": ${dst-ttp-id},
+                    "ietf-otn-tunnel:otu-port-type": "ietf-otn-types:port-otu2"
+                  }
+                },
+                {
+                  "index": "1",
+                  "explicit-route-usage": "ietf-te-types:route-include-ero",
+                  "label-hop": {
+                    "te-label": {
+                      "ietf-otn-tunnel:tpn": ${dst-tpn-id}
+                    }
+                  }
+                }
+              ]
+            },
             "optimizations": {
               "optimization-metric": [
                 {
-                  "metric-type": "ietf-te-types:path-metric-te",
-                  "weight": "1"
+                  "metric-type": "ietf-te-types:path-metric-distance"
                 }
               ]
             }
           }
         ]
       },
-      "ietf-otn-tunnel:dst-tributary-slot-count": ${gfp-n},
-      "ietf-otn-tunnel:src-tributary-slot-count": ${gfp-n},
+      "ietf-otn-tunnel:dst-tributary-slot-count": 2,
+      "ietf-otn-tunnel:src-tributary-slot-count": 2,
       "provisioning-state": "ietf-te-types:tunnel-admin-state-down"
     }
   ]
