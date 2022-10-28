@@ -21,10 +21,16 @@
                                                 <parameter name="format" value="json"/>
                                                 <parameter name="httpMethod" value="post"/>
                                                 <parameter name="responsePrefix" value="token-result"/>
-                                                <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
-                                                <parameter name="trustStorePassword" value="adminadmin"/>
-                                                <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
-                                                <parameter name="keyStorePassword" value="adminadmin"/>
+                                                <!--<parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>-->
+                                                <!--<parameter name="trustStorePassword" value="adminadmin"/>-->
+                                                <!--<parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>-->
+                                                <!--<parameter name="keyStorePassword" value="adminadmin"/>-->
+                                                <!--<parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>-->
+                                                <!--<parameter name="trustStorePassword" value="adminadmin"/>-->
+                                                <!--<parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>-->
+                                                <!--<parameter name="keyStorePassword" value="adminadmin"/>-->
+                                                <parameter name="disableHostVerification" value="true"/>
+                                                <parameter name="ssl" value="false"/>
                                                 <outcome value='success'>
                                                     <set>
                                                         <parameter name='prop.sdncRestApi.token_id' value='`$token-result.data.token_id`' />
@@ -43,10 +49,12 @@
                                                         <parameter name="format" value="json"/>
                                                         <parameter name="httpMethod" value="get"/>
                                                         <parameter name="responsePrefix" value="topology"/>
-                                                        <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
-                                                        <parameter name="trustStorePassword" value="adminadmin"/>
-                                                        <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
-                                                        <parameter name="keyStorePassword" value="adminadmin"/>
+                                                        <!--<parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>-->
+                                                        <!--<parameter name="trustStorePassword" value="adminadmin"/>-->
+                                                        <!--<parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>-->
+                                                        <!--<parameter name="keyStorePassword" value="adminadmin"/>-->
+                                                        <parameter name="disableHostVerification" value="true"/>
+                                                        <parameter name="ssl" value="false"/>
                                                         <outcome value='failure'>
                                                             <return status='failure'>
                                                                 <parameter name='ack-final' value='Y'/>
@@ -78,7 +86,39 @@
                                                                                     <set>
                                                                                         <parameter name='network.' value='`$topology.networks.network[$netidx].`' />
                                                                                     </set>
-                                                                                    <switch test='`$network.te-topology-identifier.topology-id`'>
+                                                                                    <set>
+                                                                                        <parameter name='tmpo.client-id' value='`$network.te-topology-identifier.client-id`' />
+                                                                                        <parameter name='tmpo.te-topo-id' value='`$network.te-topology-identifier.topology-id`' />
+                                                                                        <parameter name='tmpo.provider-id' value='`$network.te-topology-identifier.provider-id`' />
+                                                                                    </set>
+                                                                                    <switch test="`length($tmpo.client-id) == 0`">
+                                                                                        <outcome value='true'>
+                                                                                            <block>
+                                                                                                <set>
+                                                                                                    <parameter name='tmpo.client-id' value='`$network.client-id`' />
+                                                                                                </set>
+                                                                                            </block>
+                                                                                        </outcome>
+                                                                                    </switch>
+                                                                                    <switch test="`length($tmpo.te-topo-id) == 0`">
+                                                                                        <outcome value='true'>
+                                                                                            <block>
+                                                                                                <set>
+                                                                                                    <parameter name='tmpo.te-topo-id' value='`$network.te-topology-id`' />
+                                                                                                </set>
+                                                                                            </block>
+                                                                                        </outcome>
+                                                                                    </switch>
+                                                                                    <switch test="`length($tmpo.provider-id) == 0`">
+                                                                                        <outcome value='true'>
+                                                                                            <block>
+                                                                                                <set>
+                                                                                                    <parameter name='tmpo.provider-id' value='`$network.provider-id`' />
+                                                                                                </set>
+                                                                                            </block>
+                                                                                        </outcome>
+                                                                                    </switch>
+                                                                                    <switch test='`$tmpo.te-topo-id`'>
                                                                                         <outcome value='1'>
                                                                                             <block>
                                                                                                 <set>
@@ -87,6 +127,20 @@
                                                                                             </block>
                                                                                         </outcome>
                                                                                         <outcome value='2'>
+                                                                                            <block>
+                                                                                                <set>
+                                                                                                    <parameter name='network-eth.' value='`$topology.networks.network[$netidx].`' />
+                                                                                                </set>
+                                                                                            </block>
+                                                                                        </outcome>
+                                                                                        <outcome value='11'>
+                                                                                            <block>
+                                                                                                <set>
+                                                                                                    <parameter name='network-otn.' value='`$topology.networks.network[$netidx].`' />
+                                                                                                </set>
+                                                                                            </block>
+                                                                                        </outcome>
+                                                                                        <outcome value='33'>
                                                                                             <block>
                                                                                                 <set>
                                                                                                     <parameter name='network-eth.' value='`$topology.networks.network[$netidx].`' />
@@ -112,10 +166,12 @@
                                                         <parameter name="format" value="json"/>
                                                         <parameter name="httpMethod" value="get"/>
                                                         <parameter name="responsePrefix" value="topology"/>
-                                                        <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
-                                                        <parameter name="trustStorePassword" value="adminadmin"/>
-                                                        <parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>
-                                                        <parameter name="keyStorePassword" value="adminadmin"/>
+                                                        <!--<parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>-->
+                                                        <!--<parameter name="trustStorePassword" value="adminadmin"/>-->
+                                                        <!--<parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>-->
+                                                        <!--<parameter name="keyStorePassword" value="adminadmin"/>-->
+                                                        <parameter name="disableHostVerification" value="true"/>
+                                                        <parameter name="ssl" value="false"/>
                                                         <parameter name='customHttpHeaders' value="`'X-ACCESS-TOKEN=' + $prop.sdncRestApi.token_id`" />
                                                         <outcome value='failure'>
                                                             <return status='failure'>
@@ -148,7 +204,39 @@
                                                                                     <set>
                                                                                         <parameter name='network.' value='`$topology.networks.network[$netidx].`' />
                                                                                     </set>
-                                                                                    <switch test='`$network.te-topology-identifier.topology-id`'>
+                                                                                    <set>
+                                                                                        <parameter name='tmpo.client-id' value='`$network.te-topology-identifier.client-id`' />
+                                                                                        <parameter name='tmpo.te-topo-id' value='`$network.te-topology-identifier.topology-id`' />
+                                                                                        <parameter name='tmpo.provider-id' value='`$network.te-topology-identifier.provider-id`' />
+                                                                                    </set>
+                                                                                    <switch test="`length($tmpo.client-id) == 0`">
+                                                                                        <outcome value='true'>
+                                                                                            <block>
+                                                                                                <set>
+                                                                                                    <parameter name='tmpo.client-id' value='`$network.client-id`' />
+                                                                                                </set>
+                                                                                            </block>
+                                                                                        </outcome>
+                                                                                    </switch>
+                                                                                    <switch test="`length($tmpo.te-topo-id) == 0`">
+                                                                                        <outcome value='true'>
+                                                                                            <block>
+                                                                                                <set>
+                                                                                                    <parameter name='tmpo.te-topo-id' value='`$network.te-topology-id`' />
+                                                                                                </set>
+                                                                                            </block>
+                                                                                        </outcome>
+                                                                                    </switch>
+                                                                                    <switch test="`length($tmpo.provider-id) == 0`">
+                                                                                        <outcome value='true'>
+                                                                                            <block>
+                                                                                                <set>
+                                                                                                    <parameter name='tmpo.provider-id' value='`$network.provider-id`' />
+                                                                                                </set>
+                                                                                            </block>
+                                                                                        </outcome>
+                                                                                    </switch>
+                                                                                    <switch test='`$tmpo.te-topo-id`'>
                                                                                         <outcome value='1'>
                                                                                             <block>
                                                                                                 <set>
@@ -157,6 +245,20 @@
                                                                                             </block>
                                                                                         </outcome>
                                                                                         <outcome value='2'>
+                                                                                            <block>
+                                                                                                <set>
+                                                                                                    <parameter name='network-eth.' value='`$topology.networks.network[$netidx].`' />
+                                                                                                </set>
+                                                                                            </block>
+                                                                                        </outcome>
+                                                                                        <outcome value='11'>
+                                                                                            <block>
+                                                                                                <set>
+                                                                                                    <parameter name='network-otn.' value='`$topology.networks.network[$netidx].`' />
+                                                                                                </set>
+                                                                                            </block>
+                                                                                        </outcome>
+                                                                                        <outcome value='33'>
                                                                                             <block>
                                                                                                 <set>
                                                                                                     <parameter name='network-eth.' value='`$topology.networks.network[$netidx].`' />
