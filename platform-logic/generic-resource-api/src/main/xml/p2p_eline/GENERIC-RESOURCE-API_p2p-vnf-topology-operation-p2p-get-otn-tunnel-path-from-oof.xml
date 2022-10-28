@@ -1,0 +1,762 @@
+<service-logic
+        xmlns='http://www.onap.org/sdnc/svclogic'
+        xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance' xsi:schemaLocation='http://www.onap.org/sdnc/svclogic ./svclogic.xsd' module='GENERIC-RESOURCE-API' version='${project.version}'>
+    <method rpc='p2p-vnf-topology-operation-p2p-get-otn-tunnel-path-from-oof' mode='sync'>
+        <block atomic="true">
+            <block atomic='true'>
+                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                              resource="network-resources"
+                              key="selflink = 'https://aai.onap:8443/aai/v21/network/network-resources?depth=0'"
+                              local-only="false"
+                              pfx="allNetworksList" >
+                    <outcome value='success'></outcome>
+                    <outcome value='Other'></outcome>
+                    <outcome value='not-found'></outcome>
+                </get-resource>
+                <for index='netwidx' start='0' end='`$allNetworksList.network-resource_length`' >
+                    <switch test='`$allNetworksList.network-resource[$netwidx].provider-id == $param-prefix-domainA-pnfName[2]`'>
+                        <outcome value='true'>
+                            <switch test='`$allNetworksList.network-resource[$netwidx].te-topo-id != $param-prefix-domainA-pnfName[6]`'>
+                                <outcome value='true'>
+                                    <set>
+                                        <parameter name='otnTopoIdSrc' value='`$allNetworksList.network-resource[$netwidx].te-topo-id`' />
+                                    </set>
+                                </outcome>
+                            </switch>
+                        </outcome>
+                        <outcome value='false'>
+                            <switch test='`$allNetworksList.network-resource[$netwidx].provider-id == $param-prefix-domainB-pnfName[2]`'>
+                                <outcome value='true'>
+                                    <switch test='`$allNetworksList.network-resource[$netwidx].te-topo-id != $param-prefix-domainB-pnfName[6]`'>
+                                        <outcome value='true'>
+                                            <block>
+                                                <switch test='`$hasSecondary`'>
+                                                    <outcome value='true'>
+                                                        <block>
+                                                            <!-- This is to check the provider-id of ROOt and SECONDARY-ROOT-->
+                                                            <switch test='`$param-prefix-domainB[$param-prefix-domainB_length -9] == $param-prefix-domainC[$param-prefix-domainC_length -9]`'>
+                                                                <outcome value='true'>
+                                                                    <block>
+                                                                        <set>
+                                                                            <parameter name='otnTopoIdDst' value='`$allNetworksList.network-resource[$netwidx].te-topo-id`' />
+                                                                        </set>
+                                                                        <set>
+                                                                            <parameter name='otnTopoIdDstBackup' value='`$allNetworksList.network-resource[$netwidx].te-topo-id`' />
+                                                                        </set>
+                                                                    </block>
+                                                                </outcome>
+                                                                <outcome value='false'>
+                                                                    <block>
+                                                                        <set>
+                                                                            <parameter name='otnTopoIdDst' value='`$allNetworksList.network-resource[$netwidx].te-topo-id`' />
+                                                                        </set>
+                                                                    </block>
+                                                                </outcome>
+                                                            </switch>
+                                                        </block>
+                                                    </outcome>
+                                                    <outcome value='Other'>
+                                                        <set>
+                                                            <parameter name='otnTopoIdDst' value='`$allNetworksList.network-resource[$netwidx].te-topo-id`' />
+                                                        </set>
+                                                    </outcome>
+                                                </switch>
+                                            </block>
+                                        </outcome>
+                                    </switch>
+                                </outcome>
+                                <outcome value='false'>
+                                    <switch test='`$allNetworksList.network-resource[$netwidx].provider-id == $param-prefix-domainC-pnfName[2]`'>
+                                        <outcome value='true'>
+                                            <block>
+                                                <switch test='`$hasSecondary`'>
+                                                    <outcome value='true'>
+                                                        <block>
+                                                            <set>
+                                                                <parameter name='otnTopoIdDstBackup' value='`$allNetworksList.network-resource[$netwidx].te-topo-id`' />
+                                                            </set>
+                                                        </block>
+                                                    </outcome>
+                                                </switch>
+                                            </block>
+                                        </outcome>
+                                    </switch>
+                                </outcome>
+                            </switch>
+                        </outcome>
+                    </switch>
+                </for>
+                <set>
+                    <parameter name='tmp.pce-src-node.' value='' />
+                </set>
+                <set>
+                    <parameter name='tmp.pce-dst-node.' value='' />
+                </set>
+                <set>
+                    <parameter name='tmp.pce-dst-node-backup.' value='' />
+                </set>
+                <set>
+                    <!--<parameter name='`otn-oof`' value='' />-->
+                    <parameter name='otn-oof.' value='' />
+                    <!--<parameter name='`otn-oof.solutions`' value='' />-->
+                    <!--<parameter name='`otn-oof.solutions.`' value='' />-->
+                    <!--<parameter name='`otn-oof.solutions_length`' value='0' />-->
+                </set>
+                <set>
+                    <!--<parameter name='tmp.pce-src-node' value="`$param-prefix-domainA-pnfName[0] + '-' +-->
+                    <!--                                                   $param-prefix-domainA-pnfName[1] + '-' +-->
+                    <!--                                                   $param-prefix-domainA-pnfName[2] + '-' +-->
+                    <!--                                                   $param-prefix-domainA-pnfName[3] + '-' +-->
+                    <!--                                                   $param-prefix-domainA-pnfName[4] + '-' +-->
+                    <!--                                                   $param-prefix-domainA-pnfName[5] + '-' +-->
+                    <!--                                                   1 + '-' +-->
+                    <!--                                                   $param-prefix-domainA-pnfName[7] + '-' +-->
+                    <!--                                                   $param-prefix-domainA-pnfName[8]`" />-->
+                    <parameter name='tmp.pce-src-node' value="`$param-prefix-domainA-pnfName[0] + '-' +
+                                                   $param-prefix-domainA-pnfName[1] + '-' +
+                                                   $param-prefix-domainA-pnfName[2] + '-' +
+                                                   $param-prefix-domainA-pnfName[3] + '-' +
+                                                   $param-prefix-domainA-pnfName[4] + '-' +
+                                                   $param-prefix-domainA-pnfName[5] + '-' +
+                                                   $otnTopoIdSrc + '-' +
+                                                   $param-prefix-domainA-pnfName[7] + '-' +
+                                                   $param-prefix-domainA-pnfName[8]`" />
+                </set>
+                <set>
+                    <!--<parameter name='$tmp.pce-dst-node' value="`$param-prefix-domainB-pnfName[0] + '-' +-->
+                    <!--                                                   $param-prefix-domainB-pnfName[1] + '-' +-->
+                    <!--                                                   $param-prefix-domainB-pnfName[2] + '-' +-->
+                    <!--                                                   $param-prefix-domainB-pnfName[3] + '-' +-->
+                    <!--                                                   $param-prefix-domainB-pnfName[4] + '-' +-->
+                    <!--                                                   $param-prefix-domainB-pnfName[5] + '-' +-->
+                    <!--                                                   1 + '-' +-->
+                    <!--                                                   $param-prefix-domainB-pnfName[7] + '-' +-->
+                    <!--                                                   $param-prefix-domainB-pnfName[8]`" />-->
+                    <parameter name='tmp.pce-dst-node' value="`$param-prefix-domainB-pnfName[0] + '-' +
+                                                   $param-prefix-domainB-pnfName[1] + '-' +
+                                                   $param-prefix-domainB-pnfName[2] + '-' +
+                                                   $param-prefix-domainB-pnfName[3] + '-' +
+                                                   $param-prefix-domainB-pnfName[4] + '-' +
+                                                   $param-prefix-domainB-pnfName[5] + '-' +
+                                                   $otnTopoIdDst + '-' +
+                                                   $param-prefix-domainB-pnfName[7] + '-' +
+                                                   $param-prefix-domainB-pnfName[8]`" />
+                </set>
+                <set>
+                    <!--<parameter name='$tmp.pce-dst-node' value="`$param-prefix-domainB-pnfName[0] + '-' +-->
+                    <!--                                                   $param-prefix-domainB-pnfName[1] + '-' +-->
+                    <!--                                                   $param-prefix-domainB-pnfName[2] + '-' +-->
+                    <!--                                                   $param-prefix-domainB-pnfName[3] + '-' +-->
+                    <!--                                                   $param-prefix-domainB-pnfName[4] + '-' +-->
+                    <!--                                                   $param-prefix-domainB-pnfName[5] + '-' +-->
+                    <!--                                                   1 + '-' +-->
+                    <!--                                                   $param-prefix-domainB-pnfName[7] + '-' +-->
+                    <!--                                                   $param-prefix-domainB-pnfName[8]`" />-->
+                    <parameter name='tmp.pce-dst-node-backup' value="`$param-prefix-domainC-pnfName[0] + '-' +
+                                                   $param-prefix-domainC-pnfName[1] + '-' +
+                                                   $param-prefix-domainC-pnfName[2] + '-' +
+                                                   $param-prefix-domainC-pnfName[3] + '-' +
+                                                   $param-prefix-domainC-pnfName[4] + '-' +
+                                                   $param-prefix-domainC-pnfName[5] + '-' +
+                                                   $otnTopoIdDstBackup + '-' +
+                                                   $param-prefix-domainC-pnfName[7] + '-' +
+                                                   $param-prefix-domainC-pnfName[8]`" />
+                </set>
+                <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                    <parameter name="logger" value="message-log" />
+                    <parameter name="level" value="info" />
+                    <!--<parameter name="field1" value="Path computation succeed!"/>-->
+                    <!--<parameter name="field2" value="`$ccsdkTopo.resp.solutions_length`"/>-->
+                    <!--<parameter name="field1" value="`$tmp.src.domainA.pnf-name`"/>-->
+                    <!--<parameter name="field2" value="`$tmp.dst.domainB.pnf-name`"/>-->
+                    <parameter name="field1" value="`$tmp.pce-src-node`"/>
+                    <parameter name="field2" value="`$tmp.pce-dst-node`"/>
+                    <parameter name="field3" value="`$tmp.pce-dst-node-backup`"/>
+                </record>
+                <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                    <parameter name="logger" value="message-log" />
+                    <parameter name="level" value="info" />
+                    <parameter name="field1" value="`$otn-oof.`"/>
+                </record>
+                <set>
+                    <!--<parameter name='tmp.pce-src-node' value="`$param-prefix-domainA-pnfName[0] + '-' +-->
+                    <!--                                                   $param-prefix-domainA-pnfName[1] + '-' +-->
+                    <!--                                                   $param-prefix-domainA-pnfName[2] + '-' +-->
+                    <!--                                                   $param-prefix-domainA-pnfName[3] + '-' +-->
+                    <!--                                                   $param-prefix-domainA-pnfName[4] + '-' +-->
+                    <!--                                                   $param-prefix-domainA-pnfName[5] + '-' +-->
+                    <!--                                                   1 + '-' +-->
+                    <!--                                                   $param-prefix-domainA-pnfName[7] + '-' +-->
+                    <!--                                                   $param-prefix-domainA-pnfName[8]`" />-->
+                    <parameter name='filenamemm' value="`$tmp.pce-src-node + $tmp.pce-dst-node + $tmp.pce-dst-node-backup`" />
+                </set>
+                <switch test='`$hasSecondary`'>
+                    <outcome value='true'>
+                        <block>
+                            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliTopologyUtils' method='computePaths' >
+                                <parameter name="pnfs-pfx" value='ccsdkTopopnfs'/>
+                                <parameter name="links-pfx" value="ccsdkTopologicalLinks"/>
+                                <parameter name="response-pfx" value="otn-oof"/>
+                                <parameter name="output-end-to-end-path" value="false"/>
+                                <!--<parameter name="src-node" value="`$tmp.src.domainA.pnf-name`"/>-->
+                                <!--<parameter name="dst-node" value="`$tmp.dst.domainB.pnf-name`"/>-->
+                                <parameter name="src-node" value="`$tmp.pce-src-node`"/>
+                                <parameter name="dst-node" value="`$tmp.pce-dst-node`"/>
+                                <parameter name="dst-node-backup" value="`$tmp.pce-dst-node-backup`"/>
+                                <parameter name="require-backuppath" value="`$hasSecondary`"/>
+                                <outcome value='success'></outcome>
+                                <outcome value='Other'></outcome>
+                                <outcome value='not-found'></outcome>
+                            </execute>
+                        </block>
+                    </outcome>
+                    <outcome value='Other'>
+                        <block>
+                            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliTopologyUtils' method='computePath' >
+                                <parameter name="pnfs-pfx" value='ccsdkTopopnfs'/>
+                                <parameter name="links-pfx" value="ccsdkTopologicalLinks"/>
+                                <parameter name="response-pfx" value="otn-oof"/>
+                                <parameter name="output-end-to-end-path" value="false"/>
+                                <!--<parameter name="src-node" value="`$tmp.src.domainA.pnf-name`"/>-->
+                                <!--<parameter name="dst-node" value="`$tmp.dst.domainB.pnf-name`"/>-->
+                                <parameter name="src-node" value="`$tmp.pce-src-node`"/>
+                                <parameter name="dst-node" value="`$tmp.pce-dst-node`"/>
+                                <outcome value='success'></outcome>
+                                <outcome value='Other'></outcome>
+                                <outcome value='not-found'></outcome>
+                            </execute>
+                        </block>
+                    </outcome>
+                </switch>
+            </block>
+            <set>
+                <parameter name='`tmp.otninfo.`' value='' />
+                <!--<parameter name='`tmp.otninfo_length`' value='0' />-->
+                <parameter name='`tmp.otninfoProtect.`' value='' />
+            </set>
+            <for index='vidx' start='0' end='`$otn-oof.solutions_length`' >
+                <block atomic="true">
+                    <set>
+                        <parameter name='otn-oof.link-name' value='' />
+                        <!--<parameter name='tmp.aai.cross-link' value='' />-->
+                        <parameter name='tmp.aai.cross-link.' value='' />
+                        <!--<parameter name='tmp.aai.cross-link.link-role' value='' />-->
+                    </set>
+                    <set>
+                        <parameter name='otn-oof.link-name' value='`$otn-oof.solutions[$vidx].original_link`' />
+                        <parameter name='otn-oof.start-node' value='`$otn-oof.solutions[$vidx].src_node`' />
+                        <parameter name='otn-oof.end-node' value='`$otn-oof.solutions[$vidx].dst_node`' />
+                    </set>
+                    <set>
+                        <parameter name='tmp.cross-link.src-ltpId' value="`$otn-oof.solutions[$vidx].src_pinterface`" />
+                        <parameter name='tmp.src-pnf-name' value="`$otn-oof.solutions[$vidx].src_node`" />
+                    </set>
+                    <set>
+                        <parameter name='tmp.cross-link.dst-ltpId' value="`$otn-oof.solutions[$vidx].dst_pinterface`" />
+                        <parameter name='tmp.dst-pnf-name' value="`$otn-oof.solutions[$vidx].dst_node`" />
+                    </set>
+                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                        <parameter name="logger" value="message-log" />
+                        <parameter name="level" value="info" />
+                        <!--<parameter name="field1" value="Path computation succeed!"/>-->
+                        <!--<parameter name="field2" value="`$ccsdkTopo.resp.solutions_length`"/>-->
+                        <!--<parameter name="field1" value="`$tmp.src.domainA.pnf-name`"/>-->
+                        <!--<parameter name="field2" value="`$tmp.dst.domainB.pnf-name`"/>-->
+                        <parameter name="field1" value="`$tmp.cross-link.src-ltpId`"/>
+                        <parameter name="field2" value="`$tmp.src-pnf-name`"/>
+                        <parameter name="field3" value="`$tmp.cross-link.dst-ltpId`"/>
+                        <parameter name="field4" value="`$tmp.dst-pnf-name`"/>
+                    </record>
+                    <block atomic="true">
+                        <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                      resource="p-interface"
+                                      key="pnf.pnf-name = $tmp.src-pnf-name
+		    AND p-interface.interface-name = $tmp.cross-link.src-ltpId"
+                                      pfx='tmp.aai.src-tp' local-only='false' >
+                            <!--AND depth = '0'"-->
+                            <outcome value='success'>
+                                <block atomic="true">
+                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                                        <!--<parameter name="original_string" value='`$tmp.aai.src-tp`'/>-->
+                                        <parameter name="original_string" value='`$tmp.aai.src-tp.interface-name`'/>
+                                        <!--<parameter name="regex" value="[^-]+$"/>-->
+                                        <parameter name="regex" value="[-]+"/>
+                                        <parameter name="ctx_memory_result_key" value="param-prefix-src-tp"/>
+                                        <outcome value='success'>
+                                            <block atomic="true">
+                                                <set>
+                                                    <parameter name='domain-A.ltpId' value='`$param-prefix-src-tp[$param-prefix-src-tp_length -1]`' />
+                                                    <parameter name='`tmp.otninfo[$vidx].dstPort.dst-ltp-id`' value="`$param-prefix-src-tp[$param-prefix-src-tp_length -1]`" />
+                                                    <parameter name='`tmp.otninfo_length`' value='`$vidx + 1`' />
+                                                </set>
+                                            </block>
+                                        </outcome>
+                                        <outcome value='failure'>
+                                            <return status='failure'>
+                                                <parameter name='error-code' value='' />
+                                                <parameter name='error-message' value="An error occured while splitting sna1_route" />
+                                            </return>
+                                        </outcome>
+                                    </execute>
+                                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                  resource="pnf"
+                                                  key="pnf.pnf-name = $tmp.src-pnf-name"
+                                                  pfx='tmp.aai.src-pnf' local-only='false' >
+                                        <!--AND depth = '0'"-->
+                                        <outcome value='success'>
+                                            <block>
+                                                <set>
+                                                    <parameter name='domain-A.node-id' value="`$tmp.aai.src-pnf.pnf-id`" />
+                                                    <parameter name='domain-A.tpn' value='1' />
+                                                    <parameter name='`tmp.otninfo[$vidx].dstPort.dst-access-node-id`' value="`$tmp.aai.src-pnf.pnf-id`" />
+                                                    <parameter name='`tmp.otninfo_length`' value='`$vidx + 1`' />
+                                                </set>
+                                                <for silentFailure='true' index='pvidx' start='0' end='`$tmp.aai.src-pnf.relationship-list.relationship_length`' >
+                                                    <switch test='`$tmp.aai.src-pnf.relationship-list.relationship[$pvidx].related-to`'>
+                                                        <outcome value='network-resource'>
+                                                            <block atomic="true">
+                                                                <set>
+                                                                    <parameter name='tmp.domain-A.network-id' value="`$tmp.aai.src-pnf.relationship-list.relationship[$pvidx].relationship-data[0].relationship-value`" />
+                                                                </set>
+                                                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                              resource="network-resource"
+                                                                              key="network-resource.network-id = $tmp.domain-A.network-id
+		AND depth = '0'"
+                                                                              pfx='tmp.aai.src-network-resource' local-only='false' >
+                                                                    <outcome value='success'>
+                                                                        <set>
+                                                                            <parameter name='domain-A.network-id' value="`$tmp.aai.src-network-resource.network-id`" />
+                                                                            <parameter name='domain-A.provider-id' value="`$tmp.aai.src-network-resource.provider-id`" />
+                                                                            <parameter name='domain-A.client-id' value="`$tmp.aai.src-network-resource.client-id`" />
+                                                                            <parameter name='domain-A.te-topo-id' value="`$tmp.aai.src-network-resource.te-topo-id`" />
+                                                                            <parameter name='domain-A.network-type' value="`$tmp.aai.src-network-resource.network-type`" />
+                                                                            <parameter name='`tmp.otninfo[$vidx].dstPort.dst-access-network-id`' value="`$tmp.aai.src-network-resource.network-id`" />
+                                                                            <parameter name='`tmp.otninfo[$vidx].dstPort.dst-access-provider-id`' value="`$tmp.aai.src-network-resource.provider-id`" />
+                                                                            <parameter name='`tmp.otninfo[$vidx].dstPort.dst-access-client-id`' value="`$tmp.aai.src-network-resource.client-id`" />
+                                                                            <parameter name='`tmp.otninfo[$vidx].dstPort.dst-access-topology-id`' value="`$tmp.aai.src-network-resource.te-topo-id`" />
+                                                                            <parameter name='`tmp.otninfo[$vidx].dstPort.dst-access-network-type`' value="`$tmp.aai.src-network-resource.network-type`" />
+                                                                            <parameter name='`tmp.otninfo_length`' value='`$vidx + 1`' />
+                                                                        </set>
+                                                                    </outcome>
+                                                                </get-resource>
+                                                                <break/>
+                                                            </block>
+                                                        </outcome>
+                                                    </switch>
+                                                </for>
+                                            </block>
+                                        </outcome>
+                                        <outcome value='not-found'>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                            </return>
+                                        </outcome>
+                                        <outcome value='Other'>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                            </return>
+                                        </outcome>
+                                    </get-resource>
+                                </block>
+                            </outcome>
+                            <outcome value='not-found'>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                </return>
+                            </outcome>
+                            <outcome value='Other'>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                </return>
+                            </outcome>
+                        </get-resource>
+                        <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                      resource="p-interface"
+                                      key="pnf.pnf-name = $tmp.dst-pnf-name
+		    AND p-interface.interface-name = $tmp.cross-link.dst-ltpId"
+                                      pfx='tmp.aai.dst-tp' local-only='false' >
+                            <!--AND depth = '0'"-->
+                            <outcome value='success'>
+                                <block atomic="true">
+                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                                        <parameter name="original_string" value='`$tmp.aai.dst-tp.interface-name`'/>
+                                        <!--<parameter name="regex" value="[^-]+$"/>-->
+                                        <parameter name="regex" value="[-]+"/>
+                                        <parameter name="ctx_memory_result_key" value="param-prefix-dst-tp"/>
+                                        <outcome value='success'>
+                                            <block atomic="true">
+                                                <set>
+                                                    <parameter name='domain-B.ltpId' value='`$param-prefix-dst-tp[$param-prefix-dst-tp_length -1]`' />
+                                                    <parameter name='`tmp.otninfo[$vidx + 1].srcPort.src-ltp-id`' value="`$param-prefix-dst-tp[$param-prefix-dst-tp_length -1]`" />
+                                                    <parameter name='`tmp.otninfo_length`' value='`$vidx + 2`' />
+                                                </set>
+                                            </block>
+                                        </outcome>
+                                        <outcome value='failure'>
+                                            <return status='failure'>
+                                                <parameter name='error-code' value='' />
+                                                <parameter name='error-message' value="An error occured while splitting sna1_route" />
+                                            </return>
+                                        </outcome>
+                                    </execute>
+                                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                  resource="pnf"
+                                                  key="pnf.pnf-name = $tmp.dst-pnf-name"
+                                                  pfx='tmp.aai.dst-pnf' local-only='false' >
+                                        <!--AND depth = '0'"-->
+                                        <outcome value='success'>
+                                            <block>
+                                                <set>
+                                                    <parameter name='domain-B.node-id' value="`$tmp.aai.dst-pnf.pnf-id`" />
+                                                    <parameter name='domain-B.tpn' value='1' />
+                                                    <parameter name='`tmp.otninfo[$vidx + 1].srcPort.src-access-node-id`' value="`$tmp.aai.dst-pnf.pnf-id`" />
+                                                    <parameter name='`tmp.otninfo_length`' value='`$vidx + 2`' />
+                                                </set>
+                                                <for silentFailure='true' index='mvidx' start='0' end='`$tmp.aai.dst-pnf.relationship-list.relationship_length`' >
+                                                    <switch test='`$tmp.aai.dst-pnf.relationship-list.relationship[$mvidx].related-to`'>
+                                                        <outcome value='network-resource'>
+                                                            <block atomic="true">
+                                                                <set>
+                                                                    <parameter name='tmp.domain-B.network-id' value="`$tmp.aai.dst-pnf.relationship-list.relationship[$mvidx].relationship-data[0].relationship-value`" />
+                                                                </set>
+                                                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                              resource="network-resource"
+                                                                              key="network-resource.network-id = $tmp.domain-B.network-id
+		AND depth = '0'"
+                                                                              pfx='tmp.aai.dst-network-resource' local-only='false' >
+                                                                    <outcome value='success'>
+                                                                        <set>
+                                                                            <parameter name='domain-B.network-id' value="`$tmp.aai.dst-network-resource.network-id`" />
+                                                                            <parameter name='domain-B.provider-id' value="`$tmp.aai.dst-network-resource.provider-id`" />
+                                                                            <parameter name='domain-B.client-id' value="`$tmp.aai.dst-network-resource.client-id`" />
+                                                                            <parameter name='domain-B.te-topo-id' value="`$tmp.aai.dst-network-resource.te-topo-id`" />
+                                                                            <parameter name='domain-B.network-type' value="`$tmp.aai.dst-network-resource.network-type`" />
+                                                                            <parameter name='`tmp.otninfo[$vidx + 1].srcPort.src-access-network-id`' value="`$tmp.aai.dst-network-resource.network-id`" />
+                                                                            <parameter name='`tmp.otninfo[$vidx + 1].srcPort.src-access-provider-id`' value="`$tmp.aai.dst-network-resource.provider-id`" />
+                                                                            <parameter name='`tmp.otninfo[$vidx + 1].srcPort.src-access-client-id`' value="`$tmp.aai.dst-network-resource.client-id`" />
+                                                                            <parameter name='`tmp.otninfo[$vidx + 1].srcPort.src-access-topology-id`' value="`$tmp.aai.dst-network-resource.te-topo-id`" />
+                                                                            <parameter name='`tmp.otninfo[$vidx + 1].srcPort.src-access-network-type`' value="`$tmp.aai.dst-network-resource.network-type`" />
+                                                                            <parameter name='`tmp.otninfo_length`' value='`$vidx + 2`' />
+                                                                        </set>
+                                                                    </outcome>
+                                                                </get-resource>
+                                                                <break/>
+                                                            </block>
+                                                        </outcome>
+                                                    </switch>
+                                                </for>
+                                            </block>
+                                        </outcome>
+                                        <outcome value='not-found'>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                            </return>
+                                        </outcome>
+                                        <outcome value='Other'>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                            </return>
+                                        </outcome>
+                                    </get-resource>
+                                </block>
+                            </outcome>
+                            <outcome value='not-found'>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                </return>
+                            </outcome>
+                            <outcome value='Other'>
+                                <return status='failure'>
+                                    <parameter name='ack-final' value='Y'/>
+                                    <parameter name="error-code" value="500" />
+                                    <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                </return>
+                            </outcome>
+                        </get-resource>
+                    </block>
+                </block>
+            </for>
+            <switch test='`$hasSecondary`'>
+                <outcome value='true'>
+                    <block>
+                        <for index='vidx' start='0' end='`$otn-oof.secondarySolutions_length`' >
+                            <block atomic="true">
+                                <set>
+                                    <parameter name='otn-oof.link-name' value='' />
+                                    <!--<parameter name='tmp.aai.cross-link' value='' />-->
+                                    <parameter name='tmp.aai.cross-link.' value='' />
+                                    <!--<parameter name='tmp.aai.cross-link.link-role' value='' />-->
+                                    <parameter name='tmp.src-pnf-name' value='' />
+                                    <parameter name='tmp.cross-link.' value='' />
+                                    <parameter name='tmp.dst-pnf-name' value='' />
+                                    <parameter name='tmp.aai.src-tp.' value='' />
+                                    <parameter name='param-prefix-src-tp.' value='' />
+                                    <parameter name='tmp.aai.src-pnf.' value='' />
+                                    <parameter name='tmp.domain-A.network-id' value='' />
+                                    <parameter name='tmp.aai.src-network-resource.' value='' />
+                                    <parameter name='tmp.domain-A.ttp-id' value='' />
+                                    <parameter name='tmp.aai.src-ttp.' value='' />
+                                    <parameter name='tmp.aai.dst-tp.' value='' />
+                                    <parameter name='param-prefix-dst-tp.' value='' />
+                                    <parameter name='tmp.aai.dst-pnf.' value='' />
+                                    <parameter name='tmp.domain-C.network-id' value='' />
+                                    <parameter name='tmp.aai.dst-network-resource.' value='' />
+                                    <parameter name='tmp.domain-C.ttp-id' value='' />
+                                    <parameter name='tmp.aai.dst-ttp.' value='' />
+                                </set>
+                                <set>
+                                    <parameter name='otn-oof.link-name' value='`$otn-oof.secondarySolutions[$vidx].original_link`' />
+                                    <parameter name='otn-oof.start-node' value='`$otn-oof.secondarySolutions[$vidx].src_node`' />
+                                    <parameter name='otn-oof.end-node' value='`$otn-oof.secondarySolutions[$vidx].dst_node`' />
+                                </set>
+                                <set>
+                                    <parameter name='tmp.cross-link.src-ltpId' value="`$otn-oof.secondarySolutions[$vidx].src_pinterface`" />
+                                    <parameter name='tmp.src-pnf-name' value="`$otn-oof.secondarySolutions[$vidx].src_node`" />
+                                </set>
+                                <set>
+                                    <parameter name='tmp.cross-link.dst-ltpId' value="`$otn-oof.secondarySolutions[$vidx].dst_pinterface`" />
+                                    <parameter name='tmp.dst-pnf-name' value="`$otn-oof.secondarySolutions[$vidx].dst_node`" />
+                                </set>
+                                <block atomic="true">
+                                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                  resource="p-interface"
+                                                  key="pnf.pnf-name = $tmp.src-pnf-name
+		    AND p-interface.interface-name = $tmp.cross-link.src-ltpId"
+                                                  pfx='tmp.aai.src-tp' local-only='false' >
+                                        <!--AND depth = '0'"-->
+                                        <outcome value='success'>
+                                            <block atomic="true">
+                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                                                    <!--<parameter name="original_string" value='`$tmp.aai.src-tp`'/>-->
+                                                    <parameter name="original_string" value='`$tmp.aai.src-tp.interface-name`'/>
+                                                    <!--<parameter name="regex" value="[^-]+$"/>-->
+                                                    <parameter name="regex" value="[-]+"/>
+                                                    <parameter name="ctx_memory_result_key" value="param-prefix-src-tp"/>
+                                                    <outcome value='success'>
+                                                        <block atomic="true">
+                                                            <set>
+                                                                <parameter name='domain-A.ltpId' value='`$param-prefix-src-tp[$param-prefix-src-tp_length -1]`' />
+                                                                <parameter name='`tmp.otninfoProtect[$vidx].dstPort.dst-ltp-id`' value="`$param-prefix-src-tp[$param-prefix-src-tp_length -1]`" />
+                                                                <parameter name='`tmp.otninfoProtect_length`' value='`$vidx + 1`' />
+                                                            </set>
+                                                        </block>
+                                                    </outcome>
+                                                    <outcome value='failure'>
+                                                        <return status='failure'>
+                                                            <parameter name='error-code' value='' />
+                                                            <parameter name='error-message' value="An error occured while splitting sna1_route" />
+                                                        </return>
+                                                    </outcome>
+                                                </execute>
+                                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                              resource="pnf"
+                                                              key="pnf.pnf-name = $tmp.src-pnf-name"
+                                                              pfx='tmp.aai.src-pnf' local-only='false' >
+                                                    <!--AND depth = '0'"-->
+                                                    <outcome value='success'>
+                                                        <block>
+                                                            <set>
+                                                                <parameter name='domain-A.node-id' value="`$tmp.aai.src-pnf.pnf-id`" />
+                                                                <parameter name='domain-A.tpn' value='1' />
+                                                                <parameter name='`tmp.otninfoProtect[$vidx].dstPort.dst-access-node-id`' value="`$tmp.aai.src-pnf.pnf-id`" />
+                                                                <parameter name='`tmp.otninfoProtect_length`' value='`$vidx + 1`' />
+                                                            </set>
+                                                            <for silentFailure='true' index='pvidx' start='0' end='`$tmp.aai.src-pnf.relationship-list.relationship_length`' >
+                                                                <switch test='`$tmp.aai.src-pnf.relationship-list.relationship[$pvidx].related-to`'>
+                                                                    <outcome value='network-resource'>
+                                                                        <block atomic="true">
+                                                                            <set>
+                                                                                <parameter name='tmp.domain-A.network-id' value="`$tmp.aai.src-pnf.relationship-list.relationship[$pvidx].relationship-data[0].relationship-value`" />
+                                                                            </set>
+                                                                            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                          resource="network-resource"
+                                                                                          key="network-resource.network-id = $tmp.domain-A.network-id
+		AND depth = '0'"
+                                                                                          pfx='tmp.aai.src-network-resource' local-only='false' >
+                                                                                <outcome value='success'>
+                                                                                    <set>
+                                                                                        <parameter name='domain-A.network-id' value="`$tmp.aai.src-network-resource.network-id`" />
+                                                                                        <parameter name='domain-A.provider-id' value="`$tmp.aai.src-network-resource.provider-id`" />
+                                                                                        <parameter name='domain-A.client-id' value="`$tmp.aai.src-network-resource.client-id`" />
+                                                                                        <parameter name='domain-A.te-topo-id' value="`$tmp.aai.src-network-resource.te-topo-id`" />
+                                                                                        <parameter name='domain-A.network-type' value="`$tmp.aai.src-network-resource.network-type`" />
+                                                                                        <parameter name='`tmp.otninfoProtect[$vidx].dstPort.dst-access-network-id`' value="`$tmp.aai.src-network-resource.network-id`" />
+                                                                                        <parameter name='`tmp.otninfoProtect[$vidx].dstPort.dst-access-provider-id`' value="`$tmp.aai.src-network-resource.provider-id`" />
+                                                                                        <parameter name='`tmp.otninfoProtect[$vidx].dstPort.dst-access-client-id`' value="`$tmp.aai.src-network-resource.client-id`" />
+                                                                                        <parameter name='`tmp.otninfoProtect[$vidx].dstPort.dst-access-topology-id`' value="`$tmp.aai.src-network-resource.te-topo-id`" />
+                                                                                        <parameter name='`tmp.otninfoProtect[$vidx].dstPort.dst-access-network-type`' value="`$tmp.aai.src-network-resource.network-type`" />
+                                                                                        <parameter name='`tmp.otninfoProtect`' value='`$vidx + 1`' />
+                                                                                    </set>
+                                                                                </outcome>
+                                                                            </get-resource>
+                                                                            <break/>
+                                                                        </block>
+                                                                    </outcome>
+                                                                </switch>
+                                                            </for>
+                                                        </block>
+                                                    </outcome>
+                                                    <outcome value='not-found'>
+                                                        <return status='failure'>
+                                                            <parameter name='ack-final' value='Y'/>
+                                                            <parameter name="error-code" value="500" />
+                                                            <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                        </return>
+                                                    </outcome>
+                                                    <outcome value='Other'>
+                                                        <return status='failure'>
+                                                            <parameter name='ack-final' value='Y'/>
+                                                            <parameter name="error-code" value="500" />
+                                                            <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                        </return>
+                                                    </outcome>
+                                                </get-resource>
+                                            </block>
+                                        </outcome>
+                                        <outcome value='not-found'>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                            </return>
+                                        </outcome>
+                                        <outcome value='Other'>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                            </return>
+                                        </outcome>
+                                    </get-resource>
+                                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                  resource="p-interface"
+                                                  key="pnf.pnf-name = $tmp.dst-pnf-name
+		    AND p-interface.interface-name = $tmp.cross-link.dst-ltpId"
+                                                  pfx='tmp.aai.dst-tp' local-only='false' >
+                                        <!--AND depth = '0'"-->
+                                        <outcome value='success'>
+                                            <block atomic="true">
+                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliStringUtils' method='split' >
+                                                    <parameter name="original_string" value='`$tmp.aai.dst-tp.interface-name`'/>
+                                                    <!--<parameter name="regex" value="[^-]+$"/>-->
+                                                    <parameter name="regex" value="[-]+"/>
+                                                    <parameter name="ctx_memory_result_key" value="param-prefix-dst-tp"/>
+                                                    <outcome value='success'>
+                                                        <block atomic="true">
+                                                            <set>
+                                                                <parameter name='domain-C.ltpId' value='`$param-prefix-dst-tp[$param-prefix-dst-tp_length -1]`' />
+                                                                <parameter name='`tmp.otninfoProtect[$vidx + 1].srcPort.src-ltp-id`' value="`$param-prefix-dst-tp[$param-prefix-dst-tp_length -1]`" />
+                                                                <parameter name='`tmp.otninfoProtect_length`' value='`$vidx + 2`' />
+                                                            </set>
+                                                        </block>
+                                                    </outcome>
+                                                    <outcome value='failure'>
+                                                        <return status='failure'>
+                                                            <parameter name='error-code' value='' />
+                                                            <parameter name='error-message' value="An error occured while splitting sna1_route" />
+                                                        </return>
+                                                    </outcome>
+                                                </execute>
+                                                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                              resource="pnf"
+                                                              key="pnf.pnf-name = $tmp.dst-pnf-name"
+                                                              pfx='tmp.aai.dst-pnf' local-only='false' >
+                                                    <!--AND depth = '0'"-->
+                                                    <outcome value='success'>
+                                                        <block>
+                                                            <set>
+                                                                <parameter name='domain-C.node-id' value="`$tmp.aai.dst-pnf.pnf-id`" />
+                                                                <parameter name='domain-C.tpn' value='1' />
+                                                                <parameter name='`tmp.otninfoProtect[$vidx + 1].srcPort.src-access-node-id`' value="`$tmp.aai.dst-pnf.pnf-id`" />
+                                                                <parameter name='`tmp.otninfoProtect_length`' value='`$vidx + 2`' />
+                                                            </set>
+                                                            <for silentFailure='true' index='mvidx' start='0' end='`$tmp.aai.dst-pnf.relationship-list.relationship_length`' >
+                                                                <switch test='`$tmp.aai.dst-pnf.relationship-list.relationship[$mvidx].related-to`'>
+                                                                    <outcome value='network-resource'>
+                                                                        <block atomic="true">
+                                                                            <set>
+                                                                                <parameter name='tmp.domain-C.network-id' value="`$tmp.aai.dst-pnf.relationship-list.relationship[$mvidx].relationship-data[0].relationship-value`" />
+                                                                            </set>
+                                                                            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                          resource="network-resource"
+                                                                                          key="network-resource.network-id = $tmp.domain-C.network-id
+		AND depth = '0'"
+                                                                                          pfx='tmp.aai.dst-network-resource' local-only='false' >
+                                                                                <outcome value='success'>
+                                                                                    <set>
+                                                                                        <parameter name='domain-C.network-id' value="`$tmp.aai.dst-network-resource.network-id`" />
+                                                                                        <parameter name='domain-C.provider-id' value="`$tmp.aai.dst-network-resource.provider-id`" />
+                                                                                        <parameter name='domain-C.client-id' value="`$tmp.aai.dst-network-resource.client-id`" />
+                                                                                        <parameter name='domain-C.te-topo-id' value="`$tmp.aai.dst-network-resource.te-topo-id`" />
+                                                                                        <parameter name='domain-C.network-type' value="`$tmp.aai.dst-network-resource.network-type`" />
+                                                                                        <parameter name='`tmp.otninfoProtect[$vidx + 1].srcPort.src-access-network-id`' value="`$tmp.aai.dst-network-resource.network-id`" />
+                                                                                        <parameter name='`tmp.otninfoProtect[$vidx + 1].srcPort.src-access-provider-id`' value="`$tmp.aai.dst-network-resource.provider-id`" />
+                                                                                        <parameter name='`tmp.otninfoProtect[$vidx + 1].srcPort.src-access-client-id`' value="`$tmp.aai.dst-network-resource.client-id`" />
+                                                                                        <parameter name='`tmp.otninfoProtect[$vidx + 1].srcPort.src-access-topology-id`' value="`$tmp.aai.dst-network-resource.te-topo-id`" />
+                                                                                        <parameter name='`tmp.otninfoProtect[$vidx + 1].srcPort.src-access-network-type`' value="`$tmp.aai.dst-network-resource.network-type`" />
+                                                                                        <parameter name='`tmp.otninfoProtect`' value='`$vidx + 2`' />
+                                                                                    </set>
+                                                                                </outcome>
+                                                                            </get-resource>
+                                                                            <break/>
+                                                                        </block>
+                                                                    </outcome>
+                                                                </switch>
+                                                            </for>
+                                                        </block>
+                                                    </outcome>
+                                                    <outcome value='not-found'>
+                                                        <return status='failure'>
+                                                            <parameter name='ack-final' value='Y'/>
+                                                            <parameter name="error-code" value="500" />
+                                                            <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                        </return>
+                                                    </outcome>
+                                                    <outcome value='Other'>
+                                                        <return status='failure'>
+                                                            <parameter name='ack-final' value='Y'/>
+                                                            <parameter name="error-code" value="500" />
+                                                            <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                        </return>
+                                                    </outcome>
+                                                </get-resource>
+                                            </block>
+                                        </outcome>
+                                        <outcome value='not-found'>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                            </return>
+                                        </outcome>
+                                        <outcome value='Other'>
+                                            <return status='failure'>
+                                                <parameter name='ack-final' value='Y'/>
+                                                <parameter name="error-code" value="500" />
+                                                <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                            </return>
+                                        </outcome>
+                                    </get-resource>
+                                </block>
+                            </block>
+                        </for>
+                    </block>
+                </outcome>
+            </switch>
+        </block>
+    </method>
+</service-logic>

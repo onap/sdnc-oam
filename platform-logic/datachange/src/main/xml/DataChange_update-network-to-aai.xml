@@ -13,12 +13,75 @@
                 <!--<parameter name='tmp.network-id' value="`$prop.sdncRestApi.thirdpartySdnc.id + '-' + $tmp.original-network-id`" />-->
                 <parameter name='tmp.network-id' value="`$tmp.original-network-id`" />
             </set>
+            <set>
+                <parameter name='tmp.client-id' value='`$network.te-topology-identifier.client-id`' />
+                <parameter name='tmp.te-topo-id' value='`$network.te-topology-identifier.topology-id`' />
+                <parameter name='tmp.provider-id' value='`$network.te-topology-identifier.provider-id`' />
+            </set>
+            <switch test="`length($tmp.client-id) == 0`">
+                <outcome value='true'>
+                    <block>
+                        <set>
+                            <parameter name='tmp.client-id' value='`$network.client-id`' />
+                        </set>
+                    </block>
+                </outcome>
+            </switch>
+            <switch test="`length($tmp.te-topo-id) == 0`">
+                <outcome value='true'>
+                    <block>
+                        <set>
+                            <parameter name='tmp.te-topo-id' value='`$network.te-topology-id`' />
+                        </set>
+                    </block>
+                </outcome>
+            </switch>
+            <switch test="`length($tmp.provider-id) == 0`">
+                <outcome value='true'>
+                    <block>
+                        <set>
+                            <parameter name='tmp.provider-id' value='`$network.provider-id`' />
+                        </set>
+                    </block>
+                </outcome>
+            </switch>
+            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                          resource="network-resource"
+                          key="network-resource.network-id = $tmp.network-id"
+                          local-only="false"
+                          pfx="tmpo.aai.network-resource" >
+                <outcome value='success'>
+                    <block>
+                        <set>
+                            <parameter name='tmpo.provider-id' value="`$tmp.provider-id + 'new' `" />
+                        </set>
+                        <set>
+                            <parameter name='tmp.provider-id' value="`$tmpo.provider-id`" />
+                        </set>
+                        <set>
+                            <!--<parameter name='tmp.network-id' value="`$prop.sdncRestApi.thirdpartySdnc.id + '-' + $tmp.original-network-id`" />-->
+                            <parameter name='tmp.network-id' value="" />
+                        </set>
+                        <set>
+                            <!--<parameter name='tmp.network-id' value="`$prop.sdncRestApi.thirdpartySdnc.id + '-' + $tmp.original-network-id`" />-->
+                            <parameter name='tmp.network-id' value="`'providerId-' + $tmp.provider-id + '-clientId-' + $tmp.client-id + '-topologyId-' + $tmp.te-topo-id `" />
+                            <!--<parameter name='tmp.network-id' value="`'providerId-' + $tmpo.provider-id `" />-->
+                        </set>
+                    </block>
+                </outcome>
+                <outcome value='not-found'>
+                    <block></block>
+                </outcome>
+            </get-resource>
             <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='network-resource'
                   key='network-resource.network-id = $tmp.network-id' >
                 <parameter name='network-id' value='`$tmp.network-id`' />
-                <parameter name='client-id' value='`$network.te-topology-identifier.client-id`' />
-                <parameter name='te-topo-id' value='`$network.te-topology-identifier.topology-id`' />
-                <parameter name='provider-id' value='`$network.te-topology-identifier.provider-id`' />
+                <parameter name='client-id' value='`$tmp.client-id`' />
+                <parameter name='te-topo-id' value='`$tmp.te-topo-id`' />
+                <parameter name='provider-id' value='`$tmp.provider-id`' />
+                <!--<parameter name='client-id' value='`$network.te-topology-identifier.client-id`' />-->
+                <!--<parameter name='te-topo-id' value='`$network.te-topology-identifier.topology-id`' />-->
+                <!--<parameter name='provider-id' value='`$network.te-topology-identifier.provider-id`' />-->
                 <parameter name='network-type' value='`$network.network-types`' />
             </save>
             <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
