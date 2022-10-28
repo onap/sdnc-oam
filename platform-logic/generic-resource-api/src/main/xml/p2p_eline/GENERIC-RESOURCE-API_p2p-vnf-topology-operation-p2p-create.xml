@@ -381,7 +381,8 @@
                                                                                                                                 <parameter name='vpn-type' value='`$prop.sotn.vpnType`' />
                                                                                                                                 <parameter name='cir' value='`$gfp *1000000`' />
                                                                                                                                 <parameter name='eir' value='`$gfp *1000000`' />
-                                                                                                                                <parameter name='cbs' value='`$prop.sotn.cbs`' />
+                                                                                                                                <!--<parameter name='cbs' value='`$prop.sotn.cbs`' />-->
+                                                                                                                                <parameter name='cbs' value='`$tmp.aai.network-route-A.data-owner`' />
                                                                                                                                 <parameter name='ebs' value='`$prop.sotn.ebs`' />
                                                                                                                                 <!--<parameter name='color-aware' value='`$prop.sotn.colorAware`' />-->
                                                                                                                                 <!--<parameter name='coupling-flag' value='`$prop.sotn.couplingFlag`' />-->
@@ -622,75 +623,109 @@
                                                                                                                             <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
                                                                                                                                 <parameter name="ctx-destination" value="prop.connectivity-domainB-uuid"/>
                                                                                                                             </execute>
-                                                                                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity'
-                                                                                                                                  key='connectivity.connectivity-id = $prop.connectivity-domainB-uuid'>
-                                                                                                                                <parameter name='connectivity-id' value='`$prop.connectivity-domainB-uuid`' />
-                                                                                                                                <parameter name='etht-svc-name' value='`$prop.ethernet-service-name`' />
-                                                                                                                                <parameter name='operational-status' value='Created' />
-                                                                                                                                <parameter name='access-provider-id' value='`$param-prefix-domainB[$param-prefix-domainB_length -9]`' />
-                                                                                                                                <parameter name='access-client-id' value='`$param-prefix-domainB[$param-prefix-domainB_length -7]`' />
-                                                                                                                                <parameter name='access-topology-id' value='`$param-prefix-domainB[$param-prefix-domainB_length -5]`' />
-                                                                                                                                <parameter name='access-node-id' value='`$param-prefix-domainB[$param-prefix-domainB_length -3]`' />
-                                                                                                                                <parameter name='access-ltp-id' value='`$param-prefix-domainB[$param-prefix-domainB_length -1]`' />
-                                                                                                                                <parameter name='cvlan' value='`$tmp.aai.network-route-B.logical-interface-id`' />
-                                                                                                                                <parameter name='bandwidth-profile-name' value='`$gfp`' />
-                                                                                                                                <parameter name='vpn-type' value='`$prop.sotn.vpnType`' />
-                                                                                                                                <parameter name='cir' value='`$gfp *1000000`' />
-                                                                                                                                <parameter name='eir' value='`$gfp *1000000`' />
-                                                                                                                                <parameter name='cbs' value='`$prop.sotn.cbs`' />
-                                                                                                                                <parameter name='ebs' value='`$prop.sotn.ebs`' />
-                                                                                                                                <!--<parameter name='color-aware' value='`$prop.sotn.colorAware`' />-->
-                                                                                                                                <!--<parameter name='coupling-flag' value='`$prop.sotn.couplingFlag`' />-->
-                                                                                                                                <!--<parameter name='etht-svc-name' value='`$prop.sotn.etht-svc-name`' />-->
-                                                                                                                                <!--<parameter name='model-customization-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-customization-uuid`' />-->
-                                                                                                                                <!--<parameter name='model-invariant-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-invariant-uuid`' />-->
-                                                                                                                                <!--<parameter name='model-version-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-uuid`' />-->
-                                                                                                                                <parameter name='connectivity-selflink' value="`'restconf/config/GENERIC-RESOURCE-API:services/service/'  + $network-topology-operation-input.service-information.service-instance-id  + '/service-data/networks/network/'  + $prop.sotn.network-id  + '/network-data/'` " />
-                                                                                                                            </save>
-                                                                                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list'
-                                                                                                                                  key='service-instance.service-instance-id = $vnf-topology-operation-input.service-information.service-instance-id
+                                                                                                                            <switch test="`length($tmp.aai.network-route-A.data-owner) == 0`">
+                                                                                                                                <outcome value='false'>
+                                                                                                                                    <block>
+                                                                                                                                        <set>
+                                                                                                                                            <parameter name='final-vlan' value="`$tmp.aai.network-route-A.data-owner`" />
+                                                                                                                                        </set>
+                                                                                                                                    </block>
+                                                                                                                                </outcome>
+                                                                                                                                <outcome value='true'>
+                                                                                                                                    <block>
+                                                                                                                                        <set>
+                                                                                                                                            <parameter name='final-vlan' value="`$tmp.aai.network-route-B.logical-interface-id`" />
+                                                                                                                                        </set>
+                                                                                                                                    </block>
+                                                                                                                                </outcome>
+                                                                                                                            </switch>
+                                                                                                                            <switch test="`$param-prefix-domainA[$param-prefix-domainA_length -9] == $param-prefix-domainB[$param-prefix-domainB_length -9]`">
+                                                                                                                                <outcome value='false'>
+                                                                                                                                    <block atomic='true'>
+                                                                                                                                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity'
+                                                                                                                                              key='connectivity.connectivity-id = $prop.connectivity-domainB-uuid'>
+                                                                                                                                            <parameter name='connectivity-id' value='`$prop.connectivity-domainB-uuid`' />
+                                                                                                                                            <parameter name='etht-svc-name' value='`$prop.ethernet-service-name`' />
+                                                                                                                                            <parameter name='operational-status' value='Created' />
+                                                                                                                                            <parameter name='access-provider-id' value='`$param-prefix-domainB[$param-prefix-domainB_length -9]`' />
+                                                                                                                                            <parameter name='access-client-id' value='`$param-prefix-domainB[$param-prefix-domainB_length -7]`' />
+                                                                                                                                            <parameter name='access-topology-id' value='`$param-prefix-domainB[$param-prefix-domainB_length -5]`' />
+                                                                                                                                            <parameter name='access-node-id' value='`$param-prefix-domainB[$param-prefix-domainB_length -3]`' />
+                                                                                                                                            <parameter name='access-ltp-id' value='`$param-prefix-domainB[$param-prefix-domainB_length -1]`' />
+                                                                                                                                            <!--<parameter name='cvlan' value='`$tmp.aai.network-route-B.logical-interface-id`' />-->
+                                                                                                                                            <parameter name='cvlan' value='`$final-vlan`' />
+                                                                                                                                            <parameter name='bandwidth-profile-name' value='`$gfp`' />
+                                                                                                                                            <parameter name='vpn-type' value='`$prop.sotn.vpnType`' />
+                                                                                                                                            <parameter name='cir' value='`$gfp *1000000`' />
+                                                                                                                                            <parameter name='eir' value='`$gfp *1000000`' />
+                                                                                                                                            <!--<parameter name='cbs' value='`$prop.sotn.cbs`' />-->
+                                                                                                                                            <parameter name='cbs' value='`$tmp.aai.network-route-B.data-owner`' />
+                                                                                                                                            <parameter name='ebs' value='`$prop.sotn.ebs`' />
+                                                                                                                                            <!--<parameter name='color-aware' value='`$prop.sotn.colorAware`' />-->
+                                                                                                                                            <!--<parameter name='coupling-flag' value='`$prop.sotn.couplingFlag`' />-->
+                                                                                                                                            <!--<parameter name='etht-svc-name' value='`$prop.sotn.etht-svc-name`' />-->
+                                                                                                                                            <!--<parameter name='model-customization-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-customization-uuid`' />-->
+                                                                                                                                            <!--<parameter name='model-invariant-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-invariant-uuid`' />-->
+                                                                                                                                            <!--<parameter name='model-version-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-uuid`' />-->
+                                                                                                                                            <parameter name='connectivity-selflink' value="`'restconf/config/GENERIC-RESOURCE-API:services/service/'  + $network-topology-operation-input.service-information.service-instance-id  + '/service-data/networks/network/'  + $prop.sotn.network-id  + '/network-data/'` " />
+                                                                                                                                        </save>
+                                                                                                                                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list'
+                                                                                                                                              key='service-instance.service-instance-id = $vnf-topology-operation-input.service-information.service-instance-id
          AND customer.global-customer-id = $vnf-topology-operation-input.service-information.global-customer-id
          AND service-subscription.service-type = $vnf-topology-operation-input.service-information.subscription-service-type'
-                                                                                                                                  force="true" pfx="tmp.AnAI-data">
-                                                                                                                                <parameter name="relationship-list.relationship[0].related-to" value="connectivity" />
-                                                                                                                                <parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $prop.connectivity-domainB-uuid`" />
-                                                                                                                                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />
-                                                                                                                                <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$prop.connectivity-domainB-uuid`" />
-                                                                                                                                <!--<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list' -->
-                                                                                                                                <!--      key='service-instance.service-instance-id = $service-data.service-information.service-instance-id -->
-                                                                                                                                <!--         AND customer.global-customer-id = $service-data.networks.network[$nidx].network-data.service-information.global-customer-id -->
-                                                                                                                                <!--         AND service-subscription.service-type = $service-data.networks.network[$nidx].network-data.service-information.subscription-service-type' -->
-                                                                                                                                <!--      force="true" pfx="tmp.AnAI-data">-->
-                                                                                                                                <!--<parameter name="relationship-list.relationship[0].related-to" value="connectivity" />-->
-                                                                                                                                <!--<parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $prop.sotn.network-id`" />-->
-                                                                                                                                <!--<parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />-->
-                                                                                                                                <!--<parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$prop.sotn.network-id`" />-->
-                                                                                                                            </save>
-                                                                                                                            <for silentFailure='true' index='dividx' start='0' end='`$tmp.aai.network-route-B.p-interface-dst.relationship-list.relationship_length`' >
-                                                                                                                                <switch test='`$tmp.aai.network-route-B.p-interface-dst.relationship-list.relationship[$dividx].related-to`'>
-                                                                                                                                    <outcome value='tunnel-termination-point'>
-                                                                                                                                        <block atomic="true">
-                                                                                                                                            <set>
-                                                                                                                                                <parameter name='tmp.destination.ttp-id' value="`$tmp.aai.network-route-B.p-interface-dst.relationship-list.relationship[$dividx].relationship-data[0].relationship-value`" />
-                                                                                                                                            </set>
-                                                                                                                                            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
-                                                                                                                                                          resource="tunnel-termination-point"
-                                                                                                                                                          key="tunnel-termination-point.ttp-id = $tmp.destination.ttp-id
-		AND depth = '0'"
-                                                                                                                                                          pfx='tmp.aai.destination-ttp' local-only='false' >
-                                                                                                                                                <outcome value='success'>
+                                                                                                                                              force="true" pfx="tmp.AnAI-data">
+                                                                                                                                            <parameter name="relationship-list.relationship[0].related-to" value="connectivity" />
+                                                                                                                                            <parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $prop.connectivity-domainB-uuid`" />
+                                                                                                                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />
+                                                                                                                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$prop.connectivity-domainB-uuid`" />
+                                                                                                                                            <!--<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list' -->
+                                                                                                                                            <!--      key='service-instance.service-instance-id = $service-data.service-information.service-instance-id -->
+                                                                                                                                            <!--         AND customer.global-customer-id = $service-data.networks.network[$nidx].network-data.service-information.global-customer-id -->
+                                                                                                                                            <!--         AND service-subscription.service-type = $service-data.networks.network[$nidx].network-data.service-information.subscription-service-type' -->
+                                                                                                                                            <!--      force="true" pfx="tmp.AnAI-data">-->
+                                                                                                                                            <!--<parameter name="relationship-list.relationship[0].related-to" value="connectivity" />-->
+                                                                                                                                            <!--<parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $prop.sotn.network-id`" />-->
+                                                                                                                                            <!--<parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />-->
+                                                                                                                                            <!--<parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$prop.sotn.network-id`" />-->
+                                                                                                                                        </save>
+                                                                                                                                        <for silentFailure='true' index='dividx' start='0' end='`$tmp.aai.network-route-B.p-interface-dst.relationship-list.relationship_length`' >
+                                                                                                                                            <switch test='`$tmp.aai.network-route-B.p-interface-dst.relationship-list.relationship[$dividx].related-to`'>
+                                                                                                                                                <outcome value='tunnel-termination-point'>
                                                                                                                                                     <block atomic="true">
                                                                                                                                                         <set>
-                                                                                                                                                            <parameter name='destination.tunnel-tp-id' value="`$tmp.aai.destination-ttp.tunnel-tp-id`" />
+                                                                                                                                                            <parameter name='tmp.destination.ttp-id' value="`$tmp.aai.network-route-B.p-interface-dst.relationship-list.relationship[$dividx].relationship-data[0].relationship-value`" />
                                                                                                                                                         </set>
+                                                                                                                                                        <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                                                                                                      resource="tunnel-termination-point"
+                                                                                                                                                                      key="tunnel-termination-point.ttp-id = $tmp.destination.ttp-id
+		AND depth = '0'"
+                                                                                                                                                                      pfx='tmp.aai.destination-ttp' local-only='false' >
+                                                                                                                                                            <outcome value='success'>
+                                                                                                                                                                <block atomic="true">
+                                                                                                                                                                    <set>
+                                                                                                                                                                        <parameter name='destination.tunnel-tp-id' value="`$tmp.aai.destination-ttp.tunnel-tp-id`" />
+                                                                                                                                                                    </set>
+                                                                                                                                                                </block>
+                                                                                                                                                            </outcome>
+                                                                                                                                                        </get-resource>
+                                                                                                                                                        <break/>
                                                                                                                                                     </block>
                                                                                                                                                 </outcome>
-                                                                                                                                            </get-resource>
-                                                                                                                                            <break/>
-                                                                                                                                        </block>
-                                                                                                                                    </outcome>
-                                                                                                                                </switch>
-                                                                                                                            </for>
+                                                                                                                                            </switch>
+                                                                                                                                        </for>
+                                                                                                                                    </block>
+                                                                                                                                </outcome>
+                                                                                                                                <outcome value='true'>
+                                                                                                                                    <block atomic='true'>
+                                                                                                                                        <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity'
+                                                                                                                                                key='connectivity.connectivity-id = $uuid.connectivity-domainA-uuid'>
+                                                                                                                                            <parameter name='connectivity-id' value='`$uuid.connectivity-domainA-uuid`' />
+                                                                                                                                            <parameter name='color-aware' value='`$param-prefix-domainB[$param-prefix-domainB_length -3]`' />
+                                                                                                                                            <parameter name='coupling-flag' value='`$param-prefix-domainB[$param-prefix-domainB_length -1]`' />
+                                                                                                                                        </update>
+                                                                                                                                    </block>
+                                                                                                                                </outcome>
+                                                                                                                            </switch>
                                                                                                                         </block>
                                                                                                                     </outcome>
                                                                                                                     <outcome value='not-found'>
@@ -735,295 +770,292 @@
                                                                                                     </execute>
                                                                                                     <call module='GENERIC-RESOURCE-API' rpc='tsli-vnf-topology-operation-find-maximum-used-tpn' mode='sync' ></call>
                                                                                                     <switch test="`$param-prefix-domainA[$param-prefix-domainA_length -9] == $param-prefix-domainB[$param-prefix-domainB_length -9]`">
-
-                                                                                                        `
-
-
                                                                                                         <outcome value='false'>
-                                                                                                            <call module='GENERIC-RESOURCE-API' rpc='tsli-vnf-topology-operation-get-otn-tunnel-path-from-oof' mode='sync' >
-                                                                                                                <block atomic='true'>
-                                                                                                                    <for index='otnidx' start='0' end='`$tmp.otninfo_length`' >
-                                                                                                                        <block atomic='true'>
-                                                                                                                            <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
-                                                                                                                                <parameter name="ctx-destination" value="prop.vpn-binding-otnidx-uuid"/>
-                                                                                                                            </execute>
-                                                                                                                            <switch test="`$tmp.otninfo[$otnidx].dstPort.dst-access-provider-id == ''`">
-                                                                                                                                <outcome value='true'>
-                                                                                                                                    <set>
-                                                                                                                                        <parameter name='tmp.access-provider-id' value='`$tmp.otninfo[$otnidx].srcPort.src-access-provider-id`' />
-                                                                                                                                        <parameter name='tmp.access-client-id' value='`$tmp.otninfo[$otnidx].srcPort.src-access-client-id`' />
-                                                                                                                                        <parameter name='tmp.access-topology-id' value='`$tmp.otninfo[$otnidx].srcPort.src-access-topology-id`' />
-                                                                                                                                        <parameter name='tmp.srcdstpnf-id' value='`$tmp.otninfo[$otnidx].srcPort.src-access-node-id`' />
-                                                                                                                                    </set>
-                                                                                                                                </outcome>
-                                                                                                                                <outcome value='false'>
-                                                                                                                                    <set>
-                                                                                                                                        <parameter name='tmp.access-provider-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-provider-id`' />
-                                                                                                                                        <parameter name='tmp.access-client-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-client-id`' />
-                                                                                                                                        <parameter name='tmp.access-topology-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-topology-id`' />
-                                                                                                                                        <parameter name='tmp.srcdstpnf-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-node-id`' />
-                                                                                                                                    </set>
-                                                                                                                                </outcome>
-                                                                                                                            </switch>
-                                                                                                                            <set>
-                                                                                                                                <parameter name='tmp.srcdstpnf-name' value="`'networkId-providerId-' +
+                                                                                                            <block atomic='true'>
+                                                                                                                <call module='GENERIC-RESOURCE-API' rpc='p2p-vnf-topology-operation-p2p-get-otn-tunnel-path-from-oof' mode='sync' ></call>
+                                                                                                                <for index='otnidx' start='0' end='`$tmp.otninfo_length`' >
+                                                                                                                    <block atomic='true'>
+                                                                                                                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
+                                                                                                                            <parameter name="ctx-destination" value="prop.vpn-binding-otnidx-uuid"/>
+                                                                                                                        </execute>
+                                                                                                                        <switch test="`$tmp.otninfo[$otnidx].dstPort.dst-access-provider-id == ''`">
+                                                                                                                            <outcome value='true'>
+                                                                                                                                <set>
+                                                                                                                                    <parameter name='tmp.access-provider-id' value='`$tmp.otninfo[$otnidx].srcPort.src-access-provider-id`' />
+                                                                                                                                    <parameter name='tmp.access-client-id' value='`$tmp.otninfo[$otnidx].srcPort.src-access-client-id`' />
+                                                                                                                                    <parameter name='tmp.access-topology-id' value='`$tmp.otninfo[$otnidx].srcPort.src-access-topology-id`' />
+                                                                                                                                    <parameter name='tmp.srcdstpnf-id' value='`$tmp.otninfo[$otnidx].srcPort.src-access-node-id`' />
+                                                                                                                                </set>
+                                                                                                                            </outcome>
+                                                                                                                            <outcome value='false'>
+                                                                                                                                <set>
+                                                                                                                                    <parameter name='tmp.access-provider-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-provider-id`' />
+                                                                                                                                    <parameter name='tmp.access-client-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-client-id`' />
+                                                                                                                                    <parameter name='tmp.access-topology-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-topology-id`' />
+                                                                                                                                    <parameter name='tmp.srcdstpnf-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-node-id`' />
+                                                                                                                                </set>
+                                                                                                                            </outcome>
+                                                                                                                        </switch>
+                                                                                                                        <set>
+                                                                                                                            <parameter name='tmp.srcdstpnf-name' value="`'networkId-providerId-' +
                                              $tmp.access-provider-id + '-clientId-' +
                                              $tmp.access-client-id + '-topologyId-' +
                                              $tmp.access-topology-id + '-nodeId-' +
                                              $tmp.srcdstpnf-id`" />
-                                                                                                                            </set>
-                                                                                                                            <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
-                                                                                                                                          resource="pnf"
-                                                                                                                                          key="pnf.pnf-name = $tmp.srcdstpnf-name"
-                                                                                                                                          pfx='tmp.aai.srcdst-pnf' local-only='false' >
-                                                                                                                                <!--AND depth = '0'"-->
-                                                                                                                                <outcome value='success'>
-                                                                                                                                    <block>
-                                                                                                                                        <for silentFailure='true' index='spvidx' start='0' end='`$tmp.aai.srcdst-pnf.relationship-list.relationship_length`' >
-                                                                                                                                            <switch test='`$tmp.aai.srcdst-pnf.relationship-list.relationship[$spvidx].related-to`'>
-                                                                                                                                                <outcome value='esr-thirdparty-sdnc'>
-                                                                                                                                                    <block atomic="true">
-                                                                                                                                                        <set>
-                                                                                                                                                            <parameter name='tmp.domainG.esr-thirdparty-id' value="`$tmp.aai.srcdst-pnf.relationship-list.relationship[$spvidx].relationship-data[0].relationship-value`" />
-                                                                                                                                                        </set>
-                                                                                                                                                        <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
-                                                                                                                                                                      resource="esr-thirdparty-sdnc"
-                                                                                                                                                                      key="esr-thirdparty-sdnc.thirdparty-sdnc-id = $tmp.domainG.esr-thirdparty-id AND
+                                                                                                                        </set>
+                                                                                                                        <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                                                                      resource="pnf"
+                                                                                                                                      key="pnf.pnf-name = $tmp.srcdstpnf-name"
+                                                                                                                                      pfx='tmp.aai.srcdst-pnf' local-only='false' >
+                                                                                                                            <!--AND depth = '0'"-->
+                                                                                                                            <outcome value='success'>
+                                                                                                                                <block>
+                                                                                                                                    <for silentFailure='true' index='spvidx' start='0' end='`$tmp.aai.srcdst-pnf.relationship-list.relationship_length`' >
+                                                                                                                                        <switch test='`$tmp.aai.srcdst-pnf.relationship-list.relationship[$spvidx].related-to`'>
+                                                                                                                                            <outcome value='esr-thirdparty-sdnc'>
+                                                                                                                                                <block atomic="true">
+                                                                                                                                                    <set>
+                                                                                                                                                        <parameter name='tmp.domainG.esr-thirdparty-id' value="`$tmp.aai.srcdst-pnf.relationship-list.relationship[$spvidx].relationship-data[0].relationship-value`" />
+                                                                                                                                                    </set>
+                                                                                                                                                    <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                                                                                                                                                                  resource="esr-thirdparty-sdnc"
+                                                                                                                                                                  key="esr-thirdparty-sdnc.thirdparty-sdnc-id = $tmp.domainG.esr-thirdparty-id AND
 		     depth = '1'"
-                                                                                                                                                                      pfx='tmp.aai.domainG.esr-thirdparty-sdnc' local-only='false' >
-                                                                                                                                                            <outcome value='success'>
-                                                                                                                                                                <block>
-                                                                                                                                                                    <set>
-                                                                                                                                                                        <parameter name='prop.sdncRestApi.thirdpartySdnc.domainG.url' value="`$tmp.aai.domainG.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].service-url`" />
-                                                                                                                                                                        <parameter name='prop.sdncRestApi.thirdpartySdnc.domainG.user' value="`$tmp.aai.domainG.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].user-name`" />
-                                                                                                                                                                        <parameter name='prop.sdncRestApi.thirdpartySdnc.domainG.password' value="`$tmp.aai.domainG.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].password`" />
-                                                                                                                                                                        <!--<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >-->
-                                                                                                                                                                        <!--<parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-network:networks'`" />-->
-                                                                                                                                                                        <!--<parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />-->
-                                                                                                                                                                        <!--<parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />-->
-                                                                                                                                                                        <!--<parameter name="format" value="json"/>-->
-                                                                                                                                                                        <!--<parameter name="httpMethod" value="get"/>-->
-                                                                                                                                                                        <!--<parameter name="responsePrefix" value="topology"/>-->
-                                                                                                                                                                        <!--<parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>-->
-                                                                                                                                                                        <!--<parameter name="trustStorePassword" value="adminadmin"/>-->
-                                                                                                                                                                        <!--<parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>-->
-                                                                                                                                                                        <!--<parameter name="keyStorePassword" value="adminadmin"/>-->
-                                                                                                                                                                    </set>
-                                                                                                                                                                </block>
-                                                                                                                                                            </outcome>
-                                                                                                                                                            <outcome value='not-found'>
-                                                                                                                                                                <return status='failure'>
-                                                                                                                                                                    <parameter name='ack-final' value='Y'/>
-                                                                                                                                                                    <parameter name="error-code" value="500" />
-                                                                                                                                                                    <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
-                                                                                                                                                                </return>
-                                                                                                                                                            </outcome>
-                                                                                                                                                            <outcome value='Other'>
-                                                                                                                                                                <return status='failure'>
-                                                                                                                                                                    <parameter name='ack-final' value='Y'/>
-                                                                                                                                                                    <parameter name="error-code" value="500" />
-                                                                                                                                                                    <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
-                                                                                                                                                                </return>
-                                                                                                                                                            </outcome>
-                                                                                                                                                        </get-resource>
-                                                                                                                                                    </block>
-                                                                                                                                                </outcome>
-                                                                                                                                            </switch>
-                                                                                                                                        </for>
-                                                                                                                                    </block>
-                                                                                                                                </outcome>
-                                                                                                                                <outcome value='not-found'>
-                                                                                                                                    <return status='failure'>
-                                                                                                                                        <parameter name='ack-final' value='Y'/>
-                                                                                                                                        <parameter name="error-code" value="500" />
-                                                                                                                                        <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
-                                                                                                                                    </return>
-                                                                                                                                </outcome>
-                                                                                                                                <outcome value='Other'>
-                                                                                                                                    <return status='failure'>
-                                                                                                                                        <parameter name='ack-final' value='Y'/>
-                                                                                                                                        <parameter name="error-code" value="500" />
-                                                                                                                                        <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
-                                                                                                                                    </return>
-                                                                                                                                </outcome>
-                                                                                                                            </get-resource>
-                                                                                                                            <switch test='`$otnidx == 0`'>
-                                                                                                                                <outcome value='true'>
-                                                                                                                                    <block>
+                                                                                                                                                                  pfx='tmp.aai.domainG.esr-thirdparty-sdnc' local-only='false' >
+                                                                                                                                                        <outcome value='success'>
+                                                                                                                                                            <block>
+                                                                                                                                                                <set>
+                                                                                                                                                                    <parameter name='prop.sdncRestApi.thirdpartySdnc.domainG.url' value="`$tmp.aai.domainG.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].service-url`" />
+                                                                                                                                                                    <parameter name='prop.sdncRestApi.thirdpartySdnc.domainG.user' value="`$tmp.aai.domainG.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].user-name`" />
+                                                                                                                                                                    <parameter name='prop.sdncRestApi.thirdpartySdnc.domainG.password' value="`$tmp.aai.domainG.esr-thirdparty-sdnc.esr-system-info-list.esr-system-info[0].password`" />
+                                                                                                                                                                    <!--<execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >-->
+                                                                                                                                                                    <!--<parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.url + '/restconf/data/ietf-network:networks'`" />-->
+                                                                                                                                                                    <!--<parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.user`" />-->
+                                                                                                                                                                    <!--<parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.password`" />-->
+                                                                                                                                                                    <!--<parameter name="format" value="json"/>-->
+                                                                                                                                                                    <!--<parameter name="httpMethod" value="get"/>-->
+                                                                                                                                                                    <!--<parameter name="responsePrefix" value="topology"/>-->
+                                                                                                                                                                    <!--<parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>-->
+                                                                                                                                                                    <!--<parameter name="trustStorePassword" value="adminadmin"/>-->
+                                                                                                                                                                    <!--<parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>-->
+                                                                                                                                                                    <!--<parameter name="keyStorePassword" value="adminadmin"/>-->
+                                                                                                                                                                </set>
+                                                                                                                                                            </block>
+                                                                                                                                                        </outcome>
+                                                                                                                                                        <outcome value='not-found'>
+                                                                                                                                                            <return status='failure'>
+                                                                                                                                                                <parameter name='ack-final' value='Y'/>
+                                                                                                                                                                <parameter name="error-code" value="500" />
+                                                                                                                                                                <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                                                                                                            </return>
+                                                                                                                                                        </outcome>
+                                                                                                                                                        <outcome value='Other'>
+                                                                                                                                                            <return status='failure'>
+                                                                                                                                                                <parameter name='ack-final' value='Y'/>
+                                                                                                                                                                <parameter name="error-code" value="500" />
+                                                                                                                                                                <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                                                                                                            </return>
+                                                                                                                                                        </outcome>
+                                                                                                                                                    </get-resource>
+                                                                                                                                                </block>
+                                                                                                                                            </outcome>
+                                                                                                                                        </switch>
+                                                                                                                                    </for>
+                                                                                                                                </block>
+                                                                                                                            </outcome>
+                                                                                                                            <outcome value='not-found'>
+                                                                                                                                <return status='failure'>
+                                                                                                                                    <parameter name='ack-final' value='Y'/>
+                                                                                                                                    <parameter name="error-code" value="500" />
+                                                                                                                                    <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                                                                                </return>
+                                                                                                                            </outcome>
+                                                                                                                            <outcome value='Other'>
+                                                                                                                                <return status='failure'>
+                                                                                                                                    <parameter name='ack-final' value='Y'/>
+                                                                                                                                    <parameter name="error-code" value="500" />
+                                                                                                                                    <parameter name="error-message" value="`'Unexpected error occurred while querying pnf from AnAI with pnf-name = ' + $prop.connection-attachement.access-node-id`" />
+                                                                                                                                </return>
+                                                                                                                            </outcome>
+                                                                                                                        </get-resource>
+                                                                                                                        <switch test='`$otnidx == 0`'>
+                                                                                                                            <outcome value='true'>
+                                                                                                                                <block>
+                                                                                                                                    <set>
+                                                                                                                                        <parameter name='tmp.domainG-src-access-node-id' value='`$param-prefix-domainA[$param-prefix-domainA_length -3]`' />
+                                                                                                                                        <parameter name='tmp.domainG-dst-access-node-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-node-id`' />
+                                                                                                                                    </set>
+                                                                                                                                </block>
+                                                                                                                            </outcome>
+                                                                                                                            <outcome value='false'>
+                                                                                                                                <switch test='`$otnidx == $tmp.otninfo_length - 1`'>
+                                                                                                                                    <outcome value='true'>
+                                                                                                                                        <block>
+                                                                                                                                            <set>
+                                                                                                                                                <parameter name='tmp.domainG-src-access-node-id' value='`$tmp.otninfo[$otnidx].srcPort.src-access-node-id`' />
+                                                                                                                                                <parameter name='tmp.domainG-dst-access-node-id' value='`$param-prefix-domainB[$param-prefix-domainB_length -3]`' />
+                                                                                                                                            </set>
+                                                                                                                                        </block>
+                                                                                                                                    </outcome>
+                                                                                                                                    <outcome value='false'>
                                                                                                                                         <set>
-                                                                                                                                            <parameter name='tmp.domainG-src-access-node-id' value='`$param-prefix-domainA[$param-prefix-domainA_length -3]`' />
+                                                                                                                                            <parameter name='tmp.domainG-src-access-node-id' value='`$tmp.otninfo[$otnidx].srcPort.src-access-node-id`' />
                                                                                                                                             <parameter name='tmp.domainG-dst-access-node-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-node-id`' />
                                                                                                                                         </set>
-                                                                                                                                    </block>
-                                                                                                                                </outcome>
-                                                                                                                                <outcome value='false'>
+                                                                                                                                    </outcome>
+                                                                                                                                </switch>
+                                                                                                                            </outcome>
+                                                                                                                        </switch>
+                                                                                                                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding'
+                                                                                                                              key='vpn-binding.vpn-id = $prop.vpn-binding-otnidx-uuid' >
+                                                                                                                            <parameter name='vpn-id' value='`$prop.vpn-binding-otnidx-uuid`' />
+                                                                                                                            <parameter name='vpn-name' value='`$prop.otn-tunnel-name`' />
+                                                                                                                            <!--<parameter name='customer-vpn-id' value='`($idx + 1) * 10`' />-->
+                                                                                                                            <parameter name='customer-vpn-id' value='`($maxtpn + $gfp)`' />
+                                                                                                                            <!--<parameter name='access-provider-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-provider-id`' />-->
+                                                                                                                            <parameter name='access-provider-id' value='`$tmp.access-provider-id`' />
+                                                                                                                            <!--<parameter name='access-client-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-client-id`' />-->
+                                                                                                                            <parameter name='access-client-id' value='`$tmp.access-client-id`' />
+                                                                                                                            <!--<parameter name='access-topology-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-topology-id`' />-->
+                                                                                                                            <parameter name='access-topology-id' value='`$tmp.access-topology-id`' />
+                                                                                                                            <!--<parameter name='src-access-node-id' value='`$tmp.otninfo[$otnidx].srcPort.src-access-node-id`' />-->
+                                                                                                                            <parameter name='src-access-node-id' value='`$tmp.domainG-src-access-node-id`' />
+                                                                                                                            <parameter name='src-access-ltp-id' value='`$tmp.otninfo[$otnidx].srcPort.src-ltp-id`' />
+                                                                                                                            <!--<parameter name='dst-access-node-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-node-id`' />-->
+                                                                                                                            <parameter name='dst-access-node-id' value='`$tmp.domainG-dst-access-node-id`' />
+                                                                                                                            <parameter name='dst-access-ltp-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-ltp-id`' />
+                                                                                                                            <parameter name='route-distinguisher' value='`$gfp`' />
+                                                                                                                            <parameter name='operational-status' value='Created' />
+                                                                                                                            <!--<parameter name='model-customization-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-customization-uuid`' />-->
+                                                                                                                            <!--<parameter name='model-invariant-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-invariant-uuid`' />-->
+                                                                                                                            <!--<parameter name='model-version-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-uuid`' />-->
+                                                                                                                            <parameter name='vpn-region' value='`$prop.sdncRestApi.thirdpartySdnc.domainG.url`' />
+                                                                                                                            <parameter name='vpn-description' value='`$prop.sdncRestApi.thirdpartySdnc.domainG.user`' />
+                                                                                                                            <parameter name='vpn-platform' value='`$prop.sdncRestApi.thirdpartySdnc.domainG.password`' />
+                                                                                                                            <!-- The following line is in lieu of vpn-binding.slice-id (new attribute in latest AAI) -->
+                                                                                                                            <parameter name='ops-note' value='`$tmp.aai.service-instance.service-instance-id`' />
+                                                                                                                            <outcome value='success'>
+                                                                                                                                <block></block>
+                                                                                                                            </outcome>
+                                                                                                                        </save>
+                                                                                                                        <switch test='`$otnidx == 0`'>
+                                                                                                                            <outcome value='true'>
+                                                                                                                                <block>
+                                                                                                                                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding:relationship-list'
+                                                                                                                                          key='vpn-binding.vpn-id = $prop.vpn-binding-otnidx-uuid'
+                                                                                                                                          force="true" pfx="tmp.AnAI-data">
+                                                                                                                                        <parameter name="relationship-list.relationship[0].related-to" value="connectivity" />
+                                                                                                                                        <parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $uuid.connectivity-domainA-uuid`" />
+                                                                                                                                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />
+                                                                                                                                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$uuid.connectivity-domainA-uuid`" />
+                                                                                                                                    </save>
+                                                                                                                                    <set>
+                                                                                                                                        <parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />
+                                                                                                                                    </set>
+                                                                                                                                </block>
+                                                                                                                            </outcome>
+                                                                                                                            <outcome value='false'>
+                                                                                                                                <block>
+                                                                                                                                    <set>
+                                                                                                                                        <parameter name='testingvalue' value='$tmp.otninfo_length -1' />
+                                                                                                                                    </set>
                                                                                                                                     <switch test='`$otnidx == $tmp.otninfo_length - 1`'>
                                                                                                                                         <outcome value='true'>
                                                                                                                                             <block>
+                                                                                                                                                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding:relationship-list'
+                                                                                                                                                      key='vpn-binding.vpn-id = $prop.vpn-binding-otnidx-uuid'
+                                                                                                                                                      force="true" pfx="tmp.AnAI-data">
+                                                                                                                                                    <parameter name="relationship-list.relationship[0].related-to" value="connectivity" />
+                                                                                                                                                    <parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $prop.connectivity-domainB-uuid`" />
+                                                                                                                                                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />
+                                                                                                                                                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$prop.connectivity-domainB-uuid`" />
+                                                                                                                                                </save>
                                                                                                                                                 <set>
-                                                                                                                                                    <parameter name='tmp.domainG-src-access-node-id' value='`$tmp.otninfo[$otnidx].srcPort.src-access-node-id`' />
-                                                                                                                                                    <parameter name='tmp.domainG-dst-access-node-id' value='`$param-prefix-domainB[$param-prefix-domainB_length -3]`' />
+                                                                                                                                                    <parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />
                                                                                                                                                 </set>
                                                                                                                                             </block>
                                                                                                                                         </outcome>
                                                                                                                                         <outcome value='false'>
-                                                                                                                                            <set>
-                                                                                                                                                <parameter name='tmp.domainG-src-access-node-id' value='`$tmp.otninfo[$otnidx].srcPort.src-access-node-id`' />
-                                                                                                                                                <parameter name='tmp.domainG-dst-access-node-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-node-id`' />
-                                                                                                                                            </set>
-                                                                                                                                        </outcome>
-                                                                                                                                    </switch>
-                                                                                                                                </outcome>
-                                                                                                                            </switch>
-                                                                                                                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding'
-                                                                                                                                  key='vpn-binding.vpn-id = $prop.vpn-binding-otnidx-uuid' >
-                                                                                                                                <parameter name='vpn-id' value='`$prop.vpn-binding-otnidx-uuid`' />
-                                                                                                                                <parameter name='vpn-name' value='`$prop.otn-tunnel-name`' />
-                                                                                                                                <!--<parameter name='customer-vpn-id' value='`($idx + 1) * 10`' />-->
-                                                                                                                                <parameter name='customer-vpn-id' value='`($maxtpn + $gfp)`' />
-                                                                                                                                <!--<parameter name='access-provider-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-provider-id`' />-->
-                                                                                                                                <parameter name='access-provider-id' value='`$tmp.access-provider-id`' />
-                                                                                                                                <!--<parameter name='access-client-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-client-id`' />-->
-                                                                                                                                <parameter name='access-client-id' value='`$tmp.access-client-id`' />
-                                                                                                                                <!--<parameter name='access-topology-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-topology-id`' />-->
-                                                                                                                                <parameter name='access-topology-id' value='`$tmp.access-topology-id`' />
-                                                                                                                                <!--<parameter name='src-access-node-id' value='`$tmp.otninfo[$otnidx].srcPort.src-access-node-id`' />-->
-                                                                                                                                <parameter name='src-access-node-id' value='`$tmp.domainG-src-access-node-id`' />
-                                                                                                                                <parameter name='src-access-ltp-id' value='`$tmp.otninfo[$otnidx].srcPort.src-tunnel-tp-id`' />
-                                                                                                                                <!--<parameter name='dst-access-node-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-node-id`' />-->
-                                                                                                                                <parameter name='dst-access-node-id' value='`$tmp.domainG-dst-access-node-id`' />
-                                                                                                                                <parameter name='dst-access-ltp-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-tunnel-tp-id`' />
-                                                                                                                                <parameter name='route-distinguisher' value='`$gfp`' />
-                                                                                                                                <parameter name='operational-status' value='Created' />
-                                                                                                                                <!--<parameter name='model-customization-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-customization-uuid`' />-->
-                                                                                                                                <!--<parameter name='model-invariant-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-invariant-uuid`' />-->
-                                                                                                                                <!--<parameter name='model-version-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-uuid`' />-->
-                                                                                                                                <parameter name='vpn-region' value='`$prop.sdncRestApi.thirdpartySdnc.domainG.url`' />
-                                                                                                                                <parameter name='vpn-description' value='`$prop.sdncRestApi.thirdpartySdnc.domainG.user`' />
-                                                                                                                                <parameter name='vpn-platform' value='`$prop.sdncRestApi.thirdpartySdnc.domainG.password`' />
-                                                                                                                                <!-- The following line is in lieu of vpn-binding.slice-id (new attribute in latest AAI) -->
-                                                                                                                                <parameter name='ops-note' value='`$tmp.aai.service-instance.service-instance-id`' />
-                                                                                                                                <outcome value='success'>
-                                                                                                                                    <block></block>
-                                                                                                                                </outcome>
-                                                                                                                            </save>
-                                                                                                                            <switch test='`$otnidx == 0`'>
-                                                                                                                                <outcome value='true'>
-                                                                                                                                    <block>
-                                                                                                                                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding:relationship-list'
-                                                                                                                                              key='vpn-binding.vpn-id = $prop.vpn-binding-otnidx-uuid'
-                                                                                                                                              force="true" pfx="tmp.AnAI-data">
-                                                                                                                                            <parameter name="relationship-list.relationship[0].related-to" value="connectivity" />
-                                                                                                                                            <parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $uuid.connectivity-domainA-uuid`" />
-                                                                                                                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />
-                                                                                                                                            <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$uuid.connectivity-domainA-uuid`" />
-                                                                                                                                        </save>
-                                                                                                                                        <set>
-                                                                                                                                            <parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />
-                                                                                                                                        </set>
-                                                                                                                                    </block>
-                                                                                                                                </outcome>
-                                                                                                                                <outcome value='false'>
-                                                                                                                                    <block>
-                                                                                                                                        <set>
-                                                                                                                                            <parameter name='testingvalue' value='$tmp.otninfo_length -1' />
-                                                                                                                                        </set>
-                                                                                                                                        <switch test='`$otnidx == $tmp.otninfo_length - 1`'>
-                                                                                                                                            <outcome value='true'>
-                                                                                                                                                <block>
-                                                                                                                                                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding:relationship-list'
-                                                                                                                                                          key='vpn-binding.vpn-id = $prop.vpn-binding-otnidx-uuid'
-                                                                                                                                                          force="true" pfx="tmp.AnAI-data">
-                                                                                                                                                        <parameter name="relationship-list.relationship[0].related-to" value="connectivity" />
-                                                                                                                                                        <parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $prop.connectivity-domainB-uuid`" />
-                                                                                                                                                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />
-                                                                                                                                                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$prop.connectivity-domainB-uuid`" />
-                                                                                                                                                    </save>
-                                                                                                                                                    <set>
-                                                                                                                                                        <parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />
-                                                                                                                                                    </set>
-                                                                                                                                                </block>
-                                                                                                                                            </outcome>
-                                                                                                                                            <outcome value='false'>
-                                                                                                                                                <block atomic='true'>
-                                                                                                                                                    <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
-                                                                                                                                                        <parameter name="ctx-destination" value="uuid.connectivity-otnidx-uuid"/>
-                                                                                                                                                    </execute>
-                                                                                                                                                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity'
-                                                                                                                                                          key='connectivity.connectivity-id = $uuid.connectivity-otnidx-uuid'>
-                                                                                                                                                        <parameter name='connectivity-id' value='`$uuid.connectivity-otnidx-uuid`' />
-                                                                                                                                                        <!--<parameter name='etht-svc-name' value='`$prop.ethernet-service-name`' />-->
-                                                                                                                                                        <parameter name='operational-status' value='Created' />
-                                                                                                                                                        <!--<parameter name='access-provider-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-provider-id`' />-->
-                                                                                                                                                        <!--<parameter name='access-client-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-client-id`' />-->
-                                                                                                                                                        <!--<parameter name='access-topology-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-topology-id`' />-->
-                                                                                                                                                        <!--<parameter name='access-node-id' value='`$tmp.otninfo[$otnidx].srcPort.src-access-node-id`' />-->
-                                                                                                                                                        <!--<parameter name='access-ltp-id' value='``' />-->
-                                                                                                                                                        <!--<parameter name='cvlan' value='`$tmp.aai.network-route-A.logical-interface-id`' />-->
-                                                                                                                                                        <!--<parameter name='bandwidth-profile-name' value='`$prop.sotn.etht-svc-name`' />-->
-                                                                                                                                                        <parameter name='bandwidth-profile-name' value='`$gfp`' />
-                                                                                                                                                        <parameter name='vpn-type' value='dummy' />
-                                                                                                                                                        <parameter name='cir' value='`$gfp *1000000`' />
-                                                                                                                                                        <parameter name='eir' value='`$gfp *1000000`' />
-                                                                                                                                                        <!--<parameter name='cbs' value='`$prop.sotn.cbs`' />-->
-                                                                                                                                                        <!--<parameter name='ebs' value='`$prop.sotn.ebs`' />-->
-                                                                                                                                                        <!--<parameter name='color-aware' value='`$prop.sotn.colorAware`' />-->
-                                                                                                                                                        <!--<parameter name='coupling-flag' value='`$prop.sotn.couplingFlag`' />-->
-                                                                                                                                                        <!--<parameter name='etht-svc-name' value='`$prop.sotn.etht-svc-name`' />-->
-                                                                                                                                                        <!--<parameter name='model-customization-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-customization-uuid`' />-->
-                                                                                                                                                        <!--<parameter name='model-invariant-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-invariant-uuid`' />-->
-                                                                                                                                                        <!--<parameter name='model-version-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-uuid`' />-->
-                                                                                                                                                        <parameter name='connectivity-selflink' value="`'restconf/config/GENERIC-RESOURCE-API:services/service/'  + $network-topology-operation-input.service-information.service-instance-id  + '/service-data/networks/network/'  + $prop.sotn.network-id  + '/network-data/'` " />
-                                                                                                                                                    </save>
-                                                                                                                                                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list'
-                                                                                                                                                          key='service-instance.service-instance-id = $vnf-topology-operation-input.service-information.service-instance-id
+                                                                                                                                            <block atomic='true'>
+                                                                                                                                                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
+                                                                                                                                                    <parameter name="ctx-destination" value="uuid.connectivity-otnidx-uuid"/>
+                                                                                                                                                </execute>
+                                                                                                                                                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='connectivity'
+                                                                                                                                                      key='connectivity.connectivity-id = $uuid.connectivity-otnidx-uuid'>
+                                                                                                                                                    <parameter name='connectivity-id' value='`$uuid.connectivity-otnidx-uuid`' />
+                                                                                                                                                    <!--<parameter name='etht-svc-name' value='`$prop.ethernet-service-name`' />-->
+                                                                                                                                                    <parameter name='operational-status' value='Created' />
+                                                                                                                                                    <!--<parameter name='access-provider-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-provider-id`' />-->
+                                                                                                                                                    <!--<parameter name='access-client-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-client-id`' />-->
+                                                                                                                                                    <!--<parameter name='access-topology-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-topology-id`' />-->
+                                                                                                                                                    <!--<parameter name='access-node-id' value='`$tmp.otninfo[$otnidx].srcPort.src-access-node-id`' />-->
+                                                                                                                                                    <!--<parameter name='access-ltp-id' value='``' />-->
+                                                                                                                                                    <!--<parameter name='cvlan' value='`$tmp.aai.network-route-A.logical-interface-id`' />-->
+                                                                                                                                                    <!--<parameter name='bandwidth-profile-name' value='`$prop.sotn.etht-svc-name`' />-->
+                                                                                                                                                    <parameter name='bandwidth-profile-name' value='`$gfp`' />
+                                                                                                                                                    <parameter name='vpn-type' value='dummy' />
+                                                                                                                                                    <parameter name='cir' value='`$gfp *1000000`' />
+                                                                                                                                                    <parameter name='eir' value='`$gfp *1000000`' />
+                                                                                                                                                    <!--<parameter name='cbs' value='`$prop.sotn.cbs`' />-->
+                                                                                                                                                    <!--<parameter name='ebs' value='`$prop.sotn.ebs`' />-->
+                                                                                                                                                    <!--<parameter name='color-aware' value='`$prop.sotn.colorAware`' />-->
+                                                                                                                                                    <!--<parameter name='coupling-flag' value='`$prop.sotn.couplingFlag`' />-->
+                                                                                                                                                    <!--<parameter name='etht-svc-name' value='`$prop.sotn.etht-svc-name`' />-->
+                                                                                                                                                    <!--<parameter name='model-customization-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-customization-uuid`' />-->
+                                                                                                                                                    <!--<parameter name='model-invariant-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-invariant-uuid`' />-->
+                                                                                                                                                    <!--<parameter name='model-version-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-uuid`' />-->
+                                                                                                                                                    <parameter name='connectivity-selflink' value="`'restconf/config/GENERIC-RESOURCE-API:services/service/'  + $network-topology-operation-input.service-information.service-instance-id  + '/service-data/networks/network/'  + $prop.sotn.network-id  + '/network-data/'` " />
+                                                                                                                                                </save>
+                                                                                                                                                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list'
+                                                                                                                                                      key='service-instance.service-instance-id = $vnf-topology-operation-input.service-information.service-instance-id
          AND customer.global-customer-id = $vnf-topology-operation-input.service-information.global-customer-id
          AND service-subscription.service-type = $vnf-topology-operation-input.service-information.subscription-service-type'
-                                                                                                                                                          force="true" pfx="tmp.AnAI-data">
-                                                                                                                                                        <parameter name="relationship-list.relationship[0].related-to" value="connectivity" />
-                                                                                                                                                        <parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $uuid.connectivity-otnidx-uuid`" />
-                                                                                                                                                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />
-                                                                                                                                                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$uuid.connectivity-otnidx-uuid`" />
-                                                                                                                                                        <!--<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list' -->
-                                                                                                                                                        <!--      key='service-instance.service-instance-id = $service-data.service-information.service-instance-id -->
-                                                                                                                                                        <!--         AND customer.global-customer-id = $service-data.networks.network[$nidx].network-data.service-information.global-customer-id -->
-                                                                                                                                                        <!--         AND service-subscription.service-type = $service-data.networks.network[$nidx].network-data.service-information.subscription-service-type' -->
-                                                                                                                                                        <!--      force="true" pfx="tmp.AnAI-data">-->
-                                                                                                                                                        <!--<parameter name="relationship-list.relationship[0].related-to" value="connectivity" />-->
-                                                                                                                                                        <!--<parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $prop.sotn.network-id`" />-->
-                                                                                                                                                        <!--<parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />-->
-                                                                                                                                                        <!--<parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$prop.sotn.network-id`" />-->
-                                                                                                                                                    </save>
-                                                                                                                                                    <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding:relationship-list'
-                                                                                                                                                          key='vpn-binding.vpn-id = $prop.vpn-binding-otnidx-uuid'
-                                                                                                                                                          force="true" pfx="tmp.AnAI-data">
-                                                                                                                                                        <parameter name="relationship-list.relationship[0].related-to" value="connectivity" />
-                                                                                                                                                        <parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $uuid.connectivity-otnidx-uuid`" />
-                                                                                                                                                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />
-                                                                                                                                                        <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$uuid.connectivity-otnidx-uuid`" />
-                                                                                                                                                    </save>
-                                                                                                                                                    <set>
-                                                                                                                                                        <parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />
-                                                                                                                                                    </set>
-                                                                                                                                                </block>
-                                                                                                                                            </outcome>
-                                                                                                                                        </switch>
-                                                                                                                                    </block>
-                                                                                                                                </outcome>
-                                                                                                                            </switch>
-                                                                                                                        </block>
-                                                                                                                    </for>
-                                                                                                                </block>
-                                                                                                            </call>
+                                                                                                                                                      force="true" pfx="tmp.AnAI-data">
+                                                                                                                                                    <parameter name="relationship-list.relationship[0].related-to" value="connectivity" />
+                                                                                                                                                    <parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $uuid.connectivity-otnidx-uuid`" />
+                                                                                                                                                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />
+                                                                                                                                                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$uuid.connectivity-otnidx-uuid`" />
+                                                                                                                                                    <!--<save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='service-instance:relationship-list' -->
+                                                                                                                                                    <!--      key='service-instance.service-instance-id = $service-data.service-information.service-instance-id -->
+                                                                                                                                                    <!--         AND customer.global-customer-id = $service-data.networks.network[$nidx].network-data.service-information.global-customer-id -->
+                                                                                                                                                    <!--         AND service-subscription.service-type = $service-data.networks.network[$nidx].network-data.service-information.subscription-service-type' -->
+                                                                                                                                                    <!--      force="true" pfx="tmp.AnAI-data">-->
+                                                                                                                                                    <!--<parameter name="relationship-list.relationship[0].related-to" value="connectivity" />-->
+                                                                                                                                                    <!--<parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $prop.sotn.network-id`" />-->
+                                                                                                                                                    <!--<parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />-->
+                                                                                                                                                    <!--<parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$prop.sotn.network-id`" />-->
+                                                                                                                                                </save>
+                                                                                                                                                <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding:relationship-list'
+                                                                                                                                                      key='vpn-binding.vpn-id = $prop.vpn-binding-otnidx-uuid'
+                                                                                                                                                      force="true" pfx="tmp.AnAI-data">
+                                                                                                                                                    <parameter name="relationship-list.relationship[0].related-to" value="connectivity" />
+                                                                                                                                                    <parameter name="relationship-list.relationship[0].related-link" value="`'/network/connectivities/connectivity/' + $uuid.connectivity-otnidx-uuid`" />
+                                                                                                                                                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-key" value="connectivity.connectivity-id" />
+                                                                                                                                                    <parameter name="relationship-list.relationship[0].relationship-data[0].relationship-value" value="`$uuid.connectivity-otnidx-uuid`" />
+                                                                                                                                                </save>
+                                                                                                                                                <set>
+                                                                                                                                                    <parameter name='slice-instance-id' value='`$tmp.aai.service-instance.service-instance-id`' />
+                                                                                                                                                </set>
+                                                                                                                                            </block>
+                                                                                                                                        </outcome>
+                                                                                                                                    </switch>
+                                                                                                                                </block>
+                                                                                                                            </outcome>
+                                                                                                                        </switch>
+                                                                                                                    </block>
+                                                                                                                </for>
+                                                                                                            </block>
                                                                                                         </outcome>
                                                                                                         <outcome value='true'>
-                                                                                                            <block>
+                                                                                                            <block atomic='true'>
                                                                                                                 <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
                                                                                                                     <parameter name="ctx-destination" value="prop.vpn-binding-samedomain-uuid"/>
                                                                                                                 </execute>
                                                                                                                 <set>
                                                                                                                     <parameter name='tmp.sameDomain-src-access-node-id' value='`$param-prefix-domainA[$param-prefix-domainA_length -3]`' />
                                                                                                                     <parameter name='tmp.sameDomain-dst-access-node-id' value='`$param-prefix-domainB[$param-prefix-domainB_length -3]`' />
+                                                                                                                    <parameter name='tmp.sameDomain-src-access-ltp-id' value='`$param-prefix-domainA[$param-prefix-domainA_length -1]`' />
+                                                                                                                    <parameter name='tmp.sameDomain-dst-access-ltp-id' value='`$param-prefix-domainB[$param-prefix-domainB_length -1]`' />
                                                                                                                 </set>
                                                                                                                 <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource='vpn-binding'
                                                                                                                       key='vpn-binding.vpn-id = $prop.vpn-binding-samedomain-uuid' >
@@ -1039,10 +1071,10 @@
                                                                                                                     <parameter name='access-topology-id' value='`$param-prefix-domainA[$param-prefix-domainA_length -5]`' />
                                                                                                                     <!--<parameter name='src-access-node-id' value='`$tmp.otninfo[$otnidx].srcPort.src-access-node-id`' />-->
                                                                                                                     <parameter name='src-access-node-id' value='`$tmp.sameDomain-src-access-node-id`' />
-                                                                                                                    <!--<parameter name='src-access-ltp-id' value='`$tmp.otninfo[$otnidx].srcPort.src-tunnel-tp-id`' />-->
+                                                                                                                    <parameter name='src-access-ltp-id' value='`$tmp.sameDomain-src-access-ltp-id`' />
                                                                                                                     <!--<parameter name='dst-access-node-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-access-node-id`' />-->
                                                                                                                     <parameter name='dst-access-node-id' value='`$tmp.sameDomain-dst-access-node-id`' />
-                                                                                                                    <!--<parameter name='dst-access-ltp-id' value='`$tmp.otninfo[$otnidx].dstPort.dst-tunnel-tp-id`' />-->
+                                                                                                                    <parameter name='dst-access-ltp-id' value='`$tmp.sameDomain-dst-access-ltp-id`' />
                                                                                                                     <parameter name='route-distinguisher' value='`$gfp`' />
                                                                                                                     <parameter name='operational-status' value='Created' />
                                                                                                                     <!--<parameter name='model-customization-id' value='`$network-topology-operation-input.network-information.onap-model-information.model-customization-uuid`' />-->
