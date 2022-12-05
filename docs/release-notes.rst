@@ -12,18 +12,14 @@ SDNC Release Notes
 Abstract
 ========
 
-This document provides the release notes for the Jakarta release of the Software Defined
+This document provides the release notes for the Kohn release of the Software Defined
 Network Controller (SDNC)
 
 Summary
 =======
 
-The Jakarta release of SDNC includes enhancements network slicing as well as a major OpenDaylight release
-upgrade (to Phosphorus).
-
-The Jakarta release of SDNC also includes substantial improvements in automated test coverage integrated into
-the project's CI/CD framework.  In this release, each time a new SDNC is built, a regression suite is run
-and the docker is only saved if it passes this regression suite.
+The Kohn release of SDNC includes enhancements network slicing as well as a major OpenDaylight release
+upgrade (to Sulfur).
 
 
 
@@ -36,7 +32,7 @@ Release Data
 +-------------------------+-------------------------------------------+
 | **Docker images**       | See :ref:`dockercontainers` section below |
 +-------------------------+-------------------------------------------+
-| **Release designation** | Jakarta                                   |
+| **Release designation** | Kohn                                   |
 |                         |                                           |
 +-------------------------+-------------------------------------------+
 
@@ -44,24 +40,21 @@ Release Data
 New features
 ------------
 
-The SDNC Jakarta release includes the following features,  which are inherited from CCSDK:
+The SDNC Kohn release includes the following features,  which are inherited from CCSDK:
 
-* Upgrade to OpenDaylight Phosphorus Release (Jira `CCSDK-3451 <https://jira.onap.org/browse/CCSDK-3451>`_)
-* A1 Adapter and A1 Policy Management Extensions in Jakarta Release - CCSDK (Jira `CCSDK-3463 <https://jira.onap.org/browse/CCSDK-3463>`_)
-* CCSDK impacts for Network slicing in Jakarta Release (Jira `CCSDK-3554 <https://jira.onap.org/browse/CCSDK-3554>`_)
+* Upgrade to OpenDaylight Sulfur Release (Jira `CCSDK-3673 <https://jira.onap.org/browse/CCSDK-3673>`_)
+* CCSDK Enhancements for 5G OOF SON use case in Kohn release (Jira `CCSDK-3644 <https://jira.onap.org/browse/CCSDK-3644>`_)
+* A1 Adapter and A1 Policy Managements Enhancements in Kohn Release - CCSDK (Jira `CCSDK-3617 <https://jira.onap.org/browse/CCSDK-3617>`_)
+* Prepare for removal of Bierman RESTCONF in ODL Chlorine release (Jira `CCSDK-3674 <https://jira.onap.org/browse/CCSDK-3674>`_)
 
 
-For the complete list of `CCSDK Jakarta release epics <https://jira.onap.org/issues/?filter=12711>`_ and
-`CCSDK Jakarta release user stories <https://jira.onap.org/issues/?filter=12800>`_ , please see the `ONAP Jira`_.
+For the complete list of `CCSDK Kohn release epics <https://jira.onap.org/issues/?filter=12916>`_ and
+`CCSDK Kohn release user stories <https://jira.onap.org/issues/?filter=12917>`_ , please see the `ONAP Jira`_.
 
 **Bug fixes**
 
-The SDNC Jakarta release carries forward a fix from the Istanbul Maintenance Release 1 for a critical vulnerability discovered in log4j by
-upgrading to version 2.17.1 of the log4j-core package.  It also removes the 'data-migrator' package, which
-was an old Proof of Concept that is no longer maintained and which was using a vulnerable version of log4j.
-These changes are described further in Jira `SDNC-1655 <https://jira.onap.org/browse/SDNC-1655>` 
 
-The full list of `bugs fixed in the SDNC Jakarta release <https://jira.onap.org/issues/?filter=12802>`_ is maintained on the `ONAP Jira`_.
+The full list of `bugs fixed in the SDNC Kohn release <https://jira.onap.org/issues/?filter=13004>`_ is maintained on the `ONAP Jira`_.
 
 **Known Issues**
 
@@ -80,8 +73,8 @@ Software Deliverables
 Docker Containers
 `````````````````
 
-The following table lists the docker containers comprising the SDNC Jakarta
-release along with the current stable Jakarta version/tag.  Each of these is
+The following table lists the docker containers comprising the SDNC Kohn
+release along with the current stable Kohn version/tag.  Each of these is
 available on the ONAP nexus3 site (https://nexus3.onap.org) and can be downloaded
 with the following command::
 
@@ -92,17 +85,17 @@ with the following command::
 +--------------------------------+-----------------------------------------------------+---------+
 | Image name                     | Description                                         | Version |
 +================================+=====================================================+=========+
-| onap/sdnc-aaf-image            | SDNC controller image, integrated with AAF for RBAC | 2.3.1   |
+| onap/sdnc-aaf-image            | SDNC controller image, integrated with AAF for RBAC | 2.4.0   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-ansible-server-image | Ansible server                                      | 2.3.1   |
+| onap/sdnc-ansible-server-image | Ansible server                                      | 2.4.0   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-dmaap-listener-image | DMaaP listener                                      | 2.3.1  |
+| onap/sdnc-dmaap-listener-image | DMaaP listener                                      | 2.4.0   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-image                | SDNC controller image, without AAF integration      | 2.3.1   |
+| onap/sdnc-image                | SDNC controller image, without AAF integration      | 2.4.0   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-ueb-listener-image   | SDC listener                                        | 2.3.1   |
+| onap/sdnc-ueb-listener-image   | SDC listener                                        | 2.4.0   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-web-image            | Web tier (currently only used by SDN-R persona)     | 2.3.1   |
+| onap/sdnc-web-image            | Web tier (currently only used by SDN-R persona)     | 2.4.0   |
 +--------------------------------+-----------------------------------------------------+---------+
 
 
@@ -140,7 +133,7 @@ Security Notes
 Known Security Issues
 ~~~~~~~~~~~~~~~~~~~~~
 
-There are no known outstanding security issues related to SDNC Jakarta.
+There are no known outstanding security issues related to SDNC Kohn.
 
 
 Test Results
@@ -151,7 +144,7 @@ Not applicable
 References
 ==========
 
-For more information on the ONAP Jakarta release, please see:
+For more information on the ONAP Kohn release, please see:
 
 #. `ONAP Home Page`_
 #. `ONAP Documentation`_
