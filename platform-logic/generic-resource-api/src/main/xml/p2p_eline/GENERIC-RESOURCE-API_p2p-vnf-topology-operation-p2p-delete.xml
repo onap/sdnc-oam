@@ -148,26 +148,38 @@
                                                                                 <outcome value='failure'></outcome>
                                                                                 <outcome value='success'>
                                                                                     <block>
-                                                                                        <execute plugin='org.onap.ccsdk.sli.plugins.restconfdiscovery.PeriodicDiscoveryNode' method='deleteSubscription' >
-                                                                                            <parameter name="subscriberId" value="`$prop.sdncRestApi.thirdpartySdnc.domain.url`" />
-                                                                                            <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/' + $prop.restapi.cll-terminate-notification.templatefile`" />
-                                                                                            <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.domain.url + '/restconf/operations/ietf-subscribed-notifications:delete-subscription'`" />
-                                                                                            <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.domain.user`" />
-                                                                                            <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.domain.password`" />
-                                                                                            <parameter name="dirPath" value="/opt/sdnc/restconfapi/yang/notification" />
-                                                                                            <parameter name="format" value="json" />
-                                                                                            <parameter name="httpMethod" value="post" />
-                                                                                            <!--<parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>-->
-                                                                                            <!--<parameter name="trustStorePassword" value="adminadmin"/>-->
-                                                                                            <!--<parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>-->
-                                                                                            <!--<parameter name="keyStorePassword" value="adminadmin"/>-->
-                                                                                            <!--<parameter name='customHttpHeaders' value="X-ACCESS-TOKEN=x-ik2ps4ikvzupbx0486ft1ebzs7rt85futh9ho6eofy3wjsap7wqktemlqm4bbsmnar3vrtbyrzukbv5itd6m1cftldpjarnyle3sdcqq9hftc4lebz464b5ffxmlbvg9" />-->
-                                                                                            <parameter name="module" value="GENERIC-RESOURCE-API" />
-                                                                                            <parameter name="rpc" value="p2p-vnf-topology-operation-p2p-callbackdg-notification" />
-                                                                                            <parameter name="version" value="`$project.version`" />
-                                                                                            <parameter name="mode" value="sync" />
-                                                                                            <parameter name="responsePrefix" value="restapi-result"/>
-                                                                                        </execute>
+                                                                                        <switch test="`length($tmp.aai.vpn-binding.dst-access-ltp-id) == 0`">
+                                                                                            <outcome value='false'>
+                                                                                                <switch test="`length($tmp.aai.vpn-binding.src-access-ltp-id) == 0`">
+                                                                                                    <outcome value='true'></outcome>
+                                                                                                    <outcome value='false'>
+                                                                                                        <block atomic="true">
+                                                                                                            <execute plugin='org.onap.ccsdk.sli.plugins.restconfdiscovery.PeriodicDiscoveryNode' method='deleteSubscription' >
+                                                                                                                <parameter name="subscriberId" value="`$prop.sdncRestApi.thirdpartySdnc.domain.url`" />
+                                                                                                                <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/' + $prop.restapi.cll-terminate-notification.templatefile`" />
+                                                                                                                <parameter name="restapiUrl" value="`$prop.sdncRestApi.thirdpartySdnc.domain.url + '/restconf/operations/ietf-subscribed-notifications:delete-subscription'`" />
+                                                                                                                <parameter name="restapiUser" value="`$prop.sdncRestApi.thirdpartySdnc.domain.user`" />
+                                                                                                                <parameter name="restapiPassword" value="`$prop.sdncRestApi.thirdpartySdnc.domain.password`" />
+                                                                                                                <parameter name="dirPath" value="/opt/sdnc/restconfapi/yang/notification" />
+                                                                                                                <parameter name="format" value="json" />
+                                                                                                                <parameter name="httpMethod" value="post" />
+                                                                                                                <!--<parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>-->
+                                                                                                                <!--<parameter name="trustStorePassword" value="adminadmin"/>-->
+                                                                                                                <!--<parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>-->
+                                                                                                                <!--<parameter name="keyStorePassword" value="adminadmin"/>-->
+                                                                                                                <!--<parameter name='customHttpHeaders' value="X-ACCESS-TOKEN=x-ik2ps4ikvzupbx0486ft1ebzs7rt85futh9ho6eofy3wjsap7wqktemlqm4bbsmnar3vrtbyrzukbv5itd6m1cftldpjarnyle3sdcqq9hftc4lebz464b5ffxmlbvg9" />-->
+                                                                                                                <parameter name="module" value="GENERIC-RESOURCE-API" />
+                                                                                                                <parameter name="rpc" value="p2p-vnf-topology-operation-p2p-callbackdg-notification" />
+                                                                                                                <parameter name="version" value="`$project.version`" />
+                                                                                                                <parameter name="mode" value="sync" />
+                                                                                                                <parameter name="responsePrefix" value="restapi-result"/>
+                                                                                                            </execute>
+                                                                                                        </block>
+                                                                                                    </outcome>
+                                                                                                </switch>
+                                                                                            </outcome>
+                                                                                            <outcome value='true'></outcome>
+                                                                                        </switch>
                                                                                     </block>
                                                                                 </outcome>
                                                                             </execute>

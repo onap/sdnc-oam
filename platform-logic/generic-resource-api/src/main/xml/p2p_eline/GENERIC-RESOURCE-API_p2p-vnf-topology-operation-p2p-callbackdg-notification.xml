@@ -13,67 +13,211 @@
                 <parameter name='fileName' value='%SDNC_CONFIG_DIR%/generic-resource-api-dg.properties' />
                 <parameter name='contextPrefix' value='prop' />
             </execute>
-            <switch test="`$push-change-update.datastore-changes.type == 'update' `">
-                <outcome value='true'>
-                    <block atomic="true">
-                        <set>
-                            <!--<parameter name='rcvdNotif' value='`$notifvalue`' />-->
-                            <parameter name='rcvd-etht-svc-end-point' value='`$push-change-update.datastore-changes.payload.parameter-value[0].etht-svc-end-point`' />
-                            <parameter name='rcvd-subscription-id' value='`$push-change-update.subscription-id`' />
-                            <parameter name='rcvd-bandwidth-value' value='`$push-change-update.datastore-changes.payload.parameter-value[0].value`' />
-                            <parameter name='rcvd-service-instance-id' value='`$push-change-update.datastore-changes.payload.parameter-value[0].value-description`' />
-                        </set>
-                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource="service-instance:metadata"
+            <block atomic="true">
+                <set>
+                    <parameter name='rcvd-etht-svc-end-point' value='`$performance-monitoring.service-pm[0].service-pm-state.performance-data[3].parameter-value[0].index`' />
+                    <!--<parameter name='rcvd-subscription-id' value='`$push-change-update.subscription-id`' />-->
+                    <parameter name='rcvd-bandwidth-value' value='`$performance-monitoring.service-pm[0].service-pm-state.performance-data[3].parameter-value[0].value`' />
+                    <parameter name='rcvd-etht-service-name' value='`$performance-monitoring.service-pm[0].service-name`' />
+                </set>
+                <set>
+                    <parameter name='found-connectivity' value="false" />
+                </set>
+                <set>
+                    <parameter name='tmp.the-connectivity.' value="" />
+                    <parameter name='rcvd-service-instance-id' value="" />
+                </set>
+                <set>
+                    <parameter name='tmp.aai.helper-all-connectivities.' value="" />
+                </set>
+                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                              resource="connectivities"
+                              key="selflink = 'https://aai.onap:8443/aai/v24/network/connectivities/'"
+                              local-only="false"
+                              pfx="tmp.aai.helper-all-connectivities" >
+                    <outcome value='success'>
+                        <block atomic="true">
+                            <for index='helpconnidx' start='0' end='`$tmp.aai.helper-all-connectivities.connectivity_length`' >
+                                <block atomic='true'>
+                                    <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                        <parameter name="logger" value="message-log" />
+                                        <parameter name="level" value="info" />
+                                        <parameter name="field1" value="`$tmp.aai.helper-all-connectivities.connectivity[$helpconnidx].etht-svc-name`"/>
+                                    </record>
+                                    <switch test='`$tmp.aai.helper-all-connectivities.connectivity[$helpconnidx].etht-svc-name == $rcvd-etht-service-name`'>
+                                        <outcome value='false'>
+                                            <block></block>
+                                        </outcome>
+                                        <outcome value='true'>
+                                            <block>
+                                                <for silentFailure='true' index='cridx' start='0' end='`$tmp.aai.helper-all-connectivities.connectivity[$helpconnidx].relationship-list.relationship_length`' >
+                                                    <switch test='`$tmp.aai.helper-all-connectivities.connectivity[$helpconnidx].relationship-list.relationship[$cridx].related-to`'>
+                                                        <outcome value='service-instance'>
+                                                            <block atomic="true">
+                                                                <set>
+                                                                    <parameter name='rcvd-service-instance-id' value="`$tmp.aai.helper-all-connectivities.connectivity[$helpconnidx].relationship-list.relationship[$cridx].relationship-data[2].relationship-value`" />
+                                                                </set>
+                                                                <break/>
+                                                            </block>
+                                                        </outcome>
+                                                    </switch>
+                                                </for>
+                                            </block>
+                                        </outcome>
+                                    </switch>
+                                </block>
+                            </for>
+                        </block>
+                    </outcome>
+                    <outcome value='not-found'>
+                        <return status='failure'>
+                            <parameter name='ack-final' value='Y'/>
+                            <parameter name="error-code" value="500" />
+                            <parameter name="error-message" value="`'An error occurred while querying pnf from AnAI with pnf-name = ' + $prop.l3vpn.pe1_id`" />
+                        </return>
+                    </outcome>
+                    <outcome value='failure'>
+                        <return status='failure'>
+                            <parameter name='error-code' value='' />
+                            <parameter name='error-message' value='' />
+                        </return>
+                    </outcome>
+                </get-resource>
+                <set>
+                    <parameter name='tmp.metavalue' value='' />
+                </set>
+                <get-resource plugin="org.onap.ccsdk.sli.adaptors.aai.AAIService"
+                              resource="metadatum"
                               key="service-instance.service-instance-id =  $rcvd-service-instance-id
+        AND customer.global-customer-id = 'IBNCustomer'
+        AND service-subscription.service-type = 'IBN'
+        AND metadatum.metaname = $rcvd-etht-svc-end-point"
+                              local-only="false"
+                              force="true" pfx="tmp.aai.service-instance.metadatum">
+                    <outcome value='success'>
+                        <block>
+                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                <parameter name="logger" value="message-log" />
+                                <parameter name="level" value="info" />
+                                <parameter name="field1" value="`$tmp.aai.service-instance.metadatum.metaval`"/>
+                            </record>
+                            <switch test="`length($tmp.aai.service-instance.metadatum.metaval) == 0`">
+                                <outcome value='true'>
+                                    <block>
+                                        <set>
+                                            <parameter name='tmp.metavalue' value='2000000' />
+                                        </set>
+                                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                            <parameter name="logger" value="message-log" />
+                                            <parameter name="level" value="info" />
+                                            <parameter name="field1" value="`$tmp.metavalue`"/>
+                                        </record>
+                                        <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource="service-instance:metadata"
+                                              key="service-instance.service-instance-id =  $rcvd-service-instance-id
  AND customer.global-customer-id = 'IBNCustomer'
  AND service-subscription.service-type = 'IBN'"  force="true" pfx="tmp.AnAI-data">
-                            <parameter name="metadata.metadatum[0].metaname" value="`$rcvd-etht-svc-end-point`" />
-                            <parameter name="metadata.metadatum[0].metaval" value="`$rcvd-bandwidth-value`" />
-                        </save>
-                        <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource="service-instance"
-                                key="service-instance.service-instance-id =  $rcvd-service-instance-id
+                                            <parameter name="metadata.metadatum[0].metaname" value="`$rcvd-etht-svc-end-point`" />
+                                            <parameter name="metadata.metadatum[0].metaval" value="`$tmp.metavalue`" />
+                                        </save>
+                                    </block>
+                                </outcome>
+                                <outcome value='false'>
+                                    <block>
+                                        <set>
+                                            <parameter name='tmp.metavalue' value='`$tmp.aai.service-instance.metadatum.metaval + 500000`' />
+                                        </set>
+                                        <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                            <parameter name="logger" value="message-log" />
+                                            <parameter name="level" value="info" />
+                                            <parameter name="field1" value="`$tmp.metavalue`"/>
+                                        </record>
+                                        <update plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource="service-instance"
+                                                key="service-instance.service-instance-id =  $rcvd-service-instance-id
  AND customer.global-customer-id = 'IBNCustomer'
  AND service-subscription.service-type = 'IBN'
  AND metadatum.metaname = $rcvd-etht-svc-end-point"  force="true" pfx="tmp.AnAI-data">
-                            <parameter name="metaname" value="`$rcvd-etht-svc-end-point`" />
-                            <parameter name="metaval" value="`$rcvd-bandwidth-value`" />
-                            <!--AND metadatum.metaname = $rcvd-etht-svc-end-point-->
-                            <!--<parameter name="metadata.metadatum[0].metaname" value="`$rcvd-etht-svc-end-point`" />-->
-                            <!--    <parameter name="metadata.metadatum[0].metaval" value="`$rcvd-bandwidth-value`" />-->
-                        </update>
-                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
-                            <parameter name="ctx-destination" value="eventId-uuid"/>
-                        </execute>
-                        <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
-                            <parameter name="ctx-destination" value="eventName-uuid"/>
-                        </execute>
-                        <set>
-                            <parameter name='eventIdUuid' value="`'BandwidthChanged_' + $eventId-uuid`" />
-                            <parameter name='eventNameUuid' value='`$eventName-uuid`' />
-                            <parameter name='cclId' value='`$rcvd-service-instance-id`' />
-                            <parameter name='uniId' value='`$rcvd-etht-svc-end-point`' />
-                            <parameter name='bandwidthValue' value='`$rcvd-bandwidth-value`' />
-                        </set>
-                        <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
-                            <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/' + $prop.restapi.p2p-call-ves.templatefile`" />
-                            <!--<parameter name="restapiUrl" value="`$prop.dcaeAddrAndPort + '/eventListener/v7'`" />-->
-                            <parameter name="restapiUrl" value="https://dcae-ves-collector:8443/eventListener/v7" />
-                            <parameter name="restapiUser" value="sample1" />
-                            <parameter name="restapiPassword" value="sample1" />
-                            <parameter name="format" value="json"/>
-                            <parameter name="httpMethod" value="post"/>
-                            <parameter name='dirPath' value="/opt/onap/sdnc/restconfapi/yang" />
-                            <parameter name="responsePrefix" value="ves-result"/>
-                            <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
-                            <parameter name="trustStorePassword" value="adminadmin"/>
-                            <!--<parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>-->
-                            <!--<parameter name="keyStorePassword" value="adminadmin"/>-->
-                            <parameter name="disableHostVerification" value="true"/>
-                            <parameter name="ssl" value="false"/>
-                        </execute>
-                    </block>
-                </outcome>
-            </switch>
+                                            <parameter name="metaname" value="`$rcvd-etht-svc-end-point`" />
+                                            <parameter name="metaval" value="`$tmp.metavalue`" />
+                                            <!--AND metadatum.metaname = $rcvd-etht-svc-end-point-->
+                                            <!--<parameter name="metadata.metadatum[0].metaname" value="`$rcvd-etht-svc-end-point`" />-->
+                                            <!--    <parameter name="metadata.metadatum[0].metaval" value="`$rcvd-bandwidth-value`" />-->
+                                        </update>
+                                    </block>
+                                </outcome>
+                            </switch>
+                        </block>
+                    </outcome>
+                    <outcome value='not-found'>
+                        <block>
+                            <set>
+                                <parameter name='tmp.metavalue' value='2000000' />
+                            </set>
+                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                <parameter name="logger" value="message-log" />
+                                <parameter name="level" value="info" />
+                                <parameter name="field1" value="`$tmp.metavalue`"/>
+                            </record>
+                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource="service-instance:metadata"
+                                  key="service-instance.service-instance-id =  $rcvd-service-instance-id
+ AND customer.global-customer-id = 'IBNCustomer'
+ AND service-subscription.service-type = 'IBN'"  force="true" pfx="tmp.AnAI-data">
+                                <parameter name="metadata.metadatum[0].metaname" value="`$rcvd-etht-svc-end-point`" />
+                                <parameter name="metadata.metadatum[0].metaval" value="`$tmp.metavalue`" />
+                            </save>
+                        </block>
+                    </outcome>
+                    <outcome value='failure'>
+                        <block>
+                            <set>
+                                <parameter name='tmp.metavalue' value='2000000' />
+                            </set>
+                            <record plugin="org.onap.ccsdk.sli.core.sli.recording.Slf4jRecorder">
+                                <parameter name="logger" value="message-log" />
+                                <parameter name="level" value="info" />
+                                <parameter name="field1" value="`$tmp.metavalue`"/>
+                            </record>
+                            <save plugin='org.onap.ccsdk.sli.adaptors.aai.AAIService' resource="service-instance:metadata"
+                                  key="service-instance.service-instance-id =  $rcvd-service-instance-id
+ AND customer.global-customer-id = 'IBNCustomer'
+ AND service-subscription.service-type = 'IBN'"  force="true" pfx="tmp.AnAI-data">
+                                <parameter name="metadata.metadatum[0].metaname" value="`$rcvd-etht-svc-end-point`" />
+                                <parameter name="metadata.metadatum[0].metaval" value="`$tmp.metavalue`" />
+                            </save>
+                        </block>
+                    </outcome>
+                </get-resource>
+                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
+                    <parameter name="ctx-destination" value="eventId-uuid"/>
+                </execute>
+                <execute plugin='org.onap.ccsdk.sli.core.slipluginutils.SliPluginUtils' method='generateUUID' >
+                    <parameter name="ctx-destination" value="eventName-uuid"/>
+                </execute>
+                <set>
+                    <parameter name='eventIdUuid' value="`'BandwidthChanged_' + $eventId-uuid`" />
+                    <parameter name='eventNameUuid' value='`$eventName-uuid`' />
+                    <parameter name='cclId' value='`$rcvd-service-instance-id`' />
+                    <parameter name='uniId' value='`$rcvd-etht-svc-end-point`' />
+                    <!--<parameter name='bandwidthValue' value='`$rcvd-bandwidth-value`' />-->
+                    <parameter name='bandwidthValue' value='`$tmp.metavalue`' />
+                </set>
+                <execute plugin='org.onap.ccsdk.sli.plugins.restapicall.RestapiCallNode' method='sendRequest' >
+                    <parameter name="templateFileName" value="`$prop.restapi.templateDir + '/' + $prop.restapi.p2p-call-ves.templatefile`" />
+                    <!--<parameter name="restapiUrl" value="`$prop.dcaeAddrAndPort + '/eventListener/v7'`" />-->
+                    <parameter name="restapiUrl" value="https://dcae-ves-collector:8443/eventListener/v7" />
+                    <parameter name="restapiUser" value="sample1" />
+                    <parameter name="restapiPassword" value="sample1" />
+                    <parameter name="format" value="json"/>
+                    <parameter name="httpMethod" value="post"/>
+                    <parameter name='dirPath' value="/opt/onap/sdnc/restconfapi/yang" />
+                    <parameter name="responsePrefix" value="ves-result"/>
+                    <parameter name="trustStoreFileName" value="/opt/onap/sdnc/data/stores/truststore.onap.client.jks"/>
+                    <parameter name="trustStorePassword" value="adminadmin"/>
+                    <!--<parameter name="keyStoreFileName" value="/opt/onap/sdnc/data/stores/sdnc.p12"/>-->
+                    <!--<parameter name="keyStorePassword" value="adminadmin"/>-->
+                    <parameter name="disableHostVerification" value="true"/>
+                    <parameter name="ssl" value="false"/>
+                </execute>
+            </block>
         </block>
     </method>
 </service-logic>
