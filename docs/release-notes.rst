@@ -32,7 +32,7 @@ Release Data
 +-------------------------+-------------------------------------------+
 | **Docker images**       | See :ref:`dockercontainers` section below |
 +-------------------------+-------------------------------------------+
-| **Release designation** | Kohn                                   |
+| **Release designation** | Kohn                                      |
 |                         |                                           |
 +-------------------------+-------------------------------------------+
 
@@ -132,6 +132,8 @@ Security Notes
 
 Known Security Issues
 ~~~~~~~~~~~~~~~~~~~~~
+
+.. _secissues:
 
 There are no known outstanding security issues related to SDNC Kohn.
 

@@ -8,7 +8,7 @@ ENV PATH $PATH:/opt/java/openjdk/bin
 
 ENV SDNC_CONFIG_DIR /opt/onap/sdnc/data/properties
 ENV SDNC_STORE_DIR /opt/onap/sdnc/data/stores
-ENV JAVA_SECURITY_DIR /etc/ssl/certs/java
+ENV JAVA_SECURITY_DIR /opt/java/openjdk/lib/security
 
 ENV SDNC_KEYSTORE ${sdnc.keystore}
 ENV SDNC_KEYPASS ${sdnc.keypass}
