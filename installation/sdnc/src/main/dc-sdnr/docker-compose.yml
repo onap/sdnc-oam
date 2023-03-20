@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  sdnr:
+    image: onap/sdnc-image:latest
+    container_name: sdnr
+    environment:
+      - SDNRONLY=true
+      - SDNRINIT=true
+      - SDNRDM=false
+      - SDNRWT=true
+      - SDNRDBURL=jdbc:mysql://sdnrdb:3306/sdnrdb
+      - SDNRDBUSERNAME=sdnrdb
+      - SDNRDBPASSWORD=sdnrdb
+      - SDNRDBTYPE=MARIADB
+      - SDNRCONTROLLERID=c94bbd5f-d456-44bd-aa7a-47b2e4f73253
+    #  - SDNRWT_BOOTFEATURES=odl-netconf-callhome-ssh,sdnr-wt-feature-aggregator
+      - ODLUX_REDIRECT_URI=/index.html#/oauth?token=
+      - HOST_URL=http://localhost:3100
+      - ODL_ADMIN_USERNAME=admin
+      - ODL_ADMIN_PASSWORD=admin
+    #  - OVERRIDE_FEATURES_BOOT=f908aa5a-ca45-4a35-8d23-23aa27422422,odl-restconf-all,odl-netconf-topology,odl-mdsal-all,odl-mdsal-apidocs,odl-daexim-all,odl-restconf-nb-rfc8040
+     
+    depends_on:
+      - sdnrdb
+
+  sdnrdb:
+    image: bitnami/mariadb:10.5
+    container_name: sdnrdb
+    environment:
+      - MARIADB_ROOT_PASSWORD=admin
+      - MARIADB_DATABASE=sdnrdb
+      - MARIADB_USER=sdnrdb
+      - MARIADB_PASSWORD=sdnrdb
+      - MARIADB_EXTRA_FLAGS=--max_connections=400
