@@ -110,6 +110,10 @@ done
 
 if [ "$TIME" -ge "$TIME_OUT" ]; then
    echo TIME OUT: karaf session not started in $TIME_OUT seconds, setup failed
+   echo "karaf.log follows:"
+   echo "******************************************************"
+   docker exec ${SDNC_CONTAINER_NAME} cat /opt/opendaylight/data/log/karaf.log
+   echo "******************************************************"
    exit 1;
 fi
 
