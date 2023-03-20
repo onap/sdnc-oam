@@ -52,6 +52,8 @@ function sdnr_teardown() {
 			docker logs $i >> ${WORKSPACE}/archives/getallinfo/$i.log 2>&1
 		done
         docker cp sdnr:/opt/opendaylight/data/log/karaf.log ${WORKSPACE}/archives/getallinfo/sdnr_karaf.log
+        docker cp sdnr:/opt/opendaylight/data/log/installCerts.log ${WORKSPACE}/archives/getallinfo/sdnr_installCerts.log
+        docker cp sdnr:/opt/opendaylight/etc/custom.properties ${WORKSPACE}/archives/getallinfo/sdnr_custom.properties
 	fi
 	echo "Starting teardown!"
 	# removes sdnrdb, sdnr AND all of the rest of the containers (--remove-orphans)
