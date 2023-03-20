@@ -8,7 +8,7 @@ ENV PATH $PATH:/opt/java/openjdk/bin
 
 ENV SDNC_CONFIG_DIR /opt/onap/sdnc/data/properties
 ENV SDNC_STORE_DIR /opt/onap/sdnc/data/stores
-ENV JAVA_SECURITY_DIR /etc/ssl/certs/java
+ENV JAVA_SECURITY_DIR /opt/java/openjdk/lib/security
 
 ENV SDNC_KEYSTORE ${sdnc.keystore}
 ENV SDNC_KEYPASS ${sdnc.keypass}
@@ -50,8 +50,8 @@ RUN keytool -importkeystore -srckeystore $SDNC_STORE_DIR/truststoreONAPall.jks -
 RUN echo org.osgi.service.http.secure.enabled=true >> $ODL_HOME/etc/custom.properties
 RUN echo org.osgi.service.http.secure.port=$SDNC_SECUREPORT >> $ODL_HOME/etc/custom.properties
 RUN echo org.ops4j.pax.web.ssl.keystore=$SDNC_STORE_DIR/$SDNC_KEYSTORE >> $ODL_HOME/etc/custom.properties
-RUN echo org.ops4j.pax.web.ssl.password=$SDNC_KEYPASS >> $ODL_HOME/etc/custom.properties
-RUN echo org.ops4j.pax.web.ssl.keypassword=$SDNC_KEYPASS >> $ODL_HOME/etc/custom.properties
+RUN echo org.ops4j.pax.web.ssl.password=\"$SDNC_KEYPASS\" >> $ODL_HOME/etc/custom.properties
+RUN echo org.ops4j.pax.web.ssl.keypassword=\"$SDNC_KEYPASS\" >> $ODL_HOME/etc/custom.properties
 
 # Overwrite svclogic compiler properties
 RUN cp /opt/onap/sdnc/data/properties/svclogic-compiler.properties /opt/onap/sdnc/svclogic/config/svclogic.properties
