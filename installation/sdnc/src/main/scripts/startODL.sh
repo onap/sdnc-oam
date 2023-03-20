@@ -332,8 +332,8 @@ if "$SDNC_AAF_ENABLED"; then
 	sed -i '/org.ops4j.pax.web.ssl.password/d' "$ODL_HOME"/etc/custom.properties
 	sed -i '/org.ops4j.pax.web.ssl.keypassword/d' "$ODL_HOME"/etc/custom.properties
 	echo "org.ops4j.pax.web.ssl.keystore=$SDNC_AAF_STORE_DIR/$SDNC_KEYSTORE" >> "$ODL_HOME"/etc/custom.properties
-	echo "org.ops4j.pax.web.ssl.password=$SDNC_KEYPASS" >> "$ODL_HOME"/etc/custom.properties
-	echo "org.ops4j.pax.web.ssl.keypassword=$SDNC_KEYPASS" >> "$ODL_HOME"/etc/custom.properties
+	echo "org.ops4j.pax.web.ssl.password=\"$SDNC_KEYPASS\"" >> "$ODL_HOME"/etc/custom.properties
+	echo "org.ops4j.pax.web.ssl.keypassword=\"$SDNC_KEYPASS\"" >> "$ODL_HOME"/etc/custom.properties
 fi
 
 if $SDNRINIT ; then
