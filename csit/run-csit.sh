@@ -210,7 +210,7 @@ if [[ -z $SDNC_RELEASE_WITHOUT_ROBOT ]] ; then
             python -m robot.run -N ${TESTPLAN} -v WORKSPACE:/tmp ${ROBOT_VARIABLES} ${TESTOPTIONS} ${SUITES}
         else
             echo "*** TRACE **** python is running in a container"
-            docker run --net="host" \
+            docker run --rm --net="host" \
             -v ${WORKSPACE}:${WORKSPACE} -v ${WORKDIR}:${WORKDIR} $ROBOT_IMAGE  \
             python3 -B -m robot.run -N ${TESTPLAN} -v WORKSPACE:/tmp --outputdir ${WORKDIR} ${ROBOT_VARIABLES} ${TESTOPTIONS} ${SUITES}
         fi
@@ -222,7 +222,7 @@ if [[ -z $SDNC_RELEASE_WITHOUT_ROBOT ]] ; then
 else
     echo "[WARNING] SDNC_RELEASE_WITHOUT_ROBOT is TRUE "
     echo "[WARNING] Dummy Robot test suite is executed, job remains ok. "
-    docker run --net="host" \
+    docker run --rm --net="host" \
     -v ${WORKSPACE}:${WORKSPACE} -v ${WORKDIR}:${WORKDIR} $ROBOT_IMAGE  \
     python3 -B -m robot.run -N ${TESTPLAN} -v WORKSPACE:/tmp --outputdir ${WORKDIR} ${ROBOT_VARIABLES} ${TESTOPTIONS} ${WORKSPACE}/tests/sdnr/debug/10_dummy.robot
    true

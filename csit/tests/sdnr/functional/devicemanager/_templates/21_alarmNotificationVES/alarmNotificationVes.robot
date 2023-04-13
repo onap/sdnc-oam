@@ -24,7 +24,7 @@ Suite Teardown  global suite teardown
 
 *** Variables ***
 ${DEVICE_TYPE}  _FILL_HERE_
-${FAULT_DELAY}  5
+${FAULT_DELAY}  10
 ${TIME_PERIOD_SEND_NOTIFY}  22s
 ${PROCESS_TIME_NOTIF}  30s
 &{ALARM_SEVERITY_DEFAULT}  Critical=${0}  Major=${0}  Minor=${0}  Warning=${0}  NonAlarmed=${0}
@@ -52,7 +52,7 @@ Set alarm notification
   ${alarm_status_start} =  FaultManagementApp.get_alarm_status
   Set Global Variable  ${alarm_status_start}
   NTSimManagerNG.set_fault_delay_list_nf  ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}  delay-period=${fault_delay}
-  Log  Send notification every ${FAULT_DELAY} sec for ${TIME_PERIOD_SEND_NOTIFY}  level=INFO  html=False  console=True  repr=False
+  Log  Send notification every ${FAULT_DELAY} sec for ${TIME_PERIOD_SEND_NOTIFY}  level=INFO  console=True
   Sleep  ${TIME_PERIOD_SEND_NOTIFY}
 
 UnSet alarm notification
@@ -62,7 +62,7 @@ UnSet alarm notification
   NTSimManagerNG.set_fault_delay_list_nf  ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}  delay-period=${0}
   #NTSimManagerNG.set_ves_config_nf  ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}
   #...                            faults-enabled=${False}
-  Log  Wait ${PROCESS_TIME_NOTIF} to process notifications  level=INFO  html=False  console=True  repr=False
+  Log  Wait ${PROCESS_TIME_NOTIF} to process notifications  level=INFO  console=True
   Sleep  ${PROCESS_TIME_NOTIF}
   # get generated alarms
   ${vesAlarmGenerated} =  NTSimManagerNG.Get Alarm Count  ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}
@@ -92,11 +92,11 @@ Verify alarm log
                                                           ...   timestamp=>=${start_time}
                                                           ...   node-id=${device}
     ${alarm_log_list_stats} =  get_counts_from_list  ${alarm_log_list}  severity  ${ALARM_SEVERITY_DEFAULT}
-    Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${alarm_log_list_stats}  Critical    ${vesAlarmGenerated}[critical]
-    Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${alarm_log_list_stats}  Major       ${vesAlarmGenerated}[major]
-    Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${alarm_log_list_stats}  Minor       ${vesAlarmGenerated}[minor]
-    Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${alarm_log_list_stats}  Warning     ${vesAlarmGenerated}[warning]
-    Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${alarm_log_list_stats}  NonAlarmed  ${vesAlarmGenerated}[normal]
+    Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${alarm_log_list_stats}  Critical    ${vesAlarmGenerated}[critical]  msg=Value of dictionary key 'Critical' does not match not match expected value '${vesAlarmGenerated}[critical]'. Current: ${alarm_log_list_stats["Critical"]}
+    Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${alarm_log_list_stats}  Major       ${vesAlarmGenerated}[major]  msg=Value of dictionary key 'Critical' does not match not match expected value '${vesAlarmGenerated}[major]'. Current: ${alarm_log_list_stats["Major"]}
+    Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${alarm_log_list_stats}  Minor       ${vesAlarmGenerated}[minor]  msg=Value of dictionary key 'Critical' does not match not match expected value '${vesAlarmGenerated}[minor]'. Current: ${alarm_log_list_stats["Minor"]}
+    Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${alarm_log_list_stats}  Warning     ${vesAlarmGenerated}[warning]  msg=Value of dictionary key 'Critical' does not match not match expected value '${vesAlarmGenerated}[warning]'. Current: ${alarm_log_list_stats["Warning"]}
+    Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${alarm_log_list_stats}  NonAlarmed  ${vesAlarmGenerated}[normal]  msg=Value of dictionary key 'Critical' does not match not match expected value '${vesAlarmGenerated}[normal]'. Current: ${alarm_log_list_stats["NonAlarmed"]}
   END
 
 Verify current problem list

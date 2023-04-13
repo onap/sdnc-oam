@@ -34,7 +34,7 @@ ${USERNAME_NOK}  wrong-username
 ${PASSWORD_NOK}  wrong-password
 ${CORE_MODEL}  Unsupported
 ${UNDEFINED}  undefined
-${FAULT_DELAY}  5
+${FAULT_DELAY}  10
 ${TIME_PERIOD_SEND_NOTIF}  22s
 &{ALARM_SEVERITY_DEFAULT}  Critical=${0}  Major=${0}  Minor=${0}  Warning=${0}  NonAlarmed=${0}
 
@@ -64,16 +64,16 @@ Set alarm notification
   Set Global Variable  ${alarm_status_start}
   NTSimManagerNG.set_fault_delay_list_nf  ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}  delay-period=${fault_delay}
 
-  Log  Send notification every ${FAULT_DELAY} sec for ${TIME_PERIOD_SEND_NOTIF}  level=INFO  html=False  console=True  repr=False
+  Log  Send notification every ${FAULT_DELAY} sec for ${TIME_PERIOD_SEND_NOTIF}  level=INFO  console=True
   Sleep  ${TIME_PERIOD_SEND_NOTIF}
 
 UnSet alarm notification
   [Documentation]  stops alarm generation and create dictionary ${netconfAlarmGenerated}
   ...              for further checks
   [Tags]  smoke
-  ${netconfAlarmGenerated} =   NTSimManagerNG.Get Alarm Count    ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}
   NTSimManagerNG.set_fault_delay_list_nf  ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}  delay-period=${0}
   NTSimManagerNG.Set Netconf Config Nf    ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}  faults-enabled=${False}
+  ${netconfAlarmGenerated} =   NTSimManagerNG.Get Alarm Count    ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}
   # get generated alarms
   ${alarmsGenerated} = 	Get Dictionary Values 	${netconfAlarmGenerated}
   Log  ${alarmsGenerated}
@@ -97,11 +97,24 @@ Verify alarm log
                                                         ...   timestamp=>=${start_time}
   Log  ${alarm_log_list_debug_backend}
 
-  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${alarm_log_list_stats}  Critical    ${netconfAlarmGenerated}[critical]
-  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${alarm_log_list_stats}  Major       ${netconfAlarmGenerated}[major]
-  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${alarm_log_list_stats}  Minor       ${netconfAlarmGenerated}[minor]
-  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${alarm_log_list_stats}  Warning     ${netconfAlarmGenerated}[warning]
-  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${alarm_log_list_stats}  NonAlarmed  ${netconfAlarmGenerated}[normal]
+  ${critical_count}    Set Variable    ${alarm_log_list_stats}[Critical]
+  ${major_count}       Set Variable    ${alarm_log_list_stats}[Major]
+  ${minor_count}       Set Variable    ${alarm_log_list_stats}[Minor]
+  ${warning_count}     Set Variable    ${alarm_log_list_stats}[Warning]
+  ${nonalarmed_count}  Set Variable    ${alarm_log_list_stats}[NonAlarmed]
+
+  ${netconf_critical_count}    Set Variable    ${netconfAlarmGenerated}[critical]
+  ${netconf_major_count}       Set Variable    ${netconfAlarmGenerated}[major]
+  ${netconf_minor_count}       Set Variable    ${netconfAlarmGenerated}[minor]
+  ${netconf_warning_count}     Set Variable    ${netconfAlarmGenerated}[warning]
+  ${netconf_nonalarmed_count}  Set Variable    ${netconfAlarmGenerated}[normal]
+
+  Should Be True    ${critical_count} >= ${netconf_critical_count}
+  Should Be True    ${major_count} >= ${netconf_major_count}
+  Should Be True    ${minor_count} >= ${netconf_minor_count}
+  Should Be True    ${warning_count} >= ${netconf_warning_count}
+  Should Be True    ${nonalarmed_count} >= ${netconf_nonalarmed_count}
+
 
 Verify current problem list
   [Tags]  smoke

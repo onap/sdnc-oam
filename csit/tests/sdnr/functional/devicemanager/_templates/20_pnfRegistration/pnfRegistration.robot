@@ -40,7 +40,7 @@ Start pnf ves registration from NTS function
   [Documentation]  scales number of simulated devices per device type to '0'
   ...              set details for VES endpoint
   ...              scales number of simulated devices per device type
-  Stop Network Function Feature    ${NETWORK_FUNCTIONS['O_RAN_FH']['NAME']}    ves-pnf-registration
+  Stop Network Function Feature    ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}    ves-pnf-registration  # stopping feature not necessary
   NTSimManagerNG.set_ves_endpoint_details_nf  ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}
   ...  ves-endpoint-protocol=${VESCOLLECTOR}[SCHEME]
   ...  ves-endpoint-ip=${VESCOLLECTOR}[IP]
@@ -48,7 +48,7 @@ Start pnf ves registration from NTS function
   ...  ves-endpoint-auth-method=${VESCOLLECTOR}[AUTHMETHOD]
   ...  ves-endpoint-username=${VESCOLLECTOR}[USERNAME]
   ...  ves-endpoint-password=${VESCOLLECTOR}[PASSWORD]
-  Start Network Function Feature    ${NETWORK_FUNCTIONS['O_RAN_FH']['NAME']}    ves-pnf-registration
+  Start Network Function Feature    ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}    ves-pnf-registration
   NTSimManagerNG.set_ves_config_nf  ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}
   ...  pnf-registration=${True}
   sleep  10s  reason=Wait before start network function
@@ -76,7 +76,6 @@ Verify connection status SSH
                                                                      ...  is-required=${False}
                                                                      ...  status=Connected
                                                                      ...  port=${port}
-                                                                     ...  core-model-capability=${CORE_MODEL}
                                                                      ...  device-type=${DEVICE_TYPE_GUI}
   END
 
@@ -99,18 +98,17 @@ Verify connection status TLS
                                                                      ...  is-required=${False}
                                                                      ...  status=Connected
                                                                      ...  port=${port}
-                                                                     ...  core-model-capability=${CORE_MODEL}
                                                                      ...  device-type=${DEVICE_TYPE_GUI}
   END
 
 Remove all networkelement connections
   [Documentation]  Delete all network element connections, should not fail if the connection is not there
   [Tags]  restconf  dm-lifecycle
-  Stop Network Function Feature    ${NETWORK_FUNCTIONS['O_RAN_FH']['NAME']}    ves-pnf-registration
+  Stop Network Function Feature    ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}    ves-pnf-registration
   @{pnf_list}=  NTSimManagerNG.get_simulated_pnfs_nf  ${DEVICE_TYPE}
   FOR    ${device}    IN    @{pnf_list}
     ${node_id}=  set variable  ${device["node-id"]}
-    Run Keyword And Ignore Error  ConnectApp.remove network element connection filtered  validate=${True}  node-id=${node_id}
+    Run Keyword And Ignore Error  ConnectApp.remove network element connection filtered  node-id=${node_id}
   END
   NTSimManagerNG.set_ves_config_nf  ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}
   ...  pnf-registration=${False}

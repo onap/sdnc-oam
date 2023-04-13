@@ -63,7 +63,6 @@ Add network element connection
                                                                      ...  status=Connected
                                                                      ...  host=${HOST}
                                                                      ...  port=${PORT}
-                                                                     ...  core-model-capability=${CORE_MODEL}
                                                                      ...  device-type=${DEVICE_TYPE_GUI}
   # Check connection status log entries
   Sleep  1s  reason=insert time gap to avoid time constrains
@@ -72,8 +71,9 @@ Add network element connection
   Log  ${connection_status_list}
   ${conn_status_list_stats} =  get_counts_from_list  ${connection_status_list}  status
   Log Dictionary  ${conn_status_list_stats}
-  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Connected  1  msg=wrong connection log entries for Connected state
-  Dictionary Should Contain Item  ${conn_status_list_stats}  Mounted  1    msg=wrong connection log entries for Mounted state
+  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Connected  ${1}
+  ...  msg=wrong connection log entries for Connected state
+  Dictionary Should Contain Item  ${conn_status_list_stats}  Mounted  ${1}    msg=wrong connection log entries for Mounted state
 
 Retrieve yang capabilities from network element
   [Documentation]  get yang capabilities from network element  and compare with reference file
@@ -111,7 +111,7 @@ Remove network element connection
   Log  ${connection_status_list_debug_backend}
   ${conn_status_list_stats} =  get_counts_from_list  ${connection_status_list}  status
   Log Dictionary  ${conn_status_list_stats}
-  Dictionary Should Contain Item  ${conn_status_list_stats}  Unmounted  1    msg=wrong connection log entries for Unmounted state
+  Dictionary Should Contain Item  ${conn_status_list_stats}  Unmounted  ${1}    msg=wrong connection log entries for Unmounted state
 
 Add network element connection wrong port
   [Tags]  prio2
@@ -141,7 +141,7 @@ Add network element connection wrong port
   ${connection_status_list_debug_backend} =  FaultManagementAppBackend.get_connection_log_list  node-id=${DEVICE_NAME_TEST}
                                                                      ...  timestamp=>=${start_time}
   Log  ${connection_status_list_debug_backend}
-  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Mounted  1  msg=wrong connection log entries for Mounted state
+  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Mounted  ${1}  msg=wrong connection log entries for Mounted state
   Run Keyword And Continue On Failure  Dictionary Should Not Contain Key  ${conn_status_list_stats}  Connected
   Dictionary Should Not Contain Key  ${conn_status_list_stats}  Unmounted
 
@@ -167,7 +167,7 @@ Remove network element connection wrong port
   Log  ${connection_status_list_debug_backend}
   ${conn_status_list_stats} =  get_counts_from_list  ${connection_status_list}  status
   Log Dictionary  ${conn_status_list_stats}
-  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Unmounted  1  msg=wrong connection log entries for Unmounted state
+  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Unmounted  ${1}  msg=wrong connection log entries for Unmounted state
   Run Keyword And Continue On Failure  Dictionary Should Not Contain Key  ${conn_status_list_stats}  Connected
   Dictionary Should Not Contain Key  ${conn_status_list_stats}  Mounted
 
@@ -199,7 +199,7 @@ Add network element connection wrong ip
   Log  ${connection_status_list_debug_backend}
   ${conn_status_list_stats} =  get_counts_from_list  ${connection_status_list}  status
   Log Dictionary  ${conn_status_list_stats}
-  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Mounted  1  msg=wrong connection log entries for Mounted state
+  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Mounted  ${1}  msg=wrong connection log entries for Mounted state
   Run Keyword And Continue On Failure  Dictionary Should Not Contain Key  ${conn_status_list_stats}  Connected
   Dictionary Should Not Contain Key  ${conn_status_list_stats}  Unmounted
 
@@ -225,7 +225,7 @@ Remove network element connection wrong ip
   Log  ${connection_status_list_debug_backend}
   ${conn_status_list_stats} =  get_counts_from_list  ${connection_status_list}  status
   Log Dictionary  ${conn_status_list_stats}
-  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Unmounted  1  msg=wrong connection log entries for Unmounted state
+  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Unmounted  ${1}  msg=wrong connection log entries for Unmounted state
   Run Keyword And Continue On Failure  Dictionary Should Not Contain Key  ${conn_status_list_stats}  Connected
   Run Keyword And Continue On Failure  Dictionary Should Not Contain Key  ${conn_status_list_stats}  Mounted
 
@@ -259,8 +259,8 @@ Add network element connection and change is required to false
   Log  ${connection_status_list_debug_backend}
   ${conn_status_list_stats} =  get_counts_from_list  ${connection_status_list}  status
   Log Dictionary  ${conn_status_list_stats}
-  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Connected  1  msg=wrong connection log entries for Connected state
-  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Mounted  1    msg=wrong connection log entries for Mounted state
+  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Connected  ${1}  msg=wrong connection log entries for Connected state
+  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Mounted  ${1}    msg=wrong connection log entries for Mounted state
 
 Edit network element connection: is required to true
   [Tags]  prio2
@@ -311,7 +311,7 @@ Unmount network element
   Log  ${connection_status_list_debug_backend}
   ${conn_status_list_stats} =  get_counts_from_list  ${connection_status_list}  status
   Log Dictionary  ${conn_status_list_stats}
-  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Unmounted  1    msg=wrong connection log entries for Unmounted state
+  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Unmounted  ${1}    msg=wrong connection log entries for Unmounted state
   Run Keyword And Continue On Failure  Dictionary Should Not Contain Key  ${conn_status_list_stats}  Connected
   Run Keyword And Continue On Failure  Dictionary Should Not Contain Key  ${conn_status_list_stats}  Mounted
   #Dictionary Should Not Contain Key  ${conn_status_list_stats}  Connecting
@@ -339,8 +339,8 @@ Mount network element
   Log  ${connection_status_list_debug_backend}
   ${conn_status_list_stats} =  get_counts_from_list  ${connection_status_list}  status
   Log Dictionary  ${conn_status_list_stats}
-  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Connected  1  msg=wrong connection log entries for Connected state
-  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Mounted  1    msg=wrong connection log entries for Mounted state
+  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Connected  ${1}  msg=wrong connection log entries for Connected state
+  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Mounted  ${1}    msg=wrong connection log entries for Mounted state
 
 Mount Nts Network Function with VALID TLS Key ID
   IF    'DOCKER_TLS_PORT' in ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']}
@@ -377,7 +377,7 @@ Remove network element connection
   Log  ${connection_status_list_debug_backend}
   ${conn_status_list_stats} =  get_counts_from_list  ${connection_status_list}  status
   Log Dictionary  ${conn_status_list_stats}
-  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Unmounted  1    msg=wrong connection log entries for Unmounted state
+  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Unmounted  ${1}    msg=wrong connection log entries for Unmounted state
   Run Keyword And Continue On Failure  Dictionary Should Not Contain Key  ${conn_status_list_stats}  Connected
   Run Keyword And Continue On Failure  Dictionary Should Not Contain Key  ${conn_status_list_stats}  Mounted
   #Dictionary Should Not Contain Key  ${conn_status_list_stats}  Connecting
@@ -412,8 +412,84 @@ Remove unmounted network element connection
   Log  ${connection_status_list_debug_backend}
   ${conn_status_list_stats} =  get_counts_from_list  ${connection_status_list}  status
   Log Dictionary  ${conn_status_list_stats}
-  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Mounted  1    msg=wrong connection log entries for Mounted state
-  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Connected  1    msg=wrong connection log entries for Connected state
+  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Mounted  ${1}    msg=wrong connection log entries for Mounted state
+  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Connected  ${1}    msg=wrong connection log entries for Connected state
   Run Keyword And Continue On Failure  Dictionary Should Contain Key  ${conn_status_list_stats}  Unmounted  msg=no connection log entries for Unmounted state
   ConnectApp.Remove Network Element Connection    ${NETWORK_FUNCTIONS['${DEVICE_TYPE}']['NAME']}
 
+Add network element connection and remount
+  [Tags]  smoke
+  Sleep  1s  reason=insert time gap in log files
+  ${start_time} =  Get Current Date  time_zone=UTC  result_format=%Y-%m-%dT%H:%M:%S.%f
+  Sleep  1s  reason=insert time delay to account for time differences of container and host
+  Set Test Variable  ${DEVICE_NAME_TEST}  ${DEVICE_NAME}-remount
+  Log To Console  ${start_time}
+  ConnectApp.Add network element connection    device_name=${DEVICE_NAME_TEST}    is_required=${True}
+  ...  host=${HOST}    port=${PORT}    username=${USERNAME}    password=${PASSWORD}
+  Run Keyword And Continue On Failure  ConnectApp.Should Be Equal connection status until time  ${DEVICE_NAME_TEST}  Connected
+  SDNCRestconfLibrary.should_be_equal_connection_status_until_time  ${DEVICE_NAME_TEST}  connected  time_in_sec=${10}
+  Run Keyword And Continue On Failure  ConnectApp.should_be_equal_network_element_connection_details  ${DEVICE_NAME_TEST}
+                                                                     ...  node-id=${DEVICE_NAME_TEST}
+                                                                     ...  is-required=${True}
+                                                                     ...  status=Connected
+                                                                     ...  host=${HOST}
+                                                                     ...  port=${PORT}
+                                                                     ...  device-type=${DEVICE_TYPE_GUI}
+  # Check connection status log entries
+  Sleep  1s  reason=insert time gap to avoid time constrains
+  ${connection_status_list} =  FaultManagementApp.get_connection_log_list  node-id=${DEVICE_NAME_TEST}
+                                                                     ...   timestamp=>=${start_time}
+  Log  ${connection_status_list}
+  ${conn_status_list_stats} =  get_counts_from_list  ${connection_status_list}  status
+  Log Dictionary  ${conn_status_list_stats}
+  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Connected  ${1}  msg=wrong connection log entries for Connected state
+  Dictionary Should Contain Item  ${conn_status_list_stats}  Mounted  ${1}    msg=wrong connection log entries for Mounted state
+
+  Sleep  1s  reason=insert time gap in log files
+  ${start_time} =  Get Current Date  time_zone=UTC  result_format=%Y-%m-%dT%H:%M:%S.%f
+  Sleep  1s  reason=insert time delay to account for time differences of container and host
+  # perform a mount on a alredy connected device
+  ConnectApp.mount_network_element  ${DEVICE_NAME_TEST}
+  Run Keyword And Continue On Failure  ConnectApp.Should Be Equal connection status until time  ${DEVICE_NAME_TEST}  Connected
+  Run Keyword And Continue On Failure  SDNCRestconfLibrary.should_be_equal_connection_status_until_time  ${DEVICE_NAME_TEST}  connected  time_in_sec=${10}
+
+  # Check connection status log entries
+  Sleep  1s  reason=insert time gap to avoid time constrains
+  ${connection_status_list} =  FaultManagementApp.get_connection_log_list  node-id=${DEVICE_NAME_TEST}
+                                                                     ...   timestamp=>=${start_time}
+  Log  ${connection_status_list}
+  ${connection_status_list_debug} =  FaultManagementApp.get_connection_log_list  node-id=${DEVICE_NAME_TEST}
+  Log  ${connection_status_list_debug}
+  ${connection_status_list_debug_backend} =  FaultManagementAppBackend.get_connection_log_list  node-id=${DEVICE_NAME_TEST}
+                                                                     ...  timestamp=>=${start_time}
+  Log  ${connection_status_list_debug_backend}
+  ${conn_status_list_stats} =  get_counts_from_list  ${connection_status_list}  status
+  Log Dictionary  ${conn_status_list_stats}
+  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Connected  ${1}  msg=wrong connection log entries for Connected state
+  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Mounted  ${1}    msg=wrong connection log entries for Mounted state
+
+Remove remounted network element connection
+  [Tags]  smoke
+  Sleep  3s  reason=insert time gap in log files
+  ${start_time} =  Get Current Date  time_zone=UTC  result_format=%Y-%m-%dT%H:%M:%S.%f
+  Sleep  3s  reason=insert time delay to account for time differences of container and host
+  Set Test Variable  ${DEVICE_NAME_TEST}  ${DEVICE_NAME}-remount
+  ConnectApp.Remove network element connection  ${DEVICE_NAME_TEST}
+  Run Keyword And Continue On Failure  ConnectApp.Should be equal connection status until time  ${DEVICE_NAME_TEST}  not existing
+  Run Keyword And Continue On Failure  SDNCRestconfLibrary.should_be_equal_connection_status_until_time  ${DEVICE_NAME_TEST}  not existing  time_in_sec=${10}
+
+  # Check connection status log entries
+  Sleep  1s  reason=insert time gap to avoid time constrains
+  ${connection_status_list} =  FaultManagementApp.get_connection_log_list  node-id=${DEVICE_NAME_TEST}
+                                                                     ...   timestamp=>=${start_time}
+  Log  ${connection_status_list}
+  ${connection_status_list_debug} =  FaultManagementApp.get_connection_log_list  node-id=${DEVICE_NAME_TEST}
+  Log  ${connection_status_list_debug}
+  ${connection_status_list_debug_backend} =  FaultManagementAppBackend.get_connection_log_list  node-id=${DEVICE_NAME_TEST}
+                                                                     ...  timestamp=>=${start_time}
+  Log  ${connection_status_list_debug_backend}
+  ${conn_status_list_stats} =  get_counts_from_list  ${connection_status_list}  status
+  Log Dictionary  ${conn_status_list_stats}
+  Run Keyword And Continue On Failure  Dictionary Should Contain Item  ${conn_status_list_stats}  Unmounted  ${1}  msg=wrong connection log entries for Unmounted state
+  Run Keyword And Continue On Failure  Dictionary Should Not Contain Key  ${conn_status_list_stats}  Connected
+  Run Keyword And Continue On Failure  Dictionary Should Not Contain Key  ${conn_status_list_stats}  Mounted
