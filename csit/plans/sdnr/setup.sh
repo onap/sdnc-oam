@@ -43,9 +43,9 @@ sdnr_launch
 # SDNC_READY_TIMEOUT=450
 
 # if jenkins should be ok without running robots TCS's
-SDNC_RELEASE_WITHOUT_ROBOT=true
+# SDNC_RELEASE_WITHOUT_ROBOT=true
 
 #Pass any variables required by Robot test suites in ROBOT_VARIABLES
 ROBOT_VARIABLES="--variablefile=${WORKSPACE}/plans/sdnr/testdata/localhost.py"
-ROBOT_IMAGE="hightec/sdnc-test-lib:v0.10.2"
+ROBOT_IMAGE="hightec/sdnc-test-lib:v0.11.0"
 
