@@ -76,10 +76,18 @@ def add_application(name, index, file=None):
 def initial_load():
     files = os.listdir(INIT_FOLDER)
     regex = r"([0-9]+)([a-zA-Z]+)\.(jar|zip)"
+    regexUrl = r"([0-9]+)([a-zA-Z]+)\.(url)"
     for file in files:
         matches = re.finditer(regex,file)
         match = next(matches, None)
+        matchesUrl = re.finditer(regexUrl,file)
+        matchUrl = next(matchesUrl, None)
         if match is not None:
+            print("installing {}".format(file))
+            index = int(match.group(1))
+            name = match.group(2)
+            add_application(name,index,INIT_FOLDER+'/'+file)
+        elif matchUrl is not None:
             print("installing {}".format(file))
             index = int(match.group(1))
             name = match.group(2)
@@ -269,8 +277,14 @@ def update_nginx_site_conf():
     WEBPROTOCOL=getEnv('WEBPROTOCOL')
     WEBPORT=getEnv('WEBPORT')
     SDNRPROTOCOL=getEnv('SDNRPROTOCOL')
+    SDNCWEBHOST=getEnv('HOSTNAME')
     SDNRHOST=getEnv('SDNRHOST')
+    if SDNRHOST == "sdnc.onap":
+        # Request is from K8s
+        SDNCWEBHOSTINDEX=SDNCWEBHOST[SDNCWEBHOST.rindex("-")+1:]
+        SDNRHOST = "sdnc-" + SDNCWEBHOSTINDEX + ".onap" 
     SDNRPORT=getEnv('SDNRPORT')
+    SDNRWEBSOCKETPORT=getEnv('SDNRWEBSOCKETPORT',SDNRPORT)
     DNS_RESOLVER=getEnv('DNS_RESOLVER')
     DNS_INTERNAL_RESOLVER=getEnv('DNS_INTERNAL_RESOLVER')
     if FN is None:
@@ -286,6 +300,7 @@ def update_nginx_site_conf():
     sedInFile('SDNRPROTOCOL',SDNRPROTOCOL,FN)
     sedInFile('SDNRHOST',SDNRHOST ,FN)
     sedInFile('SDNRPORT',SDNRPORT,FN)
+    sedInFile('SDNRWEBSOCKETPORT',SDNRWEBSOCKETPORT, FN)
     sedInFile('DNS_RESOLVER',DNS_RESOLVER ,FN)
     sedInFile('DNS_INTERNAL_RESOLVER',DNS_INTERNAL_RESOLVER ,FN)
 
