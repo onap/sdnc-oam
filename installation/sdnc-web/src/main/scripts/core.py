@@ -277,12 +277,7 @@ def update_nginx_site_conf():
     WEBPROTOCOL=getEnv('WEBPROTOCOL')
     WEBPORT=getEnv('WEBPORT')
     SDNRPROTOCOL=getEnv('SDNRPROTOCOL')
-    SDNCWEBHOST=getEnv('HOSTNAME')
     SDNRHOST=getEnv('SDNRHOST')
-    if SDNRHOST == "sdnc.onap":
-        # Request is from K8s
-        SDNCWEBHOSTINDEX=SDNCWEBHOST[SDNCWEBHOST.rindex("-")+1:]
-        SDNRHOST = "sdnc-" + SDNCWEBHOSTINDEX + ".onap" 
     SDNRPORT=getEnv('SDNRPORT')
     SDNRWEBSOCKETPORT=getEnv('SDNRWEBSOCKETPORT',SDNRPORT)
     DNS_RESOLVER=getEnv('DNS_RESOLVER')
