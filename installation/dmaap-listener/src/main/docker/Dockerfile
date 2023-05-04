@@ -1,5 +1,5 @@
 # Base ubuntu with added packages needed for open ecomp
-FROM onap/ccsdk-alpine-j11-image:${ccsdk.docker.version} AS stage0
+FROM onap/ccsdk-alpine-j17-image:${ccsdk.docker.version} AS stage0
 USER root
 ENV SDNC_CONFIG_DIR /opt/onap/sdnc/data/properties
 
@@ -12,7 +12,7 @@ RUN zip -q -d /opt/onap/sdnc/dmaap-listener/lib/log4j-core-*.jar org/apache/logg
 
 # End of stage 0
 
-FROM onap/ccsdk-alpine-j11-image:${ccsdk.docker.version}
+FROM onap/ccsdk-alpine-j17-image:${ccsdk.docker.version}
 
 MAINTAINER SDNC Team (onap-sdnc@lists.onap.org)
 
