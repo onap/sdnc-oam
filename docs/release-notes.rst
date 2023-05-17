@@ -12,14 +12,14 @@ SDNC Release Notes
 Abstract
 ========
 
-This document provides the release notes for the Kohn release of the Software Defined
+This document provides the release notes for the London release of the Software Defined
 Network Controller (SDNC)
 
 Summary
 =======
 
-The Kohn release of SDNC includes enhancements network slicing as well as a major OpenDaylight release
-upgrade (to Sulfur).
+The London release of SDNC includes enhancements network slicing as well as a major OpenDaylight release
+upgrade (to Chlorine).
 
 
 
@@ -32,7 +32,7 @@ Release Data
 +-------------------------+-------------------------------------------+
 | **Docker images**       | See :ref:`dockercontainers` section below |
 +-------------------------+-------------------------------------------+
-| **Release designation** | Kohn                                      |
+| **Release designation** | London                                    |
 |                         |                                           |
 +-------------------------+-------------------------------------------+
 
@@ -40,12 +40,9 @@ Release Data
 New features
 ------------
 
-The SDNC Kohn release includes the following features,  which are inherited from CCSDK:
+The SDNC London release includes the following features,  which are inherited from CCSDK:
 
-* Upgrade to OpenDaylight Sulfur Release (Jira `CCSDK-3673 <https://jira.onap.org/browse/CCSDK-3673>`_)
-* CCSDK Enhancements for 5G OOF SON use case in Kohn release (Jira `CCSDK-3644 <https://jira.onap.org/browse/CCSDK-3644>`_)
-* A1 Adapter and A1 Policy Managements Enhancements in Kohn Release - CCSDK (Jira `CCSDK-3617 <https://jira.onap.org/browse/CCSDK-3617>`_)
-* Prepare for removal of Bierman RESTCONF in ODL Chlorine release (Jira `CCSDK-3674 <https://jira.onap.org/browse/CCSDK-3674>`_)
+* Upgrade to OpenDaylight Chlorine Release (Jira `CCSDK-3812 <https://jira.onap.org/browse/CCSDK-3812>`_)
 
 
 For the complete list of `CCSDK Kohn release epics <https://jira.onap.org/issues/?filter=12916>`_ and
@@ -57,6 +54,8 @@ For the complete list of `CCSDK Kohn release epics <https://jira.onap.org/issues
 The full list of `bugs fixed in the SDNC Kohn release <https://jira.onap.org/issues/?filter=13004>`_ is maintained on the `ONAP Jira`_.
 
 **Known Issues**
+
+* Impacts of PAX/JETTY V9 to oauth and websockets in SDNR (Jira `SDNC-1809 <https://jira.onap.org/browse/SDNC-1809>`_)
 
 The full list of `known issues in SDNC <https://jira.onap.org/issues/?filter=11119>`_ is maintained on the `ONAP Jira`_.
 
@@ -73,8 +72,8 @@ Software Deliverables
 Docker Containers
 `````````````````
 
-The following table lists the docker containers comprising the SDNC Kohn
-release along with the current stable Kohn version/tag.  Each of these is
+The following table lists the docker containers comprising the SDNC London
+release along with the current stable London version/tag.  Each of these is
 available on the ONAP nexus3 site (https://nexus3.onap.org) and can be downloaded
 with the following command::
 
@@ -85,17 +84,17 @@ with the following command::
 +--------------------------------+-----------------------------------------------------+---------+
 | Image name                     | Description                                         | Version |
 +================================+=====================================================+=========+
-| onap/sdnc-aaf-image            | SDNC controller image, integrated with AAF for RBAC | 2.4.0   |
+| onap/sdnc-aaf-image            | SDNC controller image, integrated with AAF for RBAC | 2.5.0   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-ansible-server-image | Ansible server                                      | 2.4.0   |
+| onap/sdnc-ansible-server-image | Ansible server                                      | 2.5.0   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-dmaap-listener-image | DMaaP listener                                      | 2.4.0   |
+| onap/sdnc-dmaap-listener-image | DMaaP listener                                      | 2.5.0   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-image                | SDNC controller image, without AAF integration      | 2.4.0   |
+| onap/sdnc-image                | SDNC controller image, without AAF integration      | 2.5.0   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-ueb-listener-image   | SDC listener                                        | 2.4.0   |
+| onap/sdnc-ueb-listener-image   | SDC listener                                        | 2.5.0   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-web-image            | Web tier (currently only used by SDN-R persona)     | 2.4.0   |
+| onap/sdnc-web-image            | Web tier (currently only used by SDN-R persona)     | 2.5.0   |
 +--------------------------------+-----------------------------------------------------+---------+
 
 
@@ -133,7 +132,7 @@ Security Notes
 Known Security Issues
 ~~~~~~~~~~~~~~~~~~~~~
 
-There are no known outstanding security issues related to SDNC Kohn.
+There are no known outstanding security issues related to SDNC London.
 
 
 Test Results
@@ -144,7 +143,7 @@ Not applicable
 References
 ==========
 
-For more information on the ONAP Kohn release, please see:
+For more information on the ONAP London release, please see:
 
 #. `ONAP Home Page`_
 #. `ONAP Documentation`_
