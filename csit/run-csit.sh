@@ -157,10 +157,8 @@ source_safely "${WORKSPACE}/sdnc-csit.env"
 if [[ -z $ROBOT_IMAGE ]]; then
   # Run installation of prerequired libraries
   source_safely "${WORKSPACE}/prepare-csit.sh"
-
-
-# Activate the virtualenv containing all the required libraries installed by prepare-csit.sh
-source_safely "${ROBOT_VENV}/bin/activate"
+  # Activate the virtualenv containing all the required libraries installed by prepare-csit.sh
+  source_safely "${ROBOT_VENV}/bin/activate"
 fi
 
 WORKDIR=$(mktemp -d --suffix=-robot-workdir)
@@ -211,6 +209,7 @@ if [[ -z $SDNC_RELEASE_WITHOUT_ROBOT ]] ; then
         else
             echo "*** TRACE **** python is running in a container"
             docker run --rm --net="host" \
+            --env-file ${WORKSPACE}/sdnc-csit-robot.env \
             -v ${WORKSPACE}:${WORKSPACE} -v ${WORKDIR}:${WORKDIR} $ROBOT_IMAGE  \
             python3 -B -m robot.run -N ${TESTPLAN} -v WORKSPACE:/tmp --outputdir ${WORKDIR} ${ROBOT_VARIABLES} ${TESTOPTIONS} ${SUITES}
         fi
