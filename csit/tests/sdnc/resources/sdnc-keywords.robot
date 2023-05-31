@@ -5,7 +5,7 @@ Resource          ./sdnc-properties.robot
 Library           Collections
 Library           RequestsLibrary
 Library           OperatingSystem
-Library           HttpLibrary.HTTP
+# Library           HttpLibrary.HTTP
 
 
 *** Keywords ***
@@ -21,9 +21,7 @@ Send Post File And Validate Response
     Create SDNC RESTCONF Session
     ${body}=      Get File     ${path}
     &{headers}=  Create Dictionary    Authorization=Basic YWRtaW46S3A4Yko0U1hzek0wV1hsaGFrM2VIbGNzZTJnQXc4NHZhb0dHbUp2VXkyVQ==    Content-Type=application/json    Accept=application/json
-    ${resp}=  POST On Session  sdnc_restconf  ${url}  headers=${headers}  data=${body}  expected_status=200
-    ${respjson}=    Parse Json    ${resp.content}
-    Should Be Equal As Strings    ${respjson['output']['response-code']}        ${resp_code}
+    ${resp}=  POST On Session  sdnc_restconf  ${url}  headers=${headers}  data=${body}  expected_status=${resp_code}
 
 
 Send Empty Post Request And Validate Response
