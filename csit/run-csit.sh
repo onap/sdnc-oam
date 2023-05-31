@@ -211,6 +211,7 @@ if [[ -z $SDNC_RELEASE_WITHOUT_ROBOT ]] ; then
         else
             echo "*** TRACE **** python is running in a container"
             docker run --rm --net="host" \
+            --env-file ./sdnc-csit-robot.env \
             -v ${WORKSPACE}:${WORKSPACE} -v ${WORKDIR}:${WORKDIR} $ROBOT_IMAGE  \
             python3 -B -m robot.run -N ${TESTPLAN} -v WORKSPACE:/tmp --outputdir ${WORKDIR} ${ROBOT_VARIABLES} ${TESTOPTIONS} ${SUITES}
         fi
