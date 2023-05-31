@@ -39,8 +39,12 @@ mkdir ${WORKSPACE}/archives/pnf-simulator
 git clone "https://gerrit.onap.org/r/integration/simulators/pnf-simulator" ${WORKSPACE}/archives/pnf-simulator
 
 # Fix docker-compose to add nexus repo for onap dockers
+PNF_SIM_REGISTRY=nexus3.onap.org:10001
+PNF_SIM_VERSION=1.0.5
 mv ${WORKSPACE}/archives/pnf-simulator/netconfsimulator/docker-compose.yml ${WORKSPACE}/archives/pnf-simulator/netconfsimulator/docker-compose.yml.orig
-cat ${WORKSPACE}/archives/pnf-simulator/netconfsimulator/docker-compose.yml.orig | sed -e "s/image: onap/image: nexus3.onap.org:10001\/onap/" > ${WORKSPACE}/archives/pnf-simulator/netconfsimulator/docker-compose.yml
+cat ${WORKSPACE}/archives/pnf-simulator/netconfsimulator/docker-compose.yml.orig | \ 
+    sed -re "s/image: onap\/org.onap.integration.simulators.(.*$)/image: $PNF_SIM_REGISTRY\/onap\/org.onap.integration.simulators.\1:$PNF_SIM_VERSION/"  > \
+    ${WORKSPACE}/archives/pnf-simulator/netconfsimulator/docker-compose.yml
 
 # Remove carriage returns (if any) from netopeer start script
 mv ${WORKSPACE}/archives/pnf-simulator/netconfsimulator/netconf/initialize_netopeer.sh ${WORKSPACE}/archives/pnf-simulator/netconfsimulator/netconf/initialize_netopeer.sh.orig
@@ -161,6 +165,8 @@ export REQUEST_DATA_PATH="${REQUEST_DATA_PATH}"
 export SDNC_CONTAINER_NAME="${SDNC_CONTAINER_NAME}"
 export CLIENT_CONTAINER_NAME="${CLIENT_CONTAINER_NAME}"
 export NETCONF_PNP_SIM_CONTAINER_NAME="${NETCONF_PNP_SIM_CONTAINER_NAME}"
+
+ROBOT_IMAGE="nexus3.onap.org:10001/onap/testsuite:1.12.1"
 
 REPO_IP='127.0.0.1'
 ROBOT_VARIABLES+=" -v REPO_IP:${REPO_IP} "
