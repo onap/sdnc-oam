@@ -28,55 +28,46 @@ Check Dropping NETCONF/TLS Connection
     [Documentation]    Checking PNF Simulator Mount Delete from SDNC
    Send Delete Request And Validate PNF Mount Deleted  ${SDNC_MOUNT_PATH}  200
 
-#Load network preload data
-#    [Tags]     SDNC-GRA-PRELOAD-NETWORK
-#    [Documentation]    Loading network preload data
-#    Send Post File And Validate Response    ${GRA_PRELOAD_NETWORK}    ${GRA_DATA_DIRECTORY}/preload-network.json     200
-
-#Load vf-module preload data
-#    [Tags]     SDNC-GRA-PRELOAD-VF-MODULE
-#    [Documentation]    Loading vf-module preload data
-#    Send Post File And Validate Response    ${GRA_PRELOAD_VFMODULE}   ${GRA_DATA_DIRECTORY}/preload-vf-module.json   200
-
-#Check GRA service assign
-#    [Tags]     SDNC-GRA-SERVICE-ASSIGN
-#    [Documentation]    Testing GRA service assign
-#    Send Post File And Validate Response    ${GRA_SERVICE_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/svc-topology-assign.json   200
-
-#Check GRA network assign
-#    [Tags]     SDNC-GRA-NETWORK-ASSIGN
-#    [Documentation]    Testing GRA network assign
-#    Send Post File And Validate Response    ${GRA_NETWORK_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/network-topology-assign.json   200
-
-#Check GRA vnf assign
-#    [Tags]     SDNC-GRA-VNF-ASSIGN
-#    [Documentation]    Testing GRA vnf assign
-#    Send Post File And Validate Response    ${GRA_VNF_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/vnf-topology-assign.json   200
-
-#Check GRA vf-module assign
-#    [Tags]     SDNC-GRA-VF-MODULE-ASSIGN
-#    [Documentation]    Testing GRA vf-module assign
-#    Send Post File And Validate Response    ${GRA_VFMODULE_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/vf-module-topology-assign.json   200
-
-#Check GRA vf-module unassign
-#    [Tags]     SDNC-GRA-VF-MODULE-UNASSIGN
-#    [Documentation]    Testing GRA vf-module unassign
-#    Send Post File And Validate Response    ${GRA_VFMODULE_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/vf-module-topology-unassign.json   200
-
-#Check GRA vnf unassign
-#    [Tags]     SDNC-GRA-VNF-UNASSIGN
-#    [Documentation]    Testing GRA vnf unassign
-#    Send Post File And Validate Response    ${GRA_VNF_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/vnf-topology-unassign.json   200
-
-#Check GRA network unassign
-#    [Tags]     SDNC-GRA-NETWORK-UNASSIGN
-#    [Documentation]    Testing GRA network unassign
-#    Send Post File And Validate Response    ${GRA_NETWORK_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/network-topology-unassign.json   200
-
-#Check GRA service delete
-#    [Tags]     SDNC-GRA-SERVICE-DELETE
-#    [Documentation]    Testing GRA service delete
-#    Send Post File And Validate Response    ${GRA_SERVICE_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/svc-topology-delete.json   200
+Load network preload data
+    [Tags]     SDNC-GRA-PRELOAD-NETWORK
+    [Documentation]    Loading network preload data
+    Send Post File And Validate Response    ${GRA_PRELOAD_NETWORK}    ${GRA_DATA_DIRECTORY}/preload-network.json     200
+Load vf-module preload data
+    [Tags]     SDNC-GRA-PRELOAD-VF-MODULE
+    [Documentation]    Loading vf-module preload data
+    Send Post File And Validate Response    ${GRA_PRELOAD_VFMODULE}   ${GRA_DATA_DIRECTORY}/preload-vf-module.json   200
+Check GRA service assign
+    [Tags]     SDNC-GRA-SERVICE-ASSIGN
+    [Documentation]    Testing GRA service assign
+    Send Post File And Validate Response    ${GRA_SERVICE_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/svc-topology-assign.json   200
+Check GRA network assign
+    [Tags]     SDNC-GRA-NETWORK-ASSIGN
+    [Documentation]    Testing GRA network assign
+    Send Post File And Validate Response    ${GRA_NETWORK_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/network-topology-assign.json   200
+Check GRA vnf assign
+    [Tags]     SDNC-GRA-VNF-ASSIGN
+    [Documentation]    Testing GRA vnf assign
+    Send Post File And Validate Response    ${GRA_VNF_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/vnf-topology-assign.json   200
+Check GRA vf-module assign
+    [Tags]     SDNC-GRA-VF-MODULE-ASSIGN
+    [Documentation]    Testing GRA vf-module assign
+    Send Post File And Validate Response    ${GRA_VFMODULE_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/vf-module-topology-assign.json   200
+Check GRA vf-module unassign
+    [Tags]     SDNC-GRA-VF-MODULE-UNASSIGN
+    [Documentation]    Testing GRA vf-module unassign
+    Send Post File And Validate Response    ${GRA_VFMODULE_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/vf-module-topology-unassign.json   200
+Check GRA vnf unassign
+    [Tags]     SDNC-GRA-VNF-UNASSIGN
+    [Documentation]    Testing GRA vnf unassign
+    Send Post File And Validate Response    ${GRA_VNF_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/vnf-topology-unassign.json   200
+Check GRA network unassign
+    [Tags]     SDNC-GRA-NETWORK-UNASSIGN
+    [Documentation]    Testing GRA network unassign
+    Send Post File And Validate Response    ${GRA_NETWORK_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/network-topology-unassign.json   200
+Check GRA service delete
+    [Tags]     SDNC-GRA-SERVICE-DELETE
+    [Documentation]    Testing GRA service delete
+    Send Post File And Validate Response    ${GRA_SERVICE_TOPOLOGY}   ${GRA_DATA_DIRECTORY}/svc-topology-delete.json   200
 
 
 

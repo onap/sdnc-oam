@@ -5,7 +5,7 @@ Resource          ./sdnc-properties.robot
 Library           Collections
 Library           RequestsLibrary
 Library           OperatingSystem
-Library           HttpLibrary.HTTP
+# Library           HttpLibrary.HTTP
 
 
 *** Keywords ***
