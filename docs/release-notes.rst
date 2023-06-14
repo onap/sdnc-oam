@@ -45,13 +45,13 @@ The SDNC London release includes the following features,  which are inherited fr
 * Upgrade to OpenDaylight Chlorine Release (Jira `CCSDK-3812 <https://jira.onap.org/browse/CCSDK-3812>`_)
 
 
-For the complete list of `CCSDK Kohn release epics <https://jira.onap.org/issues/?filter=12916>`_ and
-`CCSDK Kohn release user stories <https://jira.onap.org/issues/?filter=12917>`_ , please see the `ONAP Jira`_.
+For the complete list of `CCSDK London release epics <https://jira.onap.org/issues/?filter=13112>`_ and
+`CCSDK London release user stories <https://jira.onap.org/issues/?filter=13113>`_ , please see the `ONAP Jira`_.
 
 **Bug fixes**
 
 
-The full list of `bugs fixed in the SDNC Kohn release <https://jira.onap.org/issues/?filter=13004>`_ is maintained on the `ONAP Jira`_.
+The full list of `bugs fixed in the SDNC London release <https://jira.onap.org/issues/?filter=13116>`_ is maintained on the `ONAP Jira`_.
 
 **Known Issues**
 
@@ -84,17 +84,17 @@ with the following command::
 +--------------------------------+-----------------------------------------------------+---------+
 | Image name                     | Description                                         | Version |
 +================================+=====================================================+=========+
-| onap/sdnc-aaf-image            | SDNC controller image, integrated with AAF for RBAC | 2.5.0   |
+| onap/sdnc-aaf-image            | SDNC controller image, integrated with AAF for RBAC | 2.5.4   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-ansible-server-image | Ansible server                                      | 2.5.0   |
+| onap/sdnc-ansible-server-image | Ansible server                                      | 2.5.4   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-dmaap-listener-image | DMaaP listener                                      | 2.5.0   |
+| onap/sdnc-dmaap-listener-image | DMaaP listener                                      | 2.5.4   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-image                | SDNC controller image, without AAF integration      | 2.5.0   |
+| onap/sdnc-image                | SDNC controller image, without AAF integration      | 2.5.4   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-ueb-listener-image   | SDC listener                                        | 2.5.0   |
+| onap/sdnc-ueb-listener-image   | SDC listener                                        | 2.5.4   |
 +--------------------------------+-----------------------------------------------------+---------+
-| onap/sdnc-web-image            | Web tier (currently only used by SDN-R persona)     | 2.5.0   |
+| onap/sdnc-web-image            | Web tier (currently only used by SDN-R persona)     | 2.5.4   |
 +--------------------------------+-----------------------------------------------------+---------+
 
 
