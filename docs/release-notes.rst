@@ -118,7 +118,6 @@ Known Vulnerabilities
 Any known vulnerabilities for ONAP are tracked in the `ONAP Jira`_ in the OJSI project.  Any outstanding OJSI issues that
 pertain to SDNC are listed in the "Known Security Issues" section below.
 
-
 Workarounds
 -----------
 
