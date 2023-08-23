@@ -55,7 +55,7 @@ echo $env_file
 # Define sdnrdb type
 # default: ESDB
 # alternative: MARIADB
-SDNRDB_TYPE="${SDNRDB_TYPE:-ESDB}"
+SDNRDB_TYPE="${SDNRDB_TYPE:-MARIADB}"
 if [[ "$SDNRDB_TYPE" == "ESDB" ]]; then
   sdnrdb_compose_file="docker-compose-sdnrdb-elasticsearch.yaml"
 else

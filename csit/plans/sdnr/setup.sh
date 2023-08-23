@@ -42,8 +42,8 @@ sdnr_launch
 ## SDNC ready state will be checked max SDNC_READY_TIMEOUT seconds
 # SDNC_READY_TIMEOUT=450
 
-# if jenkins should be ok without running robots TCS's
-SDNC_RELEASE_WITHOUT_ROBOT=true
+## if jenkins should be ok without running robots TCS's
+#SDNC_RELEASE_WITHOUT_ROBOT=true
 
 #Pass any variables required by Robot test suites in ROBOT_VARIABLES
 ROBOT_VARIABLES="--variablefile=${WORKSPACE}/plans/sdnr/testdata/localhost.py"
