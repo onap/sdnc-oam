@@ -47,5 +47,5 @@ sdnr_launch
 
 #Pass any variables required by Robot test suites in ROBOT_VARIABLES
 ROBOT_VARIABLES="--variablefile=${WORKSPACE}/plans/sdnr/testdata/localhost.py"
-ROBOT_IMAGE="hightec/sdnc-test-lib:v0.11.0"
+ROBOT_IMAGE="hightec/sdnc-test-lib:v0.12.0"
 
