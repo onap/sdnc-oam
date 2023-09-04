@@ -211,7 +211,7 @@ if [[ -z $SDNC_RELEASE_WITHOUT_ROBOT ]] ; then
             docker run --rm --net="host" \
             --env-file ${WORKSPACE}/sdnc-csit-robot.env \
             -v ${WORKSPACE}:${WORKSPACE} -v ${WORKDIR}:${WORKDIR} $ROBOT_IMAGE  \
-            python3 -B -m robot.run -N ${TESTPLAN} -v WORKSPACE:/tmp --outputdir ${WORKDIR} ${ROBOT_VARIABLES} ${TESTOPTIONS} ${SUITES}
+            python3 -B -m robot -N ${TESTPLAN} -v WORKSPACE:/tmp --outputdir ${WORKDIR} ${ROBOT_VARIABLES} ${TESTOPTIONS} ${SUITES}
         fi
     else
             echo "[INFO] Skip Robot test suite, because SDNC is not in ready state"
@@ -223,7 +223,7 @@ else
     echo "[WARNING] Dummy Robot test suite is executed, job remains ok. "
     docker run --rm --net="host" \
     -v ${WORKSPACE}:${WORKSPACE} -v ${WORKDIR}:${WORKDIR} $ROBOT_IMAGE  \
-    python3 -B -m robot.run -N ${TESTPLAN} -v WORKSPACE:/tmp --outputdir ${WORKDIR} ${ROBOT_VARIABLES} ${TESTOPTIONS} ${WORKSPACE}/tests/sdnr/debug/10_dummy.robot
+    python3 -B -m robot -N ${TESTPLAN} -v WORKSPACE:/tmp --outputdir ${WORKDIR} ${ROBOT_VARIABLES} ${TESTOPTIONS} ${WORKSPACE}/tests/sdnr/debug/10_dummy.robot
    true
 fi
 RESULT=$?
