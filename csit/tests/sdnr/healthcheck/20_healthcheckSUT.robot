@@ -3,7 +3,7 @@ Documentation  healthcheck of system under test: sdnc server, sdnrdb are availab
 Library  ConnectLibrary
 Library  SDNCBaseLibrary
 Library  Collections
-Library  ElasticSearchLibrary
+Library  SDNRDBLib
 Library  ConnectApp
 Library  RequestsLibrary
 
@@ -12,7 +12,6 @@ Suite Teardown  global suite teardown
 
 *** Variables ***
 &{headers}  Content-Type=application/json  Authorization=Basic
-
 *** Test Cases ***
 Test Is SDNR Node Available
     ${server_status}=    Server Is Ready
@@ -25,7 +24,7 @@ Test Is SDNRDB Available
 
 Test Is SDNRDB Initialized
     ${res}=  Check Aliases
-    Log  ${res}  level=INFO  html=False  console=False  repr=False
+    Log  ${res}  level=INFO
 
 Test Is VES Collector available
     # curl -k -u sample1:sample1 https://172.40.0.1:8443
@@ -41,4 +40,9 @@ Test Is VES Collector available
     Should Be Equal As Strings  ${resp.text}  Welcome to VESCollector
     Should Be Equal As Strings  ${resp.status_code}  200
     RequestsLibrary.Delete All Sessions
+
+Test Version Info Contains Correct release
+    ${VERSION_INFO_DICT}=   get_version_info_as_dict
+    ${release}=	Get From Dictionary 	${VERSION_INFO_DICT["""version-info"""]} 	Opendaylight-release
+    Should Contain    ${release}    ${RELEASE_VERSION}
 

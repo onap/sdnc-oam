@@ -8,20 +8,22 @@
 ## Access SDNR cluster
 SDNR_PROTOCOL = "http://"
 SDNR_HOST = "127.0.0.1"
-SDNR_PORT = "8181"
+SDNR_PORT = "8282"
 SDNR_USER = "admin"
 #SDNR_PASSWORD = "Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U"
 SDNR_PASSWORD = "admin"
 WEBSOCKET_PORT = "8182"
 
+RELEASE_VERSION="argon" # expected opendaylight version
+
 # for odlux gui testing
 WEBDRIVER_PATH = "/usr/local/bin/chromedriver"
 
-# Access to elastic search SDNRDB
-SDNRDB = {'PROTOCOL': 'http', 'IP': '127.0.0.1', 'PORT': '8181', 'USE_API_GATEWAY': True, 'USE_SSL': False,
-          'VERIFY_CERTS': False}
-# elastic DB to store statistic datas
-ELASTIC_LOG_DB = SDNRDB
+# sdnrdb is based on mariaDB
+
+USE_MARIA_DB=True
+MARIADB = {'IP': SDNR_HOST, 'PORT': 3306}
+
 RESTCONF_TIMEOUT = '90 s'
 # Restconf response time longer than VALID_RESPONSE_TIME in s will be notified as warning in the robot logs
 VALID_RESPONSE_TIME = 5
