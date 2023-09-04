@@ -17,11 +17,10 @@ WEBSOCKET_PORT = "8182"
 # for odlux gui testing
 WEBDRIVER_PATH = "/usr/local/bin/chromedriver"
 
-# Access to elastic search SDNRDB
-SDNRDB = {'PROTOCOL': 'http', 'IP': '127.0.0.1', 'PORT': '8181', 'USE_API_GATEWAY': True, 'USE_SSL': False,
-          'VERIFY_CERTS': False}
-# elastic DB to store statistic datas
-ELASTIC_LOG_DB = SDNRDB
+# sdnrdb is based on mariaDB
+
+USE_MARIA_DB=True
+
 RESTCONF_TIMEOUT = '90 s'
 # Restconf response time longer than VALID_RESPONSE_TIME in s will be notified as warning in the robot logs
 VALID_RESPONSE_TIME = 5
