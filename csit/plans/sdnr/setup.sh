@@ -34,7 +34,7 @@ echo "Start plan sdnr"
 source ${WORKSPACE}/scripts/sdnr/sdnr-launch.sh
 onap_dependent_components_launch
 nts_networkfunctions_launch ${WORKSPACE}/plans/sdnr/testdata/nts-networkfunctions.csv
-sdnr_launch
+sdnr_web_launch
 
 ## environment for SDNC/R specific robot test runs
 ## Ready state will be checked every SDNC_READY_RETRY_PERIOD seconds
@@ -46,6 +46,8 @@ sdnr_launch
 #SDNC_RELEASE_WITHOUT_ROBOT=true
 
 #Pass any variables required by Robot test suites in ROBOT_VARIABLES
-ROBOT_VARIABLES="--variablefile=${WORKSPACE}/plans/sdnr/testdata/localhost.py"
-ROBOT_IMAGE="hightec/sdnc-test-lib:v0.11.0"
+ROBOT_DEBUG_LEVEL=DEBUG # INFO or DEBUG
+
+ROBOT_VARIABLES="--variablefile=${WORKSPACE}/plans/sdnr/testdata/localhost.py -L ${ROBOT_DEBUG_LEVEL}"
+ROBOT_IMAGE="hightec/sdnc-test-lib:v0.12.0"
 
