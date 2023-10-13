@@ -15,7 +15,8 @@ ${SDNC_HEALTHCHECK}             /operations/SLI-API:healthcheck
 ${SDNC_KEYSTORE_CONFIG_PATH}    /data/netconf-keystore:keystore?content=config
 ${SDNC_NETWORK_TOPOLOGY}        /data/network-topology:network-topology?content=config
 ${SDNC_MOUNT_PATH}              /data/network-topology:network-topology/topology=topology-netconf/node=PNFDemo
-${PNFSIM_MOUNT_PATH}            /data/network-topology:network-topology/topology=topology-netconf/node=PNFDemo/yang-ext:mount/turing-machine:turing-machine?content=config
+# ${PNFSIM_MOUNT_PATH}            /data/network-topology:network-topology/topology=topology-netconf/node=PNFDemo/yang-ext:mount/turing-machine:turing-machine?content=config
+${PNFSIM_MOUNT_PATH}            /data/network-topology:network-topology/topology=topology-netconf/node=PNFDemo/yang-ext:mount?content=config
 ${GRA_PRELOAD_NETWORK}          /operations/GENERIC-RESOURCE-API:preload-network-topology-operation
 ${GRA_PRELOAD_VFMODULE}         /operations/GENERIC-RESOURCE-API:preload-vf-module-topology-operation
 ${GRA_SERVICE_TOPOLOGY}         /operations/GENERIC-RESOURCE-API:service-topology-operation
