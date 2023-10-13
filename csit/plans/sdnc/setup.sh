@@ -49,6 +49,9 @@ mv ${WORKSPACE}/archives/pnf-simulator/netconfsimulator/netconf/initialize_netop
 cat ${WORKSPACE}/archives/pnf-simulator/netconfsimulator/netconf/initialize_netopeer.sh.orig | sed -e "s/\r$//g" > ${WORKSPACE}/archives/pnf-simulator/netconfsimulator/netconf/initialize_netopeer.sh
 chmod 755 ${WORKSPACE}/archives/pnf-simulator/netconfsimulator/netconf/initialize_netopeer.sh
 
+# generate fresh certificates for netconfserver [INT-2269]
+
+./generate_certs.sh "${WORKSPACE}"/archives/pnf-simulator/netconfsimulator/tls
 
 # Start Netconf Simulator Container with docker-compose and configuration from docker-compose.yml
 docker-compose -f "${WORKSPACE}"/archives/pnf-simulator/netconfsimulator/docker-compose.yml up -d

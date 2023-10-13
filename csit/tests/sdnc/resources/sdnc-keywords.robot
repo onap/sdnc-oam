@@ -45,7 +45,7 @@ Send Get Request And Validate TLS Connection Response
     ${mount}=    Get File    ${REQUEST_DATA_PATH}${/}mount.xml
     &{headers}=  Create Dictionary   Content-Type=application/xml    Accept=application/xml
     ${resp}=    PUT On Session    sdnc_restconf    ${url}    data=${mount}    headers=${headers}  expected_status=201
-    Sleep  30
+    Sleep  120
     &{headers1}=  Create Dictionary  Content-Type=application/json    Accept=application/json
     ${resp1}=    GET On Session    sdnc_restconf    ${PNFSIM_MOUNT_PATH}    headers=${headers1}  expected_status=${resp_code}
 
