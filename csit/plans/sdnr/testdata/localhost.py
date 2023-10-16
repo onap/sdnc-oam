@@ -10,8 +10,8 @@ SDNR_PROTOCOL = "http://"
 SDNR_HOST = "127.0.0.1"
 SDNR_PORT = "8282"
 SDNR_USER = "admin"
-#SDNR_PASSWORD = "Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U"
-SDNR_PASSWORD = "admin"
+SDNR_PASSWORD = "Kp8bJ4SXszM0WXlhak3eHlcse2gAw84vaoGGmJvUy2U"
+#SDNR_PASSWORD = "admin"
 WEBSOCKET_PORT = "8182"
 
 RELEASE_VERSION="argon" # expected opendaylight version
