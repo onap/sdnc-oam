@@ -104,9 +104,6 @@ install_sdnrwt_features() {
       cleanupFeatureBoot
     fi
     addToFeatureBoot "$SDNRDM_BOOTFEATURES"
-    if ! $SDNRDM; then
-      addToFeatureBoot "$SDNRODLUX_BOOTFEATURES"
-    fi
     if $SDNR_NETCONF_CALLHOME_ENABLED; then
       addToFeatureBoot "$SDNR_NETCONF_CALLHOME_FEATURE"
     fi
@@ -247,7 +244,6 @@ GEO_ENABLED=${GEO_ENABLED:-false}
 
 SDNRWT=${SDNRWT:-false}
 SDNRDM=${SDNRDM:-false}
-SDNRODLUX_BOOTFEATURES=${SDNRODLUX_BOOTFEATURES:-sdnr-wt-helpserver-feature,sdnr-wt-odlux-core-feature,sdnr-wt-odlux-apps-feature}
 SDNROAUTH_BOOTFEATURES=${SDNROAUTH_BOOTFEATURES:-sdnr-wt-feature-aggregator-oauth}
 SDNR_NETCONF_CALLHOME_ENABLED=${SDNR_NETCONF_CALLHOME_ENABLED:-false}
 
