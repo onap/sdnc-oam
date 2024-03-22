@@ -90,11 +90,15 @@ initialize_sdnrdb() {
   printf "%s\n" "Execute: $INITCMD"
   n=0
   until [ $n -ge 5 ] ; do
-    $INITCMD && break
+    $INITCMD
+    ret=$?
+    if [ $ret -eq 0 ] ; then
+      break;
+    fi
     n=$((n+1))
     sleep 15
   done
-  return $?
+  return $ret
 }
 
 install_sdnrwt_features() {
@@ -344,6 +348,10 @@ if $SDNRINIT ; then
   init_result=$?
   printf "%s\n" "Result of init script: $init_result"
   if $SDNRWT ; then
+    if [ $init_result -ne 0 ]; then
+      echo "db not initialized. stopping container"
+      exit $init_result
+    fi
     printf "Proceed to initialize sdnr\n"
   else
     exit $init_result
@@ -397,7 +405,7 @@ then
   if $SDNRWT ; then install_sdnrwt_features ; fi
   if $ENABLE_OAUTH ; then
     cp $SDNC_HOME/data/oauth-aaa-app-config.xml $(find $ODL_HOME/system/org/opendaylight/aaa/ -name *aaa-app-config.xml)
-    echo -e "\norg.ops4j.pax.web.session.cookie = none" >> $ODL_HOME/etc/org.ops4j.pax.web.cfg
+    echo -e "\norg.ops4j.pax.web.session.cookie.comment = disable" >> $ODL_HOME/etc/org.ops4j.pax.web.cfg
     install_sdnr_oauth_features
   fi
 
