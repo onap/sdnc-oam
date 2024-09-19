@@ -136,7 +136,7 @@ EXAMPLE: Mounting pnf-simulator
 If you want to mount a pnf-simulator onto the SDNC container the you must have the pnf-simulator container up and running and the SDNC container running with the keys and certificates in the ODL keystore.
 
 To mount your pnf-simulator you must send the following RPC:
-    *PUT /restconf/config/network-topology:network-topology/topology/topology-netconf/node/pnf-simulator*
+    *PUT /rests/data/network-topology:network-topology/topology/topology-netconf/node/pnf-simulator?content=config*
 
 
 You must also send this as the body of the request::
@@ -288,7 +288,7 @@ This is used to add the list of CA’s and server certificates from the xnf as t
 Checking Correct Certs Installation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 If you would like to run a check to make sure that your keys and certificates were installed correctly in ODL you can run the following command in Postman REST client:
-	*GET http://localhost:8282/restconf/config/netconf-keystore:keystore*
+	*GET http://localhost:8282/rests/data/netconf-keystore:keystore?content=config*
 
 The authorization that is needed to gain access to ODL’s restconf interface is the default SDNC username and password. 
 

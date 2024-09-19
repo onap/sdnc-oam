@@ -44,7 +44,7 @@ function handleResult(err, response_str, res) {
 // calls restconf to get information
 router.get('/listWklst', csp.checkAuth, function(req, res) {
     options.strictSSL = true;   // used to test SSL certificate
-    OdlInterface.Get('/restconf/config/L3SDN-API:services',options, handleResult,req,res);
+    OdlInterface.Get('/rests/data/L3SDN-API:services?content=config',options, handleResult,req,res);
 });
 
 router.get('/pageWklst', csp.checkAuth, function(req,res) {
@@ -102,9 +102,9 @@ router.post('/update_vr_lan_interface', function(req,res){
 	};
 	var tasks = [];
 	tasks.push(function(callback){
-		OdlInterface.put_vr_lan_interface('/restconf/config/L3SDN-API:services/layer3-service-list/'
+		OdlInterface.put_vr_lan_interface('/rests/data/L3SDN-API:services/layer3-service-list='
 			+ svc_instance_id
-			+ '/service-data/vr-lan/', options, callback);
+			+ '/service-data/vr-lan?content=config', options, callback);
 	});
 	async.series(tasks, function(err,result){
 		

@@ -34,13 +34,13 @@ router.get('/test', function(req,res){
 	var header = {'Host': host, 'Authorization': auth, 'Content-Type': 'application/yang.data+json'};
 	var c_header = {'Host': properties.odlConexusHost, 'Authorization': auth, 'Content-Type': 'application/yang.data+json'};
 
-// path = '/restconf/config/SLI-API:healthcheck',
+// path = '/rests/operations/SLI-API:healthcheck',
 	var _options = {
 		method			  : 'POST',
         host              : host,
         headers           : header,
         port              : '8443',
-		path			  : '/restconf/operations/SLI-API:healthcheck',
+		path			  : '/rests/operations/SLI-API:healthcheck',
         rejectUnauthorized: false,
         strictSSL         : false
 	};
@@ -49,7 +49,7 @@ router.get('/test', function(req,res){
         host              : properties.odlConexusHost,
         headers           : c_header,
         port              : '8543',
-		path			  : '/restconf/operations/SLI-API:healthcheck',
+		path			  : '/rests/operations/SLI-API:healthcheck',
         rejectUnauthorized: false,
         strictSSL         : false
 	};
