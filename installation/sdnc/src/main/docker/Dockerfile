@@ -16,6 +16,12 @@ ENV SDNC_SECUREPORT ${sdnc.secureport}
 
 ARG AAF=false
 
+# Copy any certs
+COPY *.md *.pem /etc/ssl/certs/
+
+# Install certs
+RUN update-ca-certificates
+
 # Copy deliverables to opt
 COPY opt /opt
 RUN test -L /opt/sdnc || ln -s /opt/onap/sdnc /opt/sdnc
