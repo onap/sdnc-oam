@@ -10,11 +10,35 @@ location ~ ^/transportpce  {
         proxy_pass TRPCEURL/$1;
     }
 }
+location ~ ^/topology/  {
+    resolver DNS_INTERNAL_RESOLVER;
+    proxy_pass TOPOURL;
+}
+location ~ ^/sitedoc/  {
+  resolver DNS_INTERNAL_RESOLVER;
+  if ($request_uri ~* "/sitedoc/(.*)") {
+    proxy_pass SITEDOCURL/topology/stadok/$1;
+  }
+}
 location ~ ^/tiles/  {
     resolver DNS_RESOLVER;
     if ($request_uri ~* "/tiles/(.*)") { 
         proxy_pass TILEURL/$1;
     }
+}
+location ~ ^/terrain/  {
+  resolver DNS_INTERNAL_RESOLVER;
+  if ($request_uri ~* "/terrain/(.*)") {
+    proxy_pass TERRAINURL/$1;
+  }
+}
+location ~ ^/electromagnetic-field/  {
+  resolver DNS_RESOLVER;
+  proxy_set_header Authorization "Basic ELECTROMAGNETICFIELDBAUTHTOKEN";
+  proxy_pass_header Authorization;
+  if ($request_uri ~* "/electromagnetic-field/(.*)") {
+    proxy_pass ELECTROMAGNETICFIELDURL/$1;
+  }
 }
 location /  {
     try_files $uri $uri/ @backend;

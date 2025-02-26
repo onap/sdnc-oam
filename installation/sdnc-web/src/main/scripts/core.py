@@ -237,7 +237,6 @@ def update_index_html(apps=None):
         ODLUX_CONFIG['transportpceUrl']=TRPCEGUIURL
         print("trpce gui url is: {}".format(TRPCEGUIURL))
 
-#    sed -z 's/<script>[^<]*<\/script>/<script>\n    \/\/ run the application \n  require\(\[\"connectApp\",\"faultApp\",\"maintenanceApp\",\"configurationApp\",\"performanceHistoryApp\",\"inventoryApp\",\"eventLogApp\",\"mediatorApp\",\"networkMapApp\",\"linkCalculationApp\",\"helpApp\",\"run\"\], function \(connectApp,faultApp,maintenanceApp,configurationApp,performanceHistoryApp,inventoryApp,eventLogApp,mediatorApp,networkMapApp,linkCalculationApp,helpApp,run\) \{ \n run.configure('$ODLUX_CONFIG'); \n    connectApp.register\(\); \n  faultApp.register\(\);\n    maintenanceApp.register\(\); \n     configurationApp.register\(\);\n    performanceHistoryApp.register\(\); \n    inventoryApp.register\(\);\n    eventLogApp.register\(\);\n   mediatorApp.register\(\);\n   networkMapApp.register\(\);\n   linkCalculationApp.register\(\);\n     helpApp.register\(\);\n      run.runApplication();\n    \}\);\n  <\/script>/' -i /opt/bitnami/nginx/html/odlux/index.html 
     requireArg=""
     fnArgs=""
     appCalls=""
@@ -305,6 +304,8 @@ def update_nginx_site_conf():
     TILEURL=getEnv('TILEURL')
     DATAPROVIDERURL=getEnv('DATAPROVIDERURL')
     TERRAINURL=getEnv('TERRAINURL')
+    ELECTROMAGNETICFIELDURL=getEnv('ELECTROMAGNETICFIELDURL')
+    ELECTROMAGNETICFIELDBAUTHTOKEN=getEnv('ELECTROMAGNETICFIELDBAUTHTOKEN')
     # handle optional parameters
     if TRPCEURL is None:
         print("transportPCE forwarding disabled")
@@ -341,3 +342,10 @@ def update_nginx_site_conf():
         sedInFile('proxy_pass TERRAINURL/$1;','return 404;',FN)
     else:
         sedInFile('TERRAINURL',TERRAINURL ,FN)
+        
+    if ELECTROMAGNETICFIELDURL is None:
+        print("electromagnetic-field server forwarding disabled")
+        sedInFile('proxy_pass ELECTROMAGNETICFIELDURL/$1;','return 404;',FN)
+    else:
+        sedInFile('ELECTROMAGNETICFIELDURL',ELECTROMAGNETICFIELDURL ,FN)
+        sedInFile('ELECTROMAGNETICFIELDBAUTHTOKEN',ELECTROMAGNETICFIELDBAUTHTOKEN ,FN)       
