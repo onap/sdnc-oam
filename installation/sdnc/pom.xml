@@ -24,6 +24,9 @@
         <sdnc.keystore>org.onap.sdnc.p12</sdnc.keystore>
         <sdnc.keypass><![CDATA[;:G58,7ZhqOSI:7^oZCY[9Dv]]></sdnc.keypass>
         <sdnc.secureport>8443</sdnc.secureport>
+        <!-- versions for odl patches -->
+        <odl.aaa.version>0.20.8</odl.aaa.version>
+        <odl.ops4j.version>8.0.27</odl.ops4j.version>
 
         <maven.build.timestamp.format>yyyyMMdd'T'HHmmss'Z'</maven.build.timestamp.format>
         <sdnc.build.timestamp>${maven.build.timestamp}</sdnc.build.timestamp>
@@ -420,6 +423,36 @@
                             </artifactItems>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>copy-with-alternalte-repo</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.highstreet-technologies.aaa</groupId>
+                                    <artifactId>aaa-authn-api</artifactId>
+                                    <version>${odl.aaa.version}</version>
+                                    <outputDirectory>${project.build.directory}/docker-stage/patches</outputDirectory>
+                                    <destFileName>aaa-authn-api-${odl.aaa.version}.jar</destFileName>
+                                    <excludes>*</excludes>
+                                </artifactItem>
+				                <artifactItem>
+                                    <groupId>com.highstreet-technologies.org.ops4j.pax.web</groupId>
+                                    <artifactId>pax-web-jetty</artifactId>
+                                    <version>${odl.ops4j.version}</version>
+                                    <outputDirectory>${project.build.directory}/docker-stage/patches</outputDirectory>
+                                    <destFileName>pax-web-jetty-${odl.ops4j.version}.jar</destFileName>
+                                    <excludes>*</excludes>
+				                </artifactItem>
+                            </artifactItems>
+			    <!--                            <overWriteReleases>false</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+				<overWriteIfNewer>true</overWriteIfNewer> -->
+                        </configuration>
+                    </execution> 
                 </executions>
             </plugin>
             <plugin>

@@ -39,6 +39,10 @@ RUN sed -i -e "\|featuresRepositories|s|$|,${sdnr.features.repo},${sdnc.features
 # Add odl-netconf-topology to boot repositories
 RUN sed -i "s/odl-restconf-all/odl-restconf-all,odl-netconf-topology/g"  $ODL_HOME/etc/org.apache.karaf.features.cfg
 
+# copy patches
+COPY patches/pax-web-jetty-${odl.ops4j.version}.jar $ODL_HOME/system/org/ops4j/pax/web/pax-web-jetty/${odl.ops4j.version}/
+COPY patches/aaa-authn-api-${odl.aaa.version}.jar $ODL_HOME/system/org/opendaylight/aaa/aaa-authn-api/${odl.aaa.version}/
+
 # Add aaa-app-config.xml Only if AAF is set to true (being passed as an argument in docker-maven-plugin configuration)
 COPY aaa-app-config.xml /tmp/aaa-app-config.xml
 RUN if "${AAF}" ; then \
