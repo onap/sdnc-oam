@@ -67,8 +67,9 @@ RUN echo org.ops4j.pax.web.ssl.keypassword=\"$SDNC_KEYPASS\" >> $ODL_HOME/etc/cu
 RUN cp /opt/onap/sdnc/data/properties/svclogic-compiler.properties /opt/onap/sdnc/svclogic/config/svclogic.properties
 
 # Short term fix starts: for javax.servlet-api bundle (Replacing 4.0.1 to 3.1.0 as it's unique for javax.servlet-api)
-RUN find /opt/opendaylight -name "*features*.xml" -exec sed -i -e 's|4.0.1|3.1.0|g' {} \;
+# RUN find /opt/opendaylight -name "*features*.xml" -exec sed -i -e 's|4.0.1|3.1.0|g' {} \;
 # Short term fix ends
+# Commented out by dtimoney : breaks yangtools dependencies in ODL Scandium release
 
 # Remediate log4shell vuln
 RUN apk add zip
