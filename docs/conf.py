@@ -21,8 +21,9 @@ extensions = [
     'sphinx.ext.graphviz',
     'sphinxcontrib.blockdiag',
     'sphinxcontrib.seqdiag',
-    'sphinxcontrib.swaggerdoc',
-    'sphinxcontrib.plantuml'
+    'sphinxcontrib.swaggerdoc',  # TODO: Remove in separate change (unmaintained)
+    'sphinxcontrib.plantuml',
+    'sphinxcontrib.openapi'
 ]
 
 #
