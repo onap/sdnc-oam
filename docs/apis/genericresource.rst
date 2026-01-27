@@ -1,4 +1,23 @@
+.. This work is licensed under a Creative Commons Attribution 4.0 International License.
+
+.. _generic-resource-api:
+
+====================
 GENERIC-RESOURCE-API
 ====================
 
-.. swaggerv2doc:: https://gerrit.onap.org/r/gitweb?p=sdnc/northbound.git;a=blob_plain;f=generic-resource-api/model/swagger/src/main/json/generic-resource.json;h=1b7454b5dddb37e4c8540f3f8f241747500a36c1;hb=refs/heads/guilin
+Overview
+--------
+
+The Generic Resource API provides a model-driven approach for managing and configuring
+network services in ONAP. It enables the Software Defined Network Controller (SDNC)
+to handle generic resource operations for service provisioning and lifecycle management.
+
+API Specification
+-----------------
+
+The following API documentation is generated from the OpenAPI/Swagger specification
+maintained in the `sdnc/northbound repository <https://gerrit.onap.org/r/gitweb?p=sdnc/northbound.git;a=tree>`_.
+
+.. openapi:: ../specs/generic-resource-api.json
+   :group:
