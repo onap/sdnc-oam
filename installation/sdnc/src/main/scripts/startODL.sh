@@ -294,6 +294,30 @@ if $JDEBUG ; then
     export EXTRA_JAVA_OPTS
 fi
 
+# Enable OpenTelemetry Java agent if configured
+if [ -n "$OTEL_JAVAAGENT_PATH" ] && [ -f "$OTEL_JAVAAGENT_PATH" ]; then
+    printf "Enabling OpenTelemetry Java agent\n"
+    EXTRA_JAVA_OPTS="${EXTRA_JAVA_OPTS} -javaagent:${OTEL_JAVAAGENT_PATH}"
+
+    # Set default OTEL configuration if not already set
+    if [ -z "$OTEL_SERVICE_NAME" ]; then
+        export OTEL_SERVICE_NAME="sdnc"
+    fi
+    if [ -z "$OTEL_TRACES_EXPORTER" ]; then
+        export OTEL_TRACES_EXPORTER="otlp"
+    fi
+    if [ -z "$OTEL_METRICS_EXPORTER" ]; then
+        export OTEL_METRICS_EXPORTER="none"
+    fi
+    if [ -z "$OTEL_LOGS_EXPORTER" ]; then
+        export OTEL_LOGS_EXPORTER="none"
+    fi
+
+    export EXTRA_JAVA_OPTS
+    printf "  OTEL_JAVAAGENT_PATH=%s\n" "$OTEL_JAVAAGENT_PATH"
+    printf "  OTEL_SERVICE_NAME=%s\n" "$OTEL_SERVICE_NAME"
+    printf "  OTEL_EXPORTER_OTLP_ENDPOINT=%s\n" "$OTEL_EXPORTER_OTLP_ENDPOINT"
+fi
 
 printf "Settings:\n"
 printf "%s\n" "  SDNC_BIN=$SDNC_BIN"

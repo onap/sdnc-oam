@@ -75,6 +75,11 @@ RUN cp /opt/onap/sdnc/data/properties/svclogic-compiler.properties /opt/onap/sdn
 RUN apk add zip
 RUN find /opt/opendaylight/system/org/ops4j/pax/logging/pax-logging-log4j2 -name 'pax-logging-log4j2*.jar' -exec zip -q -d '{}' org/apache/logging/log4j/core/lookup/JndiLookup.class \;
 
+# Download OpenTelemetry Java agent
+ENV OTEL_AGENT_VERSION=2.24.0
+RUN mkdir -p /opt/opentelemetry && \
+    wget -O /opt/opentelemetry/opentelemetry-javaagent.jar \
+    https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v${OTEL_AGENT_VERSION}/opentelemetry-javaagent.jar
 
 # Changing ownership and permission of /opt
 RUN chown -R odl:odl /opt && chmod -R 755 /opt
@@ -96,7 +101,8 @@ ENV LC_ALL=en_US.UTF-8 \
     ODL_HOME=/opt/opendaylight/current \
     SDNC_CONFIG_DIR=/opt/onap/sdnc/data/properties \
     SDNC_KEYSTORE=${sdnc.keystore} \
-    SDNC_KEYPASS=${sdnc.keypass}
+    SDNC_KEYPASS=${sdnc.keypass} \
+    OTEL_JAVAAGENT_PATH=/opt/opentelemetry/opentelemetry-javaagent.jar
 
 # Copy Everything from stage0
 COPY --from=stage0 / /
