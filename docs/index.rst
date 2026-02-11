@@ -11,7 +11,6 @@ Network Controller (SDNC)
    architecture.rst
    offeredapis.rst
    consumedapis.rst
-   delivery.rst
    logging.rst
    installation.rst
    cert_installation.rst
