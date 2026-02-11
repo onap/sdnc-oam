@@ -14,30 +14,5 @@ Delivery
 
    * This note must be removed after content has been added.
 
-Example use of a block diagram.
 
-.. blockdiag::
-
-
-   blockdiag layers {
-   orientation = portrait
-   a -> m;
-   b -> n;
-   c -> x;
-   m -> y;
-   m -> z;
-   group l1 {
-   color = blue;
-   x; y; z;
-   }
-   group l2 {
-   color = yellow;
-   m; n;
-   }
-   group l3 {
-   color = orange;
-   a; b; c;
-   }
-
-   }
 
