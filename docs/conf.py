@@ -19,10 +19,7 @@ html_show_sphinx = False
 extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.graphviz',
-    'sphinxcontrib.blockdiag',
     'sphinxcontrib.mermaid',
-    'sphinxcontrib.seqdiag',
-    'sphinxcontrib.swaggerdoc',  # TODO: Remove in separate change (unmaintained)
     'sphinxcontrib.plantuml',
     'sphinxcontrib.openapi'
 ]
