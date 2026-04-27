@@ -390,7 +390,7 @@ if $SDNC_DB_INIT; then
 # Wait for database
 #
   printf "Waiting for mysql"
-  until mysql --skip-ssl -h dbhost -u root -p"${MYSQL_ROOT_PASSWORD}" -e "select 1" > /dev/null 2>&1
+  until mariadb --skip-ssl -h dbhost -u root -p"${MYSQL_ROOT_PASSWORD}" -e "select 1" > /dev/null 2>&1
   do
     printf "."
     sleep 1
