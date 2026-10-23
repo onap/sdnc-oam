@@ -1,49 +1,42 @@
-# Prepare stage for multistage image build
-## START OF STAGE0 ##
-FROM onap/ccsdk-odlsli-alpine-image:${ccsdk.docker.version} AS stage0
+FROM ${java.base.image} AS assemble
 USER root
 
-ENV JAVA_HOME /opt/java/openjdk
-ENV PATH $PATH:/opt/java/openjdk/bin
-
-ENV SDNC_CONFIG_DIR /opt/onap/sdnc/data/properties
-ENV SDNC_STORE_DIR /opt/onap/sdnc/data/stores
-ENV JAVA_SECURITY_DIR /opt/java/openjdk/lib/security
-
-ENV SDNC_KEYSTORE ${sdnc.keystore}
-ENV SDNC_KEYPASS ${sdnc.keypass}
-ENV SDNC_SECUREPORT ${sdnc.secureport}
+ENV ODL_HOME=/opt/opendaylight/current \
+    SDNC_CONFIG_DIR=/opt/onap/sdnc/data/properties \
+    SDNC_STORE_DIR=/opt/onap/sdnc/data/stores \
+    SDNC_KEYSTORE=${sdnc.keystore} \
+    SDNC_KEYPASS=${sdnc.keypass} \
+    SDNC_SECUREPORT=${sdnc.secureport}
 
 ARG AAF=false
 
-# Copy any certs
-COPY *.md *.pem /etc/ssl/certs/
+RUN apk add --no-cache zip
 
-# Install certs
-RUN update-ca-certificates
+COPY ${odl.karaf.artifactId}-${odl.karaf.version}.tar.gz /tmp/
+RUN mkdir -p /opt/odl \
+    && tar xzf /tmp/${odl.karaf.artifactId}-${odl.karaf.version}.tar.gz --directory /opt/odl \
+    && rm /tmp/${odl.karaf.artifactId}-${odl.karaf.version}.tar.gz \
+    && mv /opt/odl/${odl.karaf.artifactId}-${odl.karaf.version} /opt/opendaylight \
+    && rmdir /opt/odl \
+    && ln -s /opt/opendaylight /opt/opendaylight/${odl.karaf.artifactId}-${odl.karaf.version} \
+    && ln -s /opt/opendaylight /opt/opendaylight/current
 
-# Copy deliverables to opt
-COPY opt /opt
-RUN test -L /opt/sdnc || ln -s /opt/onap/sdnc /opt/sdnc
+COPY system /opt/opendaylight/system
+COPY etc/org.ops4j.pax.logging.cfg /opt/opendaylight/etc/org.ops4j.pax.logging.cfg
+COPY opt/onap /opt/onap
 RUN mkdir $ODL_HOME/current/certs
 
-# Copy SDNC mvn artifacts to ODL repository
-COPY system /tmp/system
-RUN rsync -a /tmp/system "$(readlink -f "$ODL_HOME")"
+RUN cp $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.karaf.features.cfg.orig \
+    && sed -i -e "\|featuresBoot[^a-zA-Z]|s|$|,${extra.odl.features},${ccsdk.sli.features}|" $ODL_HOME/etc/org.apache.karaf.features.cfg \
+    && sed -i -e "\|featuresRepositories|s|$|,${ccsdk.sli.features.repo}|" $ODL_HOME/etc/org.apache.karaf.features.cfg \
+    && cp $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.karaf.features.cfg.sdnc.orig \
+    && sed -i -e "\|featuresBoot[^a-zA-Z]|s|$|,${sdnc.features.boot}|" $ODL_HOME/etc/org.apache.karaf.features.cfg \
+    && sed -i -e "\|featuresRepositories|s|$|,${sdnr.features.repo},${sdnc.features.repo}|" $ODL_HOME/etc/org.apache.karaf.features.cfg \
+    && sed -i "s/odl-restconf-all/odl-restconf-all,odl-netconf-topology/g" $ODL_HOME/etc/org.apache.karaf.features.cfg
 
-# Backing up existing karaf cfg and updating features boot and features repositories defined in pom.xml
-RUN cp $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.karaf.features.cfg.sdnc.orig
-RUN sed -i -e "\|featuresBoot[^a-zA-Z]|s|$|,${sdnc.features.boot}|" $ODL_HOME/etc/org.apache.karaf.features.cfg
-RUN sed -i -e "\|featuresRepositories|s|$|,${sdnr.features.repo},${sdnc.features.repo}|" $ODL_HOME/etc/org.apache.karaf.features.cfg
-
-# Add odl-netconf-topology to boot repositories
-RUN sed -i "s/odl-restconf-all/odl-restconf-all,odl-netconf-topology/g"  $ODL_HOME/etc/org.apache.karaf.features.cfg
-
-# copy patches
 COPY patches/pax-web-jetty-${odl.ops4j.version}.jar $ODL_HOME/system/org/ops4j/pax/web/pax-web-jetty/${odl.ops4j.version}/
 COPY patches/aaa-authn-api-${odl.aaa.version}.jar $ODL_HOME/system/org/opendaylight/aaa/aaa-authn-api/${odl.aaa.version}/
 
-# Add aaa-app-config.xml Only if AAF is set to true (being passed as an argument in docker-maven-plugin configuration)
 COPY aaa-app-config.xml /tmp/aaa-app-config.xml
 RUN if "${AAF}" ; then \
         mkdir -p $ODL_HOME/etc/opendaylight/datastore/initial/config ;\
@@ -51,65 +44,59 @@ RUN if "${AAF}" ; then \
         echo "cadi_prop_files=$SDNC_CONFIG_DIR/org.onap.sdnc.props" >> $ODL_HOME/etc/system.properties ;\
     fi
 
-# Install ssl and java certificates
 COPY truststoreONAPall.jks $SDNC_STORE_DIR
-RUN if [ -f $JAVA_SECURITY_DIR}/cacerts ] ; then keytool -importkeystore -srckeystore $SDNC_STORE_DIR/truststoreONAPall.jks -srcstorepass changeit -destkeystore $JAVA_SECURITY_DIR/cacerts  -deststorepass changeit -noprompt ; fi
-RUN keytool -importkeystore -srckeystore $SDNC_STORE_DIR/truststoreONAPall.jks -srcstorepass changeit -destkeystore /opt/java/openjdk/lib/security/cacerts  -deststorepass changeit -noprompt
 
-# Secure with TLS
-RUN echo org.osgi.service.http.secure.enabled=true >> $ODL_HOME/etc/org.ops4j.pax.web.cfg
-RUN echo org.osgi.service.http.port.secure=$SDNC_SECUREPORT >> $ODL_HOME/etc/org.ops4j.pax.web.cfg
-RUN echo org.ops4j.pax.web.ssl.keystore=$SDNC_STORE_DIR/$SDNC_KEYSTORE >> $ODL_HOME/etc/org.ops4j.pax.web.cfg
-RUN echo org.ops4j.pax.web.ssl.keystore.type=PKCS12 >> $ODL_HOME/etc/org.ops4j.pax.web.cfg
-RUN echo org.ops4j.pax.web.ssl.keystore.password="$SDNC_KEYPASS" >> $ODL_HOME/etc/org.ops4j.pax.web.cfg
-RUN echo org.ops4j.pax.web.ssl.password="$SDNC_KEYPASS" >> $ODL_HOME/etc/org.ops4j.pax.web.cfg
-RUN echo org.ops4j.pax.web.ssl.key.password="$SDNC_KEYPASS" >> $ODL_HOME/etc/org.ops4j.pax.web.cfg
-RUN echo org.ops4j.pax.web.ssl.keypassword="$SDNC_KEYPASS" >> $ODL_HOME/etc/org.ops4j.pax.web.cfg
-RUN echo org.ops4j.pax.web.ssl.key.alias=sdnc@sdnc.onap.org >> $ODL_HOME/etc/org.ops4j.pax.web.cfg
+RUN echo org.osgi.service.http.secure.enabled=true >> $ODL_HOME/etc/org.ops4j.pax.web.cfg \
+    && echo org.osgi.service.http.port.secure=$SDNC_SECUREPORT >> $ODL_HOME/etc/org.ops4j.pax.web.cfg \
+    && echo org.ops4j.pax.web.ssl.keystore=$SDNC_STORE_DIR/$SDNC_KEYSTORE >> $ODL_HOME/etc/org.ops4j.pax.web.cfg \
+    && echo org.ops4j.pax.web.ssl.keystore.type=PKCS12 >> $ODL_HOME/etc/org.ops4j.pax.web.cfg \
+    && echo org.ops4j.pax.web.ssl.keystore.password="$SDNC_KEYPASS" >> $ODL_HOME/etc/org.ops4j.pax.web.cfg \
+    && echo org.ops4j.pax.web.ssl.password="$SDNC_KEYPASS" >> $ODL_HOME/etc/org.ops4j.pax.web.cfg \
+    && echo org.ops4j.pax.web.ssl.key.password="$SDNC_KEYPASS" >> $ODL_HOME/etc/org.ops4j.pax.web.cfg \
+    && echo org.ops4j.pax.web.ssl.keypassword="$SDNC_KEYPASS" >> $ODL_HOME/etc/org.ops4j.pax.web.cfg \
+    && echo org.ops4j.pax.web.ssl.key.alias=sdnc@sdnc.onap.org >> $ODL_HOME/etc/org.ops4j.pax.web.cfg
 
-# Overwrite svclogic compiler properties
 RUN cp /opt/onap/sdnc/data/properties/svclogic-compiler.properties /opt/onap/sdnc/svclogic/config/svclogic.properties
 
-# Short term fix starts: for javax.servlet-api bundle (Replacing 4.0.1 to 3.1.0 as it's unique for javax.servlet-api)
-# RUN find /opt/opendaylight -name "*features*.xml" -exec sed -i -e 's|4.0.1|3.1.0|g' {} \;
-# Short term fix ends
-# Commented out by dtimoney : breaks yangtools dependencies in ODL Scandium release
-
 # Remediate log4shell vuln
-RUN apk add zip
 RUN find /opt/opendaylight/system/org/ops4j/pax/logging/pax-logging-log4j2 -name 'pax-logging-log4j2*.jar' -exec zip -q -d '{}' org/apache/logging/log4j/core/lookup/JndiLookup.class \;
 
-# Download OpenTelemetry Java agent
 ENV OTEL_AGENT_VERSION=2.24.0
 RUN mkdir -p /opt/opentelemetry && \
     wget -O /opt/opentelemetry/opentelemetry-javaagent.jar \
     https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v${OTEL_AGENT_VERSION}/opentelemetry-javaagent.jar
 
-# Changing ownership and permission of /opt
-RUN chown -R odl:odl /opt && chmod -R 755 /opt
-
-
-
-## END OF STAGE0 ##
+RUN chmod -R 755 /opt/opendaylight /opt/onap /opt/opentelemetry
 
 #################################################
 
-## This will create actual image
-FROM scratch
+# Not FROM scratch: keeping the upstream JRE layers lets scanners see the base and lets nodes share it.
+FROM ${java.base.image}
 LABEL maintainer="SDN-C Team (sdnc@lists.onap.org)"
 USER root
 
+RUN apk add --no-cache bash coreutils curl jq mariadb-client mysql-client musl-locales openssl python3 unzip zip \
+    && addgroup -S -g ${odl.gid} odl \
+    && adduser -S -u ${odl.uid} -G odl odl
+
 ENV LC_ALL=en_US.UTF-8 \
-    JAVA_HOME=/opt/java/openjdk \
-    PATH=$PATH:/opt/java/openjdk/bin \
     ODL_HOME=/opt/opendaylight/current \
     SDNC_CONFIG_DIR=/opt/onap/sdnc/data/properties \
     SDNC_KEYSTORE=${sdnc.keystore} \
     SDNC_KEYPASS=${sdnc.keypass} \
     OTEL_JAVAAGENT_PATH=/opt/opentelemetry/opentelemetry-javaagent.jar
 
-# Copy Everything from stage0
-COPY --from=stage0 / /
+COPY --from=assemble --chown=${odl.uid}:${odl.gid} /opt/opendaylight /opt/opendaylight
+COPY --from=assemble --chown=${odl.uid}:${odl.gid} /opt/onap /opt/onap
+COPY --from=assemble --chown=${odl.uid}:${odl.gid} /opt/opentelemetry /opt/opentelemetry
+
+# Copy any certs
+COPY *.md *.pem /etc/ssl/certs/
+
+RUN update-ca-certificates \
+    && ln -s /opt/onap/sdnc /opt/sdnc \
+    && keytool -importkeystore -srckeystore /opt/onap/sdnc/data/stores/truststoreONAPall.jks -srcstorepass changeit \
+       -destkeystore /opt/java/openjdk/lib/security/cacerts -deststorepass changeit -noprompt
 
 USER odl
 EXPOSE 8181
