@@ -29,7 +29,7 @@ RUN mkdir $ODL_HOME/current/certs
 
 # Copy SDNC mvn artifacts to ODL repository
 COPY system /tmp/system
-RUN rsync -a /tmp/system $ODL_HOME
+RUN rsync -a /tmp/system "$(readlink -f "$ODL_HOME")"
 
 # Backing up existing karaf cfg and updating features boot and features repositories defined in pom.xml
 RUN cp $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.karaf.features.cfg.sdnc.orig
