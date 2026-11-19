@@ -12,26 +12,22 @@ ARG AAF=false
 
 RUN apk add --no-cache zip
 
-COPY ${odl.karaf.artifactId}-${odl.karaf.version}.tar.gz /tmp/
+COPY sdnc-karaf-${sdnc.karaf.version}.tar.gz /tmp/
 RUN mkdir -p /opt/odl \
-    && tar xzf /tmp/${odl.karaf.artifactId}-${odl.karaf.version}.tar.gz --directory /opt/odl \
-    && rm /tmp/${odl.karaf.artifactId}-${odl.karaf.version}.tar.gz \
-    && mv /opt/odl/${odl.karaf.artifactId}-${odl.karaf.version} /opt/opendaylight \
+    && tar xzf /tmp/sdnc-karaf-${sdnc.karaf.version}.tar.gz --directory /opt/odl \
+    && rm /tmp/sdnc-karaf-${sdnc.karaf.version}.tar.gz \
+    && mv /opt/odl/sdnc-karaf-${sdnc.karaf.version} /opt/opendaylight \
     && rmdir /opt/odl \
-    && ln -s /opt/opendaylight /opt/opendaylight/${odl.karaf.artifactId}-${odl.karaf.version} \
     && ln -s /opt/opendaylight /opt/opendaylight/current
 
-COPY system /opt/opendaylight/system
 COPY etc/org.ops4j.pax.logging.cfg /opt/opendaylight/etc/org.ops4j.pax.logging.cfg
 COPY opt/onap /opt/onap
 RUN mkdir $ODL_HOME/current/certs
 
 RUN cp $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.karaf.features.cfg.orig \
     && sed -i -e "\|featuresBoot[^a-zA-Z]|s|$|,${extra.odl.features},${ccsdk.sli.features}|" $ODL_HOME/etc/org.apache.karaf.features.cfg \
-    && sed -i -e "\|featuresRepositories|s|$|,${ccsdk.sli.features.repo}|" $ODL_HOME/etc/org.apache.karaf.features.cfg \
     && cp $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.karaf.features.cfg.sdnc.orig \
     && sed -i -e "\|featuresBoot[^a-zA-Z]|s|$|,${sdnc.features.boot}|" $ODL_HOME/etc/org.apache.karaf.features.cfg \
-    && sed -i -e "\|featuresRepositories|s|$|,${sdnr.features.repo},${sdnc.features.repo}|" $ODL_HOME/etc/org.apache.karaf.features.cfg \
     && sed -i "s/odl-restconf-all/odl-restconf-all,odl-netconf-topology/g" $ODL_HOME/etc/org.apache.karaf.features.cfg
 
 COPY patches/pax-web-jetty-${odl.ops4j.version}.jar $ODL_HOME/system/org/ops4j/pax/web/pax-web-jetty/${odl.ops4j.version}/

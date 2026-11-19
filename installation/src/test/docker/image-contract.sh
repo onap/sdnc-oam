@@ -94,9 +94,10 @@ sdnc)
         check "boots $feature" "grep '^featuresBoot' $features | grep -q -- $feature"
     done
     check "feature repositories pin exact versions" \
-        "! sed -n '/^featuresRepositories/,/^\$/p' $features | grep -q '\['"
+        "! { sed -n '/^featuresRepositories/,/^\$/p' $features; cat /opt/opendaylight/etc/*.xml; } | grep -q 'mvn:[^<]*\['"
     if [ -n "$SLI_VERSION" ]; then
-        check "loads SLI $SLI_VERSION" "grep -q 'ccsdk-sli-core-all/$SLI_VERSION/xml/features' $features"
+        check "loads SLI $SLI_VERSION" \
+            "cat $features /opt/opendaylight/etc/*.xml | grep -q 'ccsdk-sli-core-all/$SLI_VERSION/xml/features'"
     fi
 
     while read -r patched sibling central; do
