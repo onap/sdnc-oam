@@ -8,8 +8,6 @@ ENV ODL_HOME=/opt/opendaylight/current \
     SDNC_KEYPASS=${sdnc.keypass} \
     SDNC_SECUREPORT=${sdnc.secureport}
 
-ARG AAF=false
-
 RUN apk add --no-cache zip
 
 COPY sdnc-karaf-${sdnc.karaf.version}.tar.gz /tmp/
@@ -38,13 +36,6 @@ RUN cp $ODL_HOME/etc/org.apache.karaf.features.cfg $ODL_HOME/etc/org.apache.kara
 
 COPY patches/pax-web-jetty-${odl.ops4j.version}.jar $ODL_HOME/system/org/ops4j/pax/web/pax-web-jetty/${odl.ops4j.version}/
 COPY patches/aaa-authn-api-${odl.aaa.version}.jar $ODL_HOME/system/org/opendaylight/aaa/aaa-authn-api/${odl.aaa.version}/
-
-COPY aaa-app-config.xml /tmp/aaa-app-config.xml
-RUN if "${AAF}" ; then \
-        mkdir -p $ODL_HOME/etc/opendaylight/datastore/initial/config ;\
-        mv /tmp/aaa-app-config.xml $ODL_HOME/etc/opendaylight/datastore/initial/config/. ;\
-        echo "cadi_prop_files=$SDNC_CONFIG_DIR/org.onap.sdnc.props" >> $ODL_HOME/etc/system.properties ;\
-    fi
 
 COPY truststoreONAPall.jks $SDNC_STORE_DIR
 

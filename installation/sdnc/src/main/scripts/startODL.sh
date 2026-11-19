@@ -232,7 +232,6 @@ CCSDK_HOME=${CCSDK_HOME:-/opt/onap/ccsdk}
 SDNC_HOME=${SDNC_HOME:-/opt/onap/sdnc}
 SDNC_BIN=${SDNC_BIN:-/opt/onap/sdnc/bin}
 JDEBUG=${JDEBUG:-false}
-SDNC_AAF_ENABLED=${SDNC_AAF_ENABLED:-false}
 INSTALLED_DIR=${INSTALLED_FILE:-/opt/opendaylight/current/daexim}
 
 # Whether to intialize MYSql DB or not. Default is to initialize
@@ -341,26 +340,9 @@ printf "%s\n" "  IS_PRIMARY_CLUSTER=$IS_PRIMARY_CLUSTER"
 printf "%s\n" "  MY_ODL_CLUSTER=$MY_ODL_CLUSTER"
 printf "%s\n" "  PEER_ODL_CLUSTER=$PEER_ODL_CLUSTER"
 printf "%s\n" "  SDNR_NORTHBOUND=$SDNR_NORTHBOUND"
-printf "%s\n" "  AAF_ENABLED=$SDNC_AAF_ENABLED"
 printf "%s\n" "  SERVICE_NAME=$SERVICE_NAME"
 printf "%s\n" "  NAMESPACE=$NAMESPACE"
 printf "%s\n" "  SDNR_NETCONF_CALLHOME_ENABLED=$SDNR_NETCONF_CALLHOME_ENABLED"
-
-if "$SDNC_AAF_ENABLED"; then
-	export SDNC_AAF_STORE_DIR=/opt/app/osaaf/local
-	export SDNC_AAF_CONFIG_DIR=/opt/app/osaaf/local
-	export SDNC_KEYPASS=$(cat /opt/app/osaaf/local/.pass)
-	export SDNC_KEYSTORE=org.onap.sdnc.p12
-	sed -i '/cadi_prop_files/d' "$ODL_HOME"/etc/system.properties
-	echo "cadi_prop_files=$SDNC_AAF_CONFIG_DIR/org.onap.sdnc.props" >> "$ODL_HOME"/etc/system.properties
-
-	sed -i '/org.ops4j.pax.web.ssl.keystore/d' "$ODL_HOME"/etc/custom.properties
-	sed -i '/org.ops4j.pax.web.ssl.password/d' "$ODL_HOME"/etc/custom.properties
-	sed -i '/org.ops4j.pax.web.ssl.keypassword/d' "$ODL_HOME"/etc/custom.properties
-	echo "org.ops4j.pax.web.ssl.keystore=$SDNC_AAF_STORE_DIR/$SDNC_KEYSTORE" >> "$ODL_HOME"/etc/custom.properties
-	echo "org.ops4j.pax.web.ssl.password=\"$SDNC_KEYPASS\"" >> "$ODL_HOME"/etc/custom.properties
-	echo "org.ops4j.pax.web.ssl.keypassword=\"$SDNC_KEYPASS\"" >> "$ODL_HOME"/etc/custom.properties
-fi
 
 if $SDNRINIT ; then
   #One time intialization action

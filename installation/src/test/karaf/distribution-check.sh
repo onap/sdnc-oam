@@ -83,7 +83,6 @@ org.onap.ccsdk.sli.core/ccsdk-sli-core-all/$SLI
 org.onap.ccsdk.sli.adaptors/ccsdk-sli-adaptors-all/$SLI
 org.onap.ccsdk.sli.northbound/ccsdk-sli-northbound-all/$SLI
 org.onap.ccsdk.sli.plugins/ccsdk-sli-plugins-all/$SLI
-org.onap.ccsdk.features/ccsdk-features-all/$FEAT
 org.onap.ccsdk.features.sdnr.northbound/sdnr-northbound-all/$FEAT
 org.onap.ccsdk.features.sdnr.wt/sdnr-wt-feature-aggregator/$FEAT
 org.onap.ccsdk.features.sdnr.wt/sdnr-wt-feature-aggregator-devicemanager/$FEAT

@@ -24,7 +24,6 @@ docker rmi -f $(docker images onap/sdnc-dmaap-listener-image -a -q)
 docker rmi -f $(docker images onap/sdnc-ueb-listener-image -a -q)
 docker rmi -f $(docker images onap/onap/sdnc-web-image -a -q)
 docker rmi -f $(docker images onap/sdnc-ansible-server-image -a -q)
-docker rmi -f $(docker images onap/sdnc-aaf-image -a -q)
 docker rmi -f $(docker images onap/ccsdk-ansible-server-image -a -q)
 docker rmi -f $(docker images onap/ccsdk-odlsli-alpine-image -a -q)
 docker images
