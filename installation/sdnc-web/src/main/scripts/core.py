@@ -253,15 +253,15 @@ def update_index_html(apps=None):
   
 
 def check_for_rule_template():
-    if os.path.exists('/opt/bitnami/nginx/conf/server_blocks/location.rules.tmpl'):
+    if os.path.exists('/etc/nginx/server_blocks/location.rules.tmpl'):
         print("using template for forwarding rules")
-        execToStdOut(['cp','/opt/bitnami/nginx/conf/server_blocks/location.rules.tmpl','/opt/bitnami/nginx/conf/server_blocks/location.rules'])
+        execToStdOut(['cp','/etc/nginx/server_blocks/location.rules.tmpl','/etc/nginx/server_blocks/location.rules'])
 
 def update_nginx_site_conf():
     FN=None
     if getEnv('WEBPROTOCOL') == "HTTPS":
-        FN='/opt/bitnami/nginx/conf/server_blocks/https_site.conf'
-        execToStdOut(['rm', '/opt/bitnami/nginx/conf/server_blocks/http_site.conf'])
+        FN='/etc/nginx/server_blocks/https_site.conf'
+        execToStdOut(['rm', '/etc/nginx/server_blocks/http_site.conf'])
         SSL_CERT_DIR=getEnv('SSL_CERT_DIR')
         SSL_CERTIFICATE=getEnv('SSL_CERTIFICATE')
         SSL_CERTIFICATE_KEY=getEnv('SSL_CERTIFICATE_KEY')
@@ -270,8 +270,8 @@ def update_nginx_site_conf():
         sedInFile('SSL_CERTIFICATE',SSL_CERTIFICATE, FN)
         
     elif getEnv('WEBPROTOCOL') == "HTTP":
-        FN='/opt/bitnami/nginx/conf/server_blocks/http_site.conf'
-        execToStdOut(['rm', '/opt/bitnami/nginx/conf/server_blocks/https_site.conf'])
+        FN='/etc/nginx/server_blocks/http_site.conf'
+        execToStdOut(['rm', '/etc/nginx/server_blocks/https_site.conf'])
 
     WEBPROTOCOL=getEnv('WEBPROTOCOL')
     WEBPORT=getEnv('WEBPORT')
@@ -288,7 +288,7 @@ def update_nginx_site_conf():
     # replace needed base parameters
     sedInFile('WEBPORT',WEBPORT,FN)
 
-    FN='/opt/bitnami/nginx/conf/server_blocks/location.rules'
+    FN='/etc/nginx/server_blocks/location.rules'
     # replace needed parameters in forwarding rules
     sedInFile('WEBPORT',WEBPORT,FN)
     sedInFile('SDNRPROTOCOL',SDNRPROTOCOL,FN)

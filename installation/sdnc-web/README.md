@@ -5,8 +5,8 @@
 
 | folder | description |
 | ------ | ----------- |
-| /opt/bitnami/nginx/conf/server_blocks/http(s)_site.conf | nginx config |
-| /opt/bitnami/nginx/conf/server_blocks/location.rules | forwarding rules for nginx |
+| /etc/nginx/server_blocks/http(s)_site.conf | nginx config |
+| /etc/nginx/server_blocks/location.rules | forwarding rules for nginx |
 | /app/odlux | http content files (html, js, css, ...) |
 | /app/odlux.application.list | application list file |
 | /app/opm.py | Odlux package manager for install or uninstall apps |

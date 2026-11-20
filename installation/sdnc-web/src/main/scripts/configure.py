@@ -24,8 +24,6 @@
 # load core methods to call
 from core import *
 
-# Comment listening on 8080 in nginx.conf as we don't want nginx to listen on any port other than SDNR
-sedInFile('listen','\#listen', '/opt/bitnami/nginx/conf/nginx.conf')
 initial_load()
 update_index_html()
 

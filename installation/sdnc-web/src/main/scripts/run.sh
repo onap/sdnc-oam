@@ -21,7 +21,7 @@
 #============LICENSE_END=========================================================
 ###
  
-python3 /opt/bitnami/nginx/sbin/configure.py
+python3 /opt/sdnc-web/bin/configure.py
 
 echo "starting sdnc-web"
 echo "======================="
@@ -60,22 +60,20 @@ echo ""
 
 if [ ! -z "$DEBUG" ]; then
 
-  if [ -f "/opt/bitnami/nginx/conf/server_blocks/http_site.conf" ]; then
-    echo "content of /opt/bitnami/nginx/conf/server_blocks/http_site.conf"
+  if [ -f "/etc/nginx/server_blocks/http_site.conf" ]; then
+    echo "content of /etc/nginx/server_blocks/http_site.conf"
     echo "==============================================================="
-    cat /opt/bitnami/nginx/conf/server_blocks/http_site.conf
-    echo "==============================================================="
-  fi
-
-  if [ -f "/opt/bitnami/nginx/conf/server_blocks/https_site.conf" ]; then
-    echo "content of /opt/bitnami/nginx/conf/server_blocks/https_site.conf"
-    echo "==============================================================="
-    cat /opt/bitnami/nginx/conf/server_blocks/https_site.conf
+    cat /etc/nginx/server_blocks/http_site.conf
     echo "==============================================================="
   fi
 
-  #tail -f /opt/bitnami/nginx/logs/* &
+  if [ -f "/etc/nginx/server_blocks/https_site.conf" ]; then
+    echo "content of /etc/nginx/server_blocks/https_site.conf"
+    echo "==============================================================="
+    cat /etc/nginx/server_blocks/https_site.conf
+    echo "==============================================================="
+  fi
+
 fi
 
-# Call the base images' run.sh to start NGINX
-bash /opt/bitnami/scripts/nginx/run.sh
+exec nginx -g "daemon off;"
