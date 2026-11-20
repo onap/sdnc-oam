@@ -32,6 +32,7 @@ import zipfile
 import shutil
 import subprocess
 import logging
+import json
 
 odl_home = os.environ['ODL_HOME']
 log_directory = odl_home + '/data/log/'
@@ -89,11 +90,14 @@ headers = {'Authorization':'Basic %s' % base64.b64encode(cred_string.encode()).d
            'Content-type':"application/yang-data+json"}
 
 def readFile(folder, file):
-    key = open(Path + "/" + folder + "/" + file, "r")
-    fileRead = key.read()
-    key.close()
-    fileRead = "\n".join(fileRead.splitlines()[1:-1])
-    return fileRead
+    with open(Path + "/" + folder + "/" + file, "r") as f:
+        return f.read().strip()
+
+# The ODL keystore RPCs parse keys with BouncyCastle's PEMParser and accept only a
+# traditional PEM key pair (BEGIN RSA/EC PRIVATE KEY), not PKCS#8 (BEGIN PRIVATE KEY).
+def toTraditionalKey(pem):
+    return subprocess.run(['openssl', 'pkey', '-traditional'], input=pem.encode(),
+                          capture_output=True, check=True).stdout.decode().strip()
 
 def readTrustedCertificate(folder, file):
     listCert = list()
@@ -102,57 +106,31 @@ def readTrustedCertificate(folder, file):
     key = open(folder + "/" + file, "r")
     lines = key.readlines()
     for line in lines:
-        if not "BEGIN CERTIFICATE" in line and not "END CERTIFICATE" in line and startCa:
-            caPem += line
-        elif "BEGIN CERTIFICATE" in line:
+        if "BEGIN CERTIFICATE" in line:
             startCa = True
-        elif "END CERTIFICATE" in line:
+        if startCa:
+            caPem += line
+        if "END CERTIFICATE" in line:
             startCa = False
-            listCert.append(caPem)
+            listCert.append(caPem.strip())
             caPem = ""
     return listCert
 
 def makeKeystoreKey(clientKey, count):
     odl_private_key = "ODL_private_key_%d" %count
 
-    json_keystore_key='{{\"input\": {{ \"key-credential\": {{\"key-id\": \"{odl_private_key}\", \"private-key\" : ' \
-                      '\"{clientKey}\",\"passphrase\" : \"\"}}}}}}'.format(
-        odl_private_key=odl_private_key,
-        clientKey=clientKey)
-
-    return json_keystore_key
+    return json.dumps({"input": {"key-credential": {
+        "key-id": odl_private_key, "private-key": clientKey, "passphrase": ""}}})
 
 def makePrivateKey(clientKey, clientCrt, certList, count):
-    caPem = ""
-    if certList:
-        for cert in certList:
-            caPem += '\"%s\",' % cert
-        caPem = caPem.rsplit(',', 1)[0]
     odl_private_key="ODL_private_key_%d" %count
-
-    json_private_key='{{\"input\": {{ \"private-key\":{{\"name\": \"{odl_private_key}\", \"data\" : ' \
-                     '\"{clientKey}\",\"certificate-chain\":[\"{clientCrt}\",{caPem}]}}}}}}'.format(
-        odl_private_key=odl_private_key,
-        clientKey=clientKey,
-        clientCrt=clientCrt,
-        caPem=caPem)
-
-    return json_private_key
+    return json.dumps({"input": {"private-key": {
+        "name": odl_private_key, "data": clientKey, "certificate-chain": [clientCrt] + list(certList)}}})
 
 def makeTrustedCertificate(certList, count):
-    number = 0
-    json_cert_format = ""
-    for cert in certList:
-        cert_name = "xNF_CA_certificate_%d_%d" %(count, number)
-        json_cert_format += '{{\"name\": \"{trusted_name}\",\"certificate\":\"{cert}\"}},\n'.format(
-            trusted_name=cert_name,
-            cert=cert.strip())
-        number += 1
-
-    json_cert_format = json_cert_format.rsplit(',', 1)[0]
-    json_trusted_cert='{{\"input\": {{ \"trusted-certificate\": [{certificates}]}}}}'.format(
-        certificates=json_cert_format)
-    return json_trusted_cert
+    certificates = [{"name": "xNF_CA_certificate_%d_%d" % (count, number), "certificate": cert.strip()}
+                    for number, cert in enumerate(certList)]
+    return json.dumps({"input": {"trusted-certificate": certificates}})
 
 
 def makeRestconfPost(conn, json_file, apiCall):
@@ -182,7 +160,7 @@ def processFiles(folder, count):
     for file in os.listdir(Path + "/" + folder):
         if os.path.isfile(Path + "/" + folder + "/" + file.strip()):
             if ".key" in file:
-                clientKey = readFile(folder, file.strip())
+                clientKey = toTraditionalKey(readFile(folder, file.strip()))
             elif "trustedCertificate" in file:
                 certList = readTrustedCertificate(Path + "/" + folder, file.strip())
             elif ".crt" in file:
@@ -311,13 +289,13 @@ def process_jks_files(count):
             trust_cert_cmd = 'openssl pkcs12 -in {src_file} -cacerts -nokeys -passin pass:{src_pass} '.format(
                 src_file=truststore_p12, src_pass=truststore_pass)
 
-            key_pattern = r'(?<=-----BEGIN PRIVATE KEY-----).*?(?=-----END PRIVATE KEY-----)'
+            key_pattern = r'-----BEGIN PRIVATE KEY-----.*?-----END PRIVATE KEY-----'
             client_key = subprocess.check_output(client_key_cmd, shell=True)
             if client_key:
-                client_key = make_cert_chain(client_key, key_pattern)[0]
+                client_key = toTraditionalKey(make_cert_chain(client_key, key_pattern)[0])
                 logging.debug("Key Ok")
 
-            cert_pattern = r'(?<=-----BEGIN CERTIFICATE-----).*?(?=-----END CERTIFICATE-----)'
+            cert_pattern = r'-----BEGIN CERTIFICATE-----.*?-----END CERTIFICATE-----'
             client_cert = subprocess.check_output(client_crt_cmd, shell=True)
             if client_cert:
                 client_cert = make_cert_chain(client_cert, cert_pattern)[0]
