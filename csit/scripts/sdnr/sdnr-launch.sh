@@ -63,16 +63,24 @@ else
 fi
 docker ps -a
 
-# Call function with port like:
-# check_for_ready_state 1234
+# Call function with port and, optionally, the container that serves it:
+# check_for_ready_state 1234 sdnr
 # export SDNC_READY_RETRY_PERIOD and SDNC_READY_TIMEOUT to overwrite default values
 function check_for_ready_state() {
   sdnc_port=${1}
+  container=${2}
   SDNC_READY_RETRY_PERIOD=${SDNC_READY_RETRY_PERIOD:-15}
   SDNC_READY_TIMEOUT=${SDNC_READY_TIMEOUT:-450}
   max_retry=$(expr $SDNC_READY_TIMEOUT / $SDNC_READY_RETRY_PERIOD)
   for ((i=1; i<=$max_retry; i++)); do
     wait_time=$(expr $i \* $SDNC_READY_RETRY_PERIOD)
+    if [ -n "$container" ] && [ "$(docker inspect -f '{{.State.Running}}' "$container" 2>/dev/null)" != true ]; then
+        echo "[ERROR] Container $container is not running, giving up after $(( (i - 1) * SDNC_READY_RETRY_PERIOD )) seconds"
+        docker ps -a
+        docker logs --tail 300 "$container"
+        export SDNC_READY_STATE_TIME_OUT=true
+        return
+    fi
     echo "[INFO] SDNC/R container not yet ready after: $wait_time seconds, Timeout: $SDNC_READY_TIMEOUT seconds"
     curl -sS -m 1 -k -D - ${HTTPS_PREFIX}${HOST_IP}:${sdnc_port}/ready | grep 200 && break
     if [ $i == $max_retry ]; then
@@ -128,7 +136,7 @@ function sdnr_launch_single_node() {
     docker-compose $env_file -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose-single-sdnr.yaml \
                              -f ${WORKSPACE}/scripts/sdnr/docker-compose/$sdnrdb_compose_file \
                              up -d
-    check_for_ready_state ${SDNC_PORT}
+    check_for_ready_state ${SDNC_PORT} sdnr
 }
 
 function sdnr_web_launch() {
@@ -141,7 +149,7 @@ function sdnr_web_launch() {
                              -f ${WORKSPACE}/scripts/sdnr/docker-compose/docker-compose-single-sdnr-web.override.yaml \
                              -f ${WORKSPACE}/scripts/sdnr/docker-compose/$sdnrdb_compose_file \
                              up -d
-    check_for_ready_state ${SDNC_WEB_PORT}
+    check_for_ready_state ${SDNC_WEB_PORT} sdnr
 }
 
 function sdnr_launch_cluster() {
