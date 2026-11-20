@@ -10,7 +10,7 @@ start=$1
 if [ $# -eq 1 ]
 then
   mariadb --user=${SDNC_DB_USER} --password=${SDNC_DB_PASSWORD} --host ${MYSQL_HOST} ${SDNC_DB_DATABASE} <<EOF
-INSERT INTO VLAN_ID_POOL (purpose, status, vlan_id) VALUES('VNI', 'AVAILABLE', $start);
+INSERT INTO VLAN_ID_POOL (aic_site_id, purpose, status, vlan_id) VALUES('', 'VNI', 'AVAILABLE', $start);
 EOF
 elif [ $# -eq 2 ]
 then
@@ -20,7 +20,7 @@ then
    while [ $vlanid -le $stop ]
    do
    mariadb --user=${SDNC_DB_USER} --password=${SDNC_DB_PASSWORD}  --host ${MYSQL_HOST} ${SDNC_DB_DATABASE} <<EOF
-INSERT INTO VLAN_ID_POOL (purpose, status, vlan_id) VALUES( 'VNI', 'AVAILABLE', $vlanid);
+INSERT INTO VLAN_ID_POOL (aic_site_id, purpose, status, vlan_id) VALUES('', 'VNI', 'AVAILABLE', $vlanid);
 EOF
 vlanid=$(( vlanid+1 ))
 done
