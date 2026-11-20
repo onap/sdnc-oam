@@ -109,7 +109,13 @@ install_sdnrwt_features() {
     fi
     addToFeatureBoot "$SDNRDM_BOOTFEATURES"
     if $SDNR_NETCONF_CALLHOME_ENABLED; then
-      addToFeatureBoot "$SDNR_NETCONF_CALLHOME_FEATURE"
+      # Call home depends on odl-netconf-topology, which must not run next to
+      # odl-netconf-clustered-topology: both would mount every node in topology-netconf.
+      if $ENABLE_ODL_CLUSTER; then
+        printf "%s\n" "WARNING: NETCONF call home is not supported with ENABLE_ODL_CLUSTER=true, not installing $SDNR_NETCONF_CALLHOME_FEATURE"
+      else
+        addToFeatureBoot "$SDNR_NETCONF_CALLHOME_FEATURE"
+      fi
     fi
   fi
 }
