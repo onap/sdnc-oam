@@ -93,6 +93,14 @@ cat ${WORKSPACE}/../installation/sdnc/src/main/resources/sdnctl.dump ${WORKSPACE
 # start SDNC containers with docker compose and configuration from docker-compose.yml
 docker-compose -f ${SCRIPTS}/docker-compose.yml up -d
 
+sdnc_must_run() {
+  if [ "$(docker inspect -f '{{.State.Running}}' ${SDNC_CONTAINER_NAME} 2>/dev/null)" != true ]; then
+    echo ${SDNC_CONTAINER_NAME} is not running after $TIME seconds, setup failed
+    docker ps -a
+    docker-compose -f "${SCRIPTS}"/docker-compose.yml logs --no-color --tail=300
+    exit 1
+  fi
+}
 
 # WAIT 5 minutes maximum and check karaf.log for readiness every 10 seconds
 
@@ -100,6 +108,7 @@ TIME_OUT=300
 INTERVAL=10
 TIME=0
 while [ "$TIME" -lt "$TIME_OUT" ]; do
+sdnc_must_run
 
 docker exec ${SDNC_CONTAINER_NAME} cat /opt/opendaylight/data/log/karaf.log | grep 'warp coils'
 
@@ -136,6 +145,7 @@ TIME_OUT=300
 INTERVAL=10
 TIME=0
 while [ "$TIME" -lt "$TIME_OUT" ]; do
+  sdnc_must_run
 
   docker-compose -f "${SCRIPTS}"/docker-compose.yml logs sdnc | grep 'Everything OK in Certificate Installation'
 
