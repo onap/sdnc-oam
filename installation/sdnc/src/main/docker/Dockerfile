@@ -49,6 +49,9 @@ RUN echo org.osgi.service.http.secure.enabled=true >> $ODL_HOME/etc/org.ops4j.pa
     && echo org.ops4j.pax.web.ssl.keypassword="$SDNC_KEYPASS" >> $ODL_HOME/etc/org.ops4j.pax.web.cfg \
     && echo org.ops4j.pax.web.ssl.key.alias=sdnc@sdnc.onap.org >> $ODL_HOME/etc/org.ops4j.pax.web.cfg
 
+# The RESTCONF Netty endpoint binds 8182 by default, the port of the SDN-R websocket.
+RUN echo bind-port=8185 > $ODL_HOME/etc/org.opendaylight.restconf.nb.rfc8040.cfg
+
 RUN cp /opt/onap/sdnc/data/properties/svclogic-compiler.properties /opt/onap/sdnc/svclogic/config/svclogic.properties
 
 # Remediate log4shell vuln
