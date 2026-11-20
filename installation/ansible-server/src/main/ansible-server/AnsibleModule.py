@@ -49,11 +49,11 @@ def ansibleSysCall (inventory_path, playbook_path, nodelist, mandatory, envparam
         str_parameters += '"'
 
     if len(str_parameters) > 0:
-        cmd = 'cd ' + playbookdir + ';' + 'timeout -s KILL -t ' + str(timeout) + \
+        cmd = 'cd ' + playbookdir + ';' + 'timeout -s KILL ' + str(timeout) + \
               ' ansible-playbook -v --timeout ' + str(timeout) + ' --extra-vars ' + str_parameters + ' -i ' + \
               inventory_path + ' ' + playbook_path + ' | tee log.file'
     else:
-        cmd = 'cd ' + playbookdir + ';' + 'timeout -s KILL -t ' + str(timeout) + \
+        cmd = 'cd ' + playbookdir + ';' + 'timeout -s KILL ' + str(timeout) + \
               ' ansible-playbook -v --timeout ' + str(timeout) + ' -i ' + inventory_path + ' ' + playbook_path + ' | tee log.file'
 
     cherrypy.log("CMD: " + cmd)
