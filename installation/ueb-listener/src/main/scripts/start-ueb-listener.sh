@@ -40,15 +40,9 @@ if [ -n "$OTEL_JAVAAGENT_PATH" ] && [ -f "$OTEL_JAVAAGENT_PATH" ]; then
   export OTEL_LOGS_EXPORTER=${OTEL_LOGS_EXPORTER:-none}
 fi
 
-
-for file in ${UEBLISTENERROOT}/lib/*.jar
-do
-  LISTENERCLASSPATH=$LISTENERCLASSPATH:$file
-done
-
 echo "Starting ueb-listener"
 cd ${UEBLISTENERROOT}
-exec ${JAVA} ${JAVA_OPTS} -jar ${UEBLISTENERROOT}/lib/ueb-listener*.jar -Dlog4j.configurationFile=${PROPERTY_DIR}/log4j2.xml -cp ${LISTENERCLASSPATH}
+exec ${JAVA} ${JAVA_OPTS} -Dlog4j.configurationFile=${PROPERTY_DIR}/log4j2.xml -cp "${UEBLISTENERROOT}/lib/*" org.onap.ccsdk.sli.northbound.uebclient.SdncUebClient
 
 
 

@@ -29,13 +29,13 @@
         <dependency>
             <groupId>org.onap.ccsdk.sli.northbound</groupId>
             <artifactId>ueb-listener</artifactId>
-            <type>zip</type>
             <version>${ccsdk.sli.northbound.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>${log4j.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.projectlombok</groupId>
+                    <artifactId>lombok</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
     </dependencies>
 
@@ -145,14 +145,29 @@
                 <artifactId>maven-dependency-plugin</artifactId>
                 <executions>
                     <execution>
-                        <id>unpack</id>
+                        <id>copy-libs</id>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/docker-stage/opt/onap/sdnc/ueb-listener/lib</outputDirectory>
+                            <includeScope>runtime</includeScope>
+                            <overWriteReleases>true</overWriteReleases>
+                            <overWriteSnapshots>true</overWriteSnapshots>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>unpack-xslts</id>
                         <goals>
                             <goal>unpack-dependencies</goal>
                         </goals>
                         <phase>initialize</phase>
-                        <configuration>                          
-                            <outputDirectory>${basedir}/target/docker-stage/opt/onap/sdnc/ueb-listener</outputDirectory>
-                            <excludes>bin/**,**/*-javadoc.jar,**/*-sources.jar</excludes>
+                        <configuration>
+                            <outputDirectory>${basedir}/target/docker-stage/opt/onap/sdnc/ueb-listener/lib</outputDirectory>
+                            <includeGroupIds>org.onap.ccsdk.sli.northbound</includeGroupIds>
+                            <includeArtifactIds>ueb-listener</includeArtifactIds>
+                            <includes>*.xslt</includes>
                             <overWriteReleases>true</overWriteReleases>
                             <overWriteSnapshots>true</overWriteSnapshots>
                         </configuration>
