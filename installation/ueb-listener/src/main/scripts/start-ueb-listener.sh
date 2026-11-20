@@ -32,15 +32,9 @@ JAVA_HOME=${JAVA_HOME:-/usr/lib/jvm/java-7-oracle}
 JAVA_OPTS=${JAVA_OPTS:--Dhttps.protocols=TLSv1.1,TLSv1.2}
 JAVA=${JAVA:-${JAVA_HOME}/bin/java}
 
-
-for file in ${UEBLISTENERROOT}/lib/*.jar
-do
-  LISTENERCLASSPATH=$LISTENERCLASSPATH:$file
-done
-
 echo "Starting ueb-listener"
 cd ${UEBLISTENERROOT}
-exec ${JAVA} ${JAVA_OPTS} -jar ${UEBLISTENERROOT}/lib/ueb-listener*.jar -Dlog4j.configurationFile=${PROPERTY_DIR}/log4j2.xml -cp ${LISTENERCLASSPATH}
+exec ${JAVA} ${JAVA_OPTS} -Dlog4j.configurationFile=${PROPERTY_DIR}/log4j2.xml -cp "${UEBLISTENERROOT}/lib/*" org.onap.ccsdk.sli.northbound.uebclient.SdncUebClient
 
 
 
