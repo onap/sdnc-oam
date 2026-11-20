@@ -26,8 +26,10 @@ mkdir -p ${WORKSPACE}/archives
 cd ${WORKSPACE}
 
 # Execute all testsuites defined under plans subdirectory
+rc=0
 for dir in plans/*/
 do
     dir=${dir%*/}  # remove the trailing /
-   ./run-csit.sh ${dir} ${TESTOPTIONS}
+   ./run-csit.sh ${dir} ${TESTOPTIONS} || rc=1
 done
+exit $rc
