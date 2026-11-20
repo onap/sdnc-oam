@@ -117,8 +117,16 @@ EOF
 ueb-listener|dmaap-listener)
     [ "$(config '{{.Config.User}}')" = sdnc ]
     report "runs as sdnc" $?
-    config '{{range .Config.Env}}{{println .}}{{end}}' | grep -qx 'JAVA_OPTS=-Xms256m -Xmx1g'
-    report "keeps JAVA_OPTS heap defaults" $?
+    if [ "$PROFILE" = ueb-listener ]; then
+        config '{{range .Config.Env}}{{println .}}{{end}}' | grep -qx 'JAVA_OPTS=-XX:MaxRAMPercentage=75.0'
+        report "sizes the heap from the container memory limit" $?
+        check "has /opt/opentelemetry/opentelemetry-javaagent.jar" '[ -f /opt/opentelemetry/opentelemetry-javaagent.jar ]'
+        check "start script attaches the OpenTelemetry agent" \
+            "JAVA=echo /opt/onap/sdnc/ueb-listener/bin/start-ueb-listener.sh | grep -q -- '-javaagent:/opt/opentelemetry/opentelemetry-javaagent.jar '"
+    else
+        config '{{range .Config.Env}}{{println .}}{{end}}' | grep -qx 'JAVA_OPTS=-Xms256m -Xmx1g'
+        report "keeps JAVA_OPTS heap defaults" $?
+    fi
     check "sdnc is uid 100 gid 102" '[ "$(id -u sdnc):$(id -g sdnc)" = 100:102 ]'
     for tool in bash java; do
         check "provides $tool" "command -v $tool"

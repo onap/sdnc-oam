@@ -32,6 +32,14 @@ JAVA_HOME=${JAVA_HOME:-/usr/lib/jvm/java-7-oracle}
 JAVA_OPTS=${JAVA_OPTS:--Dhttps.protocols=TLSv1.1,TLSv1.2}
 JAVA=${JAVA:-${JAVA_HOME}/bin/java}
 
+if [ -n "$OTEL_JAVAAGENT_PATH" ] && [ -f "$OTEL_JAVAAGENT_PATH" ]; then
+  JAVA_OPTS="${JAVA_OPTS} -javaagent:${OTEL_JAVAAGENT_PATH}"
+  export OTEL_SERVICE_NAME=${OTEL_SERVICE_NAME:-sdnc-ueb-listener}
+  export OTEL_TRACES_EXPORTER=${OTEL_TRACES_EXPORTER:-otlp}
+  export OTEL_METRICS_EXPORTER=${OTEL_METRICS_EXPORTER:-none}
+  export OTEL_LOGS_EXPORTER=${OTEL_LOGS_EXPORTER:-none}
+fi
+
 
 for file in ${UEBLISTENERROOT}/lib/*.jar
 do
