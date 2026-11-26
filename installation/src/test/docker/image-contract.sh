@@ -19,7 +19,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # ============LICENSE_END=========================================================
 #
-# Usage: image-contract.sh sdnc|ueb-listener|dmaap-listener IMAGE [SLI_VERSION]
+# Usage: image-contract.sh sdnc|ueb-listener IMAGE [SLI_VERSION]
 # Prints one PASS/FAIL line per check and exits 1 if any check failed.
 
 set -u
@@ -114,19 +114,14 @@ org/opendaylight/aaa/aaa-authn-api org/opendaylight/aaa/aaa-shiro com/highstreet
 org/ops4j/pax/web/pax-web-jetty org/ops4j/pax/web/pax-web-api com/highstreet-technologies/org/ops4j/pax/web/pax-web-jetty
 EOF
     ;;
-ueb-listener|dmaap-listener)
+ueb-listener)
     [ "$(config '{{.Config.User}}')" = sdnc ]
     report "runs as sdnc" $?
-    if [ "$PROFILE" = ueb-listener ]; then
-        config '{{range .Config.Env}}{{println .}}{{end}}' | grep -qx 'JAVA_OPTS=-XX:MaxRAMPercentage=75.0'
-        report "sizes the heap from the container memory limit" $?
-        check "has /opt/opentelemetry/opentelemetry-javaagent.jar" '[ -f /opt/opentelemetry/opentelemetry-javaagent.jar ]'
-        check "start script attaches the OpenTelemetry agent" \
-            "JAVA=echo /opt/onap/sdnc/ueb-listener/bin/start-ueb-listener.sh | grep -q -- '-javaagent:/opt/opentelemetry/opentelemetry-javaagent.jar '"
-    else
-        config '{{range .Config.Env}}{{println .}}{{end}}' | grep -qx 'JAVA_OPTS=-Xms256m -Xmx1g'
-        report "keeps JAVA_OPTS heap defaults" $?
-    fi
+    config '{{range .Config.Env}}{{println .}}{{end}}' | grep -qx 'JAVA_OPTS=-XX:MaxRAMPercentage=75.0'
+    report "sizes the heap from the container memory limit" $?
+    check "has /opt/opentelemetry/opentelemetry-javaagent.jar" '[ -f /opt/opentelemetry/opentelemetry-javaagent.jar ]'
+    check "start script attaches the OpenTelemetry agent" \
+        "JAVA=echo /opt/onap/sdnc/ueb-listener/bin/start-ueb-listener.sh | grep -q -- '-javaagent:/opt/opentelemetry/opentelemetry-javaagent.jar '"
     check "sdnc is uid 100 gid 102" '[ "$(id -u sdnc):$(id -g sdnc)" = 100:102 ]'
     for tool in bash java; do
         check "provides $tool" "command -v $tool"
