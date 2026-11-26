@@ -87,7 +87,7 @@ initialize_sdnrdb() {
   INITCMD="$JAVA_HOME/bin/java -jar "
   FN=$(find "$ODL_HOME/system" -name "sdnr-wt-data-provider-setup-*.jar")
   INITCMD="${INITCMD} ${FN} $SDNRDBCOMMAND"
-  printf "%s\n" "Execute: $INITCMD"
+  printf "%s\n" "Execute: $INITCMD" | sed -E 's/(-dbp|--db-password)([ =])[^ ]+/\1\2***/g'
   n=0
   until [ $n -ge 5 ] ; do
     $INITCMD
@@ -378,7 +378,7 @@ if $SDNC_DB_INIT; then
 # Wait for database
 #
   printf "Waiting for mysql"
-  until mariadb --skip-ssl -h dbhost -u root -p"${MYSQL_ROOT_PASSWORD}" -e "select 1" > /dev/null 2>&1
+  until MYSQL_PWD="${MYSQL_ROOT_PASSWORD}" mariadb --skip-ssl -h dbhost -u root -e "select 1" > /dev/null 2>&1
   do
     printf "."
     sleep 1

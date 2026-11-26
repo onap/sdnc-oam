@@ -11,7 +11,7 @@ start=$3
 
 if [ $# -eq 3 ]
 then
-  mariadb --user=${SDNC_DB_USER} --password=${SDNC_DB_PASSWORD} --host=${MYSQL_HOST} ${SDNC_DB_DATABASE} <<EOF
+  MYSQL_PWD="${SDNC_DB_PASSWORD}" mariadb --user=${SDNC_DB_USER} --host=${MYSQL_HOST} ${SDNC_DB_DATABASE} <<EOF
 INSERT INTO IPV4_ADDRESS_POOL VALUES('', '$universe', 'AVAILABLE', '${subnet}.${start}');
 EOF
 elif [ $# -eq 4 ]
@@ -21,7 +21,7 @@ then
 
    while [ $ip -le $stop ]
    do
-   mariadb --user=${SDNC_DB_USER} --password=${SDNC_DB_PASSWORD} --host=${MYSQL_HOST} ${SDNC_DB_DATABASE} <<EOF
+   MYSQL_PWD="${SDNC_DB_PASSWORD}" mariadb --user=${SDNC_DB_USER} --host=${MYSQL_HOST} ${SDNC_DB_DATABASE} <<EOF
 INSERT INTO IPV4_ADDRESS_POOL VALUES('', '$universe', 'AVAILABLE','${subnet}.${ip}');
 EOF
 ip=$(( ip+1 ))

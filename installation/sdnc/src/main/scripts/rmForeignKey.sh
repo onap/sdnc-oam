@@ -12,7 +12,7 @@ then
   exit 1
 fi
 
-mariadb --user=${SDNC_DB_USER} --password=${SDNC_DB_PASSWORD} --host ${MYSQL_HOST} ${SDNC_DB_DATABASE} <<EOF
+MYSQL_PWD="${SDNC_DB_PASSWORD}" mariadb --user=${SDNC_DB_USER} --host ${MYSQL_HOST} ${SDNC_DB_DATABASE} <<EOF
 ALTER TABLE $1
 DROP FOREIGN KEY $2;
 EOF
