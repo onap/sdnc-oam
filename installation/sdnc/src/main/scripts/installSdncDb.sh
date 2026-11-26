@@ -30,7 +30,7 @@ SDNC_DB_DATABASE=${SDNC_DB_DATABASE:-sdnctl}
 
 
 # Create tablespace and user account
-mariadb -h dbhost -u root -p${MYSQL_ROOT_PASSWORD} mysql <<-END
+MYSQL_PWD="${MYSQL_ROOT_PASSWORD}" mariadb -h dbhost -u root mysql <<-END
 CREATE DATABASE ${SDNC_DB_DATABASE};
 CREATE USER '${SDNC_DB_USER}'@'localhost' IDENTIFIED BY '${SDNC_DB_PASSWORD}';
 CREATE USER '${SDNC_DB_USER}'@'%' IDENTIFIED BY '${SDNC_DB_PASSWORD}';
@@ -43,13 +43,13 @@ END
 if [ -f ${SDNC_HOME}/data/sdnctl.dump ]
 then
   echo "Installing ${SDNC_HOME}/data/sdnctl.dump"
-  mariadb -h dbhost -u root -p${MYSQL_ROOT_PASSWORD} "${SDNC_DB_DATABASE}" < ${SDNC_HOME}/data/sdnctl.dump
+  MYSQL_PWD="${MYSQL_ROOT_PASSWORD}" mariadb -h dbhost -u root "${SDNC_DB_DATABASE}" < ${SDNC_HOME}/data/sdnctl.dump
 fi
 
 for datafile in ${SDNC_HOME}/data/*.data.dump
 do
   echo "Installing ${datafile}"
-  mariadb -h dbhost -u root -p${MYSQL_ROOT_PASSWORD} "${SDNC_DB_DATABASE}" < $datafile
+  MYSQL_PWD="${MYSQL_ROOT_PASSWORD}" mariadb -h dbhost -u root "${SDNC_DB_DATABASE}" < $datafile
 done
 
 # Create VNIs 100-199
