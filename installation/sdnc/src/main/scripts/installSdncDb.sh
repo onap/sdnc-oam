@@ -26,7 +26,7 @@ MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-openECOMP1.0}
 
 SDNC_DB_USER=${SDNC_DB_USER:-sdnctl}
 SDNC_DB_PASSWORD=${SDNC_DB_PASSWORD:-gamma}
-SDNC_DB_DATABASE=${SDN_DB_DATABASE:-sdnctl}
+SDNC_DB_DATABASE=${SDNC_DB_DATABASE:-sdnctl}
 
 
 # Create tablespace and user account
@@ -43,13 +43,13 @@ END
 if [ -f ${SDNC_HOME}/data/sdnctl.dump ]
 then
   echo "Installing ${SDNC_HOME}/data/sdnctl.dump"
-  mariadb -h dbhost -u root -p${MYSQL_ROOT_PASSWORD} sdnctl < ${SDNC_HOME}/data/sdnctl.dump
+  mariadb -h dbhost -u root -p${MYSQL_ROOT_PASSWORD} "${SDNC_DB_DATABASE}" < ${SDNC_HOME}/data/sdnctl.dump
 fi
 
 for datafile in ${SDNC_HOME}/data/*.data.dump
 do
   echo "Installing ${datafile}"
-  mariadb -h dbhost -u root -p${MYSQL_ROOT_PASSWORD} sdnctl < $datafile
+  mariadb -h dbhost -u root -p${MYSQL_ROOT_PASSWORD} "${SDNC_DB_DATABASE}" < $datafile
 done
 
 # Create VNIs 100-199
